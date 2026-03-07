@@ -9,6 +9,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"slices"
 	"strings"
 	"time"
 
@@ -197,7 +198,8 @@ func (e *Executor) callQuery(ctx context.Context, session mcpgw.ToolSessionConte
 		return mcpgw.BuildToolErrorResult(fmt.Sprintf("subagent query failed: %v", err)), nil
 	}
 
-	updatedMessages := append(target.Messages, gwResp.Messages...)
+	updatedMessages := slices.Clone(target.Messages)
+	updatedMessages = append(updatedMessages, gwResp.Messages...)
 	usage := mergeUsage(target.Usage, gwResp.Usage)
 	if _, err := e.service.UpdateContext(ctx, target.ID, subagentsvc.UpdateContextRequest{
 		Messages: updatedMessages,

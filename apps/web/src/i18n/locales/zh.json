@@ -664,6 +664,7 @@
       "types": {
         "feishu": "飞书",
         "discord": "Discord",
+        "qq": "QQ",
         "telegram": "Telegram",
         "web": "Web",
         "local": "本地"
@@ -671,6 +672,7 @@
       "typesShort": {
         "feishu": "飞",
         "discord": "DC",
+        "qq": "QQ",
         "telegram": "TG",
         "web": "Web",
         "local": "CLI"

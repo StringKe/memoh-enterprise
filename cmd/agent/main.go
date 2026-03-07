@@ -28,6 +28,7 @@ import (
 	"github.com/memohai/memoh/internal/channel/adapters/discord"
 	"github.com/memohai/memoh/internal/channel/adapters/feishu"
 	"github.com/memohai/memoh/internal/channel/adapters/local"
+	"github.com/memohai/memoh/internal/channel/adapters/qq"
 	"github.com/memohai/memoh/internal/channel/adapters/telegram"
 	"github.com/memohai/memoh/internal/channel/identities"
 	"github.com/memohai/memoh/internal/channel/inbound"
@@ -391,6 +392,10 @@ func provideChannelRegistry(log *slog.Logger, hub *local.RouteHub, mediaService 
 	discordAdapter.SetAssetOpener(mediaService)
 	registry.MustRegister(discordAdapter)
 
+	qqAdapter := qq.NewQQAdapter(log)
+	qqAdapter.SetAssetOpener(mediaService)
+	registry.MustRegister(qqAdapter)
+
 	registry.MustRegister(feishu.NewFeishuAdapter(log))
 	registry.MustRegister(local.NewCLIAdapter(hub))
 	registry.MustRegister(local.NewWebAdapter(hub))
@@ -413,6 +418,17 @@ func provideChannelRouter(
 	inboxService *inbox.Service,
 	rc *boot.RuntimeConfig,
 ) *inbound.ChannelInboundProcessor {
+	adapter, ok := registry.Get(qq.Type)
+	if !ok {
+		panic("qq adapter not registered")
+	}
+	qqAdapter, ok := adapter.(*qq.QQAdapter)
+	if !ok {
+		panic("qq adapter has unexpected type")
+	}
+	qqAdapter.SetChannelIdentityResolver(identityService)
+	qqAdapter.SetRouteResolver(routeService)
+
 	processor := inbound.NewChannelInboundProcessor(log, registry, routeService, msgService, resolver, identityService, botService, policyService, preauthService, bindService, rc.JwtSecret, 5*time.Minute)
 	processor.SetMediaService(mediaService)
 	processor.SetStreamObserver(local.NewRouteHubBroadcaster(hub))

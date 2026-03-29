@@ -70,8 +70,10 @@
         <DropdownMenu>
           <DropdownMenuTrigger as-child>
             <button class="flex items-center gap-1">
-              <Globe
-                class="size-2.5 text-muted-foreground"
+              <component
+                :is="filterIconComponent"
+                class="size-2.5"
+                :class="filterIconClass"
               />
               <span class="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.7px]">
                 {{ t('chat.sessionSourcePrefix') }}{{ filterLabel }}
@@ -145,9 +147,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onBeforeUnmount } from 'vue'
+import { ref, computed, onBeforeUnmount, type Component } from 'vue'
 import { useLocalStorage } from '@vueuse/core'
-import { Search, Plus, Globe, ChevronDown, Check, LoaderCircle } from 'lucide-vue-next'
+import { Search, Plus, ChevronDown, Check, LoaderCircle, MessageSquare, HeartPulse, Clock, GitBranch } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -221,6 +223,24 @@ const filterOptions = computed(() => [
 const filterLabel = computed(() => {
   const opt = filterOptions.value.find(o => o.value === filterType.value)
   return opt?.label ?? t('chat.sessionTypeChat')
+})
+
+const filterIconComponent = computed<Component>(() => {
+  switch (filterType.value) {
+    case 'heartbeat': return HeartPulse
+    case 'schedule': return Clock
+    case 'subagent': return GitBranch
+    default: return MessageSquare
+  }
+})
+
+const filterIconClass = computed(() => {
+  switch (filterType.value) {
+    case 'heartbeat': return 'text-rose-400'
+    case 'schedule': return 'text-amber-400'
+    case 'subagent': return 'text-violet-400'
+    default: return 'text-muted-foreground'
+  }
 })
 
 const filteredSessions = computed(() => {

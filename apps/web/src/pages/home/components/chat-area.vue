@@ -126,7 +126,7 @@
             @change="handleFileInputChange"
           >
           <section>
-            <InputGroup class="bg-transparent overflow-hidden">
+            <InputGroup class="bg-transparent overflow-hidden shadow-none! ring-0! border-border!">
               <InputGroupTextarea
                 v-model="inputText"
                 class="min-h-14 max-h-14 text-xs resize-none break-all!"                
@@ -138,7 +138,7 @@
               />
               <InputGroupAddon
                 align="block-end"
-                class="bg-[#FAFAFA] dark:bg-background items-center py-1.5"
+                class="items-center py-1.5"
               >
                 <Button
                   type="button"

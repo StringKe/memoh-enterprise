@@ -75,6 +75,7 @@
               <MarkdownRender
                 :content="checkResult.body"
                 :is-dark="isDark"
+                :typewriter="false"
                 custom-id="release-notes"
               />
             </div>

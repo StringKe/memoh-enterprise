@@ -111,6 +111,10 @@ func (*legacyRouteTestService) GetTaskInfo(context.Context, string) (ctr.TaskInf
 	return ctr.TaskInfo{}, errdefs.ErrNotFound
 }
 
+func (*legacyRouteTestService) GetContainerMetrics(context.Context, string) (ctr.ContainerMetrics, error) {
+	return ctr.ContainerMetrics{}, ctr.ErrNotSupported
+}
+
 func (*legacyRouteTestService) ListTasks(context.Context, *ctr.ListTasksOptions) ([]ctr.TaskInfo, error) {
 	return nil, nil
 }

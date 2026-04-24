@@ -327,6 +327,10 @@ func (s *AppleService) GetTaskInfo(ctx context.Context, containerID string) (Tas
 	}, nil
 }
 
+func (*AppleService) GetContainerMetrics(context.Context, string) (ContainerMetrics, error) {
+	return ContainerMetrics{}, ErrNotSupported
+}
+
 func (s *AppleService) ListTasks(ctx context.Context, opts *ListTasksOptions) ([]TaskInfo, error) {
 	if err := s.ensureHealthy(ctx); err != nil {
 		return nil, err

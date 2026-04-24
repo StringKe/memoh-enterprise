@@ -100,6 +100,7 @@ type Service interface {
 	StopContainer(ctx context.Context, containerID string, opts *StopTaskOptions) error
 	DeleteTask(ctx context.Context, containerID string, opts *DeleteTaskOptions) error
 	GetTaskInfo(ctx context.Context, containerID string) (TaskInfo, error)
+	GetContainerMetrics(ctx context.Context, containerID string) (ContainerMetrics, error)
 	ListTasks(ctx context.Context, opts *ListTasksOptions) ([]TaskInfo, error)
 	SetupNetwork(ctx context.Context, req NetworkSetupRequest) (NetworkResult, error)
 	RemoveNetwork(ctx context.Context, req NetworkSetupRequest) error

@@ -882,8 +882,37 @@ export type HandlersChannelMeta = {
     user_config_schema?: ChannelConfigSchema;
 };
 
+export type HandlersContainerCpuMetricsResponse = {
+    kernel_nanoseconds?: number;
+    usage_nanoseconds?: number;
+    usage_percent?: number;
+    user_nanoseconds?: number;
+};
+
 export type HandlersContainerGpuRequest = {
     devices?: Array<string>;
+};
+
+export type HandlersContainerMemoryMetricsResponse = {
+    limit_bytes?: number;
+    usage_bytes?: number;
+    usage_percent?: number;
+};
+
+export type HandlersContainerMetricsPayloadResponse = {
+    cpu?: HandlersContainerCpuMetricsResponse;
+    memory?: HandlersContainerMemoryMetricsResponse;
+    storage?: HandlersContainerStorageMetricsResponse;
+};
+
+export type HandlersContainerMetricsStatusResponse = {
+    exists?: boolean;
+    task_running?: boolean;
+};
+
+export type HandlersContainerStorageMetricsResponse = {
+    path?: string;
+    used_bytes?: number;
 };
 
 export type HandlersContextUsage = {
@@ -977,6 +1006,15 @@ export type HandlersFsUploadResponse = {
 export type HandlersFsWriteRequest = {
     content?: string;
     path?: string;
+};
+
+export type HandlersGetContainerMetricsResponse = {
+    backend?: string;
+    metrics?: HandlersContainerMetricsPayloadResponse;
+    sampled_at?: string;
+    status?: HandlersContainerMetricsStatusResponse;
+    supported?: boolean;
+    unsupported_reason?: string;
 };
 
 export type HandlersGetContainerResponse = {
@@ -3037,6 +3075,36 @@ export type PostBotsByBotIdContainerFsWriteResponses = {
 };
 
 export type PostBotsByBotIdContainerFsWriteResponse = PostBotsByBotIdContainerFsWriteResponses[keyof PostBotsByBotIdContainerFsWriteResponses];
+
+export type GetBotsByBotIdContainerMetricsData = {
+    body?: never;
+    path: {
+        /**
+         * Bot ID
+         */
+        bot_id: string;
+    };
+    query?: never;
+    url: '/bots/{bot_id}/container/metrics';
+};
+
+export type GetBotsByBotIdContainerMetricsErrors = {
+    /**
+     * Internal Server Error
+     */
+    500: HandlersErrorResponse;
+};
+
+export type GetBotsByBotIdContainerMetricsError = GetBotsByBotIdContainerMetricsErrors[keyof GetBotsByBotIdContainerMetricsErrors];
+
+export type GetBotsByBotIdContainerMetricsResponses = {
+    /**
+     * OK
+     */
+    200: HandlersGetContainerMetricsResponse;
+};
+
+export type GetBotsByBotIdContainerMetricsResponse = GetBotsByBotIdContainerMetricsResponses[keyof GetBotsByBotIdContainerMetricsResponses];
 
 export type DeleteBotsByBotIdContainerSkillsData = {
     /**

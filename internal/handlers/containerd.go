@@ -106,6 +106,44 @@ type GetContainerResponse struct {
 	UpdatedAt        time.Time `json:"updated_at"`
 }
 
+type ContainerMetricsStatusResponse struct {
+	Exists      bool `json:"exists"`
+	TaskRunning bool `json:"task_running"`
+}
+
+type ContainerCPUMetricsResponse struct {
+	UsagePercent      float64 `json:"usage_percent"`
+	UsageNanoseconds  uint64  `json:"usage_nanoseconds"`
+	UserNanoseconds   uint64  `json:"user_nanoseconds"`
+	KernelNanoseconds uint64  `json:"kernel_nanoseconds"`
+}
+
+type ContainerMemoryMetricsResponse struct {
+	UsageBytes   uint64  `json:"usage_bytes"`
+	LimitBytes   uint64  `json:"limit_bytes"`
+	UsagePercent float64 `json:"usage_percent"`
+}
+
+type ContainerStorageMetricsResponse struct {
+	Path      string `json:"path"`
+	UsedBytes uint64 `json:"used_bytes"`
+}
+
+type ContainerMetricsPayloadResponse struct {
+	CPU     *ContainerCPUMetricsResponse     `json:"cpu,omitempty"`
+	Memory  *ContainerMemoryMetricsResponse  `json:"memory,omitempty"`
+	Storage *ContainerStorageMetricsResponse `json:"storage,omitempty"`
+}
+
+type GetContainerMetricsResponse struct {
+	Supported         bool                            `json:"supported"`
+	Backend           string                          `json:"backend"`
+	UnsupportedReason string                          `json:"unsupported_reason,omitempty"`
+	Status            ContainerMetricsStatusResponse  `json:"status"`
+	Metrics           ContainerMetricsPayloadResponse `json:"metrics"`
+	SampledAt         *time.Time                      `json:"sampled_at,omitempty"`
+}
+
 type RollbackRequest struct {
 	Version int `json:"version"`
 }
@@ -163,6 +201,7 @@ func (h *ContainerdHandler) Register(e *echo.Echo) {
 	group := e.Group("/bots/:bot_id/container")
 	group.POST("", h.CreateContainer)
 	group.GET("", h.GetContainer)
+	group.GET("/metrics", h.GetContainerMetrics)
 	group.DELETE("", h.DeleteContainer)
 	group.POST("/start", h.StartContainer)
 	group.POST("/stop", h.StopContainer)
@@ -398,6 +437,46 @@ func (h *ContainerdHandler) GetContainer(c echo.Context) error {
 		CreatedAt:        status.CreatedAt,
 		UpdatedAt:        status.UpdatedAt,
 	})
+}
+
+// GetContainerMetrics godoc
+// @Summary Get current container metrics for bot
+// @Tags containerd
+// @Param bot_id path string true "Bot ID"
+// @Success 200 {object} GetContainerMetricsResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /bots/{bot_id}/container/metrics [get].
+func (h *ContainerdHandler) GetContainerMetrics(c echo.Context) error {
+	botID, err := h.requireBotAccess(c)
+	if err != nil {
+		return err
+	}
+
+	metrics, err := h.manager.GetContainerMetrics(c.Request().Context(), botID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+
+	response := GetContainerMetricsResponse{
+		Supported:         metrics.Supported,
+		Backend:           h.containerBackend,
+		UnsupportedReason: metrics.UnsupportedReason,
+		Status: ContainerMetricsStatusResponse{
+			Exists:      metrics.Status.Exists,
+			TaskRunning: metrics.Status.TaskRunning,
+		},
+		Metrics: ContainerMetricsPayloadResponse{
+			CPU:     toContainerCPUMetricsResponse(metrics.CPU),
+			Memory:  toContainerMemoryMetricsResponse(metrics.Memory),
+			Storage: toContainerStorageMetricsResponse(metrics.Storage),
+		},
+	}
+	if !metrics.SampledAt.IsZero() {
+		sampledAt := metrics.SampledAt
+		response.SampledAt = &sampledAt
+	}
+
+	return c.JSON(http.StatusOK, response)
 }
 
 // DeleteContainer godoc
@@ -761,6 +840,39 @@ func (h *ContainerdHandler) RestorePreservedData(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(http.StatusOK, map[string]bool{"restored": true})
+}
+
+func toContainerCPUMetricsResponse(metrics *ctr.CPUMetrics) *ContainerCPUMetricsResponse {
+	if metrics == nil {
+		return nil
+	}
+	return &ContainerCPUMetricsResponse{
+		UsagePercent:      metrics.UsagePercent,
+		UsageNanoseconds:  metrics.UsageNanoseconds,
+		UserNanoseconds:   metrics.UserNanoseconds,
+		KernelNanoseconds: metrics.KernelNanoseconds,
+	}
+}
+
+func toContainerMemoryMetricsResponse(metrics *ctr.MemoryMetrics) *ContainerMemoryMetricsResponse {
+	if metrics == nil {
+		return nil
+	}
+	return &ContainerMemoryMetricsResponse{
+		UsageBytes:   metrics.UsageBytes,
+		LimitBytes:   metrics.LimitBytes,
+		UsagePercent: metrics.UsagePercent,
+	}
+}
+
+func toContainerStorageMetricsResponse(metrics *workspace.ContainerStorageMetrics) *ContainerStorageMetricsResponse {
+	if metrics == nil {
+		return nil
+	}
+	return &ContainerStorageMetricsResponse{
+		Path:      metrics.Path,
+		UsedBytes: metrics.UsedBytes,
+	}
 }
 
 func snapshotLineage(root string, all []ctr.SnapshotInfo) ([]ctr.SnapshotInfo, bool) {

@@ -1503,6 +1503,37 @@ const docTemplate = `{
                 }
             }
         },
+        "/bots/{bot_id}/container/metrics": {
+            "get": {
+                "tags": [
+                    "containerd"
+                ],
+                "summary": "Get current container metrics for bot",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bot ID",
+                        "name": "bot_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.GetContainerMetricsResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/bots/{bot_id}/container/skills": {
             "get": {
                 "tags": [
@@ -11653,6 +11684,23 @@ const docTemplate = `{
                 }
             }
         },
+        "handlers.ContainerCPUMetricsResponse": {
+            "type": "object",
+            "properties": {
+                "kernel_nanoseconds": {
+                    "type": "integer"
+                },
+                "usage_nanoseconds": {
+                    "type": "integer"
+                },
+                "usage_percent": {
+                    "type": "number"
+                },
+                "user_nanoseconds": {
+                    "type": "integer"
+                }
+            }
+        },
         "handlers.ContainerGPURequest": {
             "type": "object",
             "properties": {
@@ -11661,6 +11709,56 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "handlers.ContainerMemoryMetricsResponse": {
+            "type": "object",
+            "properties": {
+                "limit_bytes": {
+                    "type": "integer"
+                },
+                "usage_bytes": {
+                    "type": "integer"
+                },
+                "usage_percent": {
+                    "type": "number"
+                }
+            }
+        },
+        "handlers.ContainerMetricsPayloadResponse": {
+            "type": "object",
+            "properties": {
+                "cpu": {
+                    "$ref": "#/definitions/handlers.ContainerCPUMetricsResponse"
+                },
+                "memory": {
+                    "$ref": "#/definitions/handlers.ContainerMemoryMetricsResponse"
+                },
+                "storage": {
+                    "$ref": "#/definitions/handlers.ContainerStorageMetricsResponse"
+                }
+            }
+        },
+        "handlers.ContainerMetricsStatusResponse": {
+            "type": "object",
+            "properties": {
+                "exists": {
+                    "type": "boolean"
+                },
+                "task_running": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "handlers.ContainerStorageMetricsResponse": {
+            "type": "object",
+            "properties": {
+                "path": {
+                    "type": "string"
+                },
+                "used_bytes": {
+                    "type": "integer"
                 }
             }
         },
@@ -11885,6 +11983,29 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "path": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.GetContainerMetricsResponse": {
+            "type": "object",
+            "properties": {
+                "backend": {
+                    "type": "string"
+                },
+                "metrics": {
+                    "$ref": "#/definitions/handlers.ContainerMetricsPayloadResponse"
+                },
+                "sampled_at": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/handlers.ContainerMetricsStatusResponse"
+                },
+                "supported": {
+                    "type": "boolean"
+                },
+                "unsupported_reason": {
                     "type": "string"
                 }
             }

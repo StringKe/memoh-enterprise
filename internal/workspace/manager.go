@@ -51,6 +51,26 @@ type ContainerStatus struct {
 	UpdatedAt        time.Time `json:"updated_at"`
 }
 
+type ContainerMetricsStatus struct {
+	Exists      bool `json:"exists"`
+	TaskRunning bool `json:"task_running"`
+}
+
+type ContainerStorageMetrics struct {
+	Path      string `json:"path"`
+	UsedBytes uint64 `json:"used_bytes"`
+}
+
+type ContainerMetricsResult struct {
+	Supported         bool
+	UnsupportedReason string
+	Status            ContainerMetricsStatus
+	SampledAt         time.Time
+	CPU               *ctr.CPUMetrics
+	Memory            *ctr.MemoryMetrics
+	Storage           *ContainerStorageMetrics
+}
+
 type Manager struct {
 	service         ctr.Service
 	cfg             config.WorkspaceConfig

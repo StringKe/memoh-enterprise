@@ -8,6 +8,7 @@ import { ChevronRight } from 'lucide-vue-next'
 import {
   deleteBotsByBotIdContainer,
   getBotsByBotIdContainer,
+  getBotsByBotIdContainerMetrics,
   getBotsByBotIdContainerSnapshots,
   getBotsById,
   postBotsByBotIdContainerDataExport,
@@ -18,6 +19,7 @@ import {
   postBotsByBotIdContainerStart,
   postBotsByBotIdContainerStop,
   type HandlersCreateContainerRequest,
+  type HandlersGetContainerMetricsResponse,
   type HandlersGetContainerResponse,
   type HandlersListSnapshotsResponse,
 } from '@memohai/sdk'
@@ -29,6 +31,7 @@ import {
 import { Button, Collapsible, CollapsibleContent, CollapsibleTrigger, Input, Label, Separator, Spinner, Switch, Textarea } from '@memohai/ui'
 import ConfirmPopover from '@/components/confirm-popover/index.vue'
 import ContainerCreateProgress from './container-create-progress.vue'
+import ContainerMetricsPanel from './container-metrics-panel.vue'
 import { useSyncedQueryParam } from '@/composables/useSyncedQueryParam'
 import { useBotStatusMeta } from '@/composables/useBotStatusMeta'
 import { useCapabilitiesStore } from '@/store/capabilities'
@@ -92,11 +95,14 @@ const botId = computed(() => route.params.botId as string)
 const containerBusy = computed(() => containerLoading.value || containerAction.value !== '')
 
 type BotContainerInfo = HandlersGetContainerResponse
+type BotContainerMetrics = HandlersGetContainerMetricsResponse
 type BotContainerSnapshot = HandlersListSnapshotsResponse extends { snapshots?: (infer T)[] } ? T : never
 
 const containerInfo = ref<BotContainerInfo | null>(null)
+const containerMetrics = ref<BotContainerMetrics | null>(null)
 const containerMissing = ref(false)
 const snapshots = ref<BotContainerSnapshot[]>([])
+const metricsLoading = ref(false)
 const snapshotsLoading = ref(false)
 
 function resolveErrorMessage(error: unknown, fallback: string): string {
@@ -134,6 +140,7 @@ async function loadContainerData(showLoadingToast: boolean) {
     if (result.error !== undefined) {
       if (result.response.status === 404) {
         containerInfo.value = null
+        containerMetrics.value = null
         containerMissing.value = true
         snapshots.value = []
         return
@@ -144,10 +151,13 @@ async function loadContainerData(showLoadingToast: boolean) {
     containerInfo.value = result.data
     containerMissing.value = false
 
+    const metricsPromise = loadContainerMetrics(showLoadingToast)
+
     if (capabilitiesStore.snapshotSupported) {
-      await loadSnapshots()
+      await Promise.all([metricsPromise, loadSnapshots()])
     } else {
       snapshots.value = []
+      await metricsPromise
     }
   } catch (error) {
     if (showLoadingToast) {
@@ -155,6 +165,24 @@ async function loadContainerData(showLoadingToast: boolean) {
     }
   } finally {
     containerLoading.value = false
+  }
+}
+
+async function loadContainerMetrics(showLoadingToast: boolean) {
+  metricsLoading.value = true
+  try {
+    const { data } = await getBotsByBotIdContainerMetrics({
+      path: { bot_id: botId.value },
+      throwOnError: true,
+    })
+    containerMetrics.value = data
+  } catch (error) {
+    containerMetrics.value = null
+    if (showLoadingToast) {
+      toast.error(resolveErrorMessage(error, t('bots.container.metricsLoadFailed')))
+    }
+  } finally {
+    metricsLoading.value = false
   }
 }
 
@@ -411,6 +439,7 @@ async function handleDeleteContainer(preserveData: boolean) {
         throwOnError: true,
       })
       containerInfo.value = null
+      containerMetrics.value = null
       containerMissing.value = true
       snapshots.value = []
       createRestoreData.value = preserveData
@@ -957,6 +986,12 @@ watch([activeTab, botId], ([tab]) => {
           </div>
         </dl>
       </div>
+
+      <ContainerMetricsPanel
+        :backend="capabilitiesStore.containerBackend"
+        :loading="metricsLoading"
+        :metrics="containerMetrics"
+      />
 
       <div class="rounded-md border px-3 py-2 text-xs text-muted-foreground">
         {{ $t('bots.container.gpuRecreateHint') }}

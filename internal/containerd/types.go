@@ -61,6 +61,25 @@ type TaskInfo struct {
 	ExitCode    uint32
 }
 
+type ContainerMetrics struct {
+	SampledAt time.Time
+	CPU       *CPUMetrics
+	Memory    *MemoryMetrics
+}
+
+type CPUMetrics struct {
+	UsagePercent      float64
+	UsageNanoseconds  uint64
+	UserNanoseconds   uint64
+	KernelNanoseconds uint64
+}
+
+type MemoryMetrics struct {
+	UsageBytes   uint64
+	LimitBytes   uint64
+	UsagePercent float64
+}
+
 type SnapshotInfo struct {
 	Name    string
 	Parent  string

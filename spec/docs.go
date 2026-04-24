@@ -4849,6 +4849,92 @@ const docTemplate = `{
                 }
             }
         },
+        "/bots/{bot_id}/token-usage/records": {
+            "get": {
+                "description": "Paginated list of individual LLM call records (assistant messages with usage) for a bot, with optional model and session type filters",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "token-usage"
+                ],
+                "summary": "List per-call token usage records",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bot ID",
+                        "name": "bot_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Start date (YYYY-MM-DD)",
+                        "name": "from",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "End date exclusive (YYYY-MM-DD)",
+                        "name": "to",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Optional model UUID to filter by",
+                        "name": "model_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Optional session type: chat, heartbeat, or schedule",
+                        "name": "session_type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page size (default 20, max 100)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.TokenUsageRecordsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/bots/{bot_id}/tools": {
             "post": {
                 "description": "MCP endpoint for tool discovery and invocation.",
@@ -12381,6 +12467,64 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "handlers.TokenUsageRecord": {
+            "type": "object",
+            "properties": {
+                "cache_read_tokens": {
+                    "type": "integer"
+                },
+                "cache_write_tokens": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "input_tokens": {
+                    "type": "integer"
+                },
+                "model_id": {
+                    "type": "string"
+                },
+                "model_name": {
+                    "type": "string"
+                },
+                "model_slug": {
+                    "type": "string"
+                },
+                "output_tokens": {
+                    "type": "integer"
+                },
+                "provider_name": {
+                    "type": "string"
+                },
+                "reasoning_tokens": {
+                    "type": "integer"
+                },
+                "session_id": {
+                    "type": "string"
+                },
+                "session_type": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.TokenUsageRecordsResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.TokenUsageRecord"
+                    }
+                },
+                "total": {
+                    "type": "integer"
                 }
             }
         },

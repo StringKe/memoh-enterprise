@@ -34,6 +34,7 @@ func NewTokenUsageHandler(log *slog.Logger, queries *sqlc.Queries, botService *b
 
 func (h *TokenUsageHandler) Register(e *echo.Echo) {
 	e.GET("/bots/:bot_id/token-usage", h.GetTokenUsage)
+	e.GET("/bots/:bot_id/token-usage/records", h.ListTokenUsageRecords)
 }
 
 // DailyTokenUsage represents aggregated token usage for a single day.
@@ -62,6 +63,29 @@ type TokenUsageResponse struct {
 	Heartbeat []DailyTokenUsage `json:"heartbeat"`
 	Schedule  []DailyTokenUsage `json:"schedule"`
 	ByModel   []ModelTokenUsage `json:"by_model"`
+}
+
+// TokenUsageRecord represents a single LLM call (one assistant message row) with its token usage.
+type TokenUsageRecord struct {
+	ID               string `json:"id"`
+	CreatedAt        string `json:"created_at"`
+	SessionID        string `json:"session_id"`
+	SessionType      string `json:"session_type"`
+	ModelID          string `json:"model_id"`
+	ModelSlug        string `json:"model_slug"`
+	ModelName        string `json:"model_name"`
+	ProviderName     string `json:"provider_name"`
+	InputTokens      int64  `json:"input_tokens"`
+	OutputTokens     int64  `json:"output_tokens"`
+	CacheReadTokens  int64  `json:"cache_read_tokens"`
+	CacheWriteTokens int64  `json:"cache_write_tokens"`
+	ReasoningTokens  int64  `json:"reasoning_tokens"`
+}
+
+// TokenUsageRecordsResponse is the response body for GET /bots/:bot_id/token-usage/records.
+type TokenUsageRecordsResponse struct {
+	Items []TokenUsageRecord `json:"items"`
+	Total int64              `json:"total"`
 }
 
 // GetTokenUsage godoc
@@ -214,4 +238,156 @@ func formatOptionalUUID(id pgtype.UUID) string {
 		return ""
 	}
 	return id.String()
+}
+
+const (
+	tokenUsageRecordsDefaultLimit = 20
+	tokenUsageRecordsMaxLimit     = 100
+)
+
+// ListTokenUsageRecords godoc
+// @Summary List per-call token usage records
+// @Description Paginated list of individual LLM call records (assistant messages with usage) for a bot, with optional model and session type filters
+// @Tags token-usage
+// @Produce json
+// @Param bot_id path string true "Bot ID"
+// @Param from query string true "Start date (YYYY-MM-DD)"
+// @Param to query string true "End date exclusive (YYYY-MM-DD)"
+// @Param model_id query string false "Optional model UUID to filter by"
+// @Param session_type query string false "Optional session type: chat, heartbeat, or schedule"
+// @Param limit query int false "Page size (default 20, max 100)"
+// @Param offset query int false "Offset" default(0)
+// @Success 200 {object} TokenUsageRecordsResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 403 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /bots/{bot_id}/token-usage/records [get].
+func (h *TokenUsageHandler) ListTokenUsageRecords(c echo.Context) error {
+	userID, err := RequireChannelIdentityID(c)
+	if err != nil {
+		return err
+	}
+	botID := strings.TrimSpace(c.Param("bot_id"))
+	if botID == "" {
+		return echo.NewHTTPError(http.StatusBadRequest, "bot id is required")
+	}
+	if _, err := AuthorizeBotAccess(c.Request().Context(), h.botService, h.accountService, userID, botID); err != nil {
+		return err
+	}
+
+	fromStr := strings.TrimSpace(c.QueryParam("from"))
+	toStr := strings.TrimSpace(c.QueryParam("to"))
+	if fromStr == "" || toStr == "" {
+		return echo.NewHTTPError(http.StatusBadRequest, "from and to query parameters are required (YYYY-MM-DD)")
+	}
+	fromDate, err := time.Parse("2006-01-02", fromStr)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid from date format, expected YYYY-MM-DD")
+	}
+	toDate, err := time.Parse("2006-01-02", toStr)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid to date format, expected YYYY-MM-DD")
+	}
+	if !toDate.After(fromDate) {
+		return echo.NewHTTPError(http.StatusBadRequest, "to must be after from")
+	}
+
+	pgBotID, err := db.ParseUUID(botID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid bot id")
+	}
+
+	var pgModelID pgtype.UUID
+	if modelIDStr := strings.TrimSpace(c.QueryParam("model_id")); modelIDStr != "" {
+		pgModelID, err = db.ParseUUID(modelIDStr)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, "invalid model_id")
+		}
+	}
+
+	var pgSessionType pgtype.Text
+	switch sessionType := strings.TrimSpace(c.QueryParam("session_type")); sessionType {
+	case "":
+	case "chat", "heartbeat", "schedule":
+		pgSessionType = pgtype.Text{String: sessionType, Valid: true}
+	default:
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid session_type, expected one of: chat, heartbeat, schedule")
+	}
+
+	limit, err := parseInt32Query(c.QueryParam("limit"), tokenUsageRecordsDefaultLimit)
+	if err != nil {
+		return err
+	}
+	if limit <= 0 {
+		limit = tokenUsageRecordsDefaultLimit
+	}
+	if limit > tokenUsageRecordsMaxLimit {
+		limit = tokenUsageRecordsMaxLimit
+	}
+	offset, err := parseInt32Query(c.QueryParam("offset"), 0)
+	if err != nil {
+		return err
+	}
+
+	fromTS := pgtype.Timestamptz{Time: fromDate, Valid: true}
+	toTS := pgtype.Timestamptz{Time: toDate, Valid: true}
+
+	ctx := c.Request().Context()
+
+	rows, err := h.queries.ListTokenUsageRecords(ctx, sqlc.ListTokenUsageRecordsParams{
+		BotID:       pgBotID,
+		FromTime:    fromTS,
+		ToTime:      toTS,
+		ModelID:     pgModelID,
+		SessionType: pgSessionType,
+		PageOffset:  offset,
+		PageLimit:   limit,
+	})
+	if err != nil {
+		h.logger.Error("list token usage records failed", slog.Any("error", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to list token usage records")
+	}
+
+	total, err := h.queries.CountTokenUsageRecords(ctx, sqlc.CountTokenUsageRecordsParams{
+		BotID:       pgBotID,
+		FromTime:    fromTS,
+		ToTime:      toTS,
+		ModelID:     pgModelID,
+		SessionType: pgSessionType,
+	})
+	if err != nil {
+		h.logger.Error("count token usage records failed", slog.Any("error", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to count token usage records")
+	}
+
+	items := make([]TokenUsageRecord, 0, len(rows))
+	for _, r := range rows {
+		items = append(items, TokenUsageRecord{
+			ID:               formatOptionalUUID(r.ID),
+			CreatedAt:        formatPgTime(r.CreatedAt),
+			SessionID:        formatOptionalUUID(r.SessionID),
+			SessionType:      r.SessionType,
+			ModelID:          formatOptionalUUID(r.ModelID),
+			ModelSlug:        r.ModelSlug,
+			ModelName:        r.ModelName,
+			ProviderName:     r.ProviderName,
+			InputTokens:      r.InputTokens,
+			OutputTokens:     r.OutputTokens,
+			CacheReadTokens:  r.CacheReadTokens,
+			CacheWriteTokens: r.CacheWriteTokens,
+			ReasoningTokens:  r.ReasoningTokens,
+		})
+	}
+
+	return c.JSON(http.StatusOK, TokenUsageRecordsResponse{
+		Items: items,
+		Total: total,
+	})
+}
+
+func formatPgTime(t pgtype.Timestamptz) string {
+	if !t.Valid {
+		return ""
+	}
+	return t.Time.UTC().Format(time.RFC3339)
 }

@@ -1,5 +1,5 @@
 <template>
-  <div class="p-6 space-y-6 mx-auto">
+  <div class="p-6 max-w-7xl mx-auto space-y-6">
     <div class="flex items-center justify-between">
       <h1 class="text-2xl font-semibold tracking-tight">
         {{ $t('usage.title') }}
@@ -115,13 +115,13 @@
     </div>
 
     <template v-if="!selectedBotId">
-      <div class="text-muted-foreground text-center py-20">
+      <div class="text-muted-foreground flex items-center justify-center min-h-[60vh]">
         {{ $t('usage.selectBotPlaceholder') }}
       </div>
     </template>
 
     <template v-else-if="isLoading">
-      <div class="flex justify-center py-20">
+      <div class="flex items-center justify-center min-h-[60vh]">
         <Spinner class="size-8" />
       </div>
     </template>
@@ -263,6 +263,119 @@
       >
         {{ $t('usage.noData') }}
       </div>
+
+      <!-- Call records -->
+      <Card>
+        <CardHeader class="pb-2 flex flex-row items-center justify-between">
+          <CardTitle class="text-sm">
+            {{ $t('usage.records') }}
+          </CardTitle>
+          <span
+            v-if="recordsPaginationSummary"
+            class="text-xs text-muted-foreground tabular-nums"
+          >
+            {{ recordsPaginationSummary }}
+          </span>
+        </CardHeader>
+        <CardContent class="space-y-3">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{{ $t('usage.colTime') }}</TableHead>
+                <TableHead>{{ $t('usage.colBot') }}</TableHead>
+                <TableHead>{{ $t('usage.colSessionType') }}</TableHead>
+                <TableHead>{{ $t('usage.colModel') }}</TableHead>
+                <TableHead>{{ $t('usage.colProvider') }}</TableHead>
+                <TableHead class="text-right">
+                  {{ $t('usage.colInputTokens') }}
+                </TableHead>
+                <TableHead class="text-right">
+                  {{ $t('usage.colOutputTokens') }}
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow v-if="isRecordsInitialLoading">
+                <TableCell
+                  :colspan="7"
+                  class="p-0"
+                >
+                  <div class="flex items-center justify-center h-[480px]">
+                    <Spinner class="size-6" />
+                  </div>
+                </TableCell>
+              </TableRow>
+              <TableRow v-else-if="recordsList.length === 0">
+                <TableCell
+                  :colspan="7"
+                  class="p-0"
+                >
+                  <div class="flex items-center justify-center h-[480px] text-muted-foreground">
+                    {{ $t('usage.noRecords') }}
+                  </div>
+                </TableCell>
+              </TableRow>
+              <template v-else>
+                <TableRow
+                  v-for="r in recordsList"
+                  :key="r.id"
+                  :class="isRecordsFetching ? 'opacity-60 transition-opacity' : 'transition-opacity'"
+                >
+                  <TableCell class="text-muted-foreground tabular-nums">
+                    {{ formatDateTimeSeconds(r.created_at) }}
+                  </TableCell>
+                  <TableCell>{{ selectedBotName }}</TableCell>
+                  <TableCell>{{ sessionTypeLabel(r.session_type) }}</TableCell>
+                  <TableCell>{{ recordModelLabel(r) }}</TableCell>
+                  <TableCell class="text-muted-foreground">
+                    {{ r.provider_name || '-' }}
+                  </TableCell>
+                  <TableCell class="text-right tabular-nums">
+                    {{ formatNumber(r.input_tokens ?? 0) }}
+                  </TableCell>
+                  <TableCell class="text-right tabular-nums">
+                    {{ formatNumber(r.output_tokens ?? 0) }}
+                  </TableCell>
+                </TableRow>
+              </template>
+            </TableBody>
+          </Table>
+
+          <div
+            v-if="recordsTotalPages > 1"
+            class="flex justify-end"
+          >
+            <Pagination
+              :total="recordsTotal"
+              :items-per-page="RECORDS_PAGE_SIZE"
+              :sibling-count="1"
+              :page="recordsPageNumber"
+              show-edges
+              @update:page="setRecordsPage"
+            >
+              <PaginationContent v-slot="{ items }">
+                <PaginationFirst />
+                <PaginationPrevious />
+                <template
+                  v-for="(item, index) in items"
+                  :key="index"
+                >
+                  <PaginationEllipsis
+                    v-if="item.type === 'ellipsis'"
+                    :index="index"
+                  />
+                  <PaginationItem
+                    v-else
+                    :value="item.value"
+                  />
+                </template>
+                <PaginationNext />
+                <PaginationLast />
+              </PaginationContent>
+            </Pagination>
+          </div>
+        </CardContent>
+      </Card>
     </template>
   </div>
 </template>
@@ -289,18 +402,33 @@ import {
   CardTitle,
   Input,
   Label,
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationFirst,
+  PaginationItem,
+  PaginationLast,
+  PaginationNext,
+  PaginationPrevious,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
   Spinner,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from '@memohai/ui'
 import { getBotsQuery } from '@memohai/sdk/colada'
-import { getBotsByBotIdTokenUsage } from '@memohai/sdk'
+import { getBotsByBotIdTokenUsage, getBotsByBotIdTokenUsageRecords } from '@memohai/sdk'
 import BotSelect from '@/components/bot-select/index.vue'
-import type { HandlersDailyTokenUsage, HandlersModelTokenUsage } from '@memohai/sdk'
+import type { HandlersDailyTokenUsage, HandlersModelTokenUsage, HandlersTokenUsageRecord } from '@memohai/sdk'
 import { useSyncedQueryParam } from '@/composables/useSyncedQueryParam'
+import { formatDateTimeSeconds } from '@/utils/date-time'
 
 use([CanvasRenderer, LineChart, BarChart, PieChart, GridComponent, TooltipComponent, LegendComponent])
 
@@ -310,7 +438,10 @@ const selectedBotId = useSyncedQueryParam('bot', '')
 const timeRange = useSyncedQueryParam('range', '7')
 const selectedModelId = useSyncedQueryParam('model', 'all')
 const selectedSessionType = useSyncedQueryParam('type', 'all')
+const recordsPage = useSyncedQueryParam('rpage', '1')
 const modelChartType = ref('pie')
+
+const RECORDS_PAGE_SIZE = 20
 
 function daysAgo(days: number): string {
   const d = new Date()
@@ -349,7 +480,7 @@ const modelIdFilter = computed(() =>
   selectedModelId.value === 'all' ? undefined : selectedModelId.value,
 )
 
-const { data: usageData, status, refetch } = useQuery({
+const { data: usageData, asyncStatus, refetch } = useQuery({
   key: () => ['token-usage', selectedBotId.value, dateFrom.value, dateTo.value, modelIdFilter.value ?? ''],
   query: async () => {
     const { data } = await getBotsByBotIdTokenUsage({
@@ -366,10 +497,13 @@ const { data: usageData, status, refetch } = useQuery({
   enabled: () => !!selectedBotId.value,
 })
 
-const isLoading = computed(() => status.value === 'loading')
+const isFetching = computed(() => asyncStatus.value === 'loading')
+const isLoading = computed(() => isFetching.value && !usageData.value)
 
 onMounted(() => {
-  if (selectedBotId.value) refetch()
+  if (selectedBotId.value) {
+    refetch()
+  }
 })
 
 const byModelData = computed<HandlersModelTokenUsage[]>(() => usageData.value?.by_model ?? [])
@@ -383,6 +517,101 @@ type SessionType = 'chat' | 'heartbeat' | 'schedule'
 const sessionTypeFilter = computed(() =>
   selectedSessionType.value === 'all' ? null : selectedSessionType.value as SessionType,
 )
+
+const recordsPageNumber = computed(() => {
+  const parsed = parseInt(recordsPage.value, 10)
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 1
+})
+
+const { data: recordsData, asyncStatus: recordsAsyncStatus, refetch: refetchRecords } = useQuery({
+  key: () => [
+    'token-usage-records',
+    selectedBotId.value,
+    dateFrom.value,
+    dateTo.value,
+    modelIdFilter.value ?? '',
+    sessionTypeFilter.value ?? '',
+    recordsPageNumber.value,
+  ],
+  query: async () => {
+    const { data } = await getBotsByBotIdTokenUsageRecords({
+      path: { bot_id: selectedBotId.value },
+      query: {
+        from: dateFrom.value,
+        to: dateTo.value,
+        model_id: modelIdFilter.value,
+        session_type: sessionTypeFilter.value ?? undefined,
+        limit: RECORDS_PAGE_SIZE,
+        offset: (recordsPageNumber.value - 1) * RECORDS_PAGE_SIZE,
+      },
+      throwOnError: true,
+    })
+    return data
+  },
+  enabled: () => !!selectedBotId.value,
+})
+
+const recordsList = computed<HandlersTokenUsageRecord[]>(() => recordsData.value?.items ?? [])
+const isRecordsFetching = computed(() => recordsAsyncStatus.value === 'loading')
+const isRecordsInitialLoading = computed(() => isRecordsFetching.value && !recordsData.value)
+const recordsTotal = computed(() => recordsData.value?.total ?? 0)
+const recordsTotalPages = computed(() =>
+  Math.max(1, Math.ceil(recordsTotal.value / RECORDS_PAGE_SIZE)),
+)
+
+const recordsPaginationSummary = computed(() => {
+  const total = recordsTotal.value
+  if (total === 0) return ''
+  const start = (recordsPageNumber.value - 1) * RECORDS_PAGE_SIZE + 1
+  const end = Math.min(recordsPageNumber.value * RECORDS_PAGE_SIZE, total)
+  return `${start}-${end} / ${total}`
+})
+
+const selectedBotName = computed(() => {
+  const bot = botList.value.find(b => b.id === selectedBotId.value)
+  return bot?.display_name || bot?.id || ''
+})
+
+function resetRecordsPage() {
+  if (recordsPage.value !== '1') {
+    recordsPage.value = '1'
+  }
+}
+
+watch(
+  () => [
+    selectedBotId.value,
+    dateFrom.value,
+    dateTo.value,
+    modelIdFilter.value,
+    sessionTypeFilter.value,
+  ],
+  resetRecordsPage,
+)
+
+function setRecordsPage(page: number) {
+  const clamped = Math.max(1, Math.min(page, recordsTotalPages.value))
+  recordsPage.value = String(clamped)
+}
+
+function sessionTypeLabel(type: string | undefined): string {
+  switch (type) {
+    case 'chat': return t('usage.chat')
+    case 'heartbeat': return t('usage.heartbeat')
+    case 'schedule': return t('usage.schedule')
+    default: return type || '-'
+  }
+}
+
+function recordModelLabel(r: HandlersTokenUsageRecord): string {
+  return r.model_name || r.model_slug || '-'
+}
+
+onMounted(() => {
+  if (selectedBotId.value) {
+    refetchRecords()
+  }
+})
 
 interface TypedDayMaps {
   chat: Map<string, HandlersDailyTokenUsage>

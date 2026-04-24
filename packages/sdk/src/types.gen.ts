@@ -1198,6 +1198,27 @@ export type HandlersSupermarketTagsResponse = {
     tags?: Array<string>;
 };
 
+export type HandlersTokenUsageRecord = {
+    cache_read_tokens?: number;
+    cache_write_tokens?: number;
+    created_at?: string;
+    id?: string;
+    input_tokens?: number;
+    model_id?: string;
+    model_name?: string;
+    model_slug?: string;
+    output_tokens?: number;
+    provider_name?: string;
+    reasoning_tokens?: number;
+    session_id?: string;
+    session_type?: string;
+};
+
+export type HandlersTokenUsageRecordsResponse = {
+    items?: Array<HandlersTokenUsageRecord>;
+    total?: number;
+};
+
 export type HandlersTokenUsageResponse = {
     by_model?: Array<HandlersModelTokenUsage>;
     chat?: Array<HandlersDailyTokenUsage>;
@@ -5759,6 +5780,69 @@ export type GetBotsByBotIdTokenUsageResponses = {
 };
 
 export type GetBotsByBotIdTokenUsageResponse = GetBotsByBotIdTokenUsageResponses[keyof GetBotsByBotIdTokenUsageResponses];
+
+export type GetBotsByBotIdTokenUsageRecordsData = {
+    body?: never;
+    path: {
+        /**
+         * Bot ID
+         */
+        bot_id: string;
+    };
+    query: {
+        /**
+         * Start date (YYYY-MM-DD)
+         */
+        from: string;
+        /**
+         * End date exclusive (YYYY-MM-DD)
+         */
+        to: string;
+        /**
+         * Optional model UUID to filter by
+         */
+        model_id?: string;
+        /**
+         * Optional session type: chat, heartbeat, or schedule
+         */
+        session_type?: string;
+        /**
+         * Page size (default 20, max 100)
+         */
+        limit?: number;
+        /**
+         * Offset
+         */
+        offset?: number;
+    };
+    url: '/bots/{bot_id}/token-usage/records';
+};
+
+export type GetBotsByBotIdTokenUsageRecordsErrors = {
+    /**
+     * Bad Request
+     */
+    400: HandlersErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: HandlersErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: HandlersErrorResponse;
+};
+
+export type GetBotsByBotIdTokenUsageRecordsError = GetBotsByBotIdTokenUsageRecordsErrors[keyof GetBotsByBotIdTokenUsageRecordsErrors];
+
+export type GetBotsByBotIdTokenUsageRecordsResponses = {
+    /**
+     * OK
+     */
+    200: HandlersTokenUsageRecordsResponse;
+};
+
+export type GetBotsByBotIdTokenUsageRecordsResponse = GetBotsByBotIdTokenUsageRecordsResponses[keyof GetBotsByBotIdTokenUsageRecordsResponses];
 
 export type PostBotsByBotIdToolsData = {
     /**

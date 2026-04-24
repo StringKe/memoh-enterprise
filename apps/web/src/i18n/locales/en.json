@@ -1388,7 +1388,16 @@
     "dateFrom": "From",
     "dateTo": "To",
     "chartPie": "Pie",
-    "chartBar": "Bar"
+    "chartBar": "Bar",
+    "records": "Records",
+    "noRecords": "No records",
+    "colTime": "Time",
+    "colBot": "Bot",
+    "colSessionType": "Type",
+    "colModel": "Model",
+    "colProvider": "Provider",
+    "colInputTokens": "Input",
+    "colOutputTokens": "Output"
   },
   "supermarket": {
     "title": "Supermarket",

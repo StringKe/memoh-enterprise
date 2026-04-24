@@ -11,6 +11,46 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const countTokenUsageRecords = `-- name: CountTokenUsageRecords :one
+SELECT COUNT(*)::bigint AS total
+FROM bot_history_messages m
+LEFT JOIN bot_sessions s ON s.id = m.session_id
+LEFT JOIN bot_sessions ps ON ps.id = s.parent_session_id
+WHERE m.bot_id = $1
+  AND m.usage IS NOT NULL
+  AND m.created_at >= $2
+  AND m.created_at < $3
+  AND ($4::uuid IS NULL OR m.model_id = $4::uuid)
+  AND (
+    $5::text IS NULL
+    OR COALESCE(
+      CASE WHEN s.type = 'subagent' THEN COALESCE(ps.type, 'chat') ELSE s.type END,
+      'chat'
+    ) = $5::text
+  )
+`
+
+type CountTokenUsageRecordsParams struct {
+	BotID       pgtype.UUID        `json:"bot_id"`
+	FromTime    pgtype.Timestamptz `json:"from_time"`
+	ToTime      pgtype.Timestamptz `json:"to_time"`
+	ModelID     pgtype.UUID        `json:"model_id"`
+	SessionType pgtype.Text        `json:"session_type"`
+}
+
+func (q *Queries) CountTokenUsageRecords(ctx context.Context, arg CountTokenUsageRecordsParams) (int64, error) {
+	row := q.db.QueryRow(ctx, countTokenUsageRecords,
+		arg.BotID,
+		arg.FromTime,
+		arg.ToTime,
+		arg.ModelID,
+		arg.SessionType,
+	)
+	var total int64
+	err := row.Scan(&total)
+	return total, err
+}
+
 const getTokenUsageByDayAndType = `-- name: GetTokenUsageByDayAndType :many
 SELECT
   COALESCE(
@@ -135,6 +175,114 @@ func (q *Queries) GetTokenUsageByModel(ctx context.Context, arg GetTokenUsageByM
 			&i.ProviderName,
 			&i.InputTokens,
 			&i.OutputTokens,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listTokenUsageRecords = `-- name: ListTokenUsageRecords :many
+SELECT
+  m.id,
+  m.created_at,
+  m.session_id,
+  COALESCE(
+    CASE WHEN s.type = 'subagent' THEN COALESCE(ps.type, 'chat') ELSE s.type END,
+    'chat'
+  )::text AS session_type,
+  m.model_id,
+  COALESCE(mo.model_id, 'unknown')::text AS model_slug,
+  COALESCE(mo.name, 'Unknown')::text AS model_name,
+  COALESCE(lp.name, 'Unknown')::text AS provider_name,
+  COALESCE((m.usage->>'inputTokens')::bigint, 0)::bigint AS input_tokens,
+  COALESCE((m.usage->>'outputTokens')::bigint, 0)::bigint AS output_tokens,
+  COALESCE((m.usage->'inputTokenDetails'->>'cacheReadTokens')::bigint, 0)::bigint AS cache_read_tokens,
+  COALESCE((m.usage->'inputTokenDetails'->>'cacheWriteTokens')::bigint, 0)::bigint AS cache_write_tokens,
+  COALESCE((m.usage->'outputTokenDetails'->>'reasoningTokens')::bigint, 0)::bigint AS reasoning_tokens
+FROM bot_history_messages m
+LEFT JOIN bot_sessions s ON s.id = m.session_id
+LEFT JOIN bot_sessions ps ON ps.id = s.parent_session_id
+LEFT JOIN models mo ON mo.id = m.model_id
+LEFT JOIN providers lp ON lp.id = mo.provider_id
+WHERE m.bot_id = $1
+  AND m.usage IS NOT NULL
+  AND m.created_at >= $2
+  AND m.created_at < $3
+  AND ($4::uuid IS NULL OR m.model_id = $4::uuid)
+  AND (
+    $5::text IS NULL
+    OR COALESCE(
+      CASE WHEN s.type = 'subagent' THEN COALESCE(ps.type, 'chat') ELSE s.type END,
+      'chat'
+    ) = $5::text
+  )
+ORDER BY m.created_at DESC, m.id DESC
+LIMIT $7
+OFFSET $6
+`
+
+type ListTokenUsageRecordsParams struct {
+	BotID       pgtype.UUID        `json:"bot_id"`
+	FromTime    pgtype.Timestamptz `json:"from_time"`
+	ToTime      pgtype.Timestamptz `json:"to_time"`
+	ModelID     pgtype.UUID        `json:"model_id"`
+	SessionType pgtype.Text        `json:"session_type"`
+	PageOffset  int32              `json:"page_offset"`
+	PageLimit   int32              `json:"page_limit"`
+}
+
+type ListTokenUsageRecordsRow struct {
+	ID               pgtype.UUID        `json:"id"`
+	CreatedAt        pgtype.Timestamptz `json:"created_at"`
+	SessionID        pgtype.UUID        `json:"session_id"`
+	SessionType      string             `json:"session_type"`
+	ModelID          pgtype.UUID        `json:"model_id"`
+	ModelSlug        string             `json:"model_slug"`
+	ModelName        string             `json:"model_name"`
+	ProviderName     string             `json:"provider_name"`
+	InputTokens      int64              `json:"input_tokens"`
+	OutputTokens     int64              `json:"output_tokens"`
+	CacheReadTokens  int64              `json:"cache_read_tokens"`
+	CacheWriteTokens int64              `json:"cache_write_tokens"`
+	ReasoningTokens  int64              `json:"reasoning_tokens"`
+}
+
+func (q *Queries) ListTokenUsageRecords(ctx context.Context, arg ListTokenUsageRecordsParams) ([]ListTokenUsageRecordsRow, error) {
+	rows, err := q.db.Query(ctx, listTokenUsageRecords,
+		arg.BotID,
+		arg.FromTime,
+		arg.ToTime,
+		arg.ModelID,
+		arg.SessionType,
+		arg.PageOffset,
+		arg.PageLimit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListTokenUsageRecordsRow
+	for rows.Next() {
+		var i ListTokenUsageRecordsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.SessionID,
+			&i.SessionType,
+			&i.ModelID,
+			&i.ModelSlug,
+			&i.ModelName,
+			&i.ProviderName,
+			&i.InputTokens,
+			&i.OutputTokens,
+			&i.CacheReadTokens,
+			&i.CacheWriteTokens,
+			&i.ReasoningTokens,
 		); err != nil {
 			return nil, err
 		}

@@ -1384,7 +1384,16 @@
     "dateFrom": "开始日期",
     "dateTo": "结束日期",
     "chartPie": "饼图",
-    "chartBar": "柱状图"
+    "chartBar": "柱状图",
+    "records": "调用记录",
+    "noRecords": "无调用记录",
+    "colTime": "时间",
+    "colBot": "Bot",
+    "colSessionType": "类型",
+    "colModel": "模型",
+    "colProvider": "Provider",
+    "colInputTokens": "输入",
+    "colOutputTokens": "输出"
   },
   "supermarket": {
     "title": "市场",

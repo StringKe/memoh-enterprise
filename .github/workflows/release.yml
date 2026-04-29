@@ -41,6 +41,53 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  npm-publish:
+    name: Publish npm packages
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Sync workspace versions
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${RELEASE_TAG#v}"
+          export VERSION
+          node <<'EOF'
+          const fs = require('fs');
+          const path = require('path');
+          const version = process.env.VERSION;
+          const targets = [
+            'package.json',
+            'packages/sdk/package.json',
+            'packages/ui/package.json',
+            'packages/icons/package.json',
+            'packages/config/package.json',
+            'apps/web/package.json',
+            'apps/desktop/package.json',
+          ];
+          for (const target of targets) {
+            if (!fs.existsSync(target)) continue;
+            const pkg = JSON.parse(fs.readFileSync(target, 'utf8'));
+            pkg.version = version;
+            fs.writeFileSync(target, `${JSON.stringify(pkg, null, 2)}\n`);
+          }
+          EOF
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: pnpm
+          registry-url: https://registry.npmjs.org/
+      - name: Install JS dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Publish to npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: pnpm -r publish --access public --no-git-checks
+
   desktop-build:
     name: Build desktop (${{ matrix.platform }})
     runs-on: ${{ matrix.platform }}

@@ -1,6 +1,7 @@
 name: "memoh"
 services:
   migrate:
+    image: ghcr.io/stringke/server:${SERVER_TAG:-latest}
     build:
       context: ../../..
       dockerfile: deploy/docker/production/Dockerfile.server
@@ -10,6 +11,7 @@ services:
         - BUILD_TIME=${MEMOH_BUILD_TIME:-unknown}
 
   server:
+    image: ghcr.io/stringke/server:${SERVER_TAG:-latest}
     build:
       context: ../../..
       dockerfile: deploy/docker/production/Dockerfile.server
@@ -19,11 +21,13 @@ services:
         - BUILD_TIME=${MEMOH_BUILD_TIME:-unknown}
 
   sparse:
+    image: ghcr.io/stringke/sparse:${SPARSE_TAG:-latest}
     build:
       context: ../../..
       dockerfile: deploy/docker/production/Dockerfile.sparse
 
   browser:
+    image: ghcr.io/stringke/browser:${BROWSER_TAG:-local}
     build:
       context: ../../..
       dockerfile: deploy/docker/production/Dockerfile.browser

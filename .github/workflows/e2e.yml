@@ -49,15 +49,13 @@ jobs:
       - name: Generate config
         run: cp conf/app.docker.toml config.toml
 
-      - name: Build and start stack
+      - name: Build images
         run: |
-          docker compose \
-            -f docker-compose.yml \
-            -f deploy/compose/images/docker-compose.yml \
-            --profile qdrant \
-            --profile sparse \
-            --profile browser \
-            up --build -d
+          docker compose -f deploy/compose/images/docker-compose.yml build server sparse browser
+
+      - name: Start stack
+        run: |
+          docker compose --profile qdrant --profile sparse --profile browser up -d
 
       - name: Smoke test
         run: scripts/e2e/smoke.sh --browser
@@ -65,21 +63,9 @@ jobs:
       - name: Logs
         if: always()
         run: |
-          docker compose \
-            -f docker-compose.yml \
-            -f deploy/compose/images/docker-compose.yml \
-            --profile qdrant \
-            --profile sparse \
-            --profile browser \
-            logs --no-color --tail=200
+          docker compose --profile qdrant --profile sparse --profile browser logs --no-color --tail=200
 
       - name: Stop stack
         if: always()
         run: |
-          docker compose \
-            -f docker-compose.yml \
-            -f deploy/compose/images/docker-compose.yml \
-            --profile qdrant \
-            --profile sparse \
-            --profile browser \
-            down -v --remove-orphans
+          docker compose --profile qdrant --profile sparse --profile browser down -v --remove-orphans

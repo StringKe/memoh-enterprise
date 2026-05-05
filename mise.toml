@@ -151,7 +151,7 @@ run = "scripts/db-drop.sh"
 
 [tasks.release]
 description = "Release new version"
-run = "pnpm release"
+run = "vp run release"
 
 [tasks.build-unified]
 description = "Build memoh CLI locally"

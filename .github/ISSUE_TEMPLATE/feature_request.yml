@@ -1,58 +1,57 @@
 name: Feature Request
-description: Suggest a new feature or enhancement
+description: Propose a Memoh Enterprise backend or runtime feature
 title: "[Feature]: "
 labels: ["feat"]
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for suggesting a feature! Please describe your idea so we can evaluate and discuss it.
+        Keep requests within Memoh Enterprise scope: backend APIs, non-interactive CLI, PostgreSQL, Docker Engine/containerd/Kubernetes runtimes, Browser Gateway, agent tools, providers, models, channels, email, memory, and scheduling. Desktop, bundled Web GUI, TUI, SQLite, Windows, Docker Hub publishing, npmjs publishing, and China-specific optimizations are out of scope.
 
   - type: textarea
-    id: description
+    id: problem
     attributes:
-      label: Feature Description
-      description: A clear and concise description of the feature you'd like to see.
-      placeholder: Describe the feature...
+      label: Problem
+      description: Describe the operational or enterprise backend problem this solves.
+      placeholder: What is blocked today?
     validations:
       required: true
 
   - type: textarea
-    id: motivation
+    id: proposal
     attributes:
-      label: Motivation
-      description: Why do you want this feature? What problem does it solve?
-      placeholder: Explain the use case or problem...
+      label: Proposal
+      description: Describe the API, CLI, runtime, or service behavior you want.
+      placeholder: What should Memoh Enterprise do?
     validations:
       required: true
 
-  - type: textarea
-    id: proposed-solution
+  - type: dropdown
+    id: component
     attributes:
-      label: Proposed Solution
-      description: If you have an idea of how this could be implemented, describe it here.
-    validations:
-      required: false
-
-  - type: textarea
-    id: alternatives
-    attributes:
-      label: Alternatives Considered
-      description: Have you considered any alternative solutions or workarounds?
-    validations:
-      required: false
-
-  - type: textarea
-    id: additional
-    attributes:
-      label: Additional Context
-      description: Add any other context, mockups, or references about the feature request here.
-    validations:
-      required: false
-
-  - type: checkboxes
-    id: pr
-    attributes:
-      label: Contributing
+      label: Component
       options:
-        - label: I would like to submit a pull request to implement this feature
+        - Server / REST API
+        - CLI
+        - PostgreSQL / migrations
+        - Docker Engine runtime
+        - containerd runtime
+        - Kubernetes runtime
+        - Browser Gateway
+        - Agent tools
+        - Channel adapter
+        - Provider / model
+        - Other backend component
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      description: List concrete behavior that must be true when implemented.
+      placeholder: |
+        - ...
+        - ...
+    validations:
+      required: true

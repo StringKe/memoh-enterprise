@@ -1,19 +1,49 @@
 name: Bug Report
-description: Report a bug or unexpected behavior
+description: Report a Memoh Enterprise backend, CLI, container runtime, or Browser Gateway bug
 title: "[Bug]: "
 labels: ["bug"]
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to report a bug! Please fill out the information below to help us investigate the issue.
+        Memoh Enterprise supports Linux amd64/arm64 deployments, PostgreSQL, Docker Engine/containerd, backend APIs, non-interactive CLI, and Browser Gateway browser automation. Desktop, bundled Web GUI, TUI, SQLite, Windows, and China-specific deployment paths are out of scope.
 
   - type: textarea
     id: description
     attributes:
       label: Bug Description
-      description: A clear and concise description of what the bug is and what you expected to happen.
+      description: Describe the broken behavior and the expected backend behavior.
       placeholder: Describe the bug...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - Server / REST API
+        - CLI
+        - PostgreSQL / migrations
+        - Docker Engine runtime
+        - containerd runtime
+        - Kubernetes runtime
+        - Browser Gateway
+        - Agent tools
+        - Channel adapter
+        - Provider / model
+        - Other backend component
+    validations:
+      required: true
+
+  - type: dropdown
+    id: architecture
+    attributes:
+      label: Runtime Architecture
+      options:
+        - linux/amd64
+        - linux/arm64
+        - macOS local development
     validations:
       required: true
 
@@ -21,19 +51,16 @@ body:
     id: steps
     attributes:
       label: Steps to Reproduce
-      description: Steps to reproduce the behavior.
-      placeholder: |
-        1. Go to '...'
-        2. Click on '...'
-        3. See error
+      description: Provide exact commands, config snippets, and request payloads needed to reproduce.
+      render: shell
     validations:
       required: true
 
   - type: textarea
-    id: error
+    id: logs
     attributes:
-      label: Error Messages / Logs
-      description: If applicable, paste any error messages or relevant log output here.
+      label: Logs
+      description: Paste relevant server, CLI, container runtime, or Browser Gateway logs.
       render: shell
     validations:
       required: false
@@ -41,48 +68,16 @@ body:
   - type: input
     id: version
     attributes:
-      label: Version
-      description: What version of Memoh are you running?
-      placeholder: e.g. v0.5.0
+      label: Version or Commit
+      placeholder: v0.8.0 or git SHA
     validations:
       required: true
 
-  - type: input
-    id: model
-    attributes:
-      label: Model Used
-      description: Which LLM model were you using when the bug occurred?
-      placeholder: e.g. gpt-4o, claude-sonnet-4-20250514, gemini-2.0-flash
-    validations:
-      required: false
-
-  - type: dropdown
-    id: channel
-    attributes:
-      label: Channel
-      description: Which channel were you using?
-      options:
-        - Telegram
-        - Discord
-        - Lark (Feishu)
-        - Email
-        - QQ
-        - Local
-        - Other
-    validations:
-      required: false
-
   - type: textarea
-    id: additional
+    id: config
     attributes:
-      label: Additional Context
-      description: Add any other context, screenshots, or information about the problem here.
+      label: Relevant Configuration
+      description: Paste redacted config.toml sections. Do not include secrets.
+      render: toml
     validations:
       required: false
-
-  - type: checkboxes
-    id: pr
-    attributes:
-      label: Contributing
-      options:
-        - label: I would like to submit a pull request to fix this bug

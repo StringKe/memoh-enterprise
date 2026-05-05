@@ -6,10 +6,6 @@ export default defineConfig({
   },
   fmt: {
     ignorePatterns: [
-      ".agents/**",
-      ".claude/**",
-      ".github/**",
-      ".vscode/**",
       "cmd/**/template/**",
       "conf/**",
       "devenv/**",

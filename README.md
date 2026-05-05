@@ -1,6 +1,6 @@
 # Memoh Enterprise
 
-Memoh Enterprise is a backend-first fork of Memoh for enterprise deployments. It keeps the containerized AI agent platform and removes bundled Desktop, Web GUI, TUI, and SQLite support.
+Memoh Enterprise is an enterprise-focused fork of Memoh. It keeps the containerized AI agent platform and the web management UI, while removing Desktop GUI, TUI, and SQLite support.
 
 Supported runtime targets: Linux `amd64` and Linux `arm64`. macOS remains supported for local development compatibility.
 
@@ -13,16 +13,15 @@ Kept:
 - PostgreSQL as the only relational database backend.
 - Docker Engine and containerd workspace backends.
 - Browser Gateway for agent browser automation.
+- Web management UI in `apps/web`.
 - Agent, MCP, memory, schedule, providers, models, channels, email, workspace, and container management.
-- `web-ui` configuration for external Web UI compatibility.
+- `web-ui` configuration for the bundled web management UI.
 
 Removed:
 
 - Electron/Desktop app.
-- Bundled Web GUI implementation.
 - Terminal TUI.
 - SQLite support.
-- TypeScript SDK generation for the removed bundled GUI.
 
 ## Quick Start
 
@@ -38,6 +37,8 @@ docker compose --profile qdrant --profile browser --profile sparse up -d
 ```
 
 API: `http://localhost:8080`
+
+Web UI: `http://localhost:8082`
 
 Browser Gateway: `http://localhost:8083` when the `browser` profile is enabled.
 
@@ -55,11 +56,13 @@ Useful commands:
 
 ```bash
 mise run local:browser
+mise run web:dev
 mise run dev
 mise run dev:infra
 mise run e2e:smoke
 mise run sqlc-generate
 mise run swagger-generate
+mise run sdk-generate
 mise run build-unified
 go test ./cmd/... ./internal/...
 ```

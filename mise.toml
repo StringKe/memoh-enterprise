@@ -32,6 +32,27 @@ run = "vp install"
 description = "start documentation"
 run = "vp run --filter @stringke/docs dev"
 
+[tasks."web:dev"]
+description = "Start web management UI development server"
+depends = [
+  "//:sdk-generate",
+]
+run = "vp run --filter @stringke/web dev"
+
+[tasks."web:build"]
+description = "Build web management UI"
+depends = [
+  "//:sdk-generate",
+]
+run = "vp run --filter @stringke/web build"
+
+[tasks."web:start"]
+description = "Start web management UI preview server"
+depends = [
+  "//:sdk-generate",
+]
+run = "vp run --filter @stringke/web start"
+
 [tasks.go-install]
 description = "Install Go dependencies"
 run = "go mod download"
@@ -42,6 +63,14 @@ depends = [
   "//:go-install",
 ]
 run = "cd internal/handlers && go generate"
+
+[tasks.sdk-generate]
+description = "Generate TypeScript SDK from OpenAPI"
+depends = [
+  "//:swagger-generate",
+  "//:pnpm-install",
+]
+run = "vp run generate-sdk"
 
 [tasks.sqlc-generate]
 description = "Generate SQL code"

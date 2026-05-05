@@ -12,6 +12,13 @@
     "skipDefaultLibCheck": true,
     "skipLibCheck": true
   },
-  "include": ["packages/config/**/*.ts", "apps/browser/**/*.ts"],
+  "include": [
+    "packages/**/*.ts",
+    "packages/**/*.d.ts",
+    "packages/**/*.vue",
+    "apps/**/*.ts",
+    "apps/**/*.d.ts",
+    "apps/**/*.vue"
+  ],
   "exclude": ["node_modules", "dist"]
 }

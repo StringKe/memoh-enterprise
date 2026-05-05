@@ -60,6 +60,9 @@ jobs:
           const targets = [
             'package.json',
             'packages/config/package.json',
+            'packages/icons/package.json',
+            'packages/sdk/package.json',
+            'packages/ui/package.json',
             'apps/browser/package.json',
           ];
           for (const target of targets) {

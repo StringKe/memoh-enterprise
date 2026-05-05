@@ -1,0 +1,20 @@
+{
+  "name": "@stringke/icon",
+  "version": "0.8.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "scripts": {
+    "generate": "tsx scripts/generate.ts"
+  },
+  "devDependencies": {
+    "tsx": "^4.21.0"
+  },
+  "peerDependencies": {
+    "vue": "^3.5.26"
+  }
+}

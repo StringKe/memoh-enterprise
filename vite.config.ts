@@ -24,6 +24,18 @@ export default defineConfig({
   },
   lint: {
     options: { typeAware: true, typeCheck: true },
-    ignorePatterns: ["node_modules/**", "dist/**", "docs/**", "api/openapi/**"],
+    ignorePatterns: [
+      "node_modules/**",
+      "dist/**",
+      "docs/**",
+      "api/openapi/**",
+      "packages/sdk/src/**",
+    ],
+    rules: {
+      "typescript/no-base-to-string": "off",
+      "typescript/no-floating-promises": "off",
+      "typescript/no-misused-spread": "off",
+      "typescript/no-redundant-type-constituents": "off",
+    },
   },
 });

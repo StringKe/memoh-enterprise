@@ -60,6 +60,17 @@ services:
     networks:
       - memoh-network
 
+  web:
+    image: ghcr.io/stringke/web:${WEB_TAG:-latest}
+    container_name: memoh-web
+    ports:
+      - "8082:8082"
+    depends_on:
+      - server
+    restart: unless-stopped
+    networks:
+      - memoh-network
+
   sparse:
     image: ghcr.io/stringke/sparse:latest
     container_name: memoh-sparse

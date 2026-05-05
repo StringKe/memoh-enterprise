@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Keep requests within Memoh Enterprise scope: backend APIs, non-interactive CLI, PostgreSQL, Docker Engine/containerd/Kubernetes runtimes, Browser Gateway, agent tools, providers, models, channels, email, memory, and scheduling. Desktop, bundled Web GUI, TUI, SQLite, Windows, Docker Hub publishing, npmjs publishing, and China-specific optimizations are out of scope.
+        Keep requests within Memoh Enterprise scope: backend APIs, non-interactive CLI, Web management UI, PostgreSQL, Docker Engine/containerd/Kubernetes runtimes, Browser Gateway, agent tools, providers, models, channels, email, memory, and scheduling. Desktop GUI, TUI, SQLite, Windows, Docker Hub publishing, npmjs publishing, and China-specific optimizations are out of scope.
 
   - type: textarea
     id: problem

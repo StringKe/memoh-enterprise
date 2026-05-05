@@ -20,6 +20,14 @@ services:
         - COMMIT_HASH=${MEMOH_COMMIT:-unknown}
         - BUILD_TIME=${MEMOH_BUILD_TIME:-unknown}
 
+  web:
+    image: ghcr.io/stringke/web:${WEB_TAG:-latest}
+    build:
+      context: ../../..
+      dockerfile: deploy/docker/production/Dockerfile.web
+      args:
+        - VITE_API_URL=${VITE_API_URL:-/api}
+
   sparse:
     image: ghcr.io/stringke/sparse:${SPARSE_TAG:-latest}
     build:

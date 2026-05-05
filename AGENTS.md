@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-Memoh Enterprise is a backend-first fork of Memoh for enterprise deployments. It keeps the core multi-member, structured long-memory, containerized AI agent platform while removing bundled Desktop, Web GUI, TUI, and SQLite support.
+Memoh Enterprise is an enterprise-focused fork of Memoh. It keeps the core multi-member, structured long-memory, containerized AI agent platform and web management UI while removing Desktop GUI, TUI, and SQLite support.
 
 ## Supported Scope
 
@@ -15,24 +15,24 @@ Keep:
 - Linux `amd64` and Linux `arm64` deployment/runtime targets.
 - macOS local development compatibility.
 - Browser Gateway and agent browser automation.
+- Web management UI in `apps/web`.
+- Shared frontend packages: `packages/ui`, `packages/sdk`, `packages/icons`, and `packages/config`.
 - Agent, MCP, memory, schedule, providers, models, channels, email, workspace, containers, and API documentation.
-- `web-ui` configuration as external Web UI compatibility config.
+- `web-ui` configuration for the web management UI.
 
 Remove or do not reintroduce:
 
 - Electron/Desktop app.
-- Bundled Web GUI implementation.
 - Terminal TUI.
 - SQLite schema, migrations, sqlc output, driver, configuration, and docs.
 - Windows configuration templates, install instructions, and release targets.
-- TypeScript SDK generation that only served the bundled Web GUI.
-- Frontend UI/icon packages that only served the bundled Web GUI/Desktop.
 
 ## Architecture Overview
 
 | Service | Tech Stack | Port | Description |
 |---------|-----------|------|-------------|
 | **Server** | Go + Echo | 8080 | REST API, auth, database, container management, in-process AI agent |
+| **Web** | Vue 3 + Vite+ | 8082 | Web management UI for bots, models, providers, channels, memory, browser contexts, and usage |
 | **Browser Gateway** | Bun + Elysia + Playwright | 8083 | Browser automation service for agent tools |
 
 Infrastructure dependencies:
@@ -80,7 +80,11 @@ cmd/memoh/          Non-interactive CLI
 cmd/bridge/         In-container gRPC bridge
 internal/           Go backend packages
 apps/browser/       Browser Gateway
-packages/config/    Shared TypeScript config reader used by Browser Gateway
+apps/web/           Web management UI
+packages/config/    Shared TypeScript config reader used by Browser Gateway and Web
+packages/ui/        Shared Web UI components
+packages/sdk/       TypeScript SDK generated from OpenAPI
+packages/icons/     Web provider/channel icon package
 db/postgres/        PostgreSQL migrations and sqlc queries
 conf/               Configuration templates
 deploy/compose/dev/ Development compose environment
@@ -96,7 +100,8 @@ docs/               Documentation
 - Keep changes scoped to the requested enterprise reduction.
 - Do not remove Docker Engine, containerd, Browser Gateway, or browser automation.
 - Do not remove `web-ui` configuration.
-- Do not reintroduce Desktop, bundled Web GUI, TUI, or SQLite paths.
+- Do not remove or treat `apps/web` as Desktop GUI.
+- Do not reintroduce Desktop GUI, TUI, or SQLite paths.
 - Run Go formatting and compile/test checks after refactors.
 
 ## Vite+ Workflow
@@ -109,7 +114,8 @@ This repository uses Vite+ for JavaScript and TypeScript tooling. Vite+ is drive
 - Use `vp test` for JavaScript tests.
 - Use `vp staged --fail-on-changes` in hooks.
 - Use `vp dlx` instead of `npx`, `pnpm dlx`, or package-manager-specific one-off binary commands.
-- Import Vite+ APIs from `vite-plus`, for example `import { defineConfig } from "vite-plus";`.
+- Root Vite+ project config imports from `vite-plus`.
+- App and package Vite configs import `defineConfig` from `vite`; the workspace aliases `vite` to `@voidzero-dev/vite-plus-core`.
 - Import test APIs from `vite-plus/test`; do not add `vitest` as a direct dependency.
 - Do not add standalone `eslint`, `typescript-eslint`, `prettier`, `vitest`, `oxlint`, `oxfmt`, `tsdown`, or `oxlint-tsgolint` dependencies.
 - For CI, use `voidzero-dev/setup-vp@v1` and run `vp check`.

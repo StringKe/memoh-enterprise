@@ -1,6 +1,6 @@
 # Memoh Enterprise
 
-Memoh Enterprise 是 Memoh 的后端优先企业版 fork。保留容器化 AI agent 平台核心能力，移除内置 Desktop、Web GUI、TUI 和 SQLite 支持。
+Memoh Enterprise 是 Memoh 的企业版 fork。保留容器化 AI agent 平台核心能力和 Web 管理后台，移除 Desktop GUI、TUI 和 SQLite 支持。
 
 支持的运行目标：Linux `amd64` 和 Linux `arm64`。macOS 保留本地开发兼容。
 
@@ -13,16 +13,15 @@ Memoh Enterprise 是 Memoh 的后端优先企业版 fork。保留容器化 AI ag
 - PostgreSQL 作为唯一关系数据库后端。
 - Docker Engine 和 containerd workspace backend。
 - Browser Gateway，用于 agent browser automation。
+- `apps/web` Web 管理后台。
 - agent、MCP、memory、schedule、providers、models、channels、email、workspace、container 管理。
-- `web-ui` 配置，作为外部 Web UI 兼容配置。
+- `web-ui` 配置，用于内置 Web 管理后台。
 
 移除：
 
 - Electron/Desktop app。
-- 内置 Web GUI 实现。
 - 终端 TUI。
 - SQLite 支持。
-- 仅服务已移除 GUI 的 TypeScript SDK 生成链路。
 
 ## 快速启动
 
@@ -38,6 +37,8 @@ docker compose --profile qdrant --profile browser --profile sparse up -d
 ```
 
 API: `http://localhost:8080`
+
+Web UI: `http://localhost:8082`
 
 Browser Gateway: 启用 `browser` profile 后监听 `http://localhost:8083`。
 
@@ -55,11 +56,13 @@ mise run local:dev
 
 ```bash
 mise run local:browser
+mise run web:dev
 mise run dev
 mise run dev:infra
 mise run e2e:smoke
 mise run sqlc-generate
 mise run swagger-generate
+mise run sdk-generate
 mise run build-unified
 go test ./cmd/... ./internal/...
 ```

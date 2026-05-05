@@ -1,0 +1,24 @@
+{
+  "name": "@stringke/sdk",
+  "version": "0.8.0",
+  "description": "",
+  "main": "index.js",
+  "exports": {
+    ".": "./src/index.ts",
+    "./client": "./src/client.gen.ts",
+    "./colada": "./src/@pinia/colada.gen.ts"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "scripts": {},
+  "peerDependencies": {
+    "@pinia/colada": ">=0.21.0"
+  },
+  "peerDependenciesMeta": {
+    "@pinia/colada": {
+      "optional": true
+    }
+  },
+  "packageManager": "pnpm@10.27.0"
+}

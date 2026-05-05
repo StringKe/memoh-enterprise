@@ -1,0 +1,24 @@
+import { describe, expect, it } from "vite-plus/test";
+import { shortenImageRef } from "./image-ref";
+
+describe("shortenImageRef", () => {
+  it("returns empty string for missing values", () => {
+    expect(shortenImageRef(undefined)).toBe("");
+    expect(shortenImageRef(null)).toBe("");
+    expect(shortenImageRef("")).toBe("");
+  });
+
+  it("strips docker hub library prefix", () => {
+    expect(shortenImageRef("docker.io/library/nginx:latest")).toBe("nginx:latest");
+  });
+
+  it("strips docker hub registry prefix for namespaced images", () => {
+    expect(shortenImageRef("docker.io/stringke/server:latest")).toBe("stringke/server:latest");
+  });
+
+  it("preserves non-docker-hub registries", () => {
+    expect(shortenImageRef("ghcr.io/stringke/server:latest")).toBe(
+      "ghcr.io/stringke/server:latest",
+    );
+  });
+});

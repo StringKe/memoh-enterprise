@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Memoh Enterprise supports Linux amd64/arm64 deployments, PostgreSQL, Docker Engine/containerd, backend APIs, non-interactive CLI, and Browser Gateway browser automation. Desktop, bundled Web GUI, TUI, SQLite, Windows, and China-specific deployment paths are out of scope.
+        Memoh Enterprise supports Linux amd64/arm64 deployments, PostgreSQL, Docker Engine/containerd, backend APIs, non-interactive CLI, Web management UI, and Browser Gateway browser automation. Desktop GUI, TUI, SQLite, Windows, and China-specific deployment paths are out of scope.
 
   - type: textarea
     id: description

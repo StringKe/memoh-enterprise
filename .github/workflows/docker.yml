@@ -42,6 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       server: ${{ steps.filter.outputs.server }}
+      web: ${{ steps.filter.outputs.web }}
       browser: ${{ steps.filter.outputs.browser }}
       sparse: ${{ steps.filter.outputs.sparse }}
     steps:
@@ -63,6 +64,19 @@ jobs:
               - 'deploy/docker/toolkit/**'
               - 'conf/providers/**'
               - 'api/openapi/**'
+            web:
+              - 'apps/web/**'
+              - 'packages/config/**'
+              - 'packages/icons/**'
+              - 'packages/sdk/**'
+              - 'packages/ui/**'
+              - 'api/openapi/**'
+              - 'openapi-ts.config.ts'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+              - 'deploy/docker/production/Dockerfile.web'
+              - 'deploy/docker/production/nginx.web.conf'
             browser:
               - 'apps/browser/**'
               - 'packages/config/**'
@@ -77,12 +91,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image: [server, browser, sparse]
+        image: [server, web, browser, sparse]
         platform: [linux/amd64, linux/arm64]
         variant: [""]
         include:
           - image: server
             dockerfile: deploy/docker/production/Dockerfile.server
+          - image: web
+            dockerfile: deploy/docker/production/Dockerfile.web
           - image: browser
             dockerfile: deploy/docker/production/Dockerfile.browser
           - image: sparse
@@ -127,6 +143,7 @@ jobs:
           CHANGED="false"
           case "$IMAGE" in
             server)  CHANGED="${{ needs.detect-changes.outputs.server }}" ;;
+            web)     CHANGED="${{ needs.detect-changes.outputs.web }}" ;;
             browser) CHANGED="${{ needs.detect-changes.outputs.browser }}" ;;
             sparse)  CHANGED="${{ needs.detect-changes.outputs.sparse }}" ;;
           esac
@@ -226,6 +243,9 @@ jobs:
           - image: server
             artifact_key: server
             variant: ""
+          - image: web
+            artifact_key: web
+            variant: ""
           - image: browser
             artifact_key: browser
             variant: ""
@@ -252,6 +272,7 @@ jobs:
           CHANGED="false"
           case "$IMAGE" in
             server)  CHANGED="${{ needs.detect-changes.outputs.server }}" ;;
+            web)     CHANGED="${{ needs.detect-changes.outputs.web }}" ;;
             browser) CHANGED="${{ needs.detect-changes.outputs.browser }}" ;;
             sparse)  CHANGED="${{ needs.detect-changes.outputs.sparse }}" ;;
           esac

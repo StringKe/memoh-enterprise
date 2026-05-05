@@ -3,7 +3,13 @@ import { execFileSync, spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-const CANDIDATE_DIRS = ["apps/browser", "packages/config"];
+const CANDIDATE_DIRS = [
+  "apps/browser",
+  "packages/config",
+  "packages/icons",
+  "packages/sdk",
+  "packages/ui",
+];
 const REGISTRY = "https://npm.pkg.github.com";
 
 const log = {

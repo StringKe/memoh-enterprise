@@ -7,6 +7,10 @@ on:
       - "cmd/**"
       - "internal/**"
       - "apps/browser/**"
+      - "apps/web/**"
+      - "packages/icons/**"
+      - "packages/sdk/**"
+      - "packages/ui/**"
       - "packages/config/**"
       - "deploy/**"
       - "conf/app.docker.toml"
@@ -19,6 +23,10 @@ on:
       - "cmd/**"
       - "internal/**"
       - "apps/browser/**"
+      - "apps/web/**"
+      - "packages/icons/**"
+      - "packages/sdk/**"
+      - "packages/ui/**"
       - "packages/config/**"
       - "deploy/**"
       - "conf/app.docker.toml"
@@ -51,7 +59,7 @@ jobs:
 
       - name: Build images
         run: |
-          docker compose -f deploy/compose/images/docker-compose.yml build server sparse browser
+          docker compose -f deploy/compose/images/docker-compose.yml build server web sparse browser
 
       - name: Start stack
         run: |

@@ -1,7 +1,6 @@
-import { Elysia } from 'elysia'
-import { devices } from 'playwright'
+import { Elysia } from "elysia";
+import { devices } from "playwright";
 
-export const devicesModule = new Elysia({ prefix: '/devices' })
-  .get('/', () => {
-    return devices
-  })
+export const devicesModule = new Elysia({ prefix: "/devices" }).get("/", () => {
+  return devices;
+});

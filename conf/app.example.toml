@@ -32,7 +32,6 @@ driver = "postgres"
 # - kubernetes: create one Pod/PVC per bot workspace.
 # - apple: macOS Apple Container backend via socktainer.
 backend = "docker"
-# registry = "memoh.cn"  # Uncomment for China mainland mirror
 default_image = "debian:bookworm-slim"
 # Workspace image pull policy: if_not_present, always, or never.
 # Local backends apply it before creating the workspace; Kubernetes maps it to

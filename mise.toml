@@ -10,7 +10,7 @@ go = "1.25.6"
 node = "25"
 # Bun for browser gateway
 bun = "latest"
-# pnpm for workspace management
+# pnpm for the workspace lockfile used by Vite+
 pnpm = "10"
 # sqlc for sql management
 sqlc = "latest"
@@ -26,11 +26,11 @@ experimental = true
 [tasks.pnpm-install]
 description = "Install dependencies"
 env = { CI = "true" }
-run = "pnpm install"
+run = "vp install"
 
 [tasks.docs]
 description = "start documentation"
-run = "pnpm docs:dev"
+run = "vp run --filter @stringke/docs dev"
 
 [tasks.go-install]
 description = "Install Go dependencies"
@@ -188,12 +188,12 @@ description = "Run Go linter with auto-fix"
 run = "golangci-lint run --fix ./..."
 
 [tasks."lint:es"]
-description = "Run ESLint"
-run = "pnpm lint"
+description = "Run Vite+ check"
+run = "vp check"
 
 [tasks."lint:es:fix"]
-description = "Run ESLint with auto-fix"
-run = "pnpm lint:fix"
+description = "Run Vite+ check with auto-fix"
+run = "vp check --fix"
 
 [tasks.setup]
 description = "Setup development environment"

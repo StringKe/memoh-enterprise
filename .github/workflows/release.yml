@@ -12,6 +12,7 @@ on:
 
 permissions:
   contents: write
+  packages: write
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.inputs.tag_name || github.ref_name }}
@@ -29,15 +30,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: pnpm/action-setup@v4
+      - uses: voidzero-dev/setup-vp@v1
         with:
-          version: 10
-      - uses: actions/setup-node@v4
-        with:
-          node-version: lts/*
-          registry-url: https://registry.npmjs.org/
+          node-version: "24"
+          cache: true
 
-      - run: pnpm dlx changelogithub
+      - run: vp dlx changelogithub
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -47,6 +45,8 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_TAG }}
       - name: Sync workspace versions
         shell: bash
         run: |
@@ -69,17 +69,19 @@ jobs:
             fs.writeFileSync(target, `${JSON.stringify(pkg, null, 2)}\n`);
           }
           EOF
-      - uses: pnpm/action-setup@v4
+      - uses: voidzero-dev/setup-vp@v1
         with:
-          version: 10
-      - uses: actions/setup-node@v4
-        with:
-          node-version: lts/*
-          cache: pnpm
-          registry-url: https://registry.npmjs.org/
-      - name: Install JS dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Publish to npm
+          node-version: "24"
+          cache: true
+      - name: Configure GitHub Packages
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: pnpm publish:npm
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "@stringke:registry=https://npm.pkg.github.com" >> .npmrc
+          echo "//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}" >> .npmrc
+      - name: Install JS dependencies
+        run: vp install --frozen-lockfile
+      - name: Publish to GitHub Packages
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: vp run publish:npm

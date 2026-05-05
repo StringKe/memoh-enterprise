@@ -76,7 +76,7 @@ For local clusters that can see locally built images, use the included overlay:
 kubectl apply -k deploy/kubernetes-local
 ```
 
-It rewrites `memohai/server` and `memohai/browser` to the `k8s-dev` tag.
+It rewrites `ghcr.io/stringke/server` and `ghcr.io/stringke/browser` to the `k8s-dev` tag.
 
 ## Updating images
 

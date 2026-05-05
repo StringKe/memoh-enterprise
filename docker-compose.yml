@@ -22,7 +22,7 @@ services:
       - memoh-network
 
   migrate:
-    image: memohai/server:latest
+    image: ghcr.io/stringke/server:latest
     container_name: memoh-migrate
     entrypoint: ["/app/memoh-server", "migrate", "up"]
     volumes:
@@ -36,7 +36,7 @@ services:
       - memoh-network
 
   server:
-    image: memohai/server:latest
+    image: ghcr.io/stringke/server:latest
     container_name: memoh-server
     privileged: true
     pid: host
@@ -61,7 +61,7 @@ services:
       - memoh-network
 
   sparse:
-    image: memohai/sparse:latest
+    image: ghcr.io/stringke/sparse:latest
     container_name: memoh-sparse
     profiles: [sparse]
     volumes:
@@ -97,7 +97,7 @@ services:
       - memoh-network
 
   browser:
-    image: memohai/browser:${BROWSER_TAG:-local}
+    image: ghcr.io/stringke/browser:${BROWSER_TAG:-local}
     container_name: memoh-browser
     profiles: [browser]
     environment:

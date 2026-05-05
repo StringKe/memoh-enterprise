@@ -16,7 +16,7 @@ export interface Config {
   agent_gateway: AgentGatewayConfig;
   browser_gateway: BrowserGatewayConfig;
   supermarket: SupermarketConfig;
-  'web-ui'?: WebUIConfig;
+  "web-ui"?: WebUIConfig;
 }
 
 export interface LogConfig {

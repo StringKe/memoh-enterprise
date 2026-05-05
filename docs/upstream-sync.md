@@ -152,9 +152,8 @@ rg -n "apps/(desktop|web)|packages/(ui|sdk|icons)|internal/tui|db/sqlite|interna
 go test ./cmd/... ./internal/...
 go build ./cmd/agent ./cmd/memoh ./cmd/bridge
 sqlc generate
-node_modules/.bin/tsc --noEmit -p tsconfig.json
-node_modules/.bin/eslint .
-pnpm --filter @memohai/docs build
+vp check
+vp run --filter @stringke/docs build
 ```
 
 Browser Gateway 改动后增加：

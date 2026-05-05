@@ -7,9 +7,9 @@ PURPLE='\033[0;35m'
 RED='\033[0;31m'
 NC='\033[0m'
 
-GITHUB_REPO="memohai/Memoh"
+GITHUB_REPO="StringKe/memoh-enterprise"
 REPO="https://github.com/${GITHUB_REPO}.git"
-DIR="Memoh"
+DIR="memoh-enterprise"
 COMPOSE_PROJECT_NAME="memoh"
 SILENT=false
 
@@ -33,11 +33,6 @@ if [ "${MEMOH_CONTAINER_BACKEND+x}" = x ]; then
 else
   CONTAINER_BACKEND="containerd"
   CONTAINER_BACKEND_SET=false
-fi
-if [ "${USE_CN_MIRROR+x}" = x ]; then
-  USE_CN_MIRROR_SET=true
-else
-  USE_CN_MIRROR_SET=false
 fi
 if [ "${USE_SPARSE+x}" = x ]; then
   USE_SPARSE_SET=true
@@ -366,15 +361,6 @@ load_existing_settings() {
     value=$(read_toml_value "$EXISTING_CONFIG_SOURCE" "postgres" "password" || true)
     [ -n "$value" ] && PG_PASS="$value"
 
-    if [ "$USE_CN_MIRROR_SET" = false ]; then
-      value=$(read_toml_value "$EXISTING_CONFIG_SOURCE" "container" "registry" || true)
-      if [ -z "$value" ]; then
-        value=$(read_toml_value "$EXISTING_CONFIG_SOURCE" "workspace" "registry" || true)
-      fi
-      if [ "$value" = "memoh.cn" ]; then
-        USE_CN_MIRROR=true
-      fi
-    fi
   fi
 
   if [ -n "$EXISTING_ENV_SOURCE" ]; then
@@ -572,7 +558,6 @@ JWT_SECRET="$(gen_secret)"
 PG_PASS="memoh123"
 WORKSPACE="$WORKSPACE_DEFAULT"
 MEMOH_DATA_DIR="$MEMOH_DATA_DIR_DEFAULT"
-USE_CN_MIRROR="${USE_CN_MIRROR:-false}"
 USE_SPARSE="${USE_SPARSE:-false}"
 BROWSER_CORE="${BROWSER_CORE:-chromium}"
 
@@ -727,29 +712,17 @@ else
 fi
 
 COMPOSE_FILE_NAME="docker-compose.yml"
-CN_COMPOSE_FILE_NAME="docker/docker-compose.cn.yml"
 if [ ! -f "$COMPOSE_FILE_NAME" ]; then
   echo "${RED}Error: ${COMPOSE_FILE_NAME} is missing in ${MEMOH_VERSION:-the selected checkout}.${NC}"
   echo "Use a newer Memoh version."
   exit 1
 fi
-if [ "$USE_CN_MIRROR" = true ] && [ ! -f "$CN_COMPOSE_FILE_NAME" ]; then
-  echo "${RED}Error: ${CN_COMPOSE_FILE_NAME} is missing in ${MEMOH_VERSION:-the selected checkout}.${NC}"
-  echo "Use a newer Memoh version or disable USE_CN_MIRROR."
-  exit 1
-fi
 
 # Pin Docker image versions in the selected compose file.
 if [ "$MEMOH_DOCKER_VERSION" != "latest" ]; then
-    sed -i.bak "s|memohai/server:latest|memohai/server:${MEMOH_DOCKER_VERSION}|g" "$COMPOSE_FILE_NAME"
-    sed -i.bak "s|memohai/agent:latest|memohai/agent:${MEMOH_DOCKER_VERSION}|g" "$COMPOSE_FILE_NAME"
-    sed -i.bak "s|memohai/sparse:latest|memohai/sparse:${MEMOH_DOCKER_VERSION}|g" "$COMPOSE_FILE_NAME"
+    sed -i.bak "s|ghcr.io/stringke/server:latest|ghcr.io/stringke/server:${MEMOH_DOCKER_VERSION}|g" "$COMPOSE_FILE_NAME"
+    sed -i.bak "s|ghcr.io/stringke/sparse:latest|ghcr.io/stringke/sparse:${MEMOH_DOCKER_VERSION}|g" "$COMPOSE_FILE_NAME"
     rm -f "${COMPOSE_FILE_NAME}.bak"
-    if [ "$USE_CN_MIRROR" = true ]; then
-      sed -i.bak "s|memoh.cn/memohai/server:latest|memoh.cn/memohai/server:${MEMOH_DOCKER_VERSION}|g" "$CN_COMPOSE_FILE_NAME"
-      sed -i.bak "s|memoh.cn/memohai/sparse:latest|memoh.cn/memohai/sparse:${MEMOH_DOCKER_VERSION}|g" "$CN_COMPOSE_FILE_NAME"
-      rm -f "${CN_COMPOSE_FILE_NAME}.bak"
-    fi
     echo "${GREEN}✓ Docker images pinned to ${MEMOH_DOCKER_VERSION}${NC}"
 fi
 
@@ -765,9 +738,6 @@ else
   set_toml_string_value config.toml "database" "driver" "$DATABASE_DRIVER"
   set_toml_string_value config.toml "container" "backend" "$CONTAINER_BACKEND"
   set_toml_string_value config.toml "postgres" "password" "$PG_PASS"
-  if [ "$USE_CN_MIRROR" = true ]; then
-    sed -i.bak 's|# registry = "memoh.cn"|registry = "memoh.cn"|' config.toml
-  fi
   rm -f config.toml.bak
 fi
 
@@ -812,10 +782,6 @@ if [ "$USE_SPARSE" = true ]; then
 else
   echo "${YELLOW}ℹ Sparse memory service disabled${NC}"
 fi
-if [ "$USE_CN_MIRROR" = true ]; then
-  COMPOSE_FILES="$COMPOSE_FILES -f ${CN_COMPOSE_FILE_NAME}"
-  echo "${GREEN}✓ Using China mainland mirror (memoh.cn)${NC}"
-fi
 
 : > .env
 write_env_value "POSTGRES_PASSWORD" "$PG_PASS"
@@ -852,10 +818,6 @@ if [ "$CLONED_FRESH" = true ]; then
   cp "$COMPOSE_FILE_NAME" config.toml .env "$WORKSPACE/"
   mkdir -p "$WORKSPACE/conf"
   cp -r conf/providers "$WORKSPACE/conf/"
-  if [ "$USE_CN_MIRROR" = true ]; then
-    mkdir -p "$WORKSPACE/docker"
-    cp "$CN_COMPOSE_FILE_NAME" "$WORKSPACE/docker/"
-  fi
   cd "$WORKSPACE"
   rm -rf "$WORKSPACE/$DIR"
   INSTALL_DIR="$WORKSPACE"

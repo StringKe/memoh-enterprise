@@ -1,4 +1,4 @@
-name: ESLint
+name: Vite+
 
 on:
   push:
@@ -17,9 +17,9 @@ on:
       - "package.json"
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
-      - "eslint.config.mjs"
       - "tsconfig.json"
-      - ".github/workflows/eslint.yml"
+      - "vite.config.ts"
+      - ".github/workflows/vite-plus.yml"
   pull_request:
     branches: ["main"]
     paths:
@@ -36,9 +36,9 @@ on:
       - "package.json"
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
-      - "eslint.config.mjs"
       - "tsconfig.json"
-      - ".github/workflows/eslint.yml"
+      - "vite.config.ts"
+      - ".github/workflows/vite-plus.yml"
   workflow_dispatch:
 
 permissions:
@@ -49,20 +49,17 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  lint:
-    name: Lint
+  check:
+    name: Check
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: voidzero-dev/setup-vp@v1
         with:
-          version: 10
-      - uses: actions/setup-node@v4
-        with:
-          node-version: lts/*
-          cache: pnpm
+          node-version: "24"
+          cache: true
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Run ESLint
-        run: pnpm lint
+        run: vp install
+      - name: Run Vite+ check
+        run: vp check

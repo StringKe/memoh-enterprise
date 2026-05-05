@@ -2,6 +2,8 @@
 
 Memoh Enterprise is a backend-first fork of Memoh for enterprise deployments. It keeps the containerized AI agent platform and removes bundled Desktop, Web GUI, TUI, and SQLite support.
 
+Supported runtime targets: Linux `amd64` and Linux `arm64`. macOS remains supported for local development compatibility.
+
 ## Scope
 
 Kept:

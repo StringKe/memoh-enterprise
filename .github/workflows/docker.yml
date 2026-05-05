@@ -25,8 +25,7 @@ concurrency:
 env:
   PUSH: ${{ github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/v') || startsWith(github.ref, 'refs/tags/') || github.event_name == 'release') }}
   REGISTRY: ghcr.io
-  DOCKERHUB_NAMESPACE: stringme
-  DOCKERHUB_ENABLED: ${{ secrets.DOCKERHUB_USERNAME != '' && secrets.DOCKERHUB_TOKEN != '' }}
+  GHCR_NAMESPACE: stringke
 
 permissions:
   contents: read
@@ -155,13 +154,6 @@ jobs:
           mkdir -p .go-cache
           GOMODCACHE=$(pwd)/.go-cache go mod download
 
-      - name: Login to Docker Hub
-        if: steps.should-build.outputs.skip != 'true' && env.PUSH == 'true' && env.DOCKERHUB_ENABLED == 'true'
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
       - name: Login to GitHub Container Registry
         if: steps.should-build.outputs.skip != 'true' && env.PUSH == 'true'
         uses: docker/login-action@v3
@@ -190,7 +182,7 @@ jobs:
           context: .
           file: ${{ matrix.dockerfile }}
           platforms: ${{ matrix.platform }}
-          outputs: ${{ env.PUSH == 'true' && format('type=image,"name={0}/{1}/{2}",push-by-digest=true,name-canonical=true,push=true,compression=zstd', env.REGISTRY, github.repository_owner, matrix.image) || '' }}
+          outputs: ${{ env.PUSH == 'true' && format('type=image,"name={0}/{1}/{2}",push-by-digest=true,name-canonical=true,push=true,compression=zstd', env.REGISTRY, env.GHCR_NAMESPACE, matrix.image) || '' }}
           build-contexts: ${{ matrix.image == 'server' && format('gomodcache={0}/.go-cache', github.workspace) || '' }}
           build-args: |
             VERSION=${{ github.ref_name }}
@@ -198,10 +190,10 @@ jobs:
             ${{ matrix.variant != '' && format('BROWSER_CORES={0}', matrix.variant) || '' }}
           cache-from: |
             type=gha,scope=${{ steps.resolve.outputs.artifact_key }}-${{ matrix.platform }}
-            type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image }}:buildcache-${{ steps.resolve.outputs.artifact_key }}-${{ matrix.platform == 'linux/amd64' && 'amd64' || 'arm64' }}
+            type=registry,ref=${{ env.REGISTRY }}/${{ env.GHCR_NAMESPACE }}/${{ matrix.image }}:buildcache-${{ steps.resolve.outputs.artifact_key }}-${{ matrix.platform == 'linux/amd64' && 'amd64' || 'arm64' }}
           cache-to: |
             type=gha,scope=${{ steps.resolve.outputs.artifact_key }}-${{ matrix.platform }},mode=max
-            ${{ env.PUSH == 'true' && format('type=registry,ref={0}/{1}/{2}:buildcache-{3}-{4},mode=max,compression=zstd', env.REGISTRY, github.repository_owner, matrix.image, steps.resolve.outputs.artifact_key, matrix.platform == 'linux/amd64' && 'amd64' || 'arm64') || '' }}
+            ${{ env.PUSH == 'true' && format('type=registry,ref={0}/{1}/{2}:buildcache-{3}-{4},mode=max,compression=zstd', env.REGISTRY, env.GHCR_NAMESPACE, matrix.image, steps.resolve.outputs.artifact_key, matrix.platform == 'linux/amd64' && 'amd64' || 'arm64') || '' }}
 
       - name: Export digest
         if: steps.should-build.outputs.skip != 'true' && env.PUSH == 'true'
@@ -278,13 +270,6 @@ jobs:
         if: steps.should-publish.outputs.skip != 'true'
         uses: docker/setup-buildx-action@v3
 
-      - name: Login to Docker Hub
-        if: steps.should-publish.outputs.skip != 'true' && env.DOCKERHUB_ENABLED == 'true'
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
       - name: Login to GitHub Container Registry
         if: steps.should-publish.outputs.skip != 'true'
         uses: docker/login-action@v3
@@ -297,8 +282,7 @@ jobs:
         if: steps.should-publish.outputs.skip != 'true'
         id: publish
         run: |
-          IMAGE="${DOCKERHUB_NAMESPACE}/${{ matrix.image }}"
-          GHCR_IMAGE="ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}"
+          GHCR_IMAGE="${REGISTRY}/${GHCR_NAMESPACE}/${{ matrix.image }}"
           REF_NAME="${{ github.event_name == 'release' && github.event.release.tag_name || github.ref_name }}"
           VERSION="${REF_NAME#v}"
           BASE_VERSION="${VERSION%%-*}"
@@ -309,9 +293,6 @@ jobs:
 
           add_tag() {
             local tag="$1"
-            if [ "${DOCKERHUB_ENABLED}" = "true" ]; then
-              TAG_ARGS="$TAG_ARGS -t ${IMAGE}:${tag}"
-            fi
             TAG_ARGS="$TAG_ARGS -t ${GHCR_IMAGE}:${tag}"
           }
 
@@ -353,4 +334,4 @@ jobs:
         run: |
           docker buildx imagetools create \
             ${{ steps.publish.outputs.tag_args }} \
-            $(printf 'ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}@sha256:%s ' *)
+            $(printf '${{ env.REGISTRY }}/${{ env.GHCR_NAMESPACE }}/${{ matrix.image }}@sha256:%s ' *)

@@ -40,7 +40,7 @@ spec:
       serviceAccountName: memoh-server
       initContainers:
         - name: migrate
-          image: memohai/server:latest
+          image: ghcr.io/stringke/server:latest
           imagePullPolicy: IfNotPresent
           command: ["/app/memoh-server", "migrate", "up"]
           volumeMounts:
@@ -50,7 +50,7 @@ spec:
               readOnly: true
       containers:
         - name: server
-          image: memohai/server:latest
+          image: ghcr.io/stringke/server:latest
           imagePullPolicy: IfNotPresent
           command: ["/app/memoh-server", "serve"]
           ports:

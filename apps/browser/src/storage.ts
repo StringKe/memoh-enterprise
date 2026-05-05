@@ -1,5 +1,5 @@
-import { GatewayBrowserContext } from './types'
+import { GatewayBrowserContext } from "./types";
 
-export type GatewayStorage = Map<string, GatewayBrowserContext>
+export type GatewayStorage = Map<string, GatewayBrowserContext>;
 
-export const storage: GatewayStorage = new Map()
+export const storage: GatewayStorage = new Map();

@@ -76,7 +76,7 @@ API 地址是 `http://localhost:8080`。
 kubectl apply -k deploy/kubernetes-local
 ```
 
-它会把 `memohai/server` 和 `memohai/browser` 改写成 `k8s-dev` tag。
+它会把 `ghcr.io/stringke/server` 和 `ghcr.io/stringke/browser` 改写成 `k8s-dev` tag。
 
 ## 更新镜像
 

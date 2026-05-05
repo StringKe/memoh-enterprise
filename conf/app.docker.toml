@@ -28,7 +28,6 @@ driver = "postgres"
 # change this to "docker" inside Compose unless you also provide host-valid
 # runtime bind mounts and Docker socket access.
 backend = "containerd"
-# registry = "memoh.cn"  # Uncomment for China mainland mirror
 default_image = "debian:bookworm-slim"
 image_pull_policy = "if_not_present"
 # containerd snapshotter and CNI settings for bot workspace containers.

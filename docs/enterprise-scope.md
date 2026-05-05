@@ -14,6 +14,7 @@
 - 移除内置 Web GUI 实现。
 - 移除终端 TUI。
 - 移除 SQLite 支持。
+- 运行目标只支持 Linux `amd64` / `arm64`，macOS 保留本地开发兼容。
 - 保留 PostgreSQL、Docker Engine、containerd、Browser Gateway、browser automation、非交互 CLI 和核心后端能力。
 - 保留配置中的 `web-ui`，但仓库不再内置 Web GUI 实现。
 
@@ -105,6 +106,12 @@
 - 保留 agent、MCP、memory、schedule、providers、models、channels、email、workspace、containers、browser automation。
 - 保留 Swagger/OpenAPI 后端 API 文档。
 - 删除只服务内置 Web GUI 的 TypeScript SDK 生成链路。
+
+### 平台目标
+
+- 发布和部署目标只覆盖 Linux `amd64` / `arm64`。
+- macOS 只作为本地开发兼容目标保留。
+- 不提供 Windows 配置模板、发布目标或安装说明。
 
 ### `web-ui` 配置
 

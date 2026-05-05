@@ -27,7 +27,6 @@ driver = "postgres"
 # Development runs nested containerd inside the server container, matching the
 # production Docker Compose image.
 backend = "containerd"
-# registry = "memoh.cn"  # Uncomment for China mainland mirror
 default_image = "debian:bookworm-slim"
 image_pull_policy = "if_not_present"
 # containerd snapshotter and CNI settings for bot workspace containers.

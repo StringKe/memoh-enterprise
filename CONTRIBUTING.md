@@ -8,13 +8,9 @@
 ### Install mise
 
 ```bash
-# macOS / Linux
 curl https://mise.run | sh
 # or
 brew install mise
-
-# Windows
-winget install jdx.mise
 ```
 
 ## Quick Start
@@ -26,7 +22,7 @@ mise run setup     # Install deps and prepare local tooling
 mise run dev       # Start full containerized dev environment
 ```
 
-That's it. `dev` launches everything in Docker containers:
+That's it. `dev` launches everything in Docker containers on Linux amd64/arm64 hosts. macOS is supported for local development.
 1. PostgreSQL + Qdrant (infrastructure)
 2. Database migrations (auto-run on startup)
 3. Go server with containerd (hot-reload via `go run`)

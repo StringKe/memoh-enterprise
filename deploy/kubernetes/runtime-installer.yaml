@@ -16,7 +16,7 @@ spec:
         - operator: Exists
       containers:
         - name: install-runtime
-          image: memohai/server:latest
+          image: ghcr.io/stringke/server:latest
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh

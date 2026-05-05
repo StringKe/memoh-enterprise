@@ -30,7 +30,7 @@ current directory is not already a Docker Compose deployment.`,
 		Example: `  memoh install
   memoh install --yes
   memoh install --version v0.6.0
-  USE_CN_MIRROR=true memoh install --yes`,
+  memoh install --yes`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			return runInstall(cmd.Context(), installOptions{
 				version:   version,

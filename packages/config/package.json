@@ -1,16 +1,19 @@
 {
-  "name": "@memohai/config",
+  "name": "@stringke/config",
   "version": "0.8.0",
+  "type": "module",
+  "module": "src/index.ts",
   "exports": {
     ".": "./src/index.ts"
   },
-  "packageManager": "pnpm@10.27.0",
-  "module": "src/index.ts",
-  "type": "module",
-  "peerDependencies": {
-    "typescript": "^5"
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
   },
   "dependencies": {
     "toml": "^3.0.0"
-  }
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "packageManager": "pnpm@10.27.0"
 }

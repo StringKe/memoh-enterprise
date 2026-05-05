@@ -2,6 +2,8 @@
 
 Memoh Enterprise 是 Memoh 的后端优先企业版 fork。保留容器化 AI agent 平台核心能力，移除内置 Desktop、Web GUI、TUI 和 SQLite 支持。
 
+支持的运行目标：Linux `amd64` 和 Linux `arm64`。macOS 保留本地开发兼容。
+
 ## 范围
 
 保留：

@@ -18,12 +18,30 @@ usage() {
 Usage: scripts/release.sh [options]
 
 Options:
-  --os <os>             Target OS (default: current GOOS)
-  --arch <arch>         Target ARCH (default: current GOARCH)
+  --os <os>             Target OS: linux or darwin (default: current GOOS)
+  --arch <arch>         Target ARCH: amd64 or arm64 (default: current GOARCH)
   --version <version>   Version string injected into the memoh CLI
   --commit-hash <sha>   Commit hash injected into the memoh CLI
   --output-dir <dir>    Output directory for release artifacts
 EOF
+}
+
+validate_target() {
+  case "$TARGET_OS" in
+    linux|darwin) ;;
+    *)
+      echo "Unsupported target OS: $TARGET_OS. Supported: linux, darwin" >&2
+      exit 1
+      ;;
+  esac
+
+  case "$TARGET_ARCH" in
+    amd64|arm64) ;;
+    *)
+      echo "Unsupported target ARCH: $TARGET_ARCH. Supported: amd64, arm64" >&2
+      exit 1
+      ;;
+  esac
 }
 
 parse_args() {
@@ -65,12 +83,7 @@ parse_args() {
 build_archive() {
   mkdir -p "$OUTPUT_DIR"
 
-  local ext=""
-  if [[ "$TARGET_OS" == "windows" ]]; then
-    ext=".exe"
-  fi
-
-  local binary_name="memoh${ext}"
+  local binary_name="memoh"
   local target_dir="$OUTPUT_DIR/memoh_${VERSION}_${TARGET_OS}_${TARGET_ARCH}"
   mkdir -p "$target_dir"
 
@@ -82,14 +95,11 @@ build_archive() {
     -o "$target_dir/$binary_name" \
     "$ROOT_DIR/cmd/memoh"
 
-  if [[ "$TARGET_OS" == "windows" ]]; then
-    (cd "$OUTPUT_DIR" && zip -q -r "memoh_${VERSION}_${TARGET_OS}_${TARGET_ARCH}.zip" "memoh_${VERSION}_${TARGET_OS}_${TARGET_ARCH}")
-  else
-    tar -C "$OUTPUT_DIR" -czf "$OUTPUT_DIR/memoh_${VERSION}_${TARGET_OS}_${TARGET_ARCH}.tar.gz" "memoh_${VERSION}_${TARGET_OS}_${TARGET_ARCH}"
-  fi
+  tar -C "$OUTPUT_DIR" -czf "$OUTPUT_DIR/memoh_${VERSION}_${TARGET_OS}_${TARGET_ARCH}.tar.gz" "memoh_${VERSION}_${TARGET_OS}_${TARGET_ARCH}"
 
   log "archive created (${TARGET_OS}-${TARGET_ARCH})"
 }
 
 parse_args "$@"
+validate_target
 build_archive

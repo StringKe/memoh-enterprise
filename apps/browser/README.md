@@ -1,1 +1,1 @@
-# @memohai/browser-gateway
+# @stringke/browser-gateway

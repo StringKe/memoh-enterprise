@@ -28,7 +28,7 @@ spec:
     spec:
       containers:
         - name: browser
-          image: memohai/browser:chromium-latest
+          image: ghcr.io/stringke/browser:chromium-latest
           imagePullPolicy: IfNotPresent
           env:
             - name: MEMOH_CONFIG_PATH

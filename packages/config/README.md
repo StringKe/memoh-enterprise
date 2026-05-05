@@ -1,1 +1,1 @@
-# @memohai/config
+# @stringke/config

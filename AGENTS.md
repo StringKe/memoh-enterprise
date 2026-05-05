@@ -12,6 +12,8 @@ Keep:
 - Non-interactive `memoh` CLI commands.
 - PostgreSQL as the only relational database backend.
 - Docker Engine and containerd workspace backends.
+- Linux `amd64` and Linux `arm64` deployment/runtime targets.
+- macOS local development compatibility.
 - Browser Gateway and agent browser automation.
 - Agent, MCP, memory, schedule, providers, models, channels, email, workspace, containers, and API documentation.
 - `web-ui` configuration as external Web UI compatibility config.
@@ -22,6 +24,7 @@ Remove or do not reintroduce:
 - Bundled Web GUI implementation.
 - Terminal TUI.
 - SQLite schema, migrations, sqlc output, driver, configuration, and docs.
+- Windows configuration templates, install instructions, and release targets.
 - TypeScript SDK generation that only served the bundled Web GUI.
 - Frontend UI/icon packages that only served the bundled Web GUI/Desktop.
 
@@ -56,7 +59,7 @@ Infrastructure dependencies:
 | `mise run docs` | Start documentation dev server |
 | `mise run build-unified` | Build `memoh` CLI locally |
 | `mise run bridge:build` | Rebuild bridge binary in dev container |
-| `mise run lint` | Run all linters |
+| `mise run lint` | Run Go checks and Vite+ checks |
 
 ## Database Rules
 
@@ -90,3 +93,18 @@ docs/               Documentation
 - Do not remove `web-ui` configuration.
 - Do not reintroduce Desktop, bundled Web GUI, TUI, or SQLite paths.
 - Run Go formatting and compile/test checks after refactors.
+
+## Vite+ Workflow
+
+This repository uses Vite+ for JavaScript and TypeScript tooling. Vite+ is driven by the global `vp` CLI and replaces standalone ESLint, Prettier, Vitest, and package-manager wrapper commands for frontend checks.
+
+- Use `vp install` after pulling dependency changes.
+- Use `vp check` for format, lint, and TypeScript checks.
+- Use `vp check --fix` for automatic fixes.
+- Use `vp test` for JavaScript tests.
+- Use `vp staged --fail-on-changes` in hooks.
+- Use `vp dlx` instead of `npx`, `pnpm dlx`, or package-manager-specific one-off binary commands.
+- Import Vite+ APIs from `vite-plus`, for example `import { defineConfig } from "vite-plus";`.
+- Import test APIs from `vite-plus/test`; do not add `vitest` as a direct dependency.
+- Do not add standalone `eslint`, `typescript-eslint`, `prettier`, `vitest`, `oxlint`, `oxfmt`, `tsdown`, or `oxlint-tsgolint` dependencies.
+- For CI, use `voidzero-dev/setup-vp@v1` and run `vp check`.

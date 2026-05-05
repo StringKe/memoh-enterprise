@@ -7,13 +7,13 @@
 安装依赖：
 
 ```bash
-pnpm install
+vp install
 ```
 
 启动开发服务器：
 
 ```bash
-pnpm dev
+vp run --filter @stringke/docs dev
 ```
 
 文档将在 `http://localhost:5173` 运行。
@@ -23,13 +23,13 @@ pnpm dev
 构建生产版本：
 
 ```bash
-pnpm build
+vp run --filter @stringke/docs build
 ```
 
 预览构建结果：
 
 ```bash
-pnpm preview
+vp run --filter @stringke/docs preview
 ```
 
 ## 部署
@@ -41,4 +41,3 @@ pnpm preview
 ## 手动部署
 
 如果需要手动触发部署，可以在 GitHub Actions 页面选择 "Deploy Docs" workflow，然后点击 "Run workflow"。
-

@@ -3,7 +3,7 @@ kind: Kustomization
 resources:
   - ../kubernetes
 images:
-  - name: memohai/server
+  - name: ghcr.io/stringke/server
     newTag: k8s-dev
-  - name: memohai/browser
+  - name: ghcr.io/stringke/browser
     newTag: k8s-dev

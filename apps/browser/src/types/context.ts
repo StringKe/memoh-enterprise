@@ -1,13 +1,13 @@
-import type { BrowserContext, Page } from 'playwright'
-import type { BrowserContextConfig } from '../models'
-import type { BrowserCore } from '../browser'
+import type { BrowserContext, Page } from "playwright";
+import type { BrowserContextConfig } from "../models";
+import type { BrowserCore } from "../browser";
 
 export interface GatewayBrowserContext {
-  id: string
-  name: string
-  botId?: string
-  core: BrowserCore
-  context: BrowserContext
-  config: BrowserContextConfig
-  activePage?: Page
+  id: string;
+  name: string;
+  botId?: string;
+  core: BrowserCore;
+  context: BrowserContext;
+  config: BrowserContextConfig;
+  activePage?: Page;
 }

@@ -48,12 +48,16 @@ Browser Gateway: 启用 `browser` profile 后监听 `http://localhost:8083`。
 ```bash
 mise install
 mise run setup
-mise run dev
+mise run local:dev
 ```
 
 常用命令：
 
 ```bash
+mise run local:browser
+mise run dev
+mise run dev:infra
+mise run e2e:smoke
 mise run sqlc-generate
 mise run swagger-generate
 mise run build-unified

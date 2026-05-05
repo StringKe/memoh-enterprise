@@ -1,0 +1,85 @@
+name: E2E
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "cmd/**"
+      - "internal/**"
+      - "apps/browser/**"
+      - "packages/config/**"
+      - "deploy/**"
+      - "conf/app.docker.toml"
+      - "docker-compose.yml"
+      - "scripts/e2e/**"
+      - ".github/workflows/e2e.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "cmd/**"
+      - "internal/**"
+      - "apps/browser/**"
+      - "packages/config/**"
+      - "deploy/**"
+      - "conf/app.docker.toml"
+      - "docker-compose.yml"
+      - "scripts/e2e/**"
+      - ".github/workflows/e2e.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  BROWSER_CORES: chromium
+  BROWSER_TAG: local
+
+jobs:
+  compose-smoke:
+    name: Compose smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate config
+        run: cp conf/app.docker.toml config.toml
+
+      - name: Build and start stack
+        run: |
+          docker compose \
+            -f docker-compose.yml \
+            -f deploy/compose/images/docker-compose.yml \
+            --profile qdrant \
+            --profile sparse \
+            --profile browser \
+            up --build -d
+
+      - name: Smoke test
+        run: scripts/e2e/smoke.sh --browser
+
+      - name: Logs
+        if: always()
+        run: |
+          docker compose \
+            -f docker-compose.yml \
+            -f deploy/compose/images/docker-compose.yml \
+            --profile qdrant \
+            --profile sparse \
+            --profile browser \
+            logs --no-color --tail=200
+
+      - name: Stop stack
+        if: always()
+        run: |
+          docker compose \
+            -f docker-compose.yml \
+            -f deploy/compose/images/docker-compose.yml \
+            --profile qdrant \
+            --profile sparse \
+            --profile browser \
+            down -v --remove-orphans

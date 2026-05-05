@@ -45,7 +45,10 @@ Infrastructure dependencies:
 
 | Command | Description |
 |---------|-------------|
-| `mise run dev` | Start the development environment |
+| `mise run local:dev` | Start local infra and run the server on the host |
+| `mise run local:browser` | Start Browser Gateway on the host |
+| `mise run dev` | Start the full containerized development environment |
+| `mise run dev:infra` | Start only local infrastructure containers |
 | `mise run dev:minify` | Start development environment with minified services |
 | `mise run dev:selinux` | Start development environment on SELinux systems |
 | `mise run dev:down` | Stop the development environment |

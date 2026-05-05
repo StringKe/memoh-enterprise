@@ -19,24 +19,29 @@ brew install mise
 mise install       # Install toolchains (Go, Node, Bun, pnpm, sqlc)
 ./deploy/docker/toolkit/install.sh  # Install toolkit used by the nested workspace runtime
 mise run setup     # Install deps and prepare local tooling
-mise run dev       # Start full containerized dev environment
+mise run local:dev # Start infra in Docker and run the server on macOS
 ```
 
-That's it. `dev` launches everything in Docker containers on Linux amd64/arm64 hosts. macOS is supported for local development.
-1. PostgreSQL + Qdrant (infrastructure)
-2. Database migrations (auto-run on startup)
-3. Go server with containerd (hot-reload via `go run`)
-4. Browser Gateway (Bun, hot-reload)
-5. External web-ui (Vite, hot-reload)
+The default local workflow is macOS arm64 first:
+
+1. PostgreSQL, Qdrant, and Sparse run in a Docker-compatible engine.
+2. The Go server runs on macOS with `container.backend = "docker"`.
+3. Browser Gateway runs on macOS with Bun when browser automation is needed.
+4. External Web UI runs outside this repository.
+
+OrbStack is supported as the Docker-compatible engine on macOS. OrbStack Linux machines are optional and are not required for the default workflow.
 
 The dev stack uses `deploy/config/dev/app.dev.toml` directly and no longer overwrites the repo root `config.toml`.
-Default host ports are shifted away from the production compose stack: Web `18082`, API `18080`, Agent `18081`, Postgres `15432`, Qdrant `16333`/`16334`, Sparse `18085`.
+Default host ports are shifted away from the production compose stack: API `18731` for host-run local server, Postgres `15432`, Qdrant `16333`/`16334`, Sparse `18085`, and Browser Gateway `18083`.
 
 ## Daily Development
 
 ```bash
-mise run dev             # Start all services
-mise run dev:selinux     # Start all services on SELinux hosts
+mise run local:dev       # Start infra and run server on macOS
+mise run local:browser   # Start Browser Gateway on macOS
+mise run dev             # Start full containerized environment
+mise run dev:infra       # Start only Postgres, Qdrant, and Sparse
+mise run dev:selinux     # Start full environment on SELinux hosts
 mise run dev:down        # Stop all services
 mise run dev:down:selinux # Stop SELinux dev environment
 mise run dev:logs        # View logs
@@ -50,7 +55,10 @@ mise run bridge:build:selinux  # Rebuild bridge binary on SELinux hosts
 
 | Command | Description |
 | ------- | ----------- |
-| `mise run dev` | Start containerized dev environment |
+| `mise run local:dev` | Start local infra and run the server on the host |
+| `mise run local:browser` | Start Browser Gateway on the host |
+| `mise run dev` | Start full containerized dev environment |
+| `mise run dev:infra` | Start only Postgres, Qdrant, and Sparse |
 | `mise run dev:selinux` | Start dev environment with SELinux compose overrides |
 | `mise run dev:down` | Stop dev environment |
 | `mise run dev:down:selinux` | Stop SELinux dev environment |
@@ -64,6 +72,7 @@ mise run bridge:build:selinux  # Rebuild bridge binary on SELinux hosts
 | `mise run db-down` | Roll back database migrations |
 | `mise run swagger-generate` | Generate Swagger documentation |
 | `mise run sqlc-generate` | Generate SQL code |
+| `mise run e2e:smoke` | Smoke-test a running deployment |
 
 ## Project Layout
 

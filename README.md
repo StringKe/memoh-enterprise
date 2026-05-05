@@ -48,12 +48,16 @@ Default admin account in templates: `admin` / `admin123`. Change it before produ
 ```bash
 mise install
 mise run setup
-mise run dev
+mise run local:dev
 ```
 
 Useful commands:
 
 ```bash
+mise run local:browser
+mise run dev
+mise run dev:infra
+mise run e2e:smoke
 mise run sqlc-generate
 mise run swagger-generate
 mise run build-unified

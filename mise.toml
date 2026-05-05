@@ -63,6 +63,14 @@ set -e
 docker compose -f deploy/compose/dev/docker-compose.minify.yml up --build
 """
 
+[tasks."dev:infra"]
+description = "Start local development infrastructure for host-run server"
+run = """
+#!/bin/bash
+set -e
+docker compose -f deploy/compose/dev/docker-compose.yml up --build -d postgres qdrant sparse
+"""
+
 [tasks."dev:selinux"]
 description = "Start development environment on SELinux systems"
 run = """
@@ -96,10 +104,12 @@ description = "Restart a service on SELinux systems (usage: mise run dev:restart
 run = "docker compose -f deploy/compose/dev/docker-compose.yml -f deploy/compose/dev/docker-compose.selinux.yml restart $@"
 
 [tasks."local:dev"]
-description = "Start the server locally with Docker and local workspaces enabled"
+description = "Start infrastructure and run the server on the host"
 run = """
 #!/bin/bash
 set -euo pipefail
+
+docker compose -f deploy/compose/dev/docker-compose.yml up --build -d postgres qdrant sparse
 
 TEMPLATE_CONFIG="${MEMOH_LOCAL_CONFIG_TEMPLATE:-conf/app.local.toml}"
 GENERATED_CONFIG="${CONFIG_PATH:-data/local/config.toml}"
@@ -121,6 +131,14 @@ fi
 
 CONFIG_PATH="$GENERATED_CONFIG" go run ./cmd/agent migrate up
 CONFIG_PATH="$GENERATED_CONFIG" go run ./cmd/agent serve
+"""
+
+[tasks."local:browser"]
+description = "Start Browser Gateway on the host against local development config"
+run = """
+#!/bin/bash
+set -euo pipefail
+CONFIG_PATH="$(pwd)/conf/app.local.toml" vp run --filter @stringke/browser-gateway dev
 """
 
 [tasks."bridge:build"]
@@ -148,6 +166,10 @@ run = "scripts/db/up.sh"
 [tasks.db-down]
 description = "Drop Database"
 run = "scripts/db/drop.sh"
+
+[tasks."e2e:smoke"]
+description = "Run endpoint smoke tests against a running deployment"
+run = "scripts/e2e/smoke.sh --browser"
 
 [tasks.release]
 description = "Release new version"

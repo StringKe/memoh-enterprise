@@ -64,14 +64,14 @@ binary_path = ""
 
 [postgres]
 host = "127.0.0.1"
-port = 5432
+port = 15432
 user = "memoh"
 password = "memoh123"
 database = "memoh"
 sslmode = "disable"
 
 [qdrant]
-base_url = "http://127.0.0.1:6334"
+base_url = "http://127.0.0.1:16334"
 api_key = ""
 timeout_seconds = 10
 

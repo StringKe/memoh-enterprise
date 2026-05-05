@@ -105,7 +105,7 @@ Memoh tracks the current session against the selected chat model's `context_wind
 
 You can see this in:
 
-- the Web UI session status panel
+- the API or CLI session status panel
 - the `/status` slash command
 
 Compaction becomes more valuable as the active session gets closer to the model's context limit. A dedicated compaction model can also be used to summarize more cheaply than the main chat model.

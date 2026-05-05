@@ -117,4 +117,4 @@ binary_path = ""
 | `kubernetes` | Pod 网络 | 取决于 provider | 支持 | 不支持 |
 | `apple` | 基础本地 runtime | 不支持 | 不适用 | 不支持 |
 
-Overlay provider 是按机器人在 Web UI 里配置的，不在全局 TOML 里配。全局 backend 仍然重要，因为它决定具体能跑哪类 overlay driver。
+Overlay provider 按机器人配置，不在全局 TOML 里配。全局 backend 仍然重要，因为它决定具体能跑哪类 overlay driver。

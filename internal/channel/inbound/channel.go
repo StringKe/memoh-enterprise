@@ -784,7 +784,7 @@ startStream:
 	}
 
 	// For non-local channels, wrap the stream so events are mirrored to the
-	// RouteHub (and thus to Web UI and other local subscribers).
+	// RouteHub and other local subscribers.
 	if p.observer != nil && !isLocalChannelType(msg.Channel) {
 		stream = channel.NewTeeStream(stream, p.observer, strings.TrimSpace(identity.BotID), msg.Channel)
 		// Broadcast the inbound user message so WebUI can display it.

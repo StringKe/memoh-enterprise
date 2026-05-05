@@ -43,7 +43,7 @@ The **Container** tab displays real-time data about the bot's runtime:
 
 Memoh can provide host devices to a bot container through CDI (Container Device Interface). This is an advanced capability for users who want to expose host-managed devices, most commonly GPUs, to the container runtime.
 
-In the Web UI, this capability is placed under **Advanced options** in the **Container** tab. It is optional and only needs to be configured when the bot must access CDI-backed devices from the host.
+In the API or CLI, this capability is placed under **Advanced options** in the **Container** tab. It is optional and only needs to be configured when the bot must access CDI-backed devices from the host.
 
 ### Configure CDI Devices
 

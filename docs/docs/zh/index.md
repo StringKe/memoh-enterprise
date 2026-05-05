@@ -1,6 +1,6 @@
 # Memoh 中文文档
 
-Memoh（读作 /ˈmemoʊ/）是面向多角色、长记忆、容器化场景的 AI 智能体平台。你可以创建多个机器人，为每个机器人准备独立工作区与长期记忆，并通过 Telegram、Discord、飞书、QQ、Matrix、Misskey、钉钉、企微、微信、公众号、邮件或内置网页端接入。
+Memoh Enterprise 是面向多角色、长记忆、容器化场景的 AI 智能体平台。你可以创建多个机器人，为每个机器人准备独立工作区与长期记忆，并通过 Telegram、Discord、飞书、QQ、Matrix、Misskey、钉钉、企微、微信、公众号、邮件或 API/CLI 集成接入。
 
 ## 起步
 

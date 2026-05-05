@@ -23,10 +23,6 @@ export const en = [
         text: 'Workspace Backends',
         link: '/installation/workspace-backends.md'
       },
-      {
-        text: 'SQLite',
-        link: '/installation/sqlite.md'
-      },
     ]
   },
   {

@@ -27,8 +27,6 @@ services:
     entrypoint: ["/app/memoh-server", "migrate", "up"]
     volumes:
       - ${MEMOH_CONFIG:-./config.toml}:/app/config.toml:ro
-      # Required for SQLite: migrations must write to the same persistent
-      # database file later opened by the server container.
       - memoh_data:/opt/memoh/data
     depends_on:
       postgres:
@@ -58,17 +56,6 @@ services:
     depends_on:
       migrate:
         condition: service_completed_successfully
-    restart: unless-stopped
-    networks:
-      - memoh-network
-
-  web:
-    image: memohai/web:latest
-    container_name: memoh-web
-    ports:
-      - "8082:8082"
-    depends_on:
-      - server
     restart: unless-stopped
     networks:
       - memoh-network

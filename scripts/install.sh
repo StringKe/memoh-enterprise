@@ -51,7 +51,7 @@ else
 fi
 
 NETWORK_NAME="${COMPOSE_PROJECT_NAME}_memoh-network"
-PROJECT_CONTAINERS="memoh-postgres memoh-migrate memoh-server memoh-web memoh-sparse memoh-qdrant memoh-browser"
+PROJECT_CONTAINERS="memoh-postgres memoh-migrate memoh-server memoh-sparse memoh-qdrant memoh-browser"
 PROJECT_VOLUMES="${COMPOSE_PROJECT_NAME}_postgres_data ${COMPOSE_PROJECT_NAME}_containerd_data ${COMPOSE_PROJECT_NAME}_memoh_data ${COMPOSE_PROJECT_NAME}_server_cni_state ${COMPOSE_PROJECT_NAME}_qdrant_data ${COMPOSE_PROJECT_NAME}_openviking_data"
 
 EXISTING_CONFIG_SOURCE=""
@@ -183,7 +183,6 @@ normalize_database_driver() {
   driver=$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')
   case "$driver" in
     postgres|postgresql) printf '%s' "postgres" ;;
-    sqlite|sqlite3) printf '%s' "sqlite" ;;
     *) return 1 ;;
   esac
 }
@@ -191,7 +190,7 @@ normalize_database_driver() {
 normalize_database_driver_or_exit() {
   normalized_database_driver=$(normalize_database_driver "$DATABASE_DRIVER" || true)
   if [ -z "$normalized_database_driver" ]; then
-    echo "${RED}Error: unsupported database driver '${DATABASE_DRIVER}'. Use postgres or sqlite.${NC}"
+    echo "${RED}Error: unsupported database driver '${DATABASE_DRIVER}'. Use postgres.${NC}"
     exit 1
   fi
   DATABASE_DRIVER="$normalized_database_driver"
@@ -508,11 +507,7 @@ cleanup_existing_installation() {
 show_failure_logs() {
   echo ""
   echo "${RED}Startup failed. Recent database, migration, and server logs:${NC}"
-  if [ "$DATABASE_DRIVER" = "sqlite" ]; then
-    log_services="migrate server"
-  else
-    log_services="postgres migrate server"
-  fi
+  log_services="postgres migrate server"
   $DOCKER compose $COMPOSE_FILES $COMPOSE_PROFILES logs --no-color --tail=200 $log_services || true
 }
 
@@ -653,30 +648,13 @@ if [ "$SILENT" = false ] && [ "$INSTALL_MODE" != "upgrade" ]; then
   [ -n "$input" ] && JWT_SECRET="$input"
 
   echo "" > /dev/tty
-  echo "  Database backend:" > /dev/tty
-  echo "    1) PostgreSQL (recommended for production and multi-user installs)" > /dev/tty
-  echo "    2) SQLite (lightweight single-node install)" > /dev/tty
-  case "$DATABASE_DRIVER" in
-    sqlite) database_default="2" ;;
-    *) database_default="1" ;;
-  esac
-  printf "  Database backend [%s]: " "$database_default" > /dev/tty
-  read -r input < /dev/tty || true
-  case "$input" in
-    2|sqlite|SQLite|sqlite3|SQLite3) DATABASE_DRIVER="sqlite" ;;
-    1|postgres|Postgres|postgresql|PostgreSQL) DATABASE_DRIVER="postgres" ;;
-    "") ;;
-    *) DATABASE_DRIVER="postgres" ;;
-  esac
+  echo "  Database backend: PostgreSQL" > /dev/tty
+  DATABASE_DRIVER="postgres"
   normalize_database_driver_or_exit
 
-  if [ "$DATABASE_DRIVER" = "postgres" ]; then
-    printf "  Postgres password [%s]: " "$PG_PASS" > /dev/tty
-    read -r input < /dev/tty || true
-    [ -n "$input" ] && PG_PASS="$input"
-  else
-    echo "  SQLite database: /opt/memoh/data/memoh.db inside the persistent memoh_data volume" > /dev/tty
-  fi
+  printf "  Postgres password [%s]: " "$PG_PASS" > /dev/tty
+  read -r input < /dev/tty || true
+  [ -n "$input" ] && PG_PASS="$input"
 
   echo "  Workspace backend: containerd (Docker Compose default; starts an embedded containerd inside memoh-server)" > /dev/tty
   echo "  Other backends such as docker, kubernetes, and apple are configured manually in config.toml." > /dev/tty
@@ -748,21 +726,16 @@ else
     CLONED_FRESH=true
 fi
 
-if [ "$DATABASE_DRIVER" = "sqlite" ]; then
-  COMPOSE_FILE_NAME="docker-compose.sqlite.yml"
-  CN_COMPOSE_FILE_NAME="docker/docker-compose.sqlite.cn.yml"
-else
-  COMPOSE_FILE_NAME="docker-compose.yml"
-  CN_COMPOSE_FILE_NAME="docker/docker-compose.cn.yml"
-fi
+COMPOSE_FILE_NAME="docker-compose.yml"
+CN_COMPOSE_FILE_NAME="docker/docker-compose.cn.yml"
 if [ ! -f "$COMPOSE_FILE_NAME" ]; then
   echo "${RED}Error: ${COMPOSE_FILE_NAME} is missing in ${MEMOH_VERSION:-the selected checkout}.${NC}"
-  echo "Use a newer Memoh version or choose MEMOH_DATABASE_DRIVER=postgres."
+  echo "Use a newer Memoh version."
   exit 1
 fi
 if [ "$USE_CN_MIRROR" = true ] && [ ! -f "$CN_COMPOSE_FILE_NAME" ]; then
   echo "${RED}Error: ${CN_COMPOSE_FILE_NAME} is missing in ${MEMOH_VERSION:-the selected checkout}.${NC}"
-  echo "Use a newer Memoh version, disable USE_CN_MIRROR, or choose MEMOH_DATABASE_DRIVER=postgres."
+  echo "Use a newer Memoh version or disable USE_CN_MIRROR."
   exit 1
 fi
 
@@ -770,12 +743,10 @@ fi
 if [ "$MEMOH_DOCKER_VERSION" != "latest" ]; then
     sed -i.bak "s|memohai/server:latest|memohai/server:${MEMOH_DOCKER_VERSION}|g" "$COMPOSE_FILE_NAME"
     sed -i.bak "s|memohai/agent:latest|memohai/agent:${MEMOH_DOCKER_VERSION}|g" "$COMPOSE_FILE_NAME"
-    sed -i.bak "s|memohai/web:latest|memohai/web:${MEMOH_DOCKER_VERSION}|g" "$COMPOSE_FILE_NAME"
     sed -i.bak "s|memohai/sparse:latest|memohai/sparse:${MEMOH_DOCKER_VERSION}|g" "$COMPOSE_FILE_NAME"
     rm -f "${COMPOSE_FILE_NAME}.bak"
     if [ "$USE_CN_MIRROR" = true ]; then
       sed -i.bak "s|memoh.cn/memohai/server:latest|memoh.cn/memohai/server:${MEMOH_DOCKER_VERSION}|g" "$CN_COMPOSE_FILE_NAME"
-      sed -i.bak "s|memoh.cn/memohai/web:latest|memoh.cn/memohai/web:${MEMOH_DOCKER_VERSION}|g" "$CN_COMPOSE_FILE_NAME"
       sed -i.bak "s|memoh.cn/memohai/sparse:latest|memoh.cn/memohai/sparse:${MEMOH_DOCKER_VERSION}|g" "$CN_COMPOSE_FILE_NAME"
       rm -f "${CN_COMPOSE_FILE_NAME}.bak"
     fi
@@ -894,7 +865,6 @@ fi
 echo ""
 echo "${GREEN}✅ Memoh is running!${NC}"
 echo ""
-echo "  🌐 Web UI:            http://localhost:8082"
 echo "  🔌 API:               http://localhost:8080"
 echo "  🤖 Agent Gateway:     http://localhost:8081"
 echo "  🌍 Browser Gateway:   http://localhost:8083"

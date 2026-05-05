@@ -29,7 +29,7 @@ curl -X POST "https://<homeserver>/_matrix/client/v3/login" \
 
 ## Step 2: Configure Memoh
 
-1. Go to your Bot's **Platforms** tab in the Memoh Web UI.
+1. Go to your Bot's **Platforms** tab in the Memoh API or CLI.
 2. Click **Add Channel** and select **Matrix**.
 3. Fill in the required fields:
 

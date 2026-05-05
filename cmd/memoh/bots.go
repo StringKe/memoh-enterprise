@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/memohai/memoh/internal/bots"
-	"github.com/memohai/memoh/internal/tui"
+	"github.com/memohai/memoh/internal/cli"
 )
 
 func newBotsCommand(ctx *cliContext) *cobra.Command {
@@ -140,12 +140,12 @@ Pass --no-namespace or provide your own ctr -n/--namespace flag to override it.`
 	return cmd
 }
 
-func authenticatedClient(ctx *cliContext) (*tui.Client, error) {
+func authenticatedClient(ctx *cliContext) (*cli.Client, error) {
 	token := strings.TrimSpace(ctx.state.Token)
 	if token == "" {
 		return nil, errors.New("missing access token, please run `memoh login` first")
 	}
-	return tui.NewClient(ctx.state.ServerURL, token), nil
+	return cli.NewClient(ctx.state.ServerURL, token), nil
 }
 
 func buildCreateBotRequest(displayName, avatarURL, timezone string, inactive bool) bots.CreateBotRequest {

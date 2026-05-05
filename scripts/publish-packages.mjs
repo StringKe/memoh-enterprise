@@ -5,11 +5,6 @@ import { join } from 'node:path'
 
 const CANDIDATE_DIRS = [
   'apps/browser',
-  'apps/desktop',
-  'apps/web',
-  'packages/sdk',
-  'packages/ui',
-  'packages/icons',
   'packages/config',
 ]
 

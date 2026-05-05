@@ -8,9 +8,6 @@ VERSION="${VERSION:-dev}"
 COMMIT_HASH="${COMMIT_HASH:-unknown}"
 BUILD_TIME="${BUILD_TIME:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")}"
 OUTPUT_DIR="${OUTPUT_DIR:-$ROOT_DIR/dist}"
-PREPARE_ASSETS_ONLY="false"
-
-WEB_DIR="$ROOT_DIR/internal/embedded/web"
 
 log() {
   echo "[release] $*"
@@ -26,7 +23,6 @@ Options:
   --version <version>   Version string injected into the memoh CLI
   --commit-hash <sha>   Commit hash injected into the memoh CLI
   --output-dir <dir>    Output directory for release artifacts
-  --prepare-assets      Only prepare embedded assets, do not build archive
 EOF
 }
 
@@ -53,10 +49,6 @@ parse_args() {
         OUTPUT_DIR="$2"
         shift 2
         ;;
-      --prepare-assets)
-        PREPARE_ASSETS_ONLY="true"
-        shift
-        ;;
       -h|--help)
         usage
         exit 0
@@ -68,41 +60,6 @@ parse_args() {
         ;;
     esac
   done
-}
-
-write_keep_gitignore() {
-  local dir="$1"
-  printf "*\n!.gitignore\n" > "$dir/.gitignore"
-}
-
-prepare_embed_dirs() {
-  rm -rf "$WEB_DIR"
-  mkdir -p "$WEB_DIR"
-  write_keep_gitignore "$WEB_DIR"
-}
-
-prepare_assets() {
-  prepare_embed_dirs
-
-  log "building web assets"
-  pnpm --dir "$ROOT_DIR" web:build
-  cp -R "$ROOT_DIR/apps/web/dist/." "$WEB_DIR/"
-  gzip_embedded_web_assets "$WEB_DIR"
-
-  log "embedded assets prepared"
-}
-
-gzip_embedded_web_assets() {
-  local web_dir="$1"
-  log "precompressing web assets (.gz)"
-
-  while IFS= read -r -d '' file_path; do
-    if [[ "$(basename "$file_path")" == ".gitignore" ]]; then
-      continue
-    fi
-    gzip -9 -c "$file_path" > "${file_path}.gz"
-    rm -f "$file_path"
-  done < <(find "$web_dir" -type f -print0)
 }
 
 build_archive() {
@@ -135,10 +92,4 @@ build_archive() {
 }
 
 parse_args "$@"
-prepare_assets
-if [[ "$PREPARE_ASSETS_ONLY" == "true" ]]; then
-  log "prepare-assets only mode completed"
-  exit 0
-fi
-
 build_archive

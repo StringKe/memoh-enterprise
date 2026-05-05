@@ -99,7 +99,7 @@ func (d *DiscussDriver) SetResolver(r RunConfigResolver) {
 }
 
 // SetBroadcaster sets the stream broadcaster after construction so that
-// discuss-mode agent events are forwarded to the Web UI in real time.
+// discuss-mode agent events are forwarded to the API or CLI in real time.
 func (d *DiscussDriver) SetBroadcaster(b DiscussStreamBroadcaster) {
 	d.deps.Broadcaster = b
 }
@@ -352,7 +352,7 @@ func anchorFromTRs(trs []TurnResponseEntry) int64 {
 }
 
 // broadcastDiscussEvent forwards an agent stream event to the RouteHub so the
-// Web UI can display thinking, tool calls, and text deltas in real time.
+// API or CLI can display thinking, tool calls, and text deltas in real time.
 func (d *DiscussDriver) broadcastDiscussEvent(botID string, event agentpkg.StreamEvent) {
 	if d.deps.Broadcaster == nil {
 		return

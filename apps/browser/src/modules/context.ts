@@ -60,7 +60,7 @@ export const contextModule = new Elysia({ prefix: '/context' })
     {
       body: z.object({
         name: z.string().default(''),
-        config: BrowserContextConfigModel.default({}),
+        config: BrowserContextConfigModel.default({ core: 'chromium' }),
         id: z.string().default(crypto.randomUUID()),
         bot_id: z.string().optional(),
       }),

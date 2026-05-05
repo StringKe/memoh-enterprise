@@ -171,8 +171,8 @@ func TestLoadAppLocalTemplate(t *testing.T) {
 	if !cfg.Local.Enabled {
 		t.Fatal("local workspace should be enabled")
 	}
-	if cfg.Database.DriverOrDefault() != "sqlite" {
-		t.Fatalf("database driver = %q, want sqlite", cfg.Database.DriverOrDefault())
+	if cfg.Database.DriverOrDefault() != "postgres" {
+		t.Fatalf("database driver = %q, want postgres", cfg.Database.DriverOrDefault())
 	}
 }
 

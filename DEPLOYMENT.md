@@ -1,147 +1,52 @@
-# Memoh Deployment Guide
+# Memoh Enterprise Deployment
 
-## One-Click Install
-
-```bash
-curl -fsSL https://memoh.sh | sh
-```
-
-The script prompts for configuration, generates `config.toml`, and starts all services.
-Run it as your normal user. The script will use `sudo docker` internally only when Docker requires it.
-
-For a lightweight single-node install backed by SQLite:
+## Docker Compose
 
 ```bash
-curl -fsSL https://memoh.sh | MEMOH_DATABASE_DRIVER=sqlite sh
+cp conf/app.docker.toml config.toml
+docker compose up -d
 ```
 
-The one-click Docker Compose installer uses the `containerd` workspace backend. Docker, Kubernetes, and Apple workspace backends are available for manual deployments by editing `[container].backend` in `config.toml`.
+Optional services:
+
+```bash
+docker compose --profile qdrant --profile browser --profile sparse up -d
+```
+
+Core services:
+
+- `postgres`
+- `migrate`
+- `server`
+
+Optional services:
+
+- `qdrant`
+- `browser`
+- `sparse`
+
+## Access
+
+- API: `http://localhost:8080`
+- Browser Gateway: `http://localhost:8083` with the `browser` profile
+
+## Configuration
+
+Edit `config.toml` before production use:
+
+- `admin.password`
+- `auth.jwt_secret`
+- `postgres.password`
+- `container.backend`
+- `[web-ui]` when pointing an external Web UI at this server
+
+PostgreSQL is the only supported relational database backend.
 
 ## Kubernetes
-
-A kustomize starter deployment is available in `deploy/kubernetes`:
 
 ```bash
 kubectl apply -k deploy/kubernetes
 kubectl -n memoh rollout status deployment/memoh-server
-kubectl -n memoh rollout status deployment/memoh-web
 ```
 
-Edit `deploy/kubernetes/config-secret.yaml` before deploying. At minimum, change the admin password, JWT secret, and PostgreSQL password. See the Kubernetes installation guide for runtime hostPath, RBAC, storage, and snapshot notes.
-
-## Manual Install
-
-```bash
-git clone https://github.com/memohai/Memoh.git
-cd Memoh
-cp conf/app.docker.toml config.toml
-nano config.toml   # Change passwords and JWT secret
-```
-
-> On macOS or if your user is in the `docker` group, `sudo` is not required.
-
-> **Important**: You must create `config.toml` before starting. `docker-compose.yml` mounts `./config.toml` into the containers — running without it will fail.
-
-### Standard startup (with Qdrant + Browser)
-
-```bash
-docker compose --profile qdrant --profile browser up -d
-```
-
-### Minimal startup (core only)
-
-```bash
-docker compose up -d
-```
-
-Access:
-- Web UI: http://localhost:8082
-- API: http://localhost:8080
-- Agent: http://localhost:8081
-
-Default credentials: `admin` / `admin123` (change in `config.toml`)
-
-## Docker Compose Profiles
-
-The base `docker-compose.yml` contains all services. Core services (postgres, server, agent, web) always start. Optional services are gated by profiles and only start when explicitly enabled:
-
-| Profile | Service | Description |
-|---------|---------|-------------|
-| `qdrant` | Qdrant | Vector database for memory semantic search |
-| `browser` | Browser | Browser automation gateway (Playwright) |
-| `openviking` | OpenViking | Self-hosted OpenViking memory provider |
-
-### Supported combinations
-
-```bash
-# Core + Qdrant + Browser (recommended default)
-docker compose --profile qdrant --profile browser up -d
-
-# Core + Qdrant + OpenViking (self-hosted)
-docker compose --profile qdrant --profile openviking up -d
-```
-
-### SaaS / external providers
-
-For Mem0 or OpenViking SaaS, no profile is needed. Configure the provider directly in the Memoh admin UI with the external `base_url` and API key.
-
-### China Mainland Mirror
-
-Uncomment `registry = "memoh.cn"` in `config.toml` under `[container]`, then add the CN overlay:
-
-```bash
-docker compose -f docker-compose.yml -f docker/docker-compose.cn.yml \
-  --profile qdrant --profile browser up -d
-```
-
-## Prerequisites
-
-- Docker (with Docker Compose v2)
-- Git
-
-## Configuration
-
-`config.toml` is generated from `conf/app.docker.toml` and should live in the project root. It is mounted into all containers at startup and is **not** tracked by git.
-
-Recommended changes for production:
-- `admin.password` — Admin password
-- `auth.jwt_secret` — JWT secret (generate with `openssl rand -base64 32`)
-- `database.driver` — `postgres` for the default deployment, or `sqlite` for a single-node install
-- `container.backend` — `containerd` for the official Docker Compose stack; use `docker`, `kubernetes`, or `apple` only for matching manual deployments
-- `postgres.password` — Database password (also set `POSTGRES_PASSWORD` env var)
-
-SQLite deployments should use `docker-compose.sqlite.yml`; the database file lives in the `memoh_data` Docker volume.
-
-## Common Commands
-
-> Prefix with `sudo` on Linux if your user is not in the `docker` group.
-
-```bash
-docker compose up -d          # Start
-docker compose down           # Stop
-docker compose logs -f        # View logs
-docker compose ps             # Status
-docker compose pull && docker compose up -d  # Update images
-```
-
-## Production
-
-1. Change all default passwords and secrets
-2. Configure HTTPS (reverse proxy or `docker-compose.override.yml` with SSL)
-3. Configure firewall
-4. Set resource limits
-5. Regular backups
-
-## Troubleshooting
-
-```bash
-docker compose logs server    # View service logs
-docker compose config         # Check configuration
-docker compose build --no-cache && docker compose up -d  # Full rebuild
-```
-
-## Security Warnings
-
-- Main service has privileged container access — only run in trusted environments
-- Must change all default passwords and secrets
-- Use HTTPS in production
+Edit `deploy/kubernetes/config-secret.yaml` before deploying.

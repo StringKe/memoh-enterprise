@@ -10,7 +10,6 @@ export const zh = [
       { text: 'Docker 安装', link: '/zh/installation/docker.md' },
       { text: 'Kubernetes 部署', link: '/zh/installation/kubernetes.md' },
       { text: 'Workspace backend', link: '/zh/installation/workspace-backends.md' },
-      { text: 'SQLite 部署', link: '/zh/installation/sqlite.md' },
     ],
   },
   {

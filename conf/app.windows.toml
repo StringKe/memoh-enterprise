@@ -20,9 +20,7 @@ jwt_expires_in = "168h"
 timezone = "UTC"
 
 [database]
-# Supported values: "postgres" or "sqlite".
-# SQLite is useful for single-node testing. Use PostgreSQL when you want to
-# match the default Docker deployment.
+# PostgreSQL is the only supported relational database backend.
 driver = "postgres"
 
 [container]
@@ -48,19 +46,12 @@ namespace = "default"
 host = ""
 
 [postgres]
-# Used only when [database].driver = "postgres".
 host = "127.0.0.1"
 port = 5432
 user = "memoh"
 password = "memoh123"
 database = "memoh"
 sslmode = "disable"
-
-[sqlite]
-# Used only when [database].driver = "sqlite".
-path = "data/memoh.db"
-wal = true
-busy_timeout_ms = 5000
 
 [qdrant]
 base_url = "http://127.0.0.1:6334"
@@ -75,6 +66,6 @@ host = "127.0.0.1"
 port = 8083
 server_addr = ":8080"
 
-[web]
+[web-ui]
 host = "127.0.0.1"
 port = 8082

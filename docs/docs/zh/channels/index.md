@@ -16,7 +16,7 @@
 - **[微信](./weixin)**：个人号，扫码登录。
 - **[微信公众号](./wechatoa)**：服务号/公众号 webhook，偏私聊入站。
 - **邮件**：SMTP、Mailgun、Gmail OAuth 等，在「邮件提供方」里配，见 [邮件](/zh/getting-started/email)。
-- **Web**：自带网页聊天。
+
 
 ### 个人微信 和 公众号
 

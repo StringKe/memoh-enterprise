@@ -37,7 +37,7 @@ services:
   deps:
     build:
       context: ..
-      dockerfile: devenv/Dockerfile.web
+      dockerfile: devenv/Dockerfile.node
     container_name: memoh-dev-deps
     working_dir: /workspace
     command: ["pnpm", "install"]
@@ -107,28 +107,6 @@ services:
       migrate:
         condition: service_completed_successfully
       qdrant:
-        condition: service_healthy
-    restart: unless-stopped
-
-  web:
-    build:
-      context: ..
-      dockerfile: devenv/Dockerfile.web
-    container_name: memoh-dev-web
-    working_dir: /workspace/apps/web
-    command: ["pnpm", "exec", "vite", "--host", "0.0.0.0", "--port", "8082"]
-    environment:
-      MEMOH_CONFIG_PATH: /workspace/devenv/app.dev.toml
-      MEMOH_WEB_PROXY_TARGET: http://server:8080
-    volumes:
-      - ..:/workspace
-      - node_modules:/workspace/node_modules
-    ports:
-      - "${MEMOH_DEV_WEB_PORT:-18082}:8082"
-    depends_on:
-      deps:
-        condition: service_completed_successfully
-      server:
         condition: service_healthy
     restart: unless-stopped
 

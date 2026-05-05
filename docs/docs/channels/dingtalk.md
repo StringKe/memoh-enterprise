@@ -15,7 +15,7 @@ Depending on your DingTalk environment, you may also need to grant message permi
 
 ## Step 2: Configure Memoh
 
-1. Open your bot in the Memoh Web UI.
+1. Open your bot in the Memoh API or CLI.
 2. Go to **Platforms**.
 3. Click **Add Channel** and choose **DingTalk**.
 4. Fill in **App Key** and **App Secret**.

@@ -70,7 +70,7 @@ func (h *Handler) buildEmailGroup() *CommandGroup {
 					{"Sent", item.SentAt.Format("01-02 15:04")},
 				})
 			}
-			return formatLimitedItems(records, 10, "Use the Web UI for older outbox entries."), nil
+			return formatLimitedItems(records, 10, "Use the API or CLI for older outbox entries."), nil
 		},
 	})
 	return g

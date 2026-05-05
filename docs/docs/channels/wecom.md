@@ -11,7 +11,7 @@ Connecting your Memoh Bot to WeCom (企业微信) allows it to interact with use
 
 ## Step 2: Configure Memoh
 
-1. Go to your Bot's **Platforms** tab in the Memoh Web UI.
+1. Go to your Bot's **Platforms** tab in the Memoh API or CLI.
 2. Click **Add Channel** and select **WeCom**.
 3. Fill in the required fields:
 

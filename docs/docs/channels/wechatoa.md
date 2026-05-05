@@ -17,7 +17,7 @@ You may also need:
 
 ## Step 2: Add The Channel In Memoh
 
-1. Open your bot in the Memoh Web UI.
+1. Open your bot in the Memoh API or CLI.
 2. Go to **Platforms**.
 3. Click **Add Channel** and choose **WeChat Official Account**.
 4. Fill in the required fields:

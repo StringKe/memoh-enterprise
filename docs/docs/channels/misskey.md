@@ -17,7 +17,7 @@ The exact token-creation UI varies by Misskey instance. Make sure the token is a
 
 ## Step 2: Configure Memoh
 
-1. Open your bot in the Memoh Web UI.
+1. Open your bot in the Memoh API or CLI.
 2. Go to **Platforms**.
 3. Click **Add Channel** and choose **Misskey**.
 4. Enter the **Instance URL**.

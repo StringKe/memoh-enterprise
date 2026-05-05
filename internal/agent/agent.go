@@ -338,7 +338,7 @@ func (a *Agent) runStream(ctx context.Context, cfg RunConfig, ch chan<- StreamEv
 		case *sdk.ToolInputStartPart:
 			// ToolInputStartPart fires before tool input args have streamed.
 			// We suppress it here because downstream consumers (IM adapters and
-			// Web UI) only care about the fully-assembled call announced by
+			// API or CLI) only care about the fully-assembled call announced by
 			// StreamToolCallPart below. Emitting a start event twice for the
 			// same CallID would produce duplicate "running" messages in IMs.
 			if textLoopProbeBuffer != nil {

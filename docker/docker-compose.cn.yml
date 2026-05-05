@@ -7,8 +7,6 @@ services:
     image: memoh.cn/memohai/server:latest
   server:
     image: memoh.cn/memohai/server:latest
-  web:
-    image: memoh.cn/memohai/web:latest
   browser:
     image: memoh.cn/memohai/browser:${BROWSER_TAG:-latest}
   sparse:

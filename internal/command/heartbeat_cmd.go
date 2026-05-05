@@ -40,7 +40,7 @@ func (h *Handler) buildHeartbeatGroup() *CommandGroup {
 				}
 				records = append(records, rec)
 			}
-			return formatLimitedItems(records, 10, "Use the Web UI for older heartbeat logs."), nil
+			return formatLimitedItems(records, 10, "Use the API or CLI for older heartbeat logs."), nil
 		},
 	})
 	return g

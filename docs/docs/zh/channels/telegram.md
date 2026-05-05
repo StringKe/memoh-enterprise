@@ -17,7 +17,7 @@
 
 ## 2. 在 Memoh 里填
 
-1. 网页里打开机器人 **详情** → **Platforms**。
+1. 使用 API 或 CLI 配置机器人渠道。
 2. **Add Channel** → 选 **Telegram**。
 3. 把 **API Token** 填进凭据。
 4. **Save and Enable**。
@@ -26,7 +26,7 @@
 
 把 Telegram 身份绑到 Memoh 账号后，跨渠道也能认出同一个人。
 
-1. 网页 **Profile** → **Bind Code**。
+1. 使用 API 或 CLI 获取绑定码。
 2. 选 **Telegram**，点 **Generate**，复制码。
 3. 在 Telegram 里跟你的机器人私聊，把绑定码发过去。
 4. 机器人应回复绑定成功。

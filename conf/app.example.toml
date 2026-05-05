@@ -21,9 +21,7 @@ jwt_expires_in = "168h"
 timezone = "UTC"
 
 [database]
-# Supported values: "postgres" or "sqlite".
-# PostgreSQL is recommended for shared and production deployments; SQLite is
-# useful for single-node installs, local demos, and development.
+# PostgreSQL is the only supported relational database backend.
 driver = "postgres"
 
 [container]
@@ -81,7 +79,7 @@ binary_path = ""
 
 [local]
 # Enables local workspaces alongside the configured container backend. This is
-# intended for trusted desktop use only: there is no sandbox, and commands run
+# intended for trusted local deployments only: there is no sandbox, and commands run
 # as the server process user on the host machine.
 enabled = false
 # Default parent used when a local bot does not provide an explicit workspace
@@ -91,29 +89,16 @@ default_workspace_parent = "~/.memoh/workspaces"
 # [container].data_root/local/containers.
 metadata_root = ""
 # When true, local workspace tools may read/write/execute using host absolute
-# paths outside the bot's default workspace. Desktop can enable this for a
-# trusted local user; server deployments should keep local disabled.
+# paths outside the bot's default workspace.
 allow_absolute_paths = true
 
 [postgres]
-# Used only when [database].driver = "postgres".
 host = "127.0.0.1"
 port = 5432
 user = "memoh"
 password = "memoh123"
 database = "memoh"
 sslmode = "disable"
-
-[sqlite]
-# Used only when [database].driver = "sqlite".
-# Relative paths are resolved from the process working directory. For Docker,
-# prefer an absolute path under /opt/memoh/data so the database lives in the
-# persistent memoh_data volume.
-path = "data/memoh.db"
-# WAL improves concurrent read/write behavior and is the recommended default.
-wal = true
-# How long SQLite waits for a locked database before returning "database is locked".
-busy_timeout_ms = 5000
 
 [qdrant]
 base_url = "http://127.0.0.1:6334"
@@ -134,6 +119,6 @@ server_addr = ":8080"
 [supermarket]
 base_url = "https://supermarket.memoh.ai"
 
-[web]
+[web-ui]
 host = "127.0.0.1"
 port = 8082

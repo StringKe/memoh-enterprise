@@ -30,7 +30,7 @@
 
 - 像普通助理来回问
 - 用户发一句，通常就期待有一条可见回复
-- 网页、私聊默认多落在这类
+- API 本地通道和私聊默认多落在这类
 
 **Discuss**：
 
@@ -51,13 +51,13 @@
 - `/new chat`：强制普通 chat
 - `/new discuss`：强制 discuss
 
-**网页本地频道** 默认 `chat`；**私聊** 多 `chat`；**外接群聊** 多 `discuss`。
+**API 本地通道** 默认 `chat`；**私聊** 多 `chat`；**外接群聊** 多 `discuss`。
 
-**内置网页本地** 不支持 `/new discuss`，要 discuss 请用 Telegram、Discord、Misskey 等真实渠道。
+**API 本地通道** 不支持 `/new discuss`，要 discuss 请用 Telegram、Discord、Misskey 等真实渠道。
 
 在渠道里发这些命令会：建新会话、后续消息都进这路、旧会话保留但不再当「当前」。
 
-**网页** 里也可用侧栏 **New Session**、切换、搜索、按类型筛、重命名、删除等。
+可以通过 API 或 CLI 新建、切换、搜索、筛选、重命名、删除会话。
 
 ---
 

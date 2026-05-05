@@ -20,8 +20,7 @@ jwt_expires_in = "168h"
 timezone = "UTC"
 
 [database]
-# Supported values: "postgres" or "sqlite".
-# This dev profile uses PostgreSQL from devenv/docker-compose.yml.
+# PostgreSQL is the only supported relational database backend.
 driver = "postgres"
 
 [container]
@@ -48,20 +47,12 @@ namespace = "default"
 host = ""
 
 [postgres]
-# Used only when [database].driver = "postgres".
 host = "postgres"
 port = 5432
 user = "memoh"
 password = "memoh123"
 database = "memoh"
 sslmode = "disable"
-
-[sqlite]
-# Used only when [database].driver = "sqlite". The SQLite dev profile mounts
-# /opt/memoh/data to a persistent Docker volume.
-path = "/opt/memoh/data/memoh.db"
-wal = true
-busy_timeout_ms = 5000
 
 [qdrant]
 base_url = "http://qdrant:6334"
@@ -76,6 +67,6 @@ host = "browser"
 port = 8083
 server_addr = "server:8080"
 
-[web]
+[web-ui]
 host = "0.0.0.0"
 port = 8082

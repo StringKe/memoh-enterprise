@@ -9,7 +9,6 @@ This repository includes a kustomize-based starter deployment in `deploy/kuberne
 The manifests include:
 
 - `memoh-server`: API server and in-process agent
-- `memoh-web`: web UI
 - `memoh-browser`: browser gateway
 - `memoh-postgres`: PostgreSQL StatefulSet
 - `memoh-qdrant`: Qdrant StatefulSet
@@ -60,18 +59,16 @@ bridge_port = 9090
 ```bash
 kubectl apply -k deploy/kubernetes
 kubectl -n memoh rollout status deployment/memoh-server
-kubectl -n memoh rollout status deployment/memoh-web
 kubectl -n memoh rollout status daemonset/memoh-runtime-installer
 ```
 
 For local access:
 
 ```bash
-kubectl -n memoh port-forward svc/memoh-web 8082:8082
 kubectl -n memoh port-forward svc/memoh-server 8080:8080
 ```
 
-Then open `http://localhost:8082`.
+The API is available at `http://localhost:8080`.
 
 For local clusters that can see locally built images, use the included overlay:
 
@@ -79,7 +76,7 @@ For local clusters that can see locally built images, use the included overlay:
 kubectl apply -k deploy/kubernetes-local
 ```
 
-It rewrites `memohai/server`, `memohai/web`, and `memohai/browser` to the `k8s-dev` tag.
+It rewrites `memohai/server` and `memohai/browser` to the `k8s-dev` tag.
 
 ## Updating images
 

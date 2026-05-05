@@ -2,10 +2,9 @@ packages:
   - 'packages/*'
   - 'apps/*'
   - 'docs'
+allowBuilds:
+  esbuild: true
 
 onlyBuiltDependencies:
-  - sqlite3
-  - electron
-  - electron-winstaller
   - esbuild
   - sharp

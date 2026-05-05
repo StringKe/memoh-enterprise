@@ -26,8 +26,6 @@ const (
 	DefaultPGUser           = "postgres"
 	DefaultPGDatabase       = "memoh"
 	DefaultPGSSLMode        = "disable"
-	DefaultSQLitePath       = "data/memoh.db"
-	DefaultSQLiteBusyMS     = 5000
 	DefaultQdrantURL        = "http://127.0.0.1:6334"
 	DefaultQdrantCollection = "memory"
 	DefaultRuntimeDir       = "/opt/memoh/runtime"
@@ -54,12 +52,12 @@ type Config struct {
 	Local          LocalConfig          `toml:"local"`
 	Workspace      WorkspaceConfig      `toml:"workspace"`
 	Postgres       PostgresConfig       `toml:"postgres"`
-	SQLite         SQLiteConfig         `toml:"sqlite"`
 	Qdrant         QdrantConfig         `toml:"qdrant"`
 	Sparse         SparseConfig         `toml:"sparse"`
 	BrowserGateway BrowserGatewayConfig `toml:"browser_gateway"`
 	Registry       RegistryConfig       `toml:"registry"`
 	Supermarket    SupermarketConfig    `toml:"supermarket"`
+	WebUI          WebUIConfig          `toml:"web-ui"`
 }
 
 type LogConfig struct {
@@ -255,13 +253,6 @@ type PostgresConfig struct {
 	SSLMode  string `toml:"sslmode"`
 }
 
-type SQLiteConfig struct {
-	Path          string `toml:"path"`
-	DSN           string `toml:"dsn"`
-	WAL           bool   `toml:"wal"`
-	BusyTimeoutMS int    `toml:"busy_timeout_ms"`
-}
-
 type QdrantConfig struct {
 	BaseURL        string `toml:"base_url"`
 	APIKey         string `toml:"api_key" json:"-"`
@@ -316,6 +307,11 @@ func (c SupermarketConfig) GetBaseURL() string {
 	return DefaultSupermarketBaseURL
 }
 
+type WebUIConfig struct {
+	Host string `toml:"host"`
+	Port int    `toml:"port"`
+}
+
 func Load(path string) (Config, error) {
 	defaultWorkspace := WorkspaceConfig{
 		DefaultImage: DefaultBaseImage,
@@ -364,11 +360,6 @@ func Load(path string) (Config, error) {
 			User:     DefaultPGUser,
 			Database: DefaultPGDatabase,
 			SSLMode:  DefaultPGSSLMode,
-		},
-		SQLite: SQLiteConfig{
-			Path:          DefaultSQLitePath,
-			WAL:           true,
-			BusyTimeoutMS: DefaultSQLiteBusyMS,
 		},
 		BrowserGateway: BrowserGatewayConfig{
 			Host: "127.0.0.1",

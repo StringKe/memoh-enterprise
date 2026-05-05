@@ -116,7 +116,7 @@
 
 Memoh 用来：
 
-- 在网页上算当前会话占了多少上下文
+- 通过 API 或 CLI 查看当前会话占用的上下文
 - 驱动 `/status` 等
 - 判断是否逼近上限
 - 决定何时需要 [会话上下文压缩](/zh/getting-started/compaction)

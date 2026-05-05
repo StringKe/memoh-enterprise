@@ -66,7 +66,7 @@ type CreateContainerResponse struct {
 }
 
 // codesync(container-create-stream): keep these SSE payloads in sync with
-// packages/sdk/src/container-stream.ts.
+// API clients.
 type createContainerPullingEvent struct {
 	Type  string `json:"type"`
 	Image string `json:"image"`

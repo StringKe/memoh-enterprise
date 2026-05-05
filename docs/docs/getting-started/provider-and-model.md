@@ -6,7 +6,7 @@ To use Memoh effectively, you usually configure:
 - one or more **models** under those providers
 - optional **speech providers** if you want text-to-speech
 
-The Web UI manages chat and embedding providers/models from the **Models** page. Speech models are managed separately from [TTS Providers](/tts-providers/index.md).
+The API or CLI manages chat and embedding providers/models from the **Models** page. Speech models are managed separately from [TTS Providers](/tts-providers/index.md).
 
 ---
 
@@ -136,7 +136,7 @@ If a model supports reasoning, it may also declare `reasoning_efforts` such as `
 
 `context_window` is important because Memoh uses it to:
 
-- calculate session context usage in the Web UI
+- calculate session context usage in the API or CLI
 - power `/status` output
 - decide when a session is approaching its prompt limit
 - guide [Context Compaction](/getting-started/compaction)

@@ -31,7 +31,7 @@ That's it. `dev` launches everything in Docker containers:
 2. Database migrations (auto-run on startup)
 3. Go server with containerd (hot-reload via `go run`)
 4. Agent Gateway (Bun, hot-reload)
-5. Web frontend (Vite, hot-reload)
+5. External web-ui (Vite, hot-reload)
 
 The dev stack uses `devenv/app.dev.toml` directly and no longer overwrites the repo root `config.toml`.
 Default host ports are shifted away from the production compose stack: Web `18082`, API `18080`, Agent `18081`, Postgres `15432`, Qdrant `16333`/`16334`, Sparse `18085`.
@@ -67,7 +67,6 @@ mise run bridge:build:selinux  # Rebuild bridge binary on SELinux hosts
 | `mise run db-up` | Run database migrations |
 | `mise run db-down` | Roll back database migrations |
 | `mise run swagger-generate` | Generate Swagger documentation |
-| `mise run sdk-generate` | Generate TypeScript SDK |
 | `mise run sqlc-generate` | Generate SQL code |
 
 ## Project Layout

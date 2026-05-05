@@ -60,7 +60,7 @@ Make sure the `xoxb-...` bot token and the `xapp-...` app-level token come from 
 
 ## Step 6: Configure Memoh
 
-1. Open your Bot detail page in the Memoh Web UI.
+1. Open your Bot detail page in the Memoh API or CLI.
 2. Go to the **Platforms** tab.
 3. Click **Add Channel** and select **Slack**.
 4. Fill in:

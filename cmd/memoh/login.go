@@ -7,7 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/memohai/memoh/internal/tui"
+	"github.com/memohai/memoh/internal/cli"
 )
 
 func newLoginCommand(ctx *cliContext) *cobra.Command {
@@ -18,7 +18,7 @@ func newLoginCommand(ctx *cliContext) *cobra.Command {
 		Use:   "login",
 		Short: "Authenticate and persist a local access token",
 		RunE: func(_ *cobra.Command, _ []string) error {
-			client := tui.NewClient(ctx.state.ServerURL, "")
+			client := cli.NewClient(ctx.state.ServerURL, "")
 			requestCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 			defer cancel()
 
@@ -34,7 +34,7 @@ func newLoginCommand(ctx *cliContext) *cobra.Command {
 			if parsed, err := time.Parse(time.RFC3339, resp.ExpiresAt); err == nil {
 				next.ExpiresAt = parsed
 			}
-			if err := tui.SaveState(next); err != nil {
+			if err := cli.SaveState(next); err != nil {
 				return err
 			}
 

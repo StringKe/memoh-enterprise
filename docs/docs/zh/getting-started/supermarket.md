@@ -6,7 +6,7 @@ Memoh 内置的 **技能** 与 **MCP 模板** 目录。
 
 ## 装技能
 
-1. 网页里打开 **Supermarket**。
+1. 通过 API 或 CLI 使用 Supermarket。
 2. 切到 **Skills**。
 3. 选一个，点 **Install**。
 4. 选目标机器人。

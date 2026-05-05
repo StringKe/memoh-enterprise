@@ -117,4 +117,4 @@ Runtime capabilities differ by backend:
 | `kubernetes` | Pod network | Provider-dependent | Yes | No |
 | `apple` | Basic local runtime | No | No | No |
 
-Overlay provider settings are configured per bot in the web UI, not in the global TOML file. The global backend still matters because it decides which overlay driver can run.
+Overlay provider settings are configured per bot in the API or CLI, not in the global TOML file. The global backend still matters because it decides which overlay driver can run.

@@ -2,7 +2,7 @@
 
 Memoh bots support **slash commands** that are intercepted before the LLM runs. They are intended for fast inspection and control tasks such as viewing settings, switching providers, checking session status, or creating a fresh session.
 
-Slash commands work in channel adapters and in the built-in Web UI chat. They do not consume model tokens just to parse the command itself.
+Slash commands work in channel adapters and in the local API channel chat. They do not consume model tokens just to parse the command itself.
 
 ---
 
@@ -128,11 +128,11 @@ Supported forms:
 
 Default behavior:
 
-- **Web UI local chat** defaults to `chat`
+- **API or CLI local chat** defaults to `chat`
 - **Direct messages** default to `chat`
 - **Group conversations on channel adapters** default to `discuss`
 
-`/new discuss` is not supported in the built-in Web UI local channel. Use a channel adapter such as Telegram or Discord if you want explicit discuss sessions.
+`/new discuss` is not supported in the local API channel local channel. Use a channel adapter such as Telegram or Discord if you want explicit discuss sessions.
 
 See [Sessions](/getting-started/sessions) for how `chat` and `discuss` differ.
 

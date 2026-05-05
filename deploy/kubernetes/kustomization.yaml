@@ -9,5 +9,4 @@ resources:
   - postgres.yaml
   - qdrant.yaml
   - server.yaml
-  - web.yaml
   - browser.yaml

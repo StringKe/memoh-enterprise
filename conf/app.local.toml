@@ -1,4 +1,4 @@
-# Memoh local desktop/development configuration.
+# Memoh local development configuration.
 # Runs the server directly on the host, uses Docker for container workspaces,
 # and also enables trusted local workspaces.
 
@@ -21,7 +21,7 @@ jwt_expires_in = "168h"
 timezone = "UTC"
 
 [database]
-driver = "sqlite"
+driver = "postgres"
 
 [container]
 # Keep Docker available for bots that still need isolated workspaces.
@@ -33,12 +33,12 @@ data_root = "data/local"
 runtime_dir = "data/runtime"
 
 [docker]
-# Leave empty to let desktop startup detect Docker Desktop / Docker Engine sockets.
+# Leave empty to use Docker's standard environment discovery.
 host = ""
 
 [local]
 # Local workspaces run with the server process permissions and have no sandbox.
-# This is intended for trusted desktop/local development only.
+# This is intended for trusted local development only.
 enabled = true
 default_workspace_parent = "~/.memoh/workspaces"
 metadata_root = "data/local/containers"
@@ -61,11 +61,6 @@ bridge_port = 9090
 [apple]
 socket_path = ""
 binary_path = ""
-
-[sqlite]
-path = "data/local/memoh.db"
-wal = true
-busy_timeout_ms = 5000
 
 [postgres]
 host = "127.0.0.1"
@@ -94,6 +89,6 @@ server_addr = ":18731"
 [supermarket]
 base_url = "https://supermarket.memoh.ai"
 
-[web]
+[web-ui]
 host = "127.0.0.1"
 port = 8082

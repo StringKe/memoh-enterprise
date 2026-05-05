@@ -37,7 +37,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       server: ${{ steps.filter.outputs.server }}
-      web: ${{ steps.filter.outputs.web }}
       browser: ${{ steps.filter.outputs.browser }}
       sparse: ${{ steps.filter.outputs.sparse }}
     steps:
@@ -59,13 +58,6 @@ jobs:
               - 'docker/toolkit/**'
               - 'conf/providers/**'
               - 'spec/**'
-            web:
-              - 'apps/web/**'
-              - 'packages/**'
-              - 'pnpm-lock.yaml'
-              - 'pnpm-workspace.yaml'
-              - 'docker/Dockerfile.web'
-              - 'docker/nginx.conf'
             browser:
               - 'apps/browser/**'
               - 'packages/config/**'
@@ -80,14 +72,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image: [server, web, browser, sparse]
+        image: [server, browser, sparse]
         platform: [linux/amd64, linux/arm64]
         variant: [""]
         include:
           - image: server
             dockerfile: docker/Dockerfile.server
-          - image: web
-            dockerfile: docker/Dockerfile.web
           - image: browser
             dockerfile: docker/Dockerfile.browser
           - image: sparse
@@ -132,7 +122,6 @@ jobs:
           CHANGED="false"
           case "$IMAGE" in
             server)  CHANGED="${{ needs.detect-changes.outputs.server }}" ;;
-            web)     CHANGED="${{ needs.detect-changes.outputs.web }}" ;;
             browser) CHANGED="${{ needs.detect-changes.outputs.browser }}" ;;
             sparse)  CHANGED="${{ needs.detect-changes.outputs.sparse }}" ;;
           esac
@@ -204,8 +193,6 @@ jobs:
           build-args: |
             VERSION=${{ github.ref_name }}
             COMMIT_HASH=${{ github.sha }}
-            VITE_API_URL=/api
-            VITE_AGENT_URL=/agent
             ${{ matrix.variant != '' && format('BROWSER_CORES={0}', matrix.variant) || '' }}
           cache-from: |
             type=gha,scope=${{ steps.resolve.outputs.artifact_key }}-${{ matrix.platform }}
@@ -241,9 +228,6 @@ jobs:
           - image: server
             artifact_key: server
             variant: ""
-          - image: web
-            artifact_key: web
-            variant: ""
           - image: browser
             artifact_key: browser
             variant: ""
@@ -270,7 +254,6 @@ jobs:
           CHANGED="false"
           case "$IMAGE" in
             server)  CHANGED="${{ needs.detect-changes.outputs.server }}" ;;
-            web)     CHANGED="${{ needs.detect-changes.outputs.web }}" ;;
             browser) CHANGED="${{ needs.detect-changes.outputs.browser }}" ;;
             sparse)  CHANGED="${{ needs.detect-changes.outputs.sparse }}" ;;
           esac

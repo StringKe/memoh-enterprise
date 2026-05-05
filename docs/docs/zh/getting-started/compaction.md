@@ -76,7 +76,7 @@
 
 ## 和 `context_window`
 
-Memoh 会拿当前选中的 chat 模型的 `context_window` 对照本会话。网页状态区、`/status` 都能看到离上限多近。越满，**专门建一个便宜点的压缩模型**写摘要，往往越划算。
+Memoh 会拿当前选中的 chat 模型的 `context_window` 对照本会话。API 状态响应、`/status` 都能看到离上限多近。越满，**专门建一个便宜点的压缩模型**写摘要，往往越划算。
 
 ---
 

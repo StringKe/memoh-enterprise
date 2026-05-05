@@ -6,7 +6,7 @@ Supermarket is Memoh's built-in catalog for **skills** and **MCP templates**.
 
 ## Install A Skill
 
-1. Open **Supermarket** in the Web UI.
+1. Open **Supermarket** in the API or CLI.
 2. Switch to the **Skills** tab.
 3. Choose a skill and click **Install**.
 4. Select the target bot.
@@ -17,7 +17,7 @@ Supermarket is Memoh's built-in catalog for **skills** and **MCP templates**.
 
 ## Install An MCP Template
 
-1. Open **Supermarket** in the Web UI.
+1. Open **Supermarket** in the API or CLI.
 2. Switch to the **MCP** tab.
 3. Choose an entry and click **Install**.
 4. Select the target bot.

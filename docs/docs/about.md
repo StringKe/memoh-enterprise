@@ -2,7 +2,7 @@
 
 ## What Is Memoh?
 
-Memoh is a multi-member, structured long-memory, containerized AI agent platform. You can create multiple AI bots, give each bot its own isolated workspace and long-term memory, and interact with them through Telegram, Discord, Lark (Feishu), QQ, Matrix, Misskey, DingTalk, WeCom, WeChat, WeChat Official Account, Email, or the built-in Web UI.
+Memoh Enterprise is a multi-member, structured long-memory, containerized AI agent platform. You can create multiple AI bots, give each bot its own isolated workspace and long-term memory, and interact with them through Telegram, Discord, Lark (Feishu), QQ, Matrix, Misskey, DingTalk, WeCom, WeChat, WeChat Official Account, Email, or API/CLI integrations.
 
 Every bot has its own execution environment, tools, memory configuration, and channel integrations. In practice, that means each bot behaves more like its own computer-backed agent than a shared chat preset.
 
@@ -40,7 +40,7 @@ Each bot maintains independent **sessions** that preserve context. Memoh current
 - **Schedule** — cron-triggered task sessions
 - **Subagent** — delegated task sessions
 
-You can start or route sessions with slash commands such as `/new`, and the Web UI exposes a session status panel with metrics like context usage, cache hit rate, and used skills.
+You can start or route sessions with slash commands such as `/new`, and API responses expose session metrics like context usage, cache hit rate, and used skills.
 
 ### Broad Channel Coverage
 
@@ -99,7 +99,7 @@ Image generation is configured through compatible chat/image models rather than 
 
 ### Operations And UI
 
-The Web UI is designed so you can manage the whole system without editing config files by hand every day. It includes:
+The HTTP API and CLI are designed so operators can manage the system without bundled GUI components. They cover:
 
 - bot configuration tabs for general settings, access, channels, heartbeat, compaction, and more
 - provider and model management with OAuth flows where supported

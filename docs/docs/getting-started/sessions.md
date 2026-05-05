@@ -34,7 +34,7 @@ Only **Chat** and **Discuss** sessions are directly created from user conversati
 
 - the conversation behaves like a normal direct assistant exchange
 - users expect a visible reply when they send a prompt
-- this is the default in the Web UI and in direct-message style conversations
+- this is the default in the API or CLI and in direct-message style conversations
 
 **Discuss** means:
 
@@ -59,11 +59,11 @@ Supported forms:
 
 Default routing behavior:
 
-- **Web UI local chat** defaults to `chat`
+- **API or CLI local chat** defaults to `chat`
 - **private conversations** default to `chat`
 - **group conversations on channel adapters** default to `discuss`
 
-`/new discuss` is not supported from the built-in Web UI local channel. Use a real channel adapter such as Telegram, Discord, or Misskey if you want to explicitly create discuss sessions.
+`/new discuss` is not supported from the local API channel local channel. Use a real channel adapter such as Telegram, Discord, or Misskey if you want to explicitly create discuss sessions.
 
 This works across supported channels:
 
@@ -81,9 +81,9 @@ This is especially useful when:
 - The conversation has become too long and you want a clean start.
 - You are switching between different tasks.
 
-### In the Web UI
+### In the API or CLI
 
-The Web UI provides a session sidebar where you can:
+The API or CLI provides a session sidebar where you can:
 
 - Click the **New Session** button to create a fresh chat session.
 - Switch between existing sessions by clicking on them.
@@ -97,7 +97,7 @@ The Web UI provides a session sidebar where you can:
 
 ### Viewing Sessions
 
-In the Web UI, the session sidebar lists all sessions for the currently selected bot. Each entry shows:
+In the API or CLI, the session sidebar lists all sessions for the currently selected bot. Each entry shows:
 
 - **Title** — The session name (auto-generated or user-defined).
 - **Type** — The session type icon.

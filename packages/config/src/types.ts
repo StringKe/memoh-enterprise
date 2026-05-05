@@ -16,7 +16,7 @@ export interface Config {
   agent_gateway: AgentGatewayConfig;
   browser_gateway: BrowserGatewayConfig;
   supermarket: SupermarketConfig;
-  web: WebConfig;
+  'web-ui'?: WebUIConfig;
 }
 
 export interface LogConfig {
@@ -119,7 +119,7 @@ export interface SupermarketConfig {
   base_url?: string;
 }
 
-export interface WebConfig {
+export interface WebUIConfig {
   host: string;
   port: number;
 }

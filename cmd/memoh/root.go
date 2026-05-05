@@ -1,16 +1,13 @@
 package main
 
 import (
-	"fmt"
-
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
 
-	"github.com/memohai/memoh/internal/tui"
+	"github.com/memohai/memoh/internal/cli"
 )
 
 type cliContext struct {
-	state  tui.State
+	state  cli.State
 	server string
 }
 
@@ -20,17 +17,17 @@ func newRootCommand() *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use:   "memoh",
 		Short: "Memoh terminal operator CLI",
-		RunE: func(_ *cobra.Command, _ []string) error {
-			return runTUI(ctx)
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			return cmd.Help()
 		},
 		PersistentPreRunE: func(_ *cobra.Command, _ []string) error {
-			state, err := tui.LoadState()
+			state, err := cli.LoadState()
 			if err != nil {
 				return err
 			}
 			ctx.state = state
 			if ctx.server != "" {
-				ctx.state.ServerURL = tui.NormalizeServerURL(ctx.server)
+				ctx.state.ServerURL = cli.NormalizeServerURL(ctx.server)
 			}
 			return nil
 		},
@@ -45,13 +42,6 @@ func newRootCommand() *cobra.Command {
 	rootCmd.AddCommand(newBotsCommand(ctx))
 	rootCmd.AddCommand(newComposeCommands()...)
 	rootCmd.AddCommand(&cobra.Command{
-		Use:   "tui",
-		Short: "Open the terminal UI",
-		RunE: func(_ *cobra.Command, _ []string) error {
-			return runTUI(ctx)
-		},
-	})
-	rootCmd.AddCommand(&cobra.Command{
 		Use:   "version",
 		Short: "Print version information",
 		RunE: func(_ *cobra.Command, _ []string) error {
@@ -60,13 +50,4 @@ func newRootCommand() *cobra.Command {
 	})
 
 	return rootCmd
-}
-
-func runTUI(ctx *cliContext) error {
-	model := tui.NewTUIModel(ctx.state)
-	program := tea.NewProgram(model, tea.WithAltScreen())
-	if _, err := program.Run(); err != nil {
-		return fmt.Errorf("run tui: %w", err)
-	}
-	return nil
 }

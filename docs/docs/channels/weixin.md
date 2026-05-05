@@ -4,7 +4,7 @@ Connecting your Memoh Bot to WeChat allows it to interact with users directly vi
 
 ## Step 1: Add WeChat Channel in Memoh
 
-1. Go to your Bot's **Platforms** tab in the Memoh Web UI.
+1. Go to your Bot's **Platforms** tab in the Memoh API or CLI.
 2. Click **Add Channel** and select **WeChat**.
 
 ## Step 2: Scan the QR Code

@@ -7,7 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/memohai/memoh/internal/tui"
+	"github.com/memohai/memoh/internal/cli"
 )
 
 func newChatCommand(ctx *cliContext) *cobra.Command {
@@ -19,7 +19,7 @@ func newChatCommand(ctx *cliContext) *cobra.Command {
 		Use:   "chat",
 		Short: "Send one chat message and stream the reply",
 		RunE: func(_ *cobra.Command, _ []string) error {
-			client := tui.NewClient(ctx.state.ServerURL, ctx.state.Token)
+			client := cli.NewClient(ctx.state.ServerURL, ctx.state.Token)
 			if sessionID == "" {
 				requestCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 				defer cancel()
@@ -33,16 +33,16 @@ func newChatCommand(ctx *cliContext) *cobra.Command {
 
 			streamCtx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 			defer cancel()
-			return client.StreamChat(streamCtx, tui.ChatRequest{
+			return client.StreamChat(streamCtx, cli.ChatRequest{
 				BotID:     botID,
 				SessionID: sessionID,
 				Text:      message,
-			}, func(event tui.ChatEvent) error {
+			}, func(event cli.ChatEvent) error {
 				switch event.Type {
 				case "start":
 					fmt.Println("[start]")
 				case "message":
-					fmt.Println(tui.RenderUIMessage(event.Data))
+					fmt.Println(cli.RenderUIMessage(event.Data))
 				case "error":
 					fmt.Println("[error]", event.Message)
 				case "end":

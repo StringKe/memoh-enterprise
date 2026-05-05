@@ -17,7 +17,7 @@ brew install mise
 
 ```bash
 mise install       # Install toolchains (Go, Node, Bun, pnpm, sqlc)
-./docker/toolkit/install.sh  # Install toolkit used by the nested workspace runtime
+./deploy/docker/toolkit/install.sh  # Install toolkit used by the nested workspace runtime
 mise run setup     # Install deps and prepare local tooling
 mise run dev       # Start full containerized dev environment
 ```
@@ -26,10 +26,10 @@ That's it. `dev` launches everything in Docker containers on Linux amd64/arm64 h
 1. PostgreSQL + Qdrant (infrastructure)
 2. Database migrations (auto-run on startup)
 3. Go server with containerd (hot-reload via `go run`)
-4. Agent Gateway (Bun, hot-reload)
+4. Browser Gateway (Bun, hot-reload)
 5. External web-ui (Vite, hot-reload)
 
-The dev stack uses `devenv/app.dev.toml` directly and no longer overwrites the repo root `config.toml`.
+The dev stack uses `deploy/config/dev/app.dev.toml` directly and no longer overwrites the repo root `config.toml`.
 Default host ports are shifted away from the production compose stack: Web `18082`, API `18080`, Agent `18081`, Postgres `15432`, Qdrant `16333`/`16334`, Sparse `18085`.
 
 ## Daily Development
@@ -69,13 +69,13 @@ mise run bridge:build:selinux  # Rebuild bridge binary on SELinux hosts
 
 ```
 conf/       — Configuration templates (app.example.toml, app.docker.toml)
-devenv/     — Dev environment (docker-compose, dev Dockerfiles, app.dev.toml, bridge-build.sh)
-docker/     — Production Docker build & runtime (Dockerfiles, entrypoints)
+deploy/     — Compose, Docker, Kubernetes, and dev deployment resources
 cmd/        — Go application entry points
 internal/   — Go backend core code
-apps/       — Application services (Agent Gateway, etc.)
-  agent/    — Agent Gateway (Bun/Elysia)
+apps/       — Application services (Browser Gateway, etc.)
+  browser/  — Browser Gateway (Bun/Elysia/Playwright)
 packages/   — Frontend monorepo (web, ui, sdk, config)
 db/         — Database migrations and queries
 scripts/    — Utility scripts
+api/        — OpenAPI generated artifacts
 ```

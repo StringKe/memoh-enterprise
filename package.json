@@ -10,7 +10,7 @@
     "release:patch": "bumpp patch --yes",
     "release:minor": "bumpp minor --yes",
     "release:major": "bumpp major --yes",
-    "publish:npm": "node scripts/publish-packages.mjs",
+    "publish:npm": "node scripts/release/publish-packages.mjs",
     "check": "vp check",
     "check:fix": "vp check --fix",
     "test": "vp test",

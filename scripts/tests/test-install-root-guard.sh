@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-ROOT=$(CDPATH= cd "$(dirname "$0")/.." && pwd)
+ROOT=$(CDPATH= cd "$(dirname "$0")/../.." && pwd)
 TMPDIR=$(mktemp -d "${TMPDIR:-/tmp}/test-install-root-guard.XXXXXX" 2>/dev/null || mktemp -d -t test-install-root-guard)
 trap 'rm -rf "$TMPDIR"' EXIT
 

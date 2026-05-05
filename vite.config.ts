@@ -8,12 +8,14 @@ export default defineConfig({
     ignorePatterns: [
       "cmd/**/template/**",
       "conf/**",
-      "devenv/**",
+      "deploy/compose/dev/**",
+      "deploy/docker/dev/**",
+      "deploy/config/dev/**",
       "docker-compose.yml",
       "docs/**",
       "internal/**/prompts/**",
       "internal/**/templates/**",
-      "spec/**",
+      "api/openapi/**",
       "**/*.md",
       "**/*.toml",
       "**/*.yaml",
@@ -22,6 +24,6 @@ export default defineConfig({
   },
   lint: {
     options: { typeAware: true, typeCheck: true },
-    ignorePatterns: ["node_modules/**", "dist/**", "docs/**", "spec/**"],
+    ignorePatterns: ["node_modules/**", "dist/**", "docs/**", "api/openapi/**"],
   },
 });

@@ -45,8 +45,8 @@ PostgreSQL is the only supported relational database backend.
 ## Kubernetes
 
 ```bash
-kubectl apply -k deploy/kubernetes
+kubectl apply -k deploy/kubernetes/base
 kubectl -n memoh rollout status deployment/memoh-server
 ```
 
-Edit `deploy/kubernetes/config-secret.yaml` before deploying.
+Edit `deploy/kubernetes/base/config-secret.yaml` before deploying.

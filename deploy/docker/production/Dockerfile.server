@@ -51,13 +51,13 @@ FROM alpine:latest AS toolkit-assembly
 ARG TARGETARCH
 
 RUN apk add --no-cache xz
-COPY docker/toolkit/install.sh /tmp/install.sh
+COPY deploy/docker/toolkit/install.sh /tmp/install.sh
 RUN /tmp/install.sh /assembly/toolkit "${TARGETARCH:-amd64}"
 
 # Assemble runtime directory
 COPY --from=bridge-builder /out/bridge /assembly/bridge
 COPY cmd/bridge/template /assembly/templates
-COPY docker/toolkit/bin /assembly/toolkit/bin
+COPY deploy/docker/toolkit/bin /assembly/toolkit/bin
 RUN chmod +x /assembly/toolkit/bin/*
 
 # ---- Stage 5: Final runtime (containerd + server + CNI) ----
@@ -105,13 +105,13 @@ RUN apk add --no-cache ca-certificates tzdata wget cni-plugins iptables \
 # Workspace runtime (bind-mounted into bot containers)
 COPY --from=toolkit-assembly /assembly /opt/memoh/runtime
 
-# Server binary, spec, and provider presets
+# Server binary, OpenAPI spec, and provider presets
 COPY --from=server-builder /build/memoh-server /app/memoh-server
-COPY --from=server-builder /build/spec /app/spec
+COPY --from=server-builder /build/api/openapi /app/api/openapi
 COPY --from=server-builder /build/conf/providers /app/conf/providers
 
 # Entrypoint: start containerd, then server
-COPY docker/server-entrypoint.sh /entrypoint.sh
+COPY deploy/docker/production/server-entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 RUN mkdir -p /opt/memoh/data /run/containerd /var/lib/containerd

@@ -7,7 +7,9 @@ on:
     paths-ignore:
       - "docs/**"
       - "**.md"
-      - "devenv/**"
+      - "deploy/compose/dev/**"
+      - "deploy/docker/dev/**"
+      - "deploy/config/dev/**"
   release:
     types: [published]
   pull_request:
@@ -15,7 +17,9 @@ on:
     paths-ignore:
       - "docs/**"
       - "**.md"
-      - "devenv/**"
+      - "deploy/compose/dev/**"
+      - "deploy/docker/dev/**"
+      - "deploy/config/dev/**"
   workflow_dispatch:
 
 concurrency:
@@ -54,18 +58,18 @@ jobs:
               - 'go.sum'
               - 'cmd/**'
               - 'internal/**'
-              - 'docker/Dockerfile.server'
-              - 'docker/server-entrypoint.sh'
-              - 'docker/toolkit/**'
+              - 'deploy/docker/production/Dockerfile.server'
+              - 'deploy/docker/production/server-entrypoint.sh'
+              - 'deploy/docker/toolkit/**'
               - 'conf/providers/**'
-              - 'spec/**'
+              - 'api/openapi/**'
             browser:
               - 'apps/browser/**'
               - 'packages/config/**'
-              - 'docker/Dockerfile.browser'
+              - 'deploy/docker/production/Dockerfile.browser'
             sparse:
               - 'internal/memory/sparse/service/**'
-              - 'docker/Dockerfile.sparse'
+              - 'deploy/docker/production/Dockerfile.sparse'
 
   build:
     name: build ${{ matrix.image }}${{ matrix.variant != '' && format(' ({0})', matrix.variant) || '' }} ${{ matrix.platform == 'linux/amd64' && 'amd64' || 'arm64' }}
@@ -78,11 +82,11 @@ jobs:
         variant: [""]
         include:
           - image: server
-            dockerfile: docker/Dockerfile.server
+            dockerfile: deploy/docker/production/Dockerfile.server
           - image: browser
-            dockerfile: docker/Dockerfile.browser
+            dockerfile: deploy/docker/production/Dockerfile.browser
           - image: sparse
-            dockerfile: docker/Dockerfile.sparse
+            dockerfile: deploy/docker/production/Dockerfile.sparse
           - platform: linux/amd64
             runner: ubuntu-latest
           - platform: linux/arm64
@@ -90,22 +94,22 @@ jobs:
           # Browser single-engine variants
           - image: browser
             variant: chromium
-            dockerfile: docker/Dockerfile.browser
+            dockerfile: deploy/docker/production/Dockerfile.browser
             platform: linux/amd64
             runner: ubuntu-latest
           - image: browser
             variant: chromium
-            dockerfile: docker/Dockerfile.browser
+            dockerfile: deploy/docker/production/Dockerfile.browser
             platform: linux/arm64
             runner: ubuntu-24.04-arm
           - image: browser
             variant: firefox
-            dockerfile: docker/Dockerfile.browser
+            dockerfile: deploy/docker/production/Dockerfile.browser
             platform: linux/amd64
             runner: ubuntu-latest
           - image: browser
             variant: firefox
-            dockerfile: docker/Dockerfile.browser
+            dockerfile: deploy/docker/production/Dockerfile.browser
             platform: linux/arm64
             runner: ubuntu-24.04-arm
     runs-on: ${{ matrix.runner }}

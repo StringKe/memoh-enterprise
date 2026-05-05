@@ -2,7 +2,7 @@
 
 Memoh can run on Kubernetes with `container.backend = "kubernetes"`. In this mode, the server creates one Pod and one PVC per bot workspace.
 
-This repository includes a kustomize-based starter deployment in `deploy/kubernetes`. Treat it as a production baseline to adapt, not as a managed Helm chart.
+This repository includes a kustomize-based starter deployment in `deploy/kubernetes/base`. Treat it as a production baseline to adapt, not as a managed Helm chart.
 
 ## What it deploys
 
@@ -28,7 +28,7 @@ The current Kubernetes workspace runtime mounts `/opt/memoh/runtime` into every 
 
 ## Configure secrets
 
-Edit `deploy/kubernetes/config-secret.yaml` before applying:
+Edit `deploy/kubernetes/base/config-secret.yaml` before applying:
 
 - Change `admin.password`
 - Change `auth.jwt_secret`
@@ -57,7 +57,7 @@ bridge_port = 9090
 ## Deploy
 
 ```bash
-kubectl apply -k deploy/kubernetes
+kubectl apply -k deploy/kubernetes/base
 kubectl -n memoh rollout status deployment/memoh-server
 kubectl -n memoh rollout status daemonset/memoh-runtime-installer
 ```
@@ -73,7 +73,7 @@ The API is available at `http://localhost:8080`.
 For local clusters that can see locally built images, use the included overlay:
 
 ```bash
-kubectl apply -k deploy/kubernetes-local
+kubectl apply -k deploy/kubernetes/overlays/local
 ```
 
 It rewrites `ghcr.io/stringke/server` and `ghcr.io/stringke/browser` to the `k8s-dev` tag.
@@ -83,8 +83,8 @@ It rewrites `ghcr.io/stringke/server` and `ghcr.io/stringke/browser` to the `k8s
 Patch images with kustomize:
 
 ```bash
-kubectl kustomize deploy/kubernetes \
-  | sed 's/memohai\/server:latest/memohai\/server:0.8.0/g' \
+kubectl kustomize deploy/kubernetes/base \
+  | sed 's/ghcr.io\/stringke\/server:latest/ghcr.io\/stringke\/server:0.8.0/g' \
   | kubectl apply -f -
 ```
 

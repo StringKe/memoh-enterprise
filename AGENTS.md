@@ -80,8 +80,10 @@ apps/browser/       Browser Gateway
 packages/config/    Shared TypeScript config reader used by Browser Gateway
 db/postgres/        PostgreSQL migrations and sqlc queries
 conf/               Configuration templates
-devenv/             Development compose environment
-docker/             Production Docker build resources
+deploy/compose/dev/ Development compose environment
+deploy/docker/      Docker build resources and workspace toolkit
+deploy/kubernetes/  Kubernetes kustomize base and overlays
+api/openapi/        Generated OpenAPI artifacts
 docs/               Documentation
 ```
 

@@ -200,7 +200,7 @@ func (*TelegramAdapter) Descriptor() channel.Descriptor {
 					Required:    false,
 					Order:       10,
 					Title:       "API Base URL",
-					Description: "Reverse proxy base URL for the Telegram Bot API. Required in regions where Telegram is blocked (e.g. China mainland). Default: https://api.telegram.org",
+					Description: "Reverse proxy base URL for the Telegram Bot API. Required on restricted networks. Default: https://api.telegram.org",
 				},
 				"httpProxyUrl": {
 					Type:        channel.FieldSecret,

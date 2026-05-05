@@ -5,7 +5,7 @@ set -e
 # If missing, the user forgot to run the install script.
 if [ ! -d /opt/memoh/runtime/toolkit/node-glibc ]; then
   echo "ERROR: Toolkit not found at /opt/memoh/runtime/toolkit/." >&2
-  echo "       Run ./docker/toolkit/install.sh before starting the dev environment." >&2
+  echo "       Run ./deploy/docker/toolkit/install.sh before starting the dev environment." >&2
   exit 1
 fi
 

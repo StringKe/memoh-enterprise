@@ -2,8 +2,8 @@ name: "memoh"
 services:
   migrate:
     build:
-      context: .
-      dockerfile: docker/Dockerfile.server
+      context: ../../..
+      dockerfile: deploy/docker/production/Dockerfile.server
       args:
         - VERSION=${MEMOH_VERSION:-dev}
         - COMMIT_HASH=${MEMOH_COMMIT:-unknown}
@@ -11,8 +11,8 @@ services:
 
   server:
     build:
-      context: .
-      dockerfile: docker/Dockerfile.server
+      context: ../../..
+      dockerfile: deploy/docker/production/Dockerfile.server
       args:
         - VERSION=${MEMOH_VERSION:-dev}
         - COMMIT_HASH=${MEMOH_COMMIT:-unknown}
@@ -20,10 +20,10 @@ services:
 
   sparse:
     build:
-      context: .
-      dockerfile: docker/Dockerfile.sparse
+      context: ../../..
+      dockerfile: deploy/docker/production/Dockerfile.sparse
 
   browser:
     build:
-      context: .
-      dockerfile: docker/Dockerfile.browser
+      context: ../../..
+      dockerfile: deploy/docker/production/Dockerfile.browser

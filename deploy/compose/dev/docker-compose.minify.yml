@@ -36,32 +36,32 @@ services:
 
   deps:
     build:
-      context: ..
-      dockerfile: devenv/Dockerfile.node
+      context: ../../..
+      dockerfile: deploy/docker/dev/Dockerfile.node
     container_name: memoh-dev-deps
     working_dir: /workspace
     command: ["pnpm", "install"]
     environment:
       ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
     volumes:
-      - ..:/workspace
+      - ../../..:/workspace
       - node_modules:/workspace/node_modules
       - pnpm_store:/root/.local/share/pnpm/store
     restart: "no"
 
   migrate:
     build:
-      context: ..
-      dockerfile: devenv/Dockerfile.server
+      context: ../../..
+      dockerfile: deploy/docker/dev/Dockerfile.server
     container_name: memoh-dev-migrate
     working_dir: /workspace
     entrypoint: []
     command: ["go", "run", "./cmd/agent", "migrate", "up"]
     environment:
-      CONFIG_PATH: /workspace/devenv/app.dev.toml
+      CONFIG_PATH: /workspace/deploy/config/dev/app.dev.toml
       GOFLAGS: -buildvcs=false
     volumes:
-      - ..:/workspace
+      - ../../..:/workspace
       - go_mod_cache:/go/pkg/mod
       - go_build_cache:/root/.cache/go-build
     depends_on:
@@ -73,27 +73,27 @@ services:
 
   server:
     build:
-      context: ..
-      dockerfile: devenv/Dockerfile.server
+      context: ../../..
+      dockerfile: deploy/docker/dev/Dockerfile.server
     container_name: memoh-dev-server
     working_dir: /workspace
     privileged: true
     pid: host
     command: ["air", "-c", ".air.toml"]
     environment:
-      CONFIG_PATH: /workspace/devenv/app.dev.toml
+      CONFIG_PATH: /workspace/deploy/config/dev/app.dev.toml
       GOFLAGS: -buildvcs=false
     volumes:
-      - ..:/workspace
+      - ../../..:/workspace
       - go_mod_cache:/go/pkg/mod
       - go_build_cache:/root/.cache/go-build
       - containerd_data:/var/lib/containerd
       - server_cni_state:/var/lib/cni
       - memoh_data:/opt/memoh/data
-      # Toolkit: run ./docker/toolkit/install.sh once before first use
-      - ../.toolkit:/opt/memoh/runtime/toolkit
-      - ../docker/toolkit/bin:/opt/memoh/runtime/toolkit/bin
-      - ../cmd/bridge/template:/opt/memoh/runtime/templates
+      # Toolkit: run ./deploy/docker/toolkit/install.sh once before first use
+      - ../../../.toolkit:/opt/memoh/runtime/toolkit
+      - ../../../deploy/docker/toolkit/bin:/opt/memoh/runtime/toolkit/bin
+      - ../../../cmd/bridge/template:/opt/memoh/runtime/templates
       - /etc/localtime:/etc/localtime:ro
     ports:
       - "${MEMOH_DEV_SERVER_PORT:-18080}:8080"
@@ -112,18 +112,18 @@ services:
 
   # browser:
   #   build:
-  #     context: ..
-  #     dockerfile: devenv/Dockerfile.browser
+  #     context: ../../..
+  #     dockerfile: deploy/docker/dev/Dockerfile.browser
   #     args:
   #       BROWSER_CORES: ${BROWSER_CORES:-chromium,firefox}
   #   container_name: memoh-dev-browser
   #   working_dir: /workspace/apps/browser
   #   command: ["bun", "run", "--watch", "src/index.ts"]
   #   environment:
-  #     - MEMOH_CONFIG_PATH=/workspace/devenv/app.dev.toml
+  #     - MEMOH_CONFIG_PATH=/workspace/deploy/config/dev/app.dev.toml
   #     - BROWSER_CORES=${BROWSER_CORES:-chromium,firefox}
   #   volumes:
-  #     - ..:/workspace
+  #     - ../../..:/workspace
   #     - node_modules:/workspace/node_modules
   #   ports:
   #     - "${MEMOH_DEV_BROWSER_PORT:-18083}:8083"
@@ -136,8 +136,8 @@ services:
 
   # sparse:
   #   build:
-  #     context: ..
-  #     dockerfile: docker/Dockerfile.sparse
+  #     context: ../../..
+  #     dockerfile: deploy/docker/production/Dockerfile.sparse
   #   container_name: memoh-dev-sparse
   #   ports:
   #     - "${MEMOH_DEV_SPARSE_PORT:-18085}:8085"

@@ -2,18 +2,11 @@
 # Download Node.js (glibc + musl) and uv into a toolkit directory.
 #
 # Usage:
-#   ./docker/toolkit/install.sh [output_dir] [arch]
+#   ./deploy/docker/toolkit/install.sh [output_dir] [arch]
 #
 # Arguments:
 #   output_dir  Target directory (default: .toolkit)
 #   arch        amd64 or arm64 (default: auto-detect from uname -m)
-#
-# Environment variables for mirrors (useful in mainland China):
-#   NODEJS_MIRROR       Default: https://nodejs.org/dist
-#   NODEJS_MUSL_MIRROR  Default: https://unofficial-builds.nodejs.org/download/release
-#   NPM_MIRROR          Default: https://registry.npmjs.org
-#   ALPINE_MIRROR       Default: https://dl-cdn.alpinelinux.org/alpine
-#   UV_MIRROR           Default: https://github.com/astral-sh/uv/releases/latest/download
 #
 set -eu
 
@@ -33,19 +26,13 @@ if [ -z "$ARCH" ]; then
   esac
 fi
 
-NODEJS_MIRROR="${NODEJS_MIRROR:-https://nodejs.org/dist}"
-NODEJS_MUSL_MIRROR="${NODEJS_MUSL_MIRROR:-https://unofficial-builds.nodejs.org/download/release}"
-NPM_MIRROR="${NPM_MIRROR:-https://registry.npmjs.org}"
-ALPINE_MIRROR="${ALPINE_MIRROR:-https://dl-cdn.alpinelinux.org/alpine}"
-UV_MIRROR="${UV_MIRROR:-https://github.com/astral-sh/uv/releases/latest/download}"
-
 case "$ARCH" in
   amd64) NODE_ARCH=x64;  UV_ARCH=x86_64;  APK_ARCH=x86_64 ;;
   arm64) NODE_ARCH=arm64; UV_ARCH=aarch64; APK_ARCH=aarch64 ;;
   *) echo "ERROR: unsupported arch: $ARCH" >&2; exit 1 ;;
 esac
 
-ALPINE_REPO="${ALPINE_MIRROR}/v${ALPINE_VERSION}/main/${APK_ARCH}"
+ALPINE_REPO="https://dl-cdn.alpinelinux.org/alpine/v${ALPINE_VERSION}/main/${APK_ARCH}"
 
 TMPDIR="$(mktemp -d)"
 cleanup() {
@@ -102,10 +89,10 @@ install_pinned_npm() {
 mkdir -p "$OUTDIR/node-glibc" "$OUTDIR/node-musl"
 
 echo "Downloading Node.js v${NODE_VERSION} (glibc, ${NODE_ARCH})..."
-wget -qO- "${NODEJS_MIRROR}/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-${NODE_ARCH}.tar.xz" \
+wget -qO- "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-${NODE_ARCH}.tar.xz" \
   | tar -xJf - --strip-components=1 -C "$OUTDIR/node-glibc"
 
-MUSL_URL="${NODEJS_MUSL_MIRROR}/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-${NODE_ARCH}-musl.tar.xz"
+MUSL_URL="https://unofficial-builds.nodejs.org/download/release/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-${NODE_ARCH}-musl.tar.xz"
 echo "Downloading Node.js v${NODE_VERSION} (musl, ${NODE_ARCH})..."
 musl_archive="$TMPDIR/node-musl.tar.xz"
 if wget -qO "$musl_archive" "$MUSL_URL" 2>/dev/null; then
@@ -119,12 +106,12 @@ install_musl_runtime_libs
 
 echo "Downloading npm v${NPM_VERSION}..."
 npm_archive="$TMPDIR/npm.tgz"
-wget -qO "$npm_archive" "${NPM_MIRROR}/npm/-/npm-${NPM_VERSION}.tgz"
+wget -qO "$npm_archive" "https://registry.npmjs.org/npm/-/npm-${NPM_VERSION}.tgz"
 install_pinned_npm node-glibc
 install_pinned_npm node-musl
 
 echo "Downloading uv (${UV_ARCH})..."
-wget -qO- "${UV_MIRROR}/uv-${UV_ARCH}-unknown-linux-musl.tar.gz" \
+wget -qO- "https://github.com/astral-sh/uv/releases/latest/download/uv-${UV_ARCH}-unknown-linux-musl.tar.gz" \
   | tar -xzf - --strip-components=1 -C /tmp
 mv /tmp/uv "$OUTDIR/uv"
 chmod +x "$OUTDIR/uv"

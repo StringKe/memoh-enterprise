@@ -2,7 +2,7 @@
 
 # Dev server image: Go + containerd + CNI.
 # Toolkit (Node.js, uv) is NOT baked in — it is volume-mounted from the host.
-# Run ./docker/toolkit/install.sh once before first use.
+# Run ./deploy/docker/toolkit/install.sh once before first use.
 
 FROM golang:1.25-alpine
 
@@ -54,7 +54,7 @@ RUN printf '%s\n' \
   '  ]' \
   '}' > /etc/cni/net.d/10-memoh.conflist
 
-COPY devenv/server-entrypoint.sh /entrypoint.sh
+COPY deploy/docker/dev/server-entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 VOLUME ["/var/lib/containerd", "/opt/memoh/data"]

@@ -13,7 +13,7 @@ const defaultAPIBaseURL = "https://api.telegram.org"
 // Config holds the Telegram bot credentials extracted from a channel configuration.
 type Config struct {
 	BotToken   string
-	APIBaseURL string // Reverse proxy base URL for regions where Telegram is blocked (e.g. China mainland)
+	APIBaseURL string // Reverse proxy base URL for restricted networks.
 	HTTPProxy  common.HTTPProxyConfig
 }
 

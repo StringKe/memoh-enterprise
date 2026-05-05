@@ -1,5 +1,5 @@
 # Memoh development configuration
-# Connects to devenv/docker-compose.yml infrastructure
+# Connects to deploy/compose/dev/docker-compose.yml infrastructure
 
 [log]
 level = "debug"

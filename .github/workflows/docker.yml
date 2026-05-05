@@ -25,6 +25,8 @@ concurrency:
 env:
   PUSH: ${{ github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/v') || startsWith(github.ref, 'refs/tags/') || github.event_name == 'release') }}
   REGISTRY: ghcr.io
+  DOCKERHUB_NAMESPACE: stringme
+  DOCKERHUB_ENABLED: ${{ secrets.DOCKERHUB_USERNAME != '' && secrets.DOCKERHUB_TOKEN != '' }}
 
 permissions:
   contents: read
@@ -154,7 +156,7 @@ jobs:
           GOMODCACHE=$(pwd)/.go-cache go mod download
 
       - name: Login to Docker Hub
-        if: steps.should-build.outputs.skip != 'true' && env.PUSH == 'true'
+        if: steps.should-build.outputs.skip != 'true' && env.PUSH == 'true' && env.DOCKERHUB_ENABLED == 'true'
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -277,7 +279,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Login to Docker Hub
-        if: steps.should-publish.outputs.skip != 'true'
+        if: steps.should-publish.outputs.skip != 'true' && env.DOCKERHUB_ENABLED == 'true'
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -295,7 +297,7 @@ jobs:
         if: steps.should-publish.outputs.skip != 'true'
         id: publish
         run: |
-          IMAGE="memohai/${{ matrix.image }}"
+          IMAGE="${DOCKERHUB_NAMESPACE}/${{ matrix.image }}"
           GHCR_IMAGE="ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}"
           REF_NAME="${{ github.event_name == 'release' && github.event.release.tag_name || github.ref_name }}"
           VERSION="${REF_NAME#v}"
@@ -307,7 +309,10 @@ jobs:
 
           add_tag() {
             local tag="$1"
-            TAG_ARGS="$TAG_ARGS -t ${IMAGE}:${tag} -t ${GHCR_IMAGE}:${tag}"
+            if [ "${DOCKERHUB_ENABLED}" = "true" ]; then
+              TAG_ARGS="$TAG_ARGS -t ${IMAGE}:${tag}"
+            fi
+            TAG_ARGS="$TAG_ARGS -t ${GHCR_IMAGE}:${tag}"
           }
 
           if [ -n "$VARIANT" ]; then

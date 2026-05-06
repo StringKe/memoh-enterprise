@@ -66,7 +66,7 @@ data_root = "/opt/memoh/data"
 
 The Docker backend talks to Docker Engine through the standard Docker environment. It is meant for a Memoh server running on the host or in an environment where Docker bind-mount source paths refer to real host paths.
 
-Avoid switching a stock Docker Compose install from `containerd` to `docker` unless you also provide host-valid paths for `runtime_dir` and Docker socket access. Otherwise the workspace containers can be created without the bridge runtime files they need.
+Avoid switching a stock Docker Compose install from `containerd` to `docker` unless you also provide host-valid paths for `runtime_dir` and Docker socket access. Otherwise the workspace containers can be created without the workspace executor runtime files they need.
 
 ## Podman
 
@@ -107,7 +107,7 @@ service_account_name = ""
 image_pull_secret = ""
 pvc_storage_class = ""
 pvc_size = "10Gi"
-bridge_port = 9090
+workspace_executor_port = 9090
 ```
 
 When `in_cluster = true`, Memoh uses the pod ServiceAccount. For external control, set `in_cluster = false` and provide `kubeconfig`.

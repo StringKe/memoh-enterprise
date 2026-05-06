@@ -23,7 +23,8 @@ Included:
 - PostgreSQL as the only relational database backend.
 - containerd, Docker Engine, Podman, and Kubernetes workspace runtimes.
 - Browser Gateway for headless browser automation used by agent tools.
-- In-process AI agent runtime with tools, MCP, memory, schedule, providers, models, channels, email, workspace, and container management.
+- Split runtime services: `memoh-server`, `memoh-agent-runner`, `memoh-connector`, `memoh-integration-gateway`, `memoh-worker`, and `workspace-executor`.
+- Agent tools, MCP, memory, schedule, providers, models, channels, email, workspace, and container management.
 - Bot Groups for enterprise-level configuration inheritance and grouped bot operations.
 - Enterprise integration API tokens for global, bot-scoped, and bot-group-scoped access.
 - WebSocket-based external integration protocol with Go and TypeScript SDKs.
@@ -50,6 +51,15 @@ External enterprise integrations use a separate WebSocket protocol. Its protobuf
 - TypeScript: [`packages/integration-sdk-ts`](./packages/integration-sdk-ts)
 
 Other languages are not supported at this stage.
+
+## Runtime Architecture
+
+- `memoh-server`: control plane, ConnectRPC management API, auth, RBAC, settings, token admin, and health checks.
+- `memoh-agent-runner`: agent run lifecycle and tool orchestration.
+- `memoh-connector`: platform channel adapters and long-lived connector leases.
+- `memoh-integration-gateway`: external enterprise WebSocket integration API.
+- `memoh-worker`: schedule, heartbeat, compaction, cleanup, and PostgreSQL outbox consumers.
+- `workspace-executor`: in-workspace file, exec, PTY, and MCP server execution boundary.
 
 ## Runtime Targets
 

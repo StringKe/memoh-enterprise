@@ -13,7 +13,7 @@ The manifests include:
 - `memoh-postgres`: PostgreSQL StatefulSet
 - `memoh-qdrant`: Qdrant StatefulSet
 - `memoh-server` initContainer: runs `migrate up` before the server starts
-- `memoh-runtime-installer`: DaemonSet that copies the workspace bridge/runtime files to `/opt/memoh/runtime` on every node
+- `memoh-runtime-installer`: DaemonSet that copies the workspace executor runtime files to `/opt/memoh/runtime` on every node
 - RBAC for the server to create workspace Pods, PVCs, Services, and VolumeSnapshots in the `memoh` namespace
 
 ## Prerequisites
@@ -51,7 +51,7 @@ namespace = "memoh"
 in_cluster = true
 service_account_name = "memoh-workspace"
 pvc_size = "10Gi"
-bridge_port = 9090
+workspace_executor_port = 9090
 ```
 
 ## Deploy

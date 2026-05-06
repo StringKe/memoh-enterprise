@@ -142,7 +142,7 @@ rg -n "apps/desktop|internal/tui|db/sqlite|internal/db/sqlite|internal/embedded|
 
 ```bash
 go test ./cmd/... ./internal/...
-go build ./cmd/agent ./cmd/memoh ./cmd/bridge
+go build ./cmd/server ./cmd/memoh ./cmd/workspace-executor
 sqlc generate
 vp check
 vp test

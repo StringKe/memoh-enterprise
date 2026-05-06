@@ -10,13 +10,14 @@
 
 将项目收敛为企业版平台：
 
-- 保留 Go server、ConnectRPC 管理 API、Web 管理后台、Browser Gateway、agent tools、MCP、memory、schedule、providers、models、channels、email、workspace 和 containers。
+- 保留 Go server、ConnectRPC 管理 API、Web 管理后台、Browser Gateway、agent-runner、connector、integration-gateway、worker、agent tools、MCP、memory、schedule、providers、models、channels、email、workspace 和 containers。
 - 保留 `apps/web`，它是企业版管理后台，不属于 Desktop GUI。
 - 保留 `packages/ui`、`packages/sdk`、`packages/icons`、`packages/config`，它们服务 Web 管理后台和 Browser Gateway。
 - 保留 ConnectRPC protobuf 和 TypeScript SDK 生成链路。
 - 保留 PostgreSQL，且 PostgreSQL 是唯一关系数据库后端。
 - 保留 containerd、Docker Engine、Podman、Kubernetes runtime 相关能力。
 - 保留非交互 CLI。
+- 将旧 bridge 统一改名为 workspace-executor，作为 workspace 内文件、exec、PTY、MCP server 的安全执行边界。
 - 移除 Desktop GUI、终端 TUI、SQLite、Windows 发布/配置、Docker Hub 发布、npmjs 发布和中国特化优化。
 - 运行和发布目标只覆盖 Linux `amd64` / `arm64`，macOS 只保留本地开发兼容。
 
@@ -83,6 +84,21 @@
 - 保留 browser context、browser gateway 配置、Playwright 自动化链路。
 - Browser Gateway 是 agent 工具能力，不属于 GUI。
 
+### Workspace Executor
+
+- 保留 workspace 内文件读写、目录操作、exec、PTY、MCP server 启动能力。
+- 旧 `bridge` 命名统一替换为 `workspace-executor`。
+- Workspace Executor 必须执行路径逃逸检查、symlink 逃逸检查、读写大小限制、exec 超时限制、环境变量 allowlist、service JWT 校验和 RunLease 校验。
+
+### Runtime Services
+
+- `memoh-server` 只承载 control plane、ConnectRPC 管理 API、auth、RBAC、settings、token admin、health。
+- `memoh-agent-runner` 承载 agent run lifecycle 和工具执行编排。
+- `memoh-connector` 承载平台 channel adapter 长连接和消息收发。
+- `memoh-integration-gateway` 承载企业外部 WebSocket integration API。
+- `memoh-worker` 承载 schedule、heartbeat、compaction、cleanup 和 outbox consumer。
+- durable event bus 首版使用 PostgreSQL outbox，不新增额外消息基础设施。
+
 ### Docker Engine
 
 - 保留 Docker Engine runtime adapter。
@@ -93,7 +109,7 @@
 ### containerd
 
 - 保留 containerd runtime adapter。
-- 保留 `memoh bots ctr ...`。
+- 保留 `memoh ctr ...`。
 - 保留 containerd、OCI image、registry、snapshotter、CNI 等能力。
 
 ### 非交互 CLI
@@ -136,4 +152,5 @@
 - Podman runtime adapter 保持可用，复用 Podman Docker-compatible API。
 - containerd runtime adapter 和 `memoh bots ctr ...` 保持可用。
 - `web-ui` 配置项保留。
+- `bridge` 命名不再出现在活跃 runtime、配置、部署和构建入口中。
 - Go 编译通过。

@@ -65,7 +65,7 @@ data_root = "/opt/memoh/data"
 
 Docker backend 通过标准 Docker 环境连接 Docker Engine。它更适合 Memoh 服务直接跑在宿主机上的部署，或者你能保证 Docker bind mount 的源路径就是宿主机真实路径的环境。
 
-不要把官方 Docker Compose 安装里的 `containerd` 直接改成 `docker`，除非你同时处理好 Docker socket 和 `runtime_dir` 的宿主机路径。否则 workspace 容器可能建出来，但拿不到 bridge runtime 文件。
+不要把官方 Docker Compose 安装里的 `containerd` 直接改成 `docker`，除非你同时处理好 Docker socket 和 `runtime_dir` 的宿主机路径。否则 workspace 容器可能建出来，但拿不到 workspace executor runtime 文件。
 
 ## Kubernetes
 
@@ -81,7 +81,7 @@ service_account_name = ""
 image_pull_secret = ""
 pvc_storage_class = ""
 pvc_size = "10Gi"
-bridge_port = 9090
+workspace_executor_port = 9090
 ```
 
 `in_cluster = true` 时，Memoh 使用 Pod 的 ServiceAccount。若从集群外控制，设为 `false` 并提供 `kubeconfig`。

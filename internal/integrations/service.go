@@ -125,6 +125,25 @@ func (s *Service) DeleteAPIToken(ctx context.Context, id string) error {
 	return s.queries.DeleteIntegrationAPIToken(ctx, tokenID)
 }
 
+func (s *Service) GetAPIToken(ctx context.Context, id string) (APIToken, error) {
+	if s.queries == nil {
+		return APIToken{}, errors.New("integration token queries not configured")
+	}
+	tokenID, err := db.ParseUUID(id)
+	if err != nil {
+		return APIToken{}, err
+	}
+	row, err := s.queries.GetIntegrationAPITokenByID(ctx, tokenID)
+	if err != nil {
+		return APIToken{}, err
+	}
+	token, err := toAPIToken(row)
+	if err != nil {
+		return APIToken{}, err
+	}
+	return ensureAPITokenActive(token)
+}
+
 func (s *Service) DisableAllAPITokens(ctx context.Context) error {
 	return s.queries.DisableAllIntegrationAPITokens(ctx)
 }
@@ -148,16 +167,24 @@ func (s *Service) ValidateToken(ctx context.Context, rawToken string) (TokenIden
 	if err != nil {
 		return TokenIdentity{}, err
 	}
-	if token.DisabledAt != nil {
-		return TokenIdentity{}, errors.New("integration token is disabled")
-	}
-	if token.ExpiresAt != nil && time.Now().After(token.ExpiresAt.UTC()) {
-		return TokenIdentity{}, errors.New("integration token is expired")
+	token, err = ensureAPITokenActive(token)
+	if err != nil {
+		return TokenIdentity{}, err
 	}
 	if err := s.queries.TouchIntegrationAPITokenUsed(ctx, row.ID); err != nil {
 		return TokenIdentity{}, err
 	}
 	return TokenIdentity{Token: token}, nil
+}
+
+func ensureAPITokenActive(token APIToken) (APIToken, error) {
+	if token.DisabledAt != nil {
+		return APIToken{}, errors.New("integration token is disabled")
+	}
+	if token.ExpiresAt != nil && time.Now().After(token.ExpiresAt.UTC()) {
+		return APIToken{}, errors.New("integration token is expired")
+	}
+	return token, nil
 }
 
 func (s *Service) AuthorizeBot(ctx context.Context, identity TokenIdentity, botID string, action string) error {

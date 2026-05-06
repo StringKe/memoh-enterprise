@@ -103,6 +103,42 @@ func TestGatewayClientUsesConnectRPCForTokenSessionAndEvents(t *testing.T) {
 	}
 }
 
+func TestGatewayClientUsesServiceTokenSource(t *testing.T) {
+	t.Parallel()
+
+	var validatedHeader string
+	mux := http.NewServeMux()
+	mux.Handle(IntegrationGatewayValidateTokenProcedure, connect.NewUnaryHandlerSimple(IntegrationGatewayValidateTokenProcedure, func(ctx context.Context, _ *structpb.Struct) (*structpb.Struct, error) {
+		if callInfo, ok := connect.CallInfoForHandlerContext(ctx); ok {
+			validatedHeader = callInfo.RequestHeader().Get("Authorization")
+		}
+		return structpb.NewStruct(map[string]any{
+			"token": map[string]any{
+				"id":         "token-1",
+				"name":       "integration",
+				"scope_type": ScopeGlobal,
+				"created_at": time.Now().UTC().Format(time.RFC3339Nano),
+				"updated_at": time.Now().UTC().Format(time.RFC3339Nano),
+			},
+		})
+	}))
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
+	client := NewGatewayClient(GatewayClientOptions{
+		BaseURL: server.URL,
+		ServiceTokenSource: func(context.Context) (string, error) {
+			return "dynamic-token", nil
+		},
+	})
+	if _, err := client.ValidateToken(context.Background(), "memoh_it_test"); err != nil {
+		t.Fatal(err)
+	}
+	if validatedHeader != "Bearer dynamic-token" {
+		t.Fatalf("authorization header = %q, want bearer dynamic token", validatedHeader)
+	}
+}
+
 func TestExternalIntegrationProtoDoesNotImportPrivateProto(t *testing.T) {
 	t.Parallel()
 

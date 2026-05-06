@@ -43,6 +43,8 @@ func TestShouldSkipJWT_ConnectAuthPublicPaths(t *testing.T) {
 	}{
 		{path: "/connect/memoh.private.v1.AuthService/Login", want: true},
 		{path: "/connect/memoh.private.v1.AuthService/ExchangeSsoCode", want: true},
+		{path: "/connect/memoh.private.v1.InternalAuthService/IssueServiceToken", want: true},
+		{path: "/connect/memoh.private.v1.IntegrationGatewayService/ValidateToken", want: true},
 		{path: "/connect/memoh.private.v1.AuthService/GetMe", want: false},
 		{path: "/connect/memoh.private.v1.AuthService/Refresh", want: false},
 		{path: "/connect/memoh.private.v1.AuthService/Logout", want: false},

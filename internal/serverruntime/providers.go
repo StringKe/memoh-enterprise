@@ -266,6 +266,18 @@ func provideServiceAuthSigner(cfg config.Config) (*serviceauth.Signer, error) {
 	return serviceauth.NewSignerFromConfig(activeKeyID, cfg.InternalAuth.PrivateKeys)
 }
 
+func provideServiceAuthVerifier(cfg config.Config) (*serviceauth.Verifier, error) {
+	activeKeyID := strings.TrimSpace(cfg.InternalAuth.ActiveKeyID)
+	if activeKeyID == "" {
+		return nil, nil
+	}
+	activePublicKey := strings.TrimSpace(cfg.InternalAuth.PublicKeys[activeKeyID])
+	if activePublicKey == "" {
+		return nil, nil
+	}
+	return serviceauth.NewVerifierFromConfig(activeKeyID, activePublicKey, cfg.InternalAuth.PreviousPublicKey)
+}
+
 func provideInternalAuthService(signer *serviceauth.Signer, cfg config.Config, queries dbstore.Queries) *connectapi.InternalAuthService {
 	registration := serviceauth.NewRegistrationValidator(cfg.InternalAuth.BootstrapToken)
 	kubernetes := serviceauth.NewKubernetesServiceAccountValidator(

@@ -30,15 +30,17 @@ const (
 )
 
 type GatewayClientOptions struct {
-	BaseURL      string
-	HTTPClient   connect.HTTPClient
-	ServiceToken string
-	Header       http.Header
+	BaseURL            string
+	HTTPClient         connect.HTTPClient
+	ServiceToken       string
+	ServiceTokenSource func(context.Context) (string, error)
+	Header             http.Header
 }
 
 type GatewayClient struct {
-	header       http.Header
-	serviceToken string
+	header             http.Header
+	serviceToken       string
+	serviceTokenSource func(context.Context) (string, error)
 
 	validateToken     *connect.Client[structpb.Struct, structpb.Struct]
 	authorizeBot      *connect.Client[structpb.Struct, structpb.Struct]
@@ -59,8 +61,9 @@ func NewGatewayClient(options GatewayClientOptions) *GatewayClient {
 	}
 	baseURL := strings.TrimRight(options.BaseURL, "/")
 	return &GatewayClient{
-		header:       cloneHeader(options.Header),
-		serviceToken: strings.TrimSpace(options.ServiceToken),
+		header:             cloneHeader(options.Header),
+		serviceToken:       strings.TrimSpace(options.ServiceToken),
+		serviceTokenSource: options.ServiceTokenSource,
 
 		validateToken:     connect.NewClient[structpb.Struct, structpb.Struct](httpClient, baseURL+IntegrationGatewayValidateTokenProcedure),
 		authorizeBot:      connect.NewClient[structpb.Struct, structpb.Struct](httpClient, baseURL+IntegrationGatewayAuthorizeBotProcedure),
@@ -204,8 +207,16 @@ func (c *GatewayClient) call(ctx context.Context, client *connect.Client[structp
 			req.Header().Add(key, value)
 		}
 	}
-	if c.serviceToken != "" {
-		req.Header().Set("Authorization", "Bearer "+c.serviceToken)
+	serviceToken := c.serviceToken
+	if c.serviceTokenSource != nil {
+		value, err := c.serviceTokenSource(ctx)
+		if err != nil {
+			return nil, err
+		}
+		serviceToken = strings.TrimSpace(value)
+	}
+	if serviceToken != "" {
+		req.Header().Set("Authorization", "Bearer "+serviceToken)
 	}
 	res, err := client.CallUnary(ctx, req)
 	if err != nil {

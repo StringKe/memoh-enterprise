@@ -92,6 +92,12 @@ func shouldSkipJWT(path string) bool {
 	if path == "/connect/memoh.private.v1.AuthService/Login" || path == "/connect/memoh.private.v1.AuthService/ExchangeSsoCode" {
 		return true
 	}
+	if path == "/connect/memoh.private.v1.InternalAuthService/IssueServiceToken" {
+		return true
+	}
+	if strings.HasPrefix(path, "/connect/memoh.private.v1.IntegrationGatewayService/") {
+		return true
+	}
 	if path == "/auth/sso/providers" || path == "/auth/sso/exchange" || strings.HasPrefix(path, "/auth/sso/") {
 		return true
 	}

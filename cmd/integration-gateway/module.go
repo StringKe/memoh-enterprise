@@ -28,10 +28,14 @@ func run(parent context.Context) error {
 	if serverURL == "" {
 		return errors.New("MEMOH_SERVER_INTERNAL_URL is required")
 	}
+	serviceTokenSource, err := newServiceTokenSource(serverURL)
+	if err != nil {
+		return err
+	}
 
 	backend := integrations.NewGatewayClient(integrations.GatewayClientOptions{
-		BaseURL:      serverURL,
-		ServiceToken: os.Getenv("MEMOH_SERVICE_TOKEN"),
+		BaseURL:            serverURL,
+		ServiceTokenSource: serviceTokenSource,
 	})
 	handler := integrations.NewGatewayWebSocketHandler(logger.L, backend)
 	mux := http.NewServeMux()

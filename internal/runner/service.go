@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"sync"
 	"time"
 
@@ -18,12 +19,28 @@ import (
 
 type ServiceDeps struct {
 	SupportClient runnerv1connect.RunnerSupportServiceClient
+	ContextClient *ContextClient
+	Workspace     *WorkspaceClient
+	Provider      *ProviderClient
+	Memory        *MemoryClient
+	ToolApproval  *ToolApprovalClient
+	Browser       *BrowserClient
+	Executor      Executor
+	Logger        *slog.Logger
 	Clock         func() time.Time
 }
 
 type Service struct {
-	support runnerv1connect.RunnerSupportServiceClient
-	clock   func() time.Time
+	support      runnerv1connect.RunnerSupportServiceClient
+	context      *ContextClient
+	workspace    *WorkspaceClient
+	provider     *ProviderClient
+	memory       *MemoryClient
+	toolApproval *ToolApprovalClient
+	browser      *BrowserClient
+	executor     Executor
+	logger       *slog.Logger
+	clock        func() time.Time
 
 	mu   sync.Mutex
 	runs map[string]*runState
@@ -42,11 +59,44 @@ func NewService(deps ServiceDeps) *Service {
 	if clock == nil {
 		clock = func() time.Time { return time.Now().UTC() }
 	}
-	return &Service{
-		support: deps.SupportClient,
-		clock:   clock,
-		runs:    make(map[string]*runState),
+	logger := deps.Logger
+	if logger == nil {
+		logger = slog.Default()
 	}
+	executor := deps.Executor
+	if executor == nil {
+		executor = NewAgentExecutor(AgentExecutorDeps{
+			Logger:       logger,
+			Workspace:    deps.Workspace,
+			Provider:     deps.Provider,
+			Memory:       deps.Memory,
+			ToolApproval: deps.ToolApproval,
+			Browser:      deps.Browser,
+		})
+	}
+	return &Service{
+		support:      deps.SupportClient,
+		context:      firstContextClient(deps.ContextClient, deps.SupportClient),
+		workspace:    deps.Workspace,
+		provider:     deps.Provider,
+		memory:       deps.Memory,
+		toolApproval: deps.ToolApproval,
+		browser:      deps.Browser,
+		executor:     executor,
+		logger:       logger,
+		clock:        clock,
+		runs:         make(map[string]*runState),
+	}
+}
+
+func firstContextClient(client *ContextClient, support runnerv1connect.RunnerSupportServiceClient) *ContextClient {
+	if client != nil {
+		return client
+	}
+	if support == nil {
+		return nil
+	}
+	return NewContextClient(support)
 }
 
 func (s *Service) StartRun(ctx context.Context, req *connect.Request[runnerv1.StartRunRequest]) (*connect.Response[runnerv1.StartRunResponse], error) {
@@ -77,7 +127,72 @@ func (s *Service) StartRun(ctx context.Context, req *connect.Request[runnerv1.St
 	if err := s.PublishRunEvent(ctx, ref, RunEvent{EventType: RunEventStarted, Status: RunStatusRunning}.ProtoForLease(lease)); err != nil {
 		return nil, err
 	}
+	if req.Msg.GetOptions() != nil {
+		go s.executeRun(context.WithoutCancel(ctx), runReq)
+	}
 	return connect.NewResponse(&runnerv1.StartRunResponse{RunId: lease.RunID, Status: RunStatusRunning}), nil
+}
+
+func (s *Service) executeRun(ctx context.Context, req RunRequest) {
+	ref := req.Lease.Ref()
+	if s.support == nil {
+		_ = s.AcknowledgeCompletion(ctx, ref, RunStatusFailed, "agent runner support client is not configured")
+		return
+	}
+	contextClient := s.context
+	if contextClient == nil {
+		_ = s.AcknowledgeCompletion(ctx, ref, RunStatusFailed, "agent runner context client is not configured")
+		return
+	}
+	if _, err := contextClient.ValidateRunLease(ctx, req.Lease); err != nil {
+		_ = s.AcknowledgeCompletion(ctx, ref, RunStatusFailed, err.Error())
+		return
+	}
+	resolved, err := contextClient.ResolveRunContext(ctx, req.Lease)
+	if err != nil {
+		_ = s.AcknowledgeCompletion(ctx, ref, RunStatusFailed, err.Error())
+		return
+	}
+	history, err := contextClient.ReadSessionHistory(ctx, req.Lease, 50, "")
+	if err != nil {
+		_ = s.AcknowledgeCompletion(ctx, ref, RunStatusFailed, err.Error())
+		return
+	}
+	if s.executor == nil {
+		_ = s.AcknowledgeCompletion(ctx, ref, RunStatusFailed, "agent runner executor is not configured")
+		return
+	}
+	result, err := s.executor.Execute(ctx, ExecutionInput{
+		Request: req,
+		Context: resolved,
+		History: history,
+		Emit: func(event *eventv1.AgentRunEvent) error {
+			return s.PublishRunEvent(ctx, ref, event)
+		},
+	})
+	if err != nil {
+		_ = s.AcknowledgeCompletion(ctx, ref, RunStatusFailed, err.Error())
+		return
+	}
+	if text := result.AssistantText; text != "" {
+		if _, err := s.support.AppendSessionMessage(ctx, connect.NewRequest(&runnerv1.AppendSessionMessageRequest{
+			Ref: req.Lease.Ref().Proto(),
+			Message: &runnerv1.SessionMessage{
+				SessionId: req.Lease.SessionID,
+				BotId:     req.Lease.BotID,
+				Role:      "assistant",
+				Text:      text,
+			},
+		})); err != nil {
+			_ = s.AcknowledgeCompletion(ctx, ref, RunStatusFailed, err.Error())
+			return
+		}
+	}
+	status := result.Status
+	if status == "" {
+		status = RunStatusCompleted
+	}
+	_ = s.AcknowledgeCompletion(ctx, ref, status, result.AssistantText)
 }
 
 func (s *Service) CancelRun(ctx context.Context, req *connect.Request[runnerv1.CancelRunRequest]) (*connect.Response[runnerv1.CancelRunResponse], error) {

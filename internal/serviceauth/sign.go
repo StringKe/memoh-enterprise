@@ -49,6 +49,13 @@ func (s *Signer) SetNow(now func() time.Time) {
 	}
 }
 
+func (s *Signer) ActiveKeyID() string {
+	if s == nil {
+		return ""
+	}
+	return s.activeKeyID
+}
+
 func (s *Signer) Sign(claims Claims) (string, error) {
 	if s == nil {
 		return "", errors.New("service auth signer is not configured")

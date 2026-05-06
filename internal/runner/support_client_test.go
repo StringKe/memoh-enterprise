@@ -194,9 +194,15 @@ func newRunnerSupportTestClient(t *testing.T, svc *fakeRunnerSupportService) (ru
 
 type fakeRunnerSupportService struct {
 	runnerv1connect.UnimplementedRunnerSupportServiceHandler
-	allowedRunID     string
-	tokenExpiresAt   time.Time
-	responseRunLease RunLease
+	allowedRunID       string
+	tokenExpiresAt     time.Time
+	responseRunLease   RunLease
+	validateCalls      int
+	contextCalls       int
+	historyCalls       int
+	appendEventCalls   int
+	appendSessionCalls int
+	lastAssistantText  string
 }
 
 func (s *fakeRunnerSupportService) requireRef(ref *runnerv1.RunSupportRef) error {
@@ -214,6 +220,7 @@ func (s *fakeRunnerSupportService) lease() RunLease {
 }
 
 func (s *fakeRunnerSupportService) ResolveRunContext(_ context.Context, req *connect.Request[runnerv1.ResolveRunContextRequest]) (*connect.Response[runnerv1.ResolveRunContextResponse], error) {
+	s.contextCalls++
 	if err := s.requireRef(req.Msg.GetRef()); err != nil {
 		return nil, err
 	}
@@ -225,6 +232,7 @@ func (s *fakeRunnerSupportService) ResolveRunContext(_ context.Context, req *con
 }
 
 func (s *fakeRunnerSupportService) ValidateRunLease(_ context.Context, req *connect.Request[runnerv1.ValidateRunLeaseRequest]) (*connect.Response[runnerv1.ValidateRunLeaseResponse], error) {
+	s.validateCalls++
 	if err := s.requireRef(req.Msg.GetRef()); err != nil {
 		return nil, err
 	}
@@ -246,6 +254,7 @@ func (s *fakeRunnerSupportService) IssueWorkspaceToken(_ context.Context, req *c
 }
 
 func (s *fakeRunnerSupportService) ReadSessionHistory(_ context.Context, req *connect.Request[runnerv1.ReadSessionHistoryRequest]) (*connect.Response[runnerv1.ReadSessionHistoryResponse], error) {
+	s.historyCalls++
 	if err := s.requireRef(req.Msg.GetRef()); err != nil {
 		return nil, err
 	}
@@ -255,6 +264,7 @@ func (s *fakeRunnerSupportService) ReadSessionHistory(_ context.Context, req *co
 }
 
 func (s *fakeRunnerSupportService) AppendRunEvent(_ context.Context, req *connect.Request[runnerv1.AppendRunEventRequest]) (*connect.Response[runnerv1.AppendRunEventResponse], error) {
+	s.appendEventCalls++
 	if err := s.requireRef(req.Msg.GetRef()); err != nil {
 		return nil, err
 	}
@@ -266,9 +276,11 @@ func (s *fakeRunnerSupportService) AppendRunEvent(_ context.Context, req *connec
 }
 
 func (s *fakeRunnerSupportService) AppendSessionMessage(_ context.Context, req *connect.Request[runnerv1.AppendSessionMessageRequest]) (*connect.Response[runnerv1.AppendSessionMessageResponse], error) {
+	s.appendSessionCalls++
 	if err := s.requireRef(req.Msg.GetRef()); err != nil {
 		return nil, err
 	}
+	s.lastAssistantText = req.Msg.GetMessage().GetText()
 	return connect.NewResponse(&runnerv1.AppendSessionMessageResponse{MessageId: "message-2"}), nil
 }
 

@@ -7,6 +7,11 @@ import (
 	"strings"
 	"time"
 
+	"connectrpc.com/connect"
+	"google.golang.org/protobuf/types/known/timestamppb"
+
+	privatev1 "github.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1"
+	"github.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1/privatev1connect"
 	"github.com/memohai/memoh/internal/serviceauth"
 )
 
@@ -43,6 +48,10 @@ type WorkspaceTokenRequest struct {
 
 type IssueServiceTokenResponse struct {
 	Token     string
+	KeyID     string
+	Issuer    string
+	Audience  string
+	IssuedAt  time.Time
 	ExpiresAt time.Time
 }
 
@@ -65,6 +74,58 @@ func (s *InternalAuthService) SetNow(now func() time.Time) {
 	if now != nil {
 		s.now = now
 	}
+}
+
+type internalAuthHandler struct {
+	service *InternalAuthService
+}
+
+func NewInternalAuthHandler(service *InternalAuthService) Handler {
+	path, handler := privatev1connect.NewInternalAuthServiceHandler(&internalAuthHandler{service: service})
+	return NewHandler(path, handler)
+}
+
+func (h *internalAuthHandler) IssueServiceToken(ctx context.Context, req *connect.Request[privatev1.IssueServiceTokenRequest]) (*connect.Response[privatev1.IssueServiceTokenResponse], error) {
+	if h == nil || h.service == nil {
+		return nil, connect.NewError(connect.CodeInternal, errors.New("internal auth service is not configured"))
+	}
+	msg := req.Msg
+	if msg.GetTtlSeconds() < 0 {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("ttl_seconds must be non-negative"))
+	}
+	coreReq := IssueServiceTokenRequest{
+		ServiceName:             msg.GetCallerService(),
+		InstanceID:              msg.GetCallerInstanceId(),
+		Audience:                msg.GetTargetAudience(),
+		Scopes:                  append([]string(nil), msg.GetScopes()...),
+		TTL:                     time.Duration(msg.GetTtlSeconds()) * time.Second,
+		BootstrapToken:          msg.GetBootstrapToken(),
+		BootstrapTokenExpiresAt: h.service.now().UTC().Add(serviceauth.MaxServiceTokenTTL),
+	}
+	if requestHasWorkspaceTokenFields(msg) {
+		if coreReq.Audience == "" {
+			coreReq.Audience = serviceauth.AudienceWorkspaceExecutor
+		}
+		coreReq.Workspace = &WorkspaceTokenRequest{
+			RunID:                   msg.GetRunId(),
+			RunnerInstanceID:        msg.GetCallerInstanceId(),
+			WorkspaceID:             msg.GetWorkspaceId(),
+			WorkspaceExecutorTarget: msg.GetWorkspaceExecutorTarget(),
+			LeaseVersion:            msg.GetLeaseVersion(),
+		}
+	}
+	resp, err := h.service.IssueServiceToken(ctx, coreReq)
+	if err != nil {
+		return nil, internalAuthConnectError(err)
+	}
+	return connect.NewResponse(&privatev1.IssueServiceTokenResponse{
+		Token:     resp.Token,
+		KeyId:     resp.KeyID,
+		Issuer:    resp.Issuer,
+		Audience:  resp.Audience,
+		IssuedAt:  timestamppb.New(resp.IssuedAt),
+		ExpiresAt: timestamppb.New(resp.ExpiresAt),
+	}), nil
 }
 
 func (s *InternalAuthService) IssueServiceToken(ctx context.Context, req IssueServiceTokenRequest) (IssueServiceTokenResponse, error) {
@@ -116,7 +177,14 @@ func (s *InternalAuthService) IssueServiceToken(ctx context.Context, req IssueSe
 	if err != nil {
 		return IssueServiceTokenResponse{}, err
 	}
-	return IssueServiceTokenResponse{Token: token, ExpiresAt: expiresAt}, nil
+	return IssueServiceTokenResponse{
+		Token:     token,
+		KeyID:     s.signer.ActiveKeyID(),
+		Issuer:    claims.Issuer,
+		Audience:  claims.Audience,
+		IssuedAt:  claims.IssuedAt,
+		ExpiresAt: expiresAt,
+	}, nil
 }
 
 func (s *InternalAuthService) authenticateRegistration(req IssueServiceTokenRequest) error {
@@ -156,13 +224,19 @@ func (s *InternalAuthService) validateWorkspaceRequest(ctx context.Context, req 
 	if expiresAt.After(lease.ExpiresAt) {
 		return serviceauth.RunLease{}, serviceauth.ErrPermissionDenied
 	}
-	if workspace.RunnerInstanceID != lease.RunnerInstanceID ||
-		workspace.BotID != lease.BotID ||
-		workspace.SessionID != lease.SessionID ||
+	if strings.TrimSpace(req.InstanceID) != lease.RunnerInstanceID ||
 		workspace.WorkspaceID != lease.WorkspaceID ||
 		workspace.WorkspaceExecutorTarget != lease.WorkspaceExecutorTarget ||
-		workspace.LeaseVersion != lease.LeaseVersion ||
-		strings.TrimSpace(req.InstanceID) != lease.RunnerInstanceID {
+		workspace.LeaseVersion != lease.LeaseVersion {
+		return serviceauth.RunLease{}, serviceauth.ErrPermissionDenied
+	}
+	if strings.TrimSpace(workspace.RunnerInstanceID) != "" && workspace.RunnerInstanceID != lease.RunnerInstanceID {
+		return serviceauth.RunLease{}, serviceauth.ErrPermissionDenied
+	}
+	if strings.TrimSpace(workspace.BotID) != "" && workspace.BotID != lease.BotID {
+		return serviceauth.RunLease{}, serviceauth.ErrPermissionDenied
+	}
+	if strings.TrimSpace(workspace.SessionID) != "" && workspace.SessionID != lease.SessionID {
 		return serviceauth.RunLease{}, serviceauth.ErrPermissionDenied
 	}
 	return lease, nil
@@ -197,4 +271,24 @@ func normalizedScopes(scopes []string) []string {
 		out = append(out, scope)
 	}
 	return out
+}
+
+func requestHasWorkspaceTokenFields(req *privatev1.IssueServiceTokenRequest) bool {
+	return strings.TrimSpace(req.GetRunId()) != "" ||
+		strings.TrimSpace(req.GetWorkspaceId()) != "" ||
+		strings.TrimSpace(req.GetWorkspaceExecutorTarget()) != "" ||
+		req.GetLeaseVersion() != 0
+}
+
+func internalAuthConnectError(err error) error {
+	switch {
+	case errors.Is(err, serviceauth.ErrUnauthenticated):
+		return connect.NewError(connect.CodeUnauthenticated, err)
+	case errors.Is(err, serviceauth.ErrPermissionDenied):
+		return connect.NewError(connect.CodePermissionDenied, err)
+	case errors.Is(err, ErrRunnerSupportDependencyMissing):
+		return connect.NewError(connect.CodeInternal, err)
+	default:
+		return connect.NewError(connect.CodeInvalidArgument, err)
+	}
 }

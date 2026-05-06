@@ -18,7 +18,9 @@ type RunLeaseRef struct {
 	RunID                   string
 	RunnerInstanceID        string
 	BotID                   string
+	BotGroupID              string
 	SessionID               string
+	UserID                  string
 	WorkspaceID             string
 	WorkspaceExecutorTarget string
 	LeaseVersion            int64
@@ -139,122 +141,146 @@ func (s *RunnerSupportService) IssueWorkspaceToken(ctx context.Context, req Runn
 }
 
 func (s *RunnerSupportService) ResolveRunContext(ctx context.Context, req ResolveRunContextRequest) (ResolveRunContextResponse, error) {
-	if _, err := s.requireLease(ctx, req.Lease); err != nil {
+	lease, err := s.requireLease(ctx, req.Lease)
+	if err != nil {
 		return ResolveRunContextResponse{}, err
 	}
 	if s.runContext == nil {
 		return ResolveRunContextResponse{}, ErrRunnerSupportDependencyMissing
 	}
+	req.Lease = runLeaseRefFromServiceAuth(lease)
 	return s.runContext.ResolveRunContext(ctx, req)
 }
 
 func (s *RunnerSupportService) ReadSessionHistory(ctx context.Context, req ReadSessionHistoryRequest) (ReadSessionHistoryResponse, error) {
-	if _, err := s.requireLease(ctx, req.Lease); err != nil {
+	lease, err := s.requireLease(ctx, req.Lease)
+	if err != nil {
 		return ReadSessionHistoryResponse{}, err
 	}
 	if s.sessionHistory == nil {
 		return ReadSessionHistoryResponse{}, ErrRunnerSupportDependencyMissing
 	}
+	req.Lease = runLeaseRefFromServiceAuth(lease)
 	return s.sessionHistory.ReadSessionHistory(ctx, req)
 }
 
 func (s *RunnerSupportService) AppendRunEvent(ctx context.Context, req AppendRunEventRequest) error {
-	if _, err := s.requireLease(ctx, req.Lease); err != nil {
+	lease, err := s.requireLease(ctx, req.Lease)
+	if err != nil {
 		return err
 	}
 	if s.runEvents == nil {
 		return ErrRunnerSupportDependencyMissing
 	}
+	req.Lease = runLeaseRefFromServiceAuth(lease)
 	return s.runEvents.AppendRunEvent(ctx, req)
 }
 
 func (s *RunnerSupportService) AppendSessionMessage(ctx context.Context, req AppendSessionMessageRequest) error {
-	if _, err := s.requireLease(ctx, req.Lease); err != nil {
+	lease, err := s.requireLease(ctx, req.Lease)
+	if err != nil {
 		return err
 	}
 	if s.sessionMessages == nil {
 		return ErrRunnerSupportDependencyMissing
 	}
+	req.Lease = runLeaseRefFromServiceAuth(lease)
 	return s.sessionMessages.AppendSessionMessage(ctx, req)
 }
 
 func (s *RunnerSupportService) ResolveOutboundTarget(ctx context.Context, req ResolveOutboundTargetRequest) (ResolveOutboundTargetResponse, error) {
-	if _, err := s.requireLease(ctx, req.Lease); err != nil {
+	lease, err := s.requireLease(ctx, req.Lease)
+	if err != nil {
 		return ResolveOutboundTargetResponse{}, err
 	}
 	if s.outbound == nil {
 		return ResolveOutboundTargetResponse{}, ErrRunnerSupportDependencyMissing
 	}
+	req.Lease = runLeaseRefFromServiceAuth(lease)
 	return s.outbound.ResolveOutboundTarget(ctx, req)
 }
 
 func (s *RunnerSupportService) RequestOutboundDispatch(ctx context.Context, req RequestOutboundDispatchRequest) error {
-	if _, err := s.requireLease(ctx, req.Lease); err != nil {
+	lease, err := s.requireLease(ctx, req.Lease)
+	if err != nil {
 		return err
 	}
 	if s.outbound == nil {
 		return ErrRunnerSupportDependencyMissing
 	}
+	req.Lease = runLeaseRefFromServiceAuth(lease)
 	return s.outbound.RequestOutboundDispatch(ctx, req)
 }
 
 func (s *RunnerSupportService) ReadMemory(ctx context.Context, req ReadMemoryRequest) (ReadMemoryResponse, error) {
-	if _, err := s.requireLease(ctx, req.Lease); err != nil {
+	lease, err := s.requireLease(ctx, req.Lease)
+	if err != nil {
 		return ReadMemoryResponse{}, err
 	}
 	if s.memory == nil {
 		return ReadMemoryResponse{}, ErrRunnerSupportDependencyMissing
 	}
+	req.Lease = runLeaseRefFromServiceAuth(lease)
 	return s.memory.ReadMemory(ctx, req)
 }
 
 func (s *RunnerSupportService) WriteMemory(ctx context.Context, req WriteMemoryRequest) error {
-	if _, err := s.requireLease(ctx, req.Lease); err != nil {
+	lease, err := s.requireLease(ctx, req.Lease)
+	if err != nil {
 		return err
 	}
 	if s.memory == nil {
 		return ErrRunnerSupportDependencyMissing
 	}
+	req.Lease = runLeaseRefFromServiceAuth(lease)
 	return s.memory.WriteMemory(ctx, req)
 }
 
 func (s *RunnerSupportService) ResolveScopedSecret(ctx context.Context, req ResolveScopedSecretRequest) (ResolveScopedSecretResponse, error) {
-	if _, err := s.requireLease(ctx, req.Lease); err != nil {
+	lease, err := s.requireLease(ctx, req.Lease)
+	if err != nil {
 		return ResolveScopedSecretResponse{}, err
 	}
 	if s.secrets == nil {
 		return ResolveScopedSecretResponse{}, ErrRunnerSupportDependencyMissing
 	}
+	req.Lease = runLeaseRefFromServiceAuth(lease)
 	return s.secrets.ResolveScopedSecret(ctx, req)
 }
 
 func (s *RunnerSupportService) ResolveProviderCredentials(ctx context.Context, req ResolveProviderCredentialsRequest) (ResolveProviderCredentialsResponse, error) {
-	if _, err := s.requireLease(ctx, req.Lease); err != nil {
+	lease, err := s.requireLease(ctx, req.Lease)
+	if err != nil {
 		return ResolveProviderCredentialsResponse{}, err
 	}
 	if s.providers == nil {
 		return ResolveProviderCredentialsResponse{}, ErrRunnerSupportDependencyMissing
 	}
+	req.Lease = runLeaseRefFromServiceAuth(lease)
 	return s.providers.ResolveProviderCredentials(ctx, req)
 }
 
 func (s *RunnerSupportService) EvaluateToolApprovalPolicy(ctx context.Context, req EvaluateToolApprovalPolicyRequest) (EvaluateToolApprovalPolicyResponse, error) {
-	if _, err := s.requireLease(ctx, req.Lease); err != nil {
+	lease, err := s.requireLease(ctx, req.Lease)
+	if err != nil {
 		return EvaluateToolApprovalPolicyResponse{}, err
 	}
 	if s.toolApprovals == nil {
 		return EvaluateToolApprovalPolicyResponse{}, ErrRunnerSupportDependencyMissing
 	}
+	req.Lease = runLeaseRefFromServiceAuth(lease)
 	return s.toolApprovals.EvaluateToolApprovalPolicy(ctx, req)
 }
 
 func (s *RunnerSupportService) RequestToolApproval(ctx context.Context, req RequestToolApprovalRequest) (RequestToolApprovalResponse, error) {
-	if _, err := s.requireLease(ctx, req.Lease); err != nil {
+	lease, err := s.requireLease(ctx, req.Lease)
+	if err != nil {
 		return RequestToolApprovalResponse{}, err
 	}
 	if s.toolApprovals == nil {
 		return RequestToolApprovalResponse{}, ErrRunnerSupportDependencyMissing
 	}
+	req.Lease = runLeaseRefFromServiceAuth(lease)
 	return s.toolApprovals.RequestToolApproval(ctx, req)
 }
 
@@ -269,12 +295,22 @@ func (s *RunnerSupportService) requireLease(ctx context.Context, ref RunLeaseRef
 	if err != nil {
 		return serviceauth.RunLease{}, err
 	}
-	if ref.RunnerInstanceID != lease.RunnerInstanceID ||
-		ref.LeaseVersion != lease.LeaseVersion ||
-		ref.BotID != lease.BotID ||
-		ref.SessionID != lease.SessionID ||
-		ref.WorkspaceID != lease.WorkspaceID ||
-		ref.WorkspaceExecutorTarget != lease.WorkspaceExecutorTarget {
+	if strings.TrimSpace(ref.RunnerInstanceID) != "" && ref.RunnerInstanceID != lease.RunnerInstanceID {
+		return serviceauth.RunLease{}, serviceauth.ErrPermissionDenied
+	}
+	if ref.LeaseVersion != 0 && ref.LeaseVersion != lease.LeaseVersion {
+		return serviceauth.RunLease{}, serviceauth.ErrPermissionDenied
+	}
+	if strings.TrimSpace(ref.BotID) != "" && ref.BotID != lease.BotID {
+		return serviceauth.RunLease{}, serviceauth.ErrPermissionDenied
+	}
+	if strings.TrimSpace(ref.SessionID) != "" && ref.SessionID != lease.SessionID {
+		return serviceauth.RunLease{}, serviceauth.ErrPermissionDenied
+	}
+	if strings.TrimSpace(ref.WorkspaceID) != "" && ref.WorkspaceID != lease.WorkspaceID {
+		return serviceauth.RunLease{}, serviceauth.ErrPermissionDenied
+	}
+	if strings.TrimSpace(ref.WorkspaceExecutorTarget) != "" && ref.WorkspaceExecutorTarget != lease.WorkspaceExecutorTarget {
 		return serviceauth.RunLease{}, serviceauth.ErrPermissionDenied
 	}
 	return lease, nil
@@ -330,8 +366,9 @@ type AppendSessionMessageRequest struct {
 }
 
 type ResolveOutboundTargetRequest struct {
-	Lease       RunLeaseRef
-	ChannelType string
+	Lease          RunLeaseRef
+	ChannelType    string
+	ConversationID string
 }
 
 type ResolveOutboundTargetResponse struct {
@@ -339,9 +376,13 @@ type ResolveOutboundTargetResponse struct {
 }
 
 type RequestOutboundDispatchRequest struct {
-	Lease   RunLeaseRef
-	Target  map[string]any
-	Payload []byte
+	Lease           RunLeaseRef
+	ChannelConfigID string
+	ChannelType     string
+	ConversationID  string
+	Text            string
+	Target          map[string]any
+	Payload         []byte
 }
 
 type ReadMemoryRequest struct {
@@ -452,6 +493,20 @@ func runLeaseFromSQL(row dbsqlc.AgentRunLease) serviceauth.RunLease {
 		WorkspaceID:               row.WorkspaceID,
 		ExpiresAt:                 row.ExpiresAt.Time,
 		LeaseVersion:              row.LeaseVersion,
+	}
+}
+
+func runLeaseRefFromServiceAuth(lease serviceauth.RunLease) RunLeaseRef {
+	return RunLeaseRef{
+		RunID:                   lease.RunID,
+		RunnerInstanceID:        lease.RunnerInstanceID,
+		BotID:                   lease.BotID,
+		BotGroupID:              lease.BotGroupID,
+		SessionID:               lease.SessionID,
+		UserID:                  lease.UserID,
+		WorkspaceID:             lease.WorkspaceID,
+		WorkspaceExecutorTarget: lease.WorkspaceExecutorTarget,
+		LeaseVersion:            lease.LeaseVersion,
 	}
 }
 

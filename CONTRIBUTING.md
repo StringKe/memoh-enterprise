@@ -48,7 +48,7 @@ mise run dev:logs        # View logs
 mise run dev:logs:selinux # View logs on SELinux hosts
 mise run dev:restart -- server  # Restart a specific service
 mise run dev:restart:selinux -- server  # Restart a service on SELinux hosts
-mise run bridge:build:selinux  # Rebuild bridge binary on SELinux hosts
+mise run workspace-executor:build:selinux  # Rebuild workspace-executor binary on SELinux hosts
 ```
 
 ## More Commands
@@ -66,7 +66,7 @@ mise run bridge:build:selinux  # Rebuild bridge binary on SELinux hosts
 | `mise run dev:logs:selinux` | View dev logs on SELinux hosts |
 | `mise run dev:restart` | Restart a service (e.g. `-- server`) |
 | `mise run dev:restart:selinux` | Restart a service on SELinux hosts |
-| `mise run bridge:build:selinux` | Rebuild bridge binary in SELinux dev container |
+| `mise run workspace-executor:build:selinux` | Rebuild workspace-executor binary in SELinux dev container |
 | `mise run setup` | Install deps and prepare local tooling |
 | `mise run db-up` | Run database migrations |
 | `mise run db-down` | Roll back database migrations |

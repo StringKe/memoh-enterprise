@@ -61,7 +61,7 @@ Infrastructure dependencies:
 | `mise run db-down` | Drop PostgreSQL |
 | `mise run docs` | Start documentation dev server |
 | `mise run build-unified` | Build `memoh` CLI locally |
-| `mise run bridge:build` | Rebuild bridge binary in dev container |
+| `mise run workspace-executor:build` | Rebuild workspace-executor binary in dev container |
 | `mise run lint` | Run Go checks and Vite+ checks |
 
 ## Database Rules
@@ -77,7 +77,7 @@ Infrastructure dependencies:
 ```text
 cmd/agent/          Go server entrypoint
 cmd/memoh/          Non-interactive CLI
-cmd/bridge/         In-container gRPC bridge
+cmd/workspace-executor/ In-container workspace execution service
 internal/           Go backend packages
 apps/browser/       Browser Gateway
 apps/web/           Web management UI

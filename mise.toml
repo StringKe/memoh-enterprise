@@ -162,7 +162,7 @@ RUNTIME_DIR="${MEMOH_LOCAL_RUNTIME_DIR:-data/runtime}"
 PROJECT_ROOT="$(pwd)"
 
 mkdir -p data/local "$RUNTIME_DIR"
-go build -o "$RUNTIME_DIR/bridge" ./cmd/bridge
+go build -o "$RUNTIME_DIR/workspace-executor" ./cmd/workspace-executor
 sed "s|__PROJECT_ROOT__|$PROJECT_ROOT|g" "$TEMPLATE_CONFIG" > "$GENERATED_CONFIG"
 
 if [ -d ".toolkit" ]; then
@@ -186,22 +186,22 @@ set -euo pipefail
 CONFIG_PATH="$(pwd)/conf/app.local.toml" vp run --filter @stringke/browser-gateway dev
 """
 
-[tasks."bridge:build"]
-description = "Manually rebuild bridge binary in dev container (normally auto-triggered by air)"
+[tasks."workspace-executor:build"]
+description = "Manually rebuild workspace-executor binary in dev container (normally auto-triggered by air)"
 run = """
 #!/bin/bash
 set -e
 docker compose -f deploy/compose/dev/docker-compose.yml exec server \
-  sh -c 'cd /workspace && sh scripts/dev/bridge-build.sh'
+  sh -c 'cd /workspace && sh scripts/dev/workspace-executor-build.sh'
 """
 
-[tasks."bridge:build:selinux"]
-description = "Manually rebuild bridge binary in SELinux dev container"
+[tasks."workspace-executor:build:selinux"]
+description = "Manually rebuild workspace-executor binary in SELinux dev container"
 run = """
 #!/bin/bash
 set -e
 docker compose -f deploy/compose/dev/docker-compose.yml -f deploy/compose/dev/docker-compose.selinux.yml exec server \
-  sh -c 'cd /workspace && sh scripts/dev/bridge-build.sh'
+  sh -c 'cd /workspace && sh scripts/dev/workspace-executor-build.sh'
 """
 
 [tasks.db-up]

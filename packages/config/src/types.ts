@@ -64,7 +64,7 @@ export interface KubernetesConfig {
   image_pull_secret?: string;
   pvc_storage_class?: string;
   pvc_size?: string;
-  bridge_port?: number;
+  workspace_executor_port?: number;
 }
 
 export interface AppleConfig {

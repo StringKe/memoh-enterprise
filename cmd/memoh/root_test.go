@@ -2,6 +2,14 @@ package main
 
 import "testing"
 
+func TestRootCommandWithoutArgsShowsHelp(t *testing.T) {
+	root := newRootCommand()
+	root.SetArgs(nil)
+	if err := root.Execute(); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestRootCommandIsOperationsOnly(t *testing.T) {
 	root := newRootCommand()
 	forbidden := map[string]bool{
@@ -9,6 +17,7 @@ func TestRootCommandIsOperationsOnly(t *testing.T) {
 		"bot":   true,
 		"chat":  true,
 		"login": true,
+		"tui":   true,
 	}
 	required := map[string]bool{
 		"migrate": true,

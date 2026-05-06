@@ -109,13 +109,54 @@ func TestAgentRunnerImportBoundary(t *testing.T) {
 		"github.com/memohai/memoh/internal/db/",
 		"github.com/memohai/memoh/internal/container/",
 		"github.com/memohai/memoh/internal/channel/adapters/",
+		"github.com/memohai/memoh/internal/serverruntime",
 	})
 }
 
 func TestServerConnectorImportBoundary(t *testing.T) {
 	assertNoImports(t, []string{"cmd/server", "internal/serverruntime"}, []string{
-		"github.com/memohai/memoh/internal/channel/adapters/",
-		"github.com/memohai/memoh/internal/integrations",
+		"github.com/memohai/memoh/internal/channel/adapters/dingtalk",
+		"github.com/memohai/memoh/internal/channel/adapters/discord",
+		"github.com/memohai/memoh/internal/channel/adapters/feishu",
+		"github.com/memohai/memoh/internal/channel/adapters/matrix",
+		"github.com/memohai/memoh/internal/channel/adapters/misskey",
+		"github.com/memohai/memoh/internal/channel/adapters/qq",
+		"github.com/memohai/memoh/internal/channel/adapters/slack",
+		"github.com/memohai/memoh/internal/channel/adapters/telegram",
+		"github.com/memohai/memoh/internal/channel/adapters/wechatoa",
+		"github.com/memohai/memoh/internal/channel/adapters/wecom",
+		"github.com/memohai/memoh/internal/channel/adapters/weixin",
+		"integrations.NewWebSocketHandler",
+	})
+}
+
+func TestServerRuntimeDoesNotOwnAgentLoop(t *testing.T) {
+	assertNoTextMatches(t, []string{"cmd/server", "internal/serverruntime"}, []string{
+		"provideAgent",
+		"provideChatResolver",
+		"provideToolProviders",
+		"flow.NewScheduleGateway",
+		"flow.NewHeartbeatGateway",
+		"flow.NewEmailChatGateway",
+		".StreamChatWS(",
+	}, func(path string) bool {
+		return !strings.HasSuffix(path, ".go")
+	})
+}
+
+func TestConnectChatDoesNotDependOnFlowResolver(t *testing.T) {
+	assertNoTextMatches(t, []string{"internal/connectapi"}, []string{
+		"github.com/memohai/memoh/internal/conversation/flow",
+		"resolver *flow.Resolver",
+		"resolver.StreamChat(",
+	}, func(path string) bool {
+		return !strings.HasSuffix(path, ".go") || strings.Contains(path, "tool_approval")
+	})
+}
+
+func TestChannelInboundDoesNotDependOnFlowRuntime(t *testing.T) {
+	assertNoImports(t, []string{"internal/channel/inbound"}, []string{
+		"github.com/memohai/memoh/internal/conversation/flow",
 	})
 }
 

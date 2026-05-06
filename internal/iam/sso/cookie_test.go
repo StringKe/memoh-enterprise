@@ -1,6 +1,7 @@
 package sso
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -31,7 +32,7 @@ func TestOIDCStateCookieRoundTripAndClear(t *testing.T) {
 		t.Fatalf("cookie flags not secure: httponly=%v secure=%v samesite=%v", cookie.HttpOnly, cookie.Secure, cookie.SameSite)
 	}
 
-	req := httptest.NewRequest(http.MethodGet, "/auth/sso/callback", nil)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/auth/sso/callback", nil)
 	req.AddCookie(cookie)
 	clearRec := httptest.NewRecorder()
 	got, err := ReadAndClearOIDCStateCookie(clearRec, req, now.Add(time.Minute))
@@ -58,7 +59,7 @@ func TestOIDCStateCookieExpired(t *testing.T) {
 	}, now); err != nil {
 		t.Fatalf("set cookie: %v", err)
 	}
-	req := httptest.NewRequest(http.MethodGet, "/auth/sso/callback", nil)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/auth/sso/callback", nil)
 	req.AddCookie(rec.Result().Cookies()[0])
 	if _, err := ReadAndClearOIDCStateCookie(httptest.NewRecorder(), req, now); err == nil {
 		t.Fatal("expected expired cookie error")

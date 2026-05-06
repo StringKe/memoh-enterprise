@@ -28,7 +28,7 @@ func (s *stubSessionValidator) ValidateSession(_ context.Context, userID string,
 func TestSessionMiddlewareValidatesSession(t *testing.T) {
 	validator := &stubSessionValidator{}
 	e := echo.New()
-	c := e.NewContext(httptest.NewRequest(http.MethodGet, "/", nil), httptest.NewRecorder())
+	c := e.NewContext(httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/", nil), httptest.NewRecorder())
 	c.Set("user", &jwt.Token{
 		Valid: true,
 		Claims: jwt.MapClaims{
@@ -56,7 +56,7 @@ func TestSessionMiddlewareValidatesSession(t *testing.T) {
 func TestSessionMiddlewareRejectsInvalidSession(t *testing.T) {
 	validator := &stubSessionValidator{err: errors.New("revoked")}
 	e := echo.New()
-	c := e.NewContext(httptest.NewRequest(http.MethodGet, "/", nil), httptest.NewRecorder())
+	c := e.NewContext(httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/", nil), httptest.NewRecorder())
 	c.Set("user", &jwt.Token{
 		Valid: true,
 		Claims: jwt.MapClaims{
@@ -85,7 +85,7 @@ func TestSessionMiddlewareRejectsInvalidSession(t *testing.T) {
 func TestSessionMiddlewareSkipsChatToken(t *testing.T) {
 	validator := &stubSessionValidator{err: errors.New("should not be called")}
 	e := echo.New()
-	c := e.NewContext(httptest.NewRequest(http.MethodGet, "/", nil), httptest.NewRecorder())
+	c := e.NewContext(httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/", nil), httptest.NewRecorder())
 	c.Set("user", &jwt.Token{
 		Valid: true,
 		Claims: jwt.MapClaims{

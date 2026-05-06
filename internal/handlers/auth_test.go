@@ -25,7 +25,7 @@ func TestPasswordLoginReturnsSessionTokenWithoutRole(t *testing.T) {
 	e := echo.New()
 	handler.Register(e)
 
-	req := httptest.NewRequest(http.MethodPost, "/auth/login", strings.NewReader(`{"username":"alice","password":"secret"}`))
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodPost, "/auth/login", strings.NewReader(`{"username":"alice","password":"secret"}`))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	e.ServeHTTP(rec, req)
@@ -74,7 +74,7 @@ func TestRefreshValidatesSessionAndLogoutRevokesSession(t *testing.T) {
 	}))
 	handler.Register(e)
 
-	req := httptest.NewRequest(http.MethodPost, "/auth/refresh", nil)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodPost, "/auth/refresh", nil)
 	req.Header.Set(echo.HeaderAuthorization, "Bearer "+token)
 	rec := httptest.NewRecorder()
 	e.ServeHTTP(rec, req)
@@ -86,7 +86,7 @@ func TestRefreshValidatesSessionAndLogoutRevokesSession(t *testing.T) {
 		t.Fatalf("validated = (%q, %q)", sessionStore.validatedUserID, sessionStore.validatedSessionID)
 	}
 
-	req = httptest.NewRequest(http.MethodPost, "/auth/logout", nil)
+	req = httptest.NewRequestWithContext(context.Background(), http.MethodPost, "/auth/logout", nil)
 	req.Header.Set(echo.HeaderAuthorization, "Bearer "+token)
 	rec = httptest.NewRecorder()
 	e.ServeHTTP(rec, req)
@@ -104,7 +104,7 @@ func TestSSOCallbackRedirectsWithLoginCodeOnlyAndExchangeReturnsToken(t *testing
 	e := echo.New()
 	handler.Register(e)
 
-	startReq := httptest.NewRequest(http.MethodGet, "/auth/sso/google/start", nil)
+	startReq := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/auth/sso/google/start", nil)
 	startRec := httptest.NewRecorder()
 	e.ServeHTTP(startRec, startReq)
 	if startRec.Code != http.StatusOK {
@@ -115,7 +115,7 @@ func TestSSOCallbackRedirectsWithLoginCodeOnlyAndExchangeReturnsToken(t *testing
 		t.Fatalf("oidc state cookie missing")
 	}
 
-	callbackReq := httptest.NewRequest(http.MethodGet, "/auth/sso/google/callback?code=idp-code&state="+ssoService.startedState, nil)
+	callbackReq := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/auth/sso/google/callback?code=idp-code&state="+ssoService.startedState, nil)
 	callbackReq.AddCookie(stateCookie)
 	callbackRec := httptest.NewRecorder()
 	e.ServeHTTP(callbackRec, callbackReq)
@@ -130,7 +130,7 @@ func TestSSOCallbackRedirectsWithLoginCodeOnlyAndExchangeReturnsToken(t *testing
 		t.Fatalf("callback leaked token in url: %q", location)
 	}
 
-	exchangeReq := httptest.NewRequest(http.MethodPost, "/auth/sso/exchange", strings.NewReader(`{"code":"sso-code"}`))
+	exchangeReq := httptest.NewRequestWithContext(context.Background(), http.MethodPost, "/auth/sso/exchange", strings.NewReader(`{"code":"sso-code"}`))
 	exchangeReq.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	exchangeRec := httptest.NewRecorder()
 	e.ServeHTTP(exchangeRec, exchangeReq)

@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -32,7 +33,7 @@ func TestGenerateTokenIncludesSessionID(t *testing.T) {
 }
 
 func TestUserIDAndSessionIDFromContext(t *testing.T) {
-	c := echo.New().NewContext(httptest.NewRequest(http.MethodGet, "/", nil), httptest.NewRecorder())
+	c := echo.New().NewContext(httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/", nil), httptest.NewRecorder())
 	c.Set("user", &jwt.Token{
 		Valid: true,
 		Claims: jwt.MapClaims{
@@ -73,7 +74,7 @@ func TestGenerateChatTokenPreservesRouteClaims(t *testing.T) {
 		t.Fatalf("typ = %q, want %s", got, chatTokenType)
 	}
 
-	c := echo.New().NewContext(httptest.NewRequest(http.MethodGet, "/", nil), httptest.NewRecorder())
+	c := echo.New().NewContext(httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/", nil), httptest.NewRecorder())
 	c.Set("user", &jwt.Token{Valid: true, Claims: claims})
 	info, err := ChatTokenFromContext(c)
 	if err != nil {

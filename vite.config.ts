@@ -15,7 +15,6 @@ export default defineConfig({
       "docs/**",
       "internal/**/prompts/**",
       "internal/**/templates/**",
-      "api/openapi/**",
       "**/*.md",
       "**/*.toml",
       "**/*.yaml",
@@ -24,13 +23,7 @@ export default defineConfig({
   },
   lint: {
     options: { typeAware: true, typeCheck: true },
-    ignorePatterns: [
-      "node_modules/**",
-      "dist/**",
-      "docs/**",
-      "api/openapi/**",
-      "packages/sdk/src/**",
-    ],
+    ignorePatterns: ["node_modules/**", "dist/**", "docs/**", "packages/sdk/src/**"],
     rules: {
       "typescript/no-base-to-string": "off",
       "typescript/no-floating-promises": "off",

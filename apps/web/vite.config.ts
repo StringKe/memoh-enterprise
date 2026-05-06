@@ -7,9 +7,9 @@ import { fileURLToPath } from "url";
 // https://vite.dev/config/
 export default defineConfig(({ command }) => {
   const require = createRequire(import.meta.url);
-  const defaultPort = 8082;
+  const defaultPort = 26811;
   const defaultHost = "127.0.0.1";
-  const defaultApiBaseUrl = process.env.VITE_API_URL ?? "http://localhost:8080";
+  const defaultApiBaseUrl = process.env.VITE_API_URL ?? "http://localhost:26810";
   const configuredProxyTarget = process.env.MEMOH_WEB_PROXY_TARGET?.trim();
   const configuredPath = process.env.MEMOH_CONFIG_PATH?.trim() || process.env.CONFIG_PATH?.trim();
   const configPath =

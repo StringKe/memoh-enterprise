@@ -51,8 +51,8 @@ services:
       - /var/run/cdi:/var/run/cdi:ro
       - /etc/localtime:/etc/localtime:ro
     ports:
-      - "8080:8080"
-      - "1455:8080"
+      - "${SERVER_PORT:-26810}:8080"
+      - "${SERVER_ALT_PORT:-26817}:8080"
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -64,7 +64,7 @@ services:
     image: ghcr.io/stringke/web:${WEB_TAG:-latest}
     container_name: memoh-web
     ports:
-      - "8082:8082"
+      - "${WEB_PORT:-26811}:8082"
     depends_on:
       - server
     restart: unless-stopped
@@ -116,7 +116,7 @@ services:
     volumes:
       - ${MEMOH_CONFIG:-./config.toml}:/config.toml:ro
     ports:
-      - "8083:8083"
+      - "${BROWSER_PORT:-26812}:8083"
     depends_on:
       - server
     restart: unless-stopped

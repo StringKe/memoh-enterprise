@@ -10,3 +10,4 @@ resources:
   - qdrant.yaml
   - server.yaml
   - browser.yaml
+  - ingress.yaml

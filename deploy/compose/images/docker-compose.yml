@@ -27,6 +27,7 @@ services:
       dockerfile: deploy/docker/production/Dockerfile.web
       args:
         - VITE_API_URL=${VITE_API_URL:-/api}
+        - VITE_CONNECT_URL=${VITE_CONNECT_URL:-/connect}
 
   sparse:
     image: ghcr.io/stringke/sparse:${SPARSE_TAG:-latest}

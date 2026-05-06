@@ -62,6 +62,7 @@ jobs:
             'packages/config/package.json',
             'packages/icons/package.json',
             'packages/sdk/package.json',
+            'packages/integration-sdk-ts/package.json',
             'packages/ui/package.json',
             'apps/browser/package.json',
           ];
@@ -87,4 +88,4 @@ jobs:
       - name: Publish to GitHub Packages
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: vp run publish:npm
+        run: vp run publish:packages

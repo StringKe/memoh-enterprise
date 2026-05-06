@@ -105,9 +105,8 @@ RUN apk add --no-cache ca-certificates tzdata wget cni-plugins iptables \
 # Workspace runtime (bind-mounted into bot containers)
 COPY --from=toolkit-assembly /assembly /opt/memoh/runtime
 
-# Server binary, OpenAPI spec, and provider presets
+# Server binary and provider presets
 COPY --from=server-builder /build/memoh-server /app/memoh-server
-COPY --from=server-builder /build/api/openapi /app/api/openapi
 COPY --from=server-builder /build/conf/providers /app/conf/providers
 
 # Entrypoint: start containerd, then server

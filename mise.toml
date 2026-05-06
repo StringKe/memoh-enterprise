@@ -14,6 +14,8 @@ bun = "latest"
 pnpm = "10"
 # sqlc for sql management
 sqlc = "latest"
+# protobuf and ConnectRPC generation
+buf = "latest"
 # golangci-lint for Go linting
 "golangci-lint" = "2.10.1"
 
@@ -57,20 +59,34 @@ run = "vp run --filter @stringke/web start"
 description = "Install Go dependencies"
 run = "go mod download"
 
-[tasks.swagger-generate]
-description = "Generate Swagger documentation"
-depends = [
-  "//:go-install",
-]
-run = "cd internal/handlers && go generate"
-
 [tasks.sdk-generate]
-description = "Generate TypeScript SDK from OpenAPI"
+description = "Generate ConnectRPC TypeScript SDK"
 depends = [
-  "//:swagger-generate",
   "//:pnpm-install",
 ]
-run = "vp run generate-sdk"
+run = "vp run proto:generate:ts"
+
+[tasks.proto-lint]
+description = "Lint protobuf contracts"
+run = "vp run proto:lint"
+
+[tasks.proto-generate]
+description = "Generate Go and TypeScript protobuf/Connect artifacts"
+depends = [
+  "//:pnpm-install",
+]
+run = "vp run proto:generate"
+
+[tasks."proto-generate:go"]
+description = "Generate Go protobuf/Connect artifacts"
+run = "vp run proto:generate:go"
+
+[tasks."proto-generate:ts"]
+description = "Generate TypeScript protobuf/Connect artifacts"
+depends = [
+  "//:pnpm-install",
+]
+run = "vp run proto:generate:ts"
 
 [tasks.sqlc-generate]
 description = "Generate SQL code"

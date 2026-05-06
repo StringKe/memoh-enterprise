@@ -5,8 +5,7 @@ WORKDIR /build
 
 RUN npm install -g pnpm@10
 
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml tsconfig.json openapi-ts.config.ts ./
-COPY api/openapi ./api/openapi
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml tsconfig.json vite.config.ts ./
 COPY packages ./packages
 COPY apps/web ./apps/web
 
@@ -14,9 +13,10 @@ RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile
 
 ARG VITE_API_URL=/api
+ARG VITE_CONNECT_URL=/connect
 ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_CONNECT_URL=$VITE_CONNECT_URL
 
-RUN pnpm generate-sdk
 RUN pnpm --filter @stringke/web build
 
 FROM nginx:alpine

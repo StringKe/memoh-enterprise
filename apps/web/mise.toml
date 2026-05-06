@@ -1,7 +1,7 @@
 [tasks.dev]
 alias = "dev"
 description = "Start web development server"
-run = "pnpm dev"
+run = "vp run --filter @stringke/web dev"
 depends = [
   "//:pnpm-install",
   "//:sdk-generate",
@@ -9,7 +9,7 @@ depends = [
 
 [tasks.build]
 description = "Build web"
-run = "pnpm build"
+run = "vp run --filter @stringke/web build"
 depends = [
   "//:pnpm-install",
   "//:sdk-generate",
@@ -17,7 +17,7 @@ depends = [
 
 [tasks.start]
 description = "Start web"
-run = "pnpm start"
+run = "vp run --filter @stringke/web start"
 depends = [
   "//:pnpm-install",
   "//:sdk-generate",

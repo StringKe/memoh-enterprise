@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SERVER_URL="${MEMOH_E2E_SERVER_URL:-http://127.0.0.1:8080}"
-WEB_URL="${MEMOH_E2E_WEB_URL:-http://127.0.0.1:8082}"
-BROWSER_URL="${MEMOH_E2E_BROWSER_URL:-http://127.0.0.1:8083}"
+SERVER_URL="${MEMOH_E2E_SERVER_URL:-http://127.0.0.1:26810}"
+WEB_URL="${MEMOH_E2E_WEB_URL:-http://127.0.0.1:26811}"
+BROWSER_URL="${MEMOH_E2E_BROWSER_URL:-http://127.0.0.1:26812}"
 WAIT_SECONDS="${MEMOH_E2E_WAIT_SECONDS:-180}"
 CHECK_BROWSER=false
 
@@ -12,9 +12,9 @@ usage() {
 Usage: scripts/e2e/smoke.sh [--browser]
 
 Environment:
-  MEMOH_E2E_SERVER_URL   Server URL. Default: http://127.0.0.1:8080
-  MEMOH_E2E_WEB_URL      Web management UI URL. Default: http://127.0.0.1:8082
-  MEMOH_E2E_BROWSER_URL  Browser Gateway URL. Default: http://127.0.0.1:8083
+  MEMOH_E2E_SERVER_URL   Server URL. Default: http://127.0.0.1:26810
+  MEMOH_E2E_WEB_URL      Web management UI URL. Default: http://127.0.0.1:26811
+  MEMOH_E2E_BROWSER_URL  Browser Gateway URL. Default: http://127.0.0.1:26812
   MEMOH_E2E_WAIT_SECONDS Wait timeout. Default: 180
 EOF
 }
@@ -68,15 +68,6 @@ if ! grep -q '"status"[[:space:]]*:[[:space:]]*"ok"' /tmp/memoh-e2e-response.jso
   cat /tmp/memoh-e2e-response.json >&2
   exit 1
 fi
-
-curl -fsS "$SERVER_URL/api/swagger.json" >/tmp/memoh-e2e-swagger.json
-if ! grep -q '"swagger"[[:space:]]*:[[:space:]]*"2.0"' /tmp/memoh-e2e-swagger.json; then
-  echo "[e2e] swagger endpoint did not return Swagger 2.0 JSON" >&2
-  head -c 500 /tmp/memoh-e2e-swagger.json >&2
-  echo >&2
-  exit 1
-fi
-echo "[e2e] swagger endpoint is ready"
 
 wait_for "web management UI" "$WEB_URL/health"
 if ! grep -q '^ok' /tmp/memoh-e2e-response.json; then

@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: memoh-server
+  namespace: memoh
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-buffering: "off"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /connect
+            pathType: Prefix
+            backend:
+              service:
+                name: memoh-server
+                port:
+                  number: 8080
+          - path: /integration/v1/ws
+            pathType: Exact
+            backend:
+              service:
+                name: memoh-server
+                port:
+                  number: 8080

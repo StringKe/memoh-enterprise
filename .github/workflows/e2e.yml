@@ -9,9 +9,13 @@ on:
       - "apps/browser/**"
       - "apps/web/**"
       - "packages/icons/**"
+      - "packages/integration-sdk-ts/**"
       - "packages/sdk/**"
       - "packages/ui/**"
-      - "packages/config/**"
+      - "proto/**"
+      - "buf.gen.go.yaml"
+      - "buf.gen.ts.yaml"
+      - "buf.yaml"
       - "deploy/**"
       - "conf/app.docker.toml"
       - "docker-compose.yml"
@@ -25,9 +29,13 @@ on:
       - "apps/browser/**"
       - "apps/web/**"
       - "packages/icons/**"
+      - "packages/integration-sdk-ts/**"
       - "packages/sdk/**"
       - "packages/ui/**"
-      - "packages/config/**"
+      - "proto/**"
+      - "buf.gen.go.yaml"
+      - "buf.gen.ts.yaml"
+      - "buf.yaml"
       - "deploy/**"
       - "conf/app.docker.toml"
       - "docker-compose.yml"
@@ -67,6 +75,19 @@ jobs:
 
       - name: Smoke test
         run: scripts/e2e/smoke.sh --browser
+
+      - name: Connect Bot Groups E2E
+        run: scripts/e2e/connect-bot-groups.sh
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Integration WebSocket E2E
+        run: scripts/e2e/integration-websocket.sh
+
+      - name: REST residual audit
+        run: scripts/e2e/rest-residual-audit.sh
 
       - name: Logs
         if: always()

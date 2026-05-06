@@ -8,6 +8,7 @@ const CANDIDATE_DIRS = [
   "packages/config",
   "packages/icons",
   "packages/sdk",
+  "packages/integration-sdk-ts",
   "packages/ui",
 ];
 const REGISTRY = "https://npm.pkg.github.com";

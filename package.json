@@ -10,8 +10,11 @@
     "release:patch": "bumpp patch --yes",
     "release:minor": "bumpp minor --yes",
     "release:major": "bumpp major --yes",
-    "publish:npm": "node scripts/release/publish-packages.mjs",
-    "generate-sdk": "openapi-ts",
+    "publish:packages": "node scripts/release/publish-packages.mjs",
+    "proto:lint": "buf lint",
+    "proto:generate": "buf generate --template buf.gen.go.yaml && buf generate --template buf.gen.ts.yaml && vp check --fix packages/sdk/src/gen",
+    "proto:generate:go": "buf generate --template buf.gen.go.yaml",
+    "proto:generate:ts": "buf generate --template buf.gen.ts.yaml && vp check --fix packages/sdk/src/gen",
     "check": "vp check",
     "check:fix": "vp check --fix",
     "test": "vp test",
@@ -22,7 +25,6 @@
     "drizzle-kit": "^0.31.8"
   },
   "devDependencies": {
-    "@hey-api/openapi-ts": "0.92.3",
     "@types/node": "^25.0.3",
     "bumpp": "^10.4.1",
     "husky": "^9.1.7",

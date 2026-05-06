@@ -7,7 +7,7 @@ level = "info"
 format = "text"
 
 [server]
-addr = ":8080"
+addr = ":26810"
 
 [admin]
 username = "admin"
@@ -93,31 +93,31 @@ allow_absolute_paths = true
 
 [postgres]
 host = "127.0.0.1"
-port = 5432
+port = 26813
 user = "memoh"
 password = "memoh123"
 database = "memoh"
 sslmode = "disable"
 
 [qdrant]
-base_url = "http://127.0.0.1:6334"
+base_url = "http://127.0.0.1:26815"
 api_key = ""
 timeout_seconds = 10
 
 [sparse]
-base_url = "http://127.0.0.1:8085"
+base_url = "http://127.0.0.1:26816"
 
 [registry]
 providers_dir = "conf/providers"
 
 [browser_gateway]
 host = "127.0.0.1"
-port = 8083
-server_addr = ":8080"
+port = 26812
+server_addr = ":26810"
 
 [supermarket]
 base_url = "https://supermarket.memoh.ai"
 
 [web-ui]
 host = "127.0.0.1"
-port = 8082
+port = 26811

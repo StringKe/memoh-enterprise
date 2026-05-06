@@ -320,15 +320,10 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@stringke/ui";
-import {
-  deleteBotsByBotIdScheduleById,
-  getBotsByBotIdSchedule,
-  getBotsByBotIdSettings,
-  postBotsByBotIdSchedule,
-  putBotsByBotIdScheduleById,
-} from "@stringke/sdk";
-import type { ScheduleSchedule, ScheduleCreateRequest, ScheduleUpdateRequest } from "@stringke/sdk";
+import type { ScheduleTask, TimestampMessage } from "@stringke/sdk/connect";
+import type { JsonObject } from "@bufbuild/protobuf";
 import ConfirmPopover from "@/components/confirm-popover/index.vue";
+import { connectClients } from "@/lib/connect-client";
 import { resolveApiErrorMessage } from "@/utils/api-error";
 import { formatDateTime } from "@/utils/date-time";
 import {
@@ -348,7 +343,7 @@ const props = defineProps<{
 const { t, locale } = useI18n();
 
 const isLoading = ref(false);
-const schedules = ref<ScheduleSchedule[]>([]);
+const schedules = ref<ScheduleView[]>([]);
 const currentPage = ref(1);
 const PAGE_SIZE = 10;
 const botTimezone = ref<string | undefined>(undefined);
@@ -357,9 +352,21 @@ const busyIds = reactive(new Set<string>());
 // Inline form state
 const formVisible = ref(false);
 const formMode = ref<"create" | "edit">("create");
-const editingSchedule = ref<ScheduleSchedule | null>(null);
+const editingSchedule = ref<ScheduleView | null>(null);
 const isSaving = ref(false);
 const submitError = ref<string | null>(null);
+
+interface ScheduleView {
+  id: string;
+  name: string;
+  description: string;
+  command: string;
+  pattern: string;
+  enabled: boolean;
+  max_calls: number | null;
+  current_calls: number;
+  updated_at?: string;
+}
 
 interface SchedulePlainForm {
   name: string;
@@ -413,14 +420,13 @@ function resetForm() {
   submitError.value = null;
 }
 
-function hydrateForm(s: ScheduleSchedule) {
-  form.name = s.name ?? "";
-  form.description = s.description ?? "";
-  form.command = s.command ?? "";
-  const maxCallsRaw = s.max_calls as unknown;
-  form.maxCalls = typeof maxCallsRaw === "number" && maxCallsRaw > 0 ? maxCallsRaw : null;
-  form.enabled = s.enabled ?? true;
-  patternState.value = fromCron(s.pattern ?? "");
+function hydrateForm(s: ScheduleView) {
+  form.name = s.name;
+  form.description = s.description;
+  form.command = s.command;
+  form.maxCalls = s.max_calls;
+  form.enabled = s.enabled;
+  patternState.value = fromCron(s.pattern);
   submitError.value = null;
 }
 
@@ -447,9 +453,8 @@ function describeItem(pattern: string | undefined): string | undefined {
   return describeCron(pattern, cronLocale.value);
 }
 
-function formatMaxCalls(item: ScheduleSchedule): string {
-  const raw = item.max_calls as unknown;
-  if (typeof raw === "number" && raw > 0) return String(raw);
+function formatMaxCalls(item: ScheduleView): string {
+  if (typeof item.max_calls === "number" && item.max_calls > 0) return String(item.max_calls);
   return t("bots.schedule.unlimited");
 }
 
@@ -463,11 +468,10 @@ async function fetchSchedules() {
   if (!props.botId) return;
   isLoading.value = true;
   try {
-    const { data } = await getBotsByBotIdSchedule({
-      path: { bot_id: props.botId },
-      throwOnError: true,
+    const response = await connectClients.schedule.listSchedules({
+      botId: props.botId,
     });
-    schedules.value = data?.items || [];
+    schedules.value = response.schedules.map(scheduleFromProto);
   } catch (error) {
     toast.error(resolveApiErrorMessage(error, t("bots.schedule.loadFailed")));
   } finally {
@@ -478,11 +482,10 @@ async function fetchSchedules() {
 async function fetchBotSettings() {
   if (!props.botId) return;
   try {
-    const { data } = await getBotsByBotIdSettings({
-      path: { bot_id: props.botId },
-      throwOnError: true,
+    const response = await connectClients.settings.getBotSettings({
+      botId: props.botId,
     });
-    const tz = (data as { timezone?: string } | undefined)?.timezone;
+    const tz = response.settings?.settings?.timezone;
     botTimezone.value = tz && tz.trim() !== "" ? tz : undefined;
   } catch {
     botTimezone.value = undefined;
@@ -501,7 +504,7 @@ function handleNew() {
   formVisible.value = true;
 }
 
-function handleEdit(item: ScheduleSchedule) {
+function handleEdit(item: ScheduleView) {
   formMode.value = "edit";
   editingSchedule.value = item;
   hydrateForm(item);
@@ -521,36 +524,29 @@ async function handleFormSubmit() {
   try {
     const pattern = derivedPattern.value;
     const maxCallsWire = form.maxCalls ?? null;
+    const metadata = buildScheduleMetadata(form.description, maxCallsWire);
     if (formMode.value === "create") {
-      const body = {
+      await connectClients.schedule.createSchedule({
+        botId: props.botId,
         name: form.name.trim(),
-        description: form.description.trim(),
-        command: form.command.trim(),
-        pattern,
+        cron: pattern,
+        timezone: botTimezone.value ?? "",
         enabled: form.enabled,
-        max_calls: maxCallsWire,
-      } as unknown as ScheduleCreateRequest;
-      await postBotsByBotIdSchedule({
-        path: { bot_id: props.botId },
-        body,
-        throwOnError: true,
+        prompt: form.command.trim(),
+        metadata,
       });
       toast.success(t("bots.schedule.saveSuccess"));
     } else {
       const id = editingSchedule.value?.id;
       if (!id) throw new Error("schedule id missing");
-      const body = {
+      await connectClients.schedule.updateSchedule({
+        id,
         name: form.name.trim(),
-        description: form.description.trim(),
-        command: form.command.trim(),
-        pattern,
+        cron: pattern,
+        timezone: botTimezone.value ?? "",
         enabled: form.enabled,
-        max_calls: maxCallsWire,
-      } as unknown as ScheduleUpdateRequest;
-      await putBotsByBotIdScheduleById({
-        path: { bot_id: props.botId, id },
-        body,
-        throwOnError: true,
+        prompt: form.command.trim(),
+        metadata,
       });
       toast.success(t("bots.schedule.saveSuccess"));
     }
@@ -565,15 +561,14 @@ async function handleFormSubmit() {
   }
 }
 
-async function handleToggleEnabled(item: ScheduleSchedule, enabled: boolean) {
+async function handleToggleEnabled(item: ScheduleView, enabled: boolean) {
   const id = item.id;
   if (!id) return;
   busyIds.add(id);
   try {
-    await putBotsByBotIdScheduleById({
-      path: { bot_id: props.botId, id },
-      body: { enabled },
-      throwOnError: true,
+    await connectClients.schedule.updateSchedule({
+      id,
+      enabled,
     });
     await fetchSchedules();
     invalidateSidebarSchedule();
@@ -584,14 +579,13 @@ async function handleToggleEnabled(item: ScheduleSchedule, enabled: boolean) {
   }
 }
 
-async function handleDelete(item: ScheduleSchedule) {
+async function handleDelete(item: ScheduleView) {
   const id = item.id;
   if (!id) return;
   busyIds.add(id);
   try {
-    await deleteBotsByBotIdScheduleById({
-      path: { bot_id: props.botId, id },
-      throwOnError: true,
+    await connectClients.schedule.deleteSchedule({
+      id,
     });
     toast.success(t("bots.schedule.deleteSuccess"));
     await fetchSchedules();
@@ -601,6 +595,53 @@ async function handleDelete(item: ScheduleSchedule) {
   } finally {
     busyIds.delete(id);
   }
+}
+
+function scheduleFromProto(task: ScheduleTask): ScheduleView {
+  const metadata = task.metadata ?? {};
+  return {
+    id: task.id,
+    name: task.name,
+    description: getStringMetadata(metadata, "description"),
+    command: task.prompt,
+    pattern: task.cron,
+    enabled: task.enabled,
+    max_calls: getPositiveNumberMetadata(metadata, "max_calls"),
+    current_calls: getNumberMetadata(metadata, "current_calls"),
+    updated_at: timestampToISOString(task.audit?.updatedAt),
+  };
+}
+
+function buildScheduleMetadata(description: string, maxCalls: number | null): JsonObject {
+  const metadata: JsonObject = {
+    description: description.trim(),
+  };
+  if (maxCalls !== null) {
+    metadata.max_calls = maxCalls;
+  }
+  return metadata;
+}
+
+function getStringMetadata(metadata: JsonObject, key: string): string {
+  const value = metadata[key];
+  return typeof value === "string" ? value : "";
+}
+
+function getNumberMetadata(metadata: JsonObject, key: string): number {
+  const value = metadata[key];
+  return typeof value === "number" ? value : 0;
+}
+
+function getPositiveNumberMetadata(metadata: JsonObject, key: string): number | null {
+  const value = metadata[key];
+  return typeof value === "number" && value > 0 ? value : null;
+}
+
+function timestampToISOString(value: TimestampMessage | undefined): string | undefined {
+  if (!value) return undefined;
+  const seconds = Number(value.seconds);
+  const nanos = value.nanos;
+  return new Date(seconds * 1000 + Math.floor(nanos / 1_000_000)).toISOString();
 }
 
 onMounted(() => {

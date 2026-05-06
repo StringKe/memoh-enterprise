@@ -6,7 +6,7 @@
           {{ curProvider.name }}
         </h3>
         <p class="text-xs text-muted-foreground mt-0.5">
-          {{ $t(`memory.providerNames.${curProvider.provider}`, curProvider.provider) }}
+          {{ $t(`memory.providerNames.${curProvider.type}`, curProvider.type) }}
         </p>
       </div>
       <ConfirmPopover :message="$t('memory.deleteConfirm')" @confirm="handleDelete">
@@ -28,7 +28,7 @@
     </div>
 
     <!-- Builtin Config (model selectors) -->
-    <template v-if="curProvider.provider === 'builtin'">
+    <template v-if="curProvider.type === 'builtin'">
       <div class="space-y-2">
         <Label>{{ $t("memory.builtinMode") }}</Label>
         <p class="text-xs text-muted-foreground">
@@ -168,10 +168,7 @@
       </div>
     </template>
 
-    <div
-      v-if="curProvider.provider !== 'builtin' && providerSchema"
-      class="grid gap-4 md:grid-cols-2"
-    >
+    <div v-if="curProvider.type !== 'builtin' && providerSchema" class="grid gap-4 md:grid-cols-2">
       <div
         v-for="(fieldSchema, fieldKey) in providerSchema.fields"
         :key="fieldKey"
@@ -206,29 +203,50 @@
 import { inject, ref, reactive, watch, computed, type Ref } from "vue";
 import { Button, Input, Label, Separator, Spinner } from "@stringke/ui";
 import { useQuery, useQueryCache } from "@pinia/colada";
-import {
-  getModels,
-  getProviders,
-  getMemoryProvidersMeta,
-  getMemoryProvidersByIdStatus,
-  putMemoryProvidersById,
-  deleteMemoryProvidersById,
-} from "@stringke/sdk";
-import type {
-  AdaptersProviderGetResponse,
-  AdaptersProviderMeta,
-  AdaptersProviderStatusResponse,
-} from "@stringke/sdk";
 import { toast } from "vue-sonner";
 import { useI18n } from "vue-i18n";
 import ConfirmPopover from "@/components/confirm-popover/index.vue";
 import ModelSelect from "@/pages/bots/components/model-select.vue";
 import SettingsShell from "@/components/settings-shell/index.vue";
+import { connectClients } from "@/lib/connect-client";
+import { resolveConnectErrorMessage } from "@/lib/connect-errors";
+
+type MemoryProviderView = {
+  id: string;
+  name: string;
+  type: string;
+  enabled: boolean;
+  config: Record<string, unknown>;
+};
+
+type ProviderConfigFieldSchema = {
+  title?: string;
+  description?: string;
+  secret?: boolean;
+  type?: string;
+  required?: boolean;
+  example?: unknown;
+};
+
+type ProviderConfigSchema = {
+  fields?: Record<string, ProviderConfigFieldSchema>;
+};
+
+type ProviderStatusMetadata = {
+  collections?: Array<{
+    name: string;
+    exists?: boolean;
+    points?: number;
+    qdrant?: {
+      ok?: boolean;
+    };
+  }>;
+};
 
 const { t } = useI18n();
 const queryCache = useQueryCache();
 
-const curProvider = inject<Ref<AdaptersProviderGetResponse | null>>("curMemoryProvider");
+const curProvider = inject<Ref<MemoryProviderView | undefined>>("curMemoryProvider");
 
 const form = reactive({ name: "" });
 const configForm = reactive<Record<string, string>>({});
@@ -239,22 +257,22 @@ const deleteLoading = ref(false);
 const { data: modelData } = useQuery({
   key: ["models"],
   query: async () => {
-    const { data } = await getModels({ throwOnError: true });
-    return data;
+    const result = await connectClients.models.listModels({});
+    return result.models;
   },
 });
 const { data: providerData } = useQuery({
   key: ["providers"],
   query: async () => {
-    const { data } = await getProviders({ throwOnError: true });
-    return data;
+    const result = await connectClients.providers.listProviders({});
+    return result.providers;
   },
 });
 const { data: metaData } = useQuery({
   key: ["memory-providers-meta"],
   query: async () => {
-    const { data } = await getMemoryProvidersMeta({ throwOnError: true });
-    return data;
+    const result = await connectClients.memoryProviders.listMemoryProviderMeta({});
+    return result.providers;
   },
 });
 const { data: providerStatusData } = useQuery({
@@ -262,11 +280,10 @@ const { data: providerStatusData } = useQuery({
   query: async () => {
     const providerId = curProvider?.value?.id;
     if (!providerId) return null;
-    const { data } = await getMemoryProvidersByIdStatus({
-      path: { id: providerId },
-      throwOnError: true,
+    const result = await connectClients.memoryProviders.getMemoryProviderStatus({
+      id: providerId,
     });
-    return data;
+    return result.status ?? null;
   },
   enabled: () => !!curProvider?.value?.id,
 });
@@ -276,18 +293,16 @@ const providers = computed(() => providerData.value ?? []);
 
 const providerSchema = computed(() => {
   if (!curProvider?.value || !metaData.value) return null;
-  const meta = (metaData.value as AdaptersProviderMeta[])?.find(
-    (m) => m.provider === curProvider.value.provider,
-  );
-  return meta?.config_schema ?? null;
+  const meta = metaData.value.find((m) => m.type === curProvider.value?.type);
+  return (meta?.schema ?? null) as ProviderConfigSchema | null;
 });
 
 const builtinMode = computed(() => {
-  if (curProvider?.value?.provider !== "builtin") return "off";
+  if (curProvider?.value?.type !== "builtin") return "off";
   return configForm.memory_mode || "off";
 });
 const providerStatus = computed(
-  () => providerStatusData.value as AdaptersProviderStatusResponse | null,
+  () => providerStatusData.value?.metadata as ProviderStatusMetadata | undefined,
 );
 const builtinCollections = computed(() => providerStatus.value?.collections ?? []);
 
@@ -329,7 +344,7 @@ watch(
           configForm[k] = (v as string) ?? "";
         });
       }
-      if (val.provider === "builtin") {
+      if (val.type === "builtin") {
         if (!configForm.memory_mode) configForm.memory_mode = "off";
         if (!configForm.embedding_model_id) configForm.embedding_model_id = "";
       }
@@ -356,19 +371,24 @@ async function handleSave() {
     for (const [k, v] of Object.entries(configForm)) {
       if (v) config[k] = v;
     }
-    const { data } = await putMemoryProvidersById({
-      path: { id: curProvider.value.id! },
-      body: { name: form.name.trim(), config },
-      throwOnError: true,
+    const result = await connectClients.memoryProviders.updateMemoryProvider({
+      id: curProvider.value.id,
+      name: form.name.trim(),
+      config,
     });
-    if (curProvider?.value && data) {
-      Object.assign(curProvider.value, data);
+    if (curProvider?.value && result.provider) {
+      Object.assign(curProvider.value, {
+        id: result.provider.id,
+        name: result.provider.name,
+        type: result.provider.type,
+        enabled: result.provider.enabled,
+        config: result.provider.config ?? {},
+      });
     }
     toast.success(t("memory.saveSuccess"));
     queryCache.invalidateQueries({ key: ["memory-providers"] });
   } catch (error) {
-    console.error("Failed to save:", error);
-    toast.error(t("common.saveFailed"));
+    toast.error(resolveConnectErrorMessage(error, t("common.saveFailed")));
   } finally {
     saveLoading.value = false;
   }
@@ -378,15 +398,13 @@ async function handleDelete() {
   if (!curProvider?.value) return;
   deleteLoading.value = true;
   try {
-    await deleteMemoryProvidersById({
-      path: { id: curProvider.value.id! },
-      throwOnError: true,
+    await connectClients.memoryProviders.deleteMemoryProvider({
+      id: curProvider.value.id,
     });
     toast.success(t("memory.deleteSuccess"));
     queryCache.invalidateQueries({ key: ["memory-providers"] });
   } catch (error) {
-    console.error("Failed to delete:", error);
-    toast.error(t("memory.deleteFailed"));
+    toast.error(resolveConnectErrorMessage(error, t("memory.deleteFailed")));
   } finally {
     deleteLoading.value = false;
   }

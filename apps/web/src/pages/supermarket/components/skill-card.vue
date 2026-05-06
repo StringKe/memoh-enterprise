@@ -58,14 +58,14 @@
 <script setup lang="ts">
 import { Zap, Download, ExternalLink } from "lucide-vue-next";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter, Badge, Button } from "@stringke/ui";
-import type { HandlersSupermarketSkillEntry } from "@stringke/sdk";
+import type { SupermarketSkillEntry } from "../supermarket-items";
 
 defineProps<{
-  skill: HandlersSupermarketSkillEntry;
+  skill: SupermarketSkillEntry;
 }>();
 
 defineEmits<{
   "tag-click": [tag: string];
-  install: [skill: HandlersSupermarketSkillEntry];
+  install: [skill: SupermarketSkillEntry];
 }>();
 </script>

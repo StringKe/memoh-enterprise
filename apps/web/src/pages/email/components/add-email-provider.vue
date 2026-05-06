@@ -43,12 +43,8 @@
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectItem
-                        v-for="meta in providerMetas"
-                        :key="meta.provider"
-                        :value="meta.provider!"
-                      >
-                        {{ meta.display_name }}
+                      <SelectItem v-for="meta in providerMetas" :key="meta.type" :value="meta.type">
+                        {{ meta.displayName }}
                       </SelectItem>
                     </SelectGroup>
                   </SelectContent>
@@ -81,12 +77,11 @@ import { toTypedSchema } from "@vee-validate/zod";
 import z from "zod";
 import { useForm } from "vee-validate";
 import { useMutation, useQuery, useQueryCache } from "@pinia/colada";
-import { postEmailProviders, getEmailProvidersMeta } from "@stringke/sdk";
-import type { EmailCreateProviderRequest } from "@stringke/sdk";
 import { useI18n } from "vue-i18n";
 import { Plus } from "lucide-vue-next";
 import FormDialogShell from "@/components/form-dialog-shell/index.vue";
 import { useDialogMutation } from "@/composables/useDialogMutation";
+import { connectClients } from "@/lib/connect-client";
 
 const open = defineModel<boolean>("open");
 const { t } = useI18n();
@@ -95,19 +90,21 @@ const { run } = useDialogMutation();
 const { data: providerMetas } = useQuery({
   key: () => ["email-providers-meta"],
   query: async () => {
-    const { data } = await getEmailProvidersMeta({ throwOnError: true });
-    return data;
+    const response = await connectClients.emailProviders.listEmailProviderMeta({});
+    return response.providers;
   },
 });
 
 const queryCache = useQueryCache();
 const { mutateAsync: createMutation, isLoading } = useMutation({
   mutation: async (data: Record<string, unknown>) => {
-    const { data: result } = await postEmailProviders({
-      body: data as EmailCreateProviderRequest,
-      throwOnError: true,
+    const result = await connectClients.emailProviders.createEmailProvider({
+      name: String(data.name ?? ""),
+      type: String(data.provider ?? ""),
+      enabled: true,
+      config: {},
     });
-    return result;
+    return result.provider;
   },
   onSettled: () => queryCache.invalidateQueries({ key: ["email-providers"] }),
 });

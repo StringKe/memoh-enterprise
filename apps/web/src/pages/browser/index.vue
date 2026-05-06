@@ -15,24 +15,22 @@ import {
   EmptyTitle,
   Button,
 } from "@stringke/ui";
-import { getBrowserContexts } from "@stringke/sdk";
-import type { BrowsercontextsBrowserContext } from "@stringke/sdk";
 import AddBrowserContext from "./components/add-browser-context.vue";
 import ContextSetting from "./components/context-setting.vue";
 import { AppWindow, Plus } from "lucide-vue-next";
 import MasterDetailSidebarLayout from "@/components/master-detail-sidebar-layout/index.vue";
+import { connectClients } from "@/lib/connect-client";
+import type { BrowserContext } from "@stringke/sdk/connect";
 
 const { data: contextData } = useQuery({
   key: () => ["browser-contexts"],
   query: async () => {
-    const { data } = await getBrowserContexts({
-      throwOnError: true,
-    });
-    return data;
+    const response = await connectClients.browserContexts.listBrowserContexts({});
+    return response.contexts;
   },
 });
 
-const curContext = ref<BrowsercontextsBrowserContext>();
+const curContext = ref<BrowserContext>();
 provide("curBrowserContext", curContext);
 
 const selectContext = (id: string) =>

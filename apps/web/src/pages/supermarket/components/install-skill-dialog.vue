@@ -51,16 +51,14 @@ import {
   Button,
   Spinner,
 } from "@stringke/ui";
-import {
-  postBotsByBotIdSupermarketInstallSkill,
-  type HandlersSupermarketSkillEntry,
-} from "@stringke/sdk";
+import { connectClients } from "@/lib/connect-client";
 import { resolveApiErrorMessage } from "@/utils/api-error";
 import BotSelect from "@/components/bot-select/index.vue";
+import type { SupermarketSkillEntry } from "../supermarket-items";
 
 const props = defineProps<{
   open: boolean;
-  skill: HandlersSupermarketSkillEntry | null;
+  skill: SupermarketSkillEntry | null;
 }>();
 
 const emit = defineEmits<{
@@ -87,12 +85,9 @@ async function handleInstall() {
   if (!selectedBotId.value || !props.skill?.id) return;
   installing.value = true;
   try {
-    await postBotsByBotIdSupermarketInstallSkill({
-      path: { bot_id: selectedBotId.value },
-      body: {
-        skill_id: props.skill.id,
-      },
-      throwOnError: true,
+    await connectClients.supermarket.installSupermarketSkill({
+      botId: selectedBotId.value,
+      id: props.skill.id,
     });
     toast.success(t("supermarket.installSuccess"));
     emit("update:open", false);

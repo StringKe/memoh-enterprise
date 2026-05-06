@@ -2,17 +2,18 @@
   <SettingsShell width="wide">
     <section class="flex items-center gap-3">
       <span class="flex size-10 shrink-0 items-center justify-center rounded-full bg-muted">
-        <ProviderIcon v-if="curProvider?.icon" :icon="curProvider.icon" size="1.5em" />
-        <span v-else class="text-xs font-medium text-muted-foreground">
-          {{ getInitials(curProvider?.name) }}
-        </span>
+        <ProviderIcon v-if="curProvider?.type" :icon="curProvider.type" size="1.5em">
+          <span class="text-xs font-medium text-muted-foreground">
+            {{ getInitials(curProvider?.name) }}
+          </span>
+        </ProviderIcon>
       </span>
       <div class="min-w-0">
         <h2 class="text-sm font-semibold truncate">
           {{ curProvider?.name }}
         </h2>
         <p class="text-xs text-muted-foreground">
-          {{ currentMeta?.display_name ?? curProvider?.client_type }}
+          {{ currentMeta?.displayName ?? curProvider?.type }}
         </p>
       </div>
       <div class="ml-auto flex items-center gap-2">
@@ -20,7 +21,7 @@
           {{ $t("common.enable") }}
         </span>
         <Switch
-          :model-value="curProvider?.enable ?? false"
+          :model-value="curProvider?.enabled ?? false"
           :disabled="!curProvider?.id || enableLoading"
           @update:model-value="handleToggleEnable"
         />
@@ -161,9 +162,9 @@
           @click="toggleModel(model.id ?? '')"
         >
           <div>
-            <span class="text-xs font-medium">{{ model.name || model.model_id }}</span>
-            <span v-if="model.name" class="text-xs text-muted-foreground ml-2">{{
-              model.model_id
+            <span class="text-xs font-medium">{{ model.displayName || model.modelId }}</span>
+            <span v-if="model.displayName" class="text-xs text-muted-foreground ml-2">{{
+              model.modelId
             }}</span>
           </div>
           <component
@@ -178,9 +179,9 @@
         >
           <ModelConfigEditor
             :model-id="model.id ?? ''"
-            :model-name="model.model_id ?? ''"
-            :config="model.config || {}"
-            :schema="getModelSchema(model.model_id ?? '')"
+            :model-name="model.modelId ?? ''"
+            :config="model.metadata || {}"
+            :schema="getModelSchema(model.modelId ?? '')"
             :on-test="(text, cfg) => handleTestModel(model.id ?? '', text as string, cfg)"
             @save="(cfg) => handleSaveModel(model.id ?? '', cfg)"
           />
@@ -207,19 +208,18 @@ import { ChevronDown, ChevronUp, Eye, EyeOff } from "lucide-vue-next";
 import { computed, inject, reactive, ref, watch } from "vue";
 import { toast } from "vue-sonner";
 import { useI18n } from "vue-i18n";
-import { useQuery, useQueryCache } from "@pinia/colada";
-import {
-  getSpeechProvidersById,
-  getSpeechProvidersByIdModels,
-  getSpeechProvidersMeta,
-  postSpeechProvidersByIdImportModels,
-  putProvidersById,
-} from "@stringke/sdk";
-import type { TtsSpeechModelResponse, TtsSpeechProviderResponse } from "@stringke/sdk";
+import { useQueryCache } from "@pinia/colada";
+import type { JsonObject } from "@bufbuild/protobuf";
+import type {
+  SpeechProvider,
+  SpeechProviderMeta as ConnectSpeechProviderMeta,
+} from "@stringke/sdk/connect";
 import LoadingButton from "@/components/loading-button/index.vue";
 import ProviderIcon from "@/components/provider-icon/index.vue";
 import CreateModel from "@/components/create-model/index.vue";
 import SettingsShell from "@/components/settings-shell/index.vue";
+import { connectClients } from "@/lib/connect-client";
+import { useConnectQuery } from "@/lib/connect-colada";
 
 interface SpeechFieldSchema {
   key: string;
@@ -237,25 +237,10 @@ interface SpeechConfigSchema {
   fields?: SpeechFieldSchema[];
 }
 
-interface SpeechModelMeta {
-  id: string;
-  name: string;
-  description?: string;
-  config_schema?: SpeechConfigSchema;
-  capabilities?: {
-    config_schema?: SpeechConfigSchema;
-  };
-}
-
-interface SpeechProviderMeta {
-  provider: string;
-  display_name: string;
-  description?: string;
-  config_schema?: SpeechConfigSchema;
-  default_model?: string;
-  models?: SpeechModelMeta[];
-  default_synthesis_model?: string;
-  synthesis_models?: SpeechModelMeta[];
+interface SpeechProviderMetaView {
+  type: string;
+  displayName: string;
+  schema?: SpeechConfigSchema;
 }
 
 function getInitials(name: string | undefined) {
@@ -264,7 +249,7 @@ function getInitials(name: string | undefined) {
 }
 
 const { t } = useI18n();
-const curProvider = inject("curTtsProvider", ref<TtsSpeechProviderResponse>());
+const curProvider = inject("curTtsProvider", ref<SpeechProvider>());
 const curProviderId = computed(() => curProvider.value?.id);
 const providerName = ref("");
 const providerConfig = reactive<Record<string, unknown>>({});
@@ -276,37 +261,30 @@ const importLoading = ref(false);
 const queryCache = useQueryCache();
 const speechTypeOptions = [{ value: "speech", label: "Speech" }];
 
-const { data: providerDetail } = useQuery({
+const { data: providerDetail } = useConnectQuery({
   key: () => ["speech-provider-detail", curProviderId.value],
-  query: async () => {
-    if (!curProviderId.value) return null;
-    const { data } = await getSpeechProvidersById({
-      path: { id: curProviderId.value },
-      throwOnError: true,
-    });
-    return data ?? null;
-  },
+  query: async () =>
+    curProviderId.value
+      ? ((await connectClients.speech.getSpeechProvider({ id: curProviderId.value })).provider ??
+        null)
+      : null,
 });
 
-const { data: metaList } = useQuery({
+const { data: metaList } = useConnectQuery({
   key: () => ["speech-providers-meta"],
   query: async () => {
-    const { data } = await getSpeechProvidersMeta({ throwOnError: true });
-    return (data ?? []) as SpeechProviderMeta[];
+    const response = await connectClients.speech.listSpeechProviderMeta({});
+    return response.providers.map(mapSpeechProviderMeta);
   },
 });
 
 const currentMeta = computed(() => {
-  if (!metaList.value || !curProvider.value?.client_type) return null;
-  return (
-    (metaList.value as SpeechProviderMeta[]).find(
-      (m) => m.provider === curProvider.value?.client_type,
-    ) ?? null
-  );
+  if (!metaList.value || !curProvider.value?.type) return null;
+  return metaList.value.find((m) => m.type === curProvider.value?.type) ?? null;
 });
 
 const orderedProviderFields = computed(() => {
-  const fields = currentMeta.value?.config_schema?.fields ?? [];
+  const fields = currentMeta.value?.schema?.fields ?? [];
   return [...fields].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 });
 
@@ -326,21 +304,15 @@ function isWideField(field: SpeechFieldSchema) {
   return false;
 }
 
-const { data: providerSpeechModels } = useQuery({
+const { data: providerSpeechModels } = useConnectQuery({
   key: () => ["speech-provider-models", curProviderId.value],
-  query: async () => {
-    if (!curProviderId.value) return [];
-    const { data } = await getSpeechProvidersByIdModels({
-      path: { id: curProviderId.value },
-      throwOnError: true,
-    });
-    return data ?? [];
-  },
+  query: async () =>
+    curProviderId.value
+      ? (await connectClients.speech.listSpeechModels({ providerId: curProviderId.value })).models
+      : [],
 });
 
-const providerModels = computed(
-  () => (providerSpeechModels.value as TtsSpeechModelResponse[] | undefined) ?? [],
-);
+const providerModels = computed(() => providerSpeechModels.value ?? []);
 
 watch(
   () => providerDetail.value,
@@ -352,19 +324,8 @@ watch(
   { immediate: true, deep: true },
 );
 
-function getModelMeta(modelID: string): SpeechModelMeta | null {
-  const models = currentMeta.value?.synthesis_models ?? currentMeta.value?.models ?? [];
-  const exact = models.find((m) => m.id === modelID);
-  if (exact) return exact;
-  const defaultModel =
-    currentMeta.value?.default_synthesis_model ?? currentMeta.value?.default_model;
-  if (defaultModel) return models.find((m) => m.id === defaultModel) ?? null;
-  return models[0] ?? null;
-}
-
-function getModelSchema(modelID: string): SpeechConfigSchema | null {
-  const meta = getModelMeta(modelID);
-  return meta?.config_schema ?? meta?.capabilities?.config_schema ?? null;
+function getModelSchema(_modelID: string): SpeechConfigSchema | null {
+  return null;
 }
 
 function toggleModel(id: string) {
@@ -373,25 +334,22 @@ function toggleModel(id: string) {
 
 async function handleToggleEnable(value: boolean) {
   if (!curProviderId.value || !curProvider.value) return;
-  const prev = curProvider.value.enable ?? false;
-  curProvider.value = { ...curProvider.value, enable: value };
+  const prev = curProvider.value.enabled ?? false;
+  curProvider.value = { ...curProvider.value, enabled: value };
 
   enableLoading.value = true;
   try {
-    await putProvidersById({
-      path: { id: curProviderId.value },
-      body: {
-        name: providerName.value.trim() || curProvider.value.name,
-        client_type: curProvider.value.client_type,
-        enable: value,
-        config: sanitizeConfig(providerConfig),
-      },
-      throwOnError: true,
+    await connectClients.providers.updateProvider({
+      id: curProviderId.value,
+      displayName: providerName.value.trim() || curProvider.value.name,
+      clientType: curProvider.value.type,
+      enabled: value,
+      config: sanitizeConfig(providerConfig),
     });
     queryCache.invalidateQueries({ key: ["speech-providers"] });
     queryCache.invalidateQueries({ key: ["speech-provider-detail", curProviderId.value] });
   } catch {
-    curProvider.value = { ...curProvider.value, enable: prev };
+    curProvider.value = { ...curProvider.value, enabled: prev };
     toast.error(t("common.saveFailed"));
   } finally {
     enableLoading.value = false;
@@ -402,15 +360,12 @@ async function handleSaveProvider() {
   if (!curProviderId.value || !curProvider.value) return;
   saveLoading.value = true;
   try {
-    await putProvidersById({
-      path: { id: curProviderId.value },
-      body: {
-        name: providerName.value.trim() || curProvider.value.name,
-        client_type: curProvider.value.client_type,
-        enable: curProvider.value.enable,
-        config: sanitizeConfig(providerConfig),
-      },
-      throwOnError: true,
+    await connectClients.providers.updateProvider({
+      id: curProviderId.value,
+      displayName: providerName.value.trim() || curProvider.value.name,
+      clientType: curProvider.value.type,
+      enabled: curProvider.value.enabled,
+      config: sanitizeConfig(providerConfig),
     });
     toast.success(t("speech.saveSuccess"));
     queryCache.invalidateQueries({ key: ["speech-providers"] });
@@ -426,20 +381,11 @@ async function handleSaveModel(modelId: string, config: Record<string, unknown>)
   const model = providerModels.value.find((item) => item.id === modelId);
   if (!model) return;
   try {
-    const apiBase = import.meta.env.VITE_API_URL?.trim() || "/api";
-    const token = localStorage.getItem("token");
-    const resp = await fetch(`${apiBase}/speech-models/${modelId}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: JSON.stringify({
-        name: model.name ?? model.model_id,
-        config,
-      }),
+    await connectClients.speech.updateSpeechModel({
+      id: modelId,
+      displayName: model.displayName || model.modelId,
+      metadata: config,
     });
-    if (!resp.ok) throw new Error(await resp.text());
     toast.success(t("speech.saveSuccess"));
     queryCache.invalidateQueries({ key: ["speech-provider-models", curProviderId.value] });
     queryCache.invalidateQueries({ key: ["speech-models"] });
@@ -452,14 +398,13 @@ async function handleImportModels() {
   if (!curProviderId.value) return;
   importLoading.value = true;
   try {
-    const { data } = await postSpeechProvidersByIdImportModels({
-      path: { id: curProviderId.value },
-      throwOnError: true,
+    const response = await connectClients.speech.importSpeechProviderModels({
+      providerId: curProviderId.value,
     });
     toast.success(
       t("speech.importSuccess", {
-        created: data?.created ?? 0,
-        skipped: data?.skipped ?? 0,
+        created: response.models.length,
+        skipped: 0,
       }),
     );
     queryCache.invalidateQueries({ key: ["speech-provider-models", curProviderId.value] });
@@ -472,28 +417,70 @@ async function handleImportModels() {
   }
 }
 
-async function handleTestModel(modelId: string, text: string, config: Record<string, unknown>) {
-  const apiBase = import.meta.env.VITE_API_URL?.trim() || "/api";
-  const token = localStorage.getItem("token");
-  const resp = await fetch(`${apiBase}/speech-models/${modelId}/test`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    body: JSON.stringify({ text, config }),
+async function handleTestModel(modelId: string, text: string, _config: Record<string, unknown>) {
+  const response = await connectClients.speech.synthesizeBotSpeech({
+    modelId,
+    text,
   });
-  if (!resp.ok) {
-    const errBody = await resp.text();
-    let msg: string;
-    try {
-      msg = JSON.parse(errBody)?.message ?? errBody;
-    } catch {
-      msg = errBody;
-    }
-    throw new Error(msg);
-  }
-  return resp.blob();
+  return new Blob([response.audio], { type: response.contentType || "audio/mpeg" });
+}
+
+function mapSpeechProviderMeta(meta: ConnectSpeechProviderMeta): SpeechProviderMetaView {
+  return {
+    type: meta.type,
+    displayName: meta.displayName,
+    schema: normalizeConfigSchema(meta.schema),
+  };
+}
+
+function normalizeConfigSchema(value: JsonObject | undefined): SpeechConfigSchema {
+  const fields = Array.isArray(value?.fields) ? value.fields : [];
+  return {
+    fields: fields
+      .filter(
+        (field): field is JsonObject =>
+          typeof field === "object" && field !== null && !Array.isArray(field),
+      )
+      .map((field) => ({
+        key: getString(field, "key"),
+        type: getString(field, "type"),
+        title: getOptionalString(field, "title"),
+        description: getOptionalString(field, "description"),
+        required: getOptionalBool(field, "required"),
+        advanced: getOptionalBool(field, "advanced"),
+        enum: getStringArray(field, "enum"),
+        example: field.example,
+        order: getOptionalNumber(field, "order"),
+      }))
+      .filter((field) => field.key && field.type),
+  };
+}
+
+function getString(value: JsonObject, key: string): string {
+  const item = value[key];
+  return typeof item === "string" ? item : "";
+}
+
+function getOptionalString(value: JsonObject, key: string): string | undefined {
+  const item = value[key];
+  return typeof item === "string" ? item : undefined;
+}
+
+function getOptionalBool(value: JsonObject, key: string): boolean | undefined {
+  const item = value[key];
+  return typeof item === "boolean" ? item : undefined;
+}
+
+function getOptionalNumber(value: JsonObject, key: string): number | undefined {
+  const item = value[key];
+  return typeof item === "number" ? item : undefined;
+}
+
+function getStringArray(value: JsonObject, key: string): string[] | undefined {
+  const item = value[key];
+  return Array.isArray(item)
+    ? item.filter((entry): entry is string => typeof entry === "string")
+    : undefined;
 }
 
 function sanitizeConfig(input: Record<string, unknown>) {

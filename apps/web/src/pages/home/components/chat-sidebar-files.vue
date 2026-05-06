@@ -156,20 +156,14 @@ import {
   Spinner,
   ScrollArea,
 } from "@stringke/ui";
-import {
-  getBotsByBotIdContainerFsList,
-  postBotsByBotIdContainerFsUpload,
-  postBotsByBotIdContainerFsMkdir,
-  postBotsByBotIdContainerFsDelete,
-  postBotsByBotIdContainerFsRename,
-} from "@stringke/sdk";
-import type { HandlersFsFileInfo } from "@stringke/sdk";
 import { resolveApiErrorMessage } from "@/utils/api-error";
 import { pathSegments, joinPath } from "@/components/file-manager/utils";
+import type { FsFileInfo } from "@/components/file-manager/types";
 import FileList from "@/components/file-manager/file-list.vue";
 import { useWorkspaceTabsStore } from "@/store/workspace-tabs";
 import { useChatStore } from "@/store/chat-list";
 import { storeToRefs } from "pinia";
+import { apiHttpUrl } from "@/lib/runtime-url";
 
 const props = defineProps<{
   botId: string;
@@ -179,19 +173,47 @@ const { t } = useI18n();
 const workspaceTabs = useWorkspaceTabsStore();
 
 const currentPath = ref("/data");
-const entries = ref<HandlersFsFileInfo[]>([]);
+const entries = ref<FsFileInfo[]>([]);
 const loading = ref(false);
 const uploadInputRef = ref<HTMLInputElement>();
+
+function authHeaders(extra?: HeadersInit): HeadersInit {
+  const token = localStorage.getItem("token") || "";
+  return {
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...extra,
+  };
+}
+
+function containerFsUrl(path: string, query?: URLSearchParams): string {
+  const url = apiHttpUrl(`/bots/${encodeURIComponent(props.botId)}${path}`);
+  const queryString = query?.toString();
+  return queryString ? `${url}?${queryString}` : url;
+}
+
+async function readJsonResponse<T>(response: Response): Promise<T> {
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || `Request failed with status ${response.status}`);
+  }
+  return response.json() as Promise<T>;
+}
+
+async function ensureOk(response: Response): Promise<void> {
+  if (response.ok) return;
+  const message = await response.text();
+  throw new Error(message || `Request failed with status ${response.status}`);
+}
 
 async function loadDirectory(path: string) {
   if (!props.botId) return;
   loading.value = true;
   try {
-    const { data } = await getBotsByBotIdContainerFsList({
-      path: { bot_id: props.botId },
-      query: { path },
-      throwOnError: true,
-    });
+    const data = await readJsonResponse<{ entries?: FsFileInfo[]; path?: string }>(
+      await fetch(containerFsUrl("/container/fs/list", new URLSearchParams({ path })), {
+        headers: authHeaders(),
+      }),
+    );
     entries.value = data.entries ?? [];
     currentPath.value = data.path ?? path;
   } catch (error) {
@@ -209,7 +231,7 @@ function reload() {
   void loadDirectory(currentPath.value);
 }
 
-function handleOpenFile(entry: HandlersFsFileInfo) {
+function handleOpenFile(entry: FsFileInfo) {
   if (!entry.path) return;
   workspaceTabs.openFile(entry.path);
 }
@@ -225,11 +247,16 @@ async function handleUpload(event: Event) {
 
   const destPath = joinPath(currentPath.value, file.name);
   try {
-    await postBotsByBotIdContainerFsUpload({
-      path: { bot_id: props.botId },
-      body: { path: destPath, file } as never,
-      throwOnError: true,
-    });
+    const body = new FormData();
+    body.set("path", destPath);
+    body.set("file", file);
+    await ensureOk(
+      await fetch(containerFsUrl("/container/fs/upload"), {
+        method: "POST",
+        headers: authHeaders(),
+        body,
+      }),
+    );
     toast.success(t("bots.files.uploadSuccess"));
     void loadDirectory(currentPath.value);
   } catch (error) {
@@ -254,11 +281,13 @@ async function handleMkdir() {
 
   mkdirLoading.value = true;
   try {
-    await postBotsByBotIdContainerFsMkdir({
-      path: { bot_id: props.botId },
-      body: { path: joinPath(currentPath.value, name) },
-      throwOnError: true,
-    });
+    await ensureOk(
+      await fetch(containerFsUrl("/container/fs/mkdir"), {
+        method: "POST",
+        headers: authHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({ path: joinPath(currentPath.value, name) }),
+      }),
+    );
     mkdirDialogOpen.value = false;
     toast.success(t("bots.files.mkdirSuccess"));
     void loadDirectory(currentPath.value);
@@ -270,11 +299,11 @@ async function handleMkdir() {
 }
 
 const renameDialogOpen = ref(false);
-const renameTarget = ref<HandlersFsFileInfo | null>(null);
+const renameTarget = ref<FsFileInfo | null>(null);
 const renameNewName = ref("");
 const renameLoading = ref(false);
 
-function openRenameDialog(entry: HandlersFsFileInfo) {
+function openRenameDialog(entry: FsFileInfo) {
   renameTarget.value = entry;
   renameNewName.value = entry.name ?? "";
   renameDialogOpen.value = true;
@@ -287,14 +316,16 @@ async function handleRename() {
 
   renameLoading.value = true;
   try {
-    await postBotsByBotIdContainerFsRename({
-      path: { bot_id: props.botId },
-      body: {
-        oldPath: target.path,
-        newPath: joinPath(currentPath.value, newName),
-      },
-      throwOnError: true,
-    });
+    await ensureOk(
+      await fetch(containerFsUrl("/container/fs/rename"), {
+        method: "POST",
+        headers: authHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({
+          oldPath: target.path,
+          newPath: joinPath(currentPath.value, newName),
+        }),
+      }),
+    );
     renameDialogOpen.value = false;
     toast.success(t("bots.files.renameSuccess"));
     void loadDirectory(currentPath.value);
@@ -306,10 +337,10 @@ async function handleRename() {
 }
 
 const deleteDialogOpen = ref(false);
-const deleteTarget = ref<HandlersFsFileInfo | null>(null);
+const deleteTarget = ref<FsFileInfo | null>(null);
 const deleteLoading = ref(false);
 
-function openDeleteDialog(entry: HandlersFsFileInfo) {
+function openDeleteDialog(entry: FsFileInfo) {
   deleteTarget.value = entry;
   deleteDialogOpen.value = true;
 }
@@ -320,11 +351,13 @@ async function handleDelete() {
 
   deleteLoading.value = true;
   try {
-    await postBotsByBotIdContainerFsDelete({
-      path: { bot_id: props.botId },
-      body: { path: target.path, recursive: target.isDir },
-      throwOnError: true,
-    });
+    await ensureOk(
+      await fetch(containerFsUrl("/container/fs/delete"), {
+        method: "POST",
+        headers: authHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({ path: target.path, recursive: target.isDir }),
+      }),
+    );
     deleteDialogOpen.value = false;
     toast.success(t("bots.files.deleteSuccess"));
     void loadDirectory(currentPath.value);
@@ -335,9 +368,10 @@ async function handleDelete() {
   }
 }
 
-function handleDownload(entry: HandlersFsFileInfo) {
+function handleDownload(entry: FsFileInfo) {
   const token = localStorage.getItem("token") ?? "";
-  const url = `/api/bots/${props.botId}/container/fs/download?path=${encodeURIComponent(entry.path ?? "")}&token=${encodeURIComponent(token)}`;
+  const query = new URLSearchParams({ path: entry.path ?? "", token });
+  const url = containerFsUrl("/container/fs/download", query);
   const a = document.createElement("a");
   a.href = url;
   a.download = entry.name ?? "file";

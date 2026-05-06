@@ -1,29 +1,25 @@
 <template>
   <section class="p-4">
-    <AddPlatform v-model:open="open" />
-
-    <div class="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      <PlatformCard
-        v-for="item in platformList"
-        :key="item.name"
-        :platform="item"
-        @edit="
-          () => {
-            open = true;
-          }
-        "
-      />
+    <div v-if="isLoading" class="flex min-h-[50vh] items-center justify-center">
+      <Spinner class="size-6" />
+    </div>
+    <div v-else class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <PlatformCard v-for="item in platformList" :key="item.id" :platform="item" />
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
-import AddPlatform from "@/components/add-platform/index.vue";
+import { computed } from "vue";
+import { useQuery } from "@pinia/colada";
+import { Spinner } from "@stringke/ui";
 import PlatformCard from "./components/platform-card.vue";
-import { usePlatformList } from "@/composables/api/usePlatform";
+import { connectClients } from "@/lib/connect-client";
 
-const open = ref(false);
-
-const { data: platformList } = usePlatformList();
+const { data, asyncStatus } = useQuery({
+  key: () => ["connect-platform-channels"],
+  query: () => connectClients.channels.listChannels({}),
+});
+const platformList = computed(() => data.value?.channels ?? []);
+const isLoading = computed(() => asyncStatus.value === "loading" && !data.value);
 </script>

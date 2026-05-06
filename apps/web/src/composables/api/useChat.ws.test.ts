@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
-import { client } from "@stringke/sdk/client";
 import { connectWebSocket } from "./useChat.ws";
 
 class MockWebSocket {
@@ -43,11 +42,10 @@ describe("useChat.ws", () => {
   beforeEach(() => {
     MockWebSocket.instances = [];
     vi.unstubAllGlobals();
-    client.setConfig({ baseUrl: "/api" });
     vi.stubGlobal("window", {
       location: {
         protocol: "http:",
-        host: "localhost:8082",
+        host: "localhost:26811",
       },
     });
     vi.stubGlobal("localStorage", {

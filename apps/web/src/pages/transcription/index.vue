@@ -14,12 +14,21 @@ import {
   EmptyTitle,
   Badge,
 } from "@stringke/ui";
-import { getTranscriptionProviders } from "@stringke/sdk";
-import type { AudioSpeechProviderResponse } from "@stringke/sdk";
+import type { SpeechProvider } from "@stringke/sdk/connect";
 import ProviderSetting from "./provider-setting.vue";
 import { AudioLines } from "lucide-vue-next";
 import MasterDetailSidebarLayout from "@/components/master-detail-sidebar-layout/index.vue";
 import ProviderIcon from "@/components/provider-icon/index.vue";
+import { connectClients } from "@/lib/connect-client";
+
+export interface TranscriptionProviderView {
+  id?: string;
+  name?: string;
+  client_type?: string;
+  enable?: boolean;
+  config?: Record<string, unknown>;
+  icon?: string;
+}
 
 function getInitials(name: string | undefined) {
   const label = name?.trim() ?? "";
@@ -29,11 +38,11 @@ function getInitials(name: string | undefined) {
 const { data: providerData } = useQuery({
   key: () => ["transcription-providers"],
   query: async () => {
-    const { data } = await getTranscriptionProviders({ throwOnError: true });
-    return (data ?? []) as AudioSpeechProviderResponse[];
+    const response = await connectClients.speech.listTranscriptionProviders({});
+    return response.providers.map(transcriptionProviderFromProto);
   },
 });
-const curProvider = ref<AudioSpeechProviderResponse>();
+const curProvider = ref<TranscriptionProviderView>();
 provide("curTranscriptionProvider", curProvider);
 
 const selectProvider = (name: string) => computed(() => curProvider.value?.name === name);
@@ -64,6 +73,16 @@ watch(
   },
   { immediate: true },
 );
+
+function transcriptionProviderFromProto(provider: SpeechProvider): TranscriptionProviderView {
+  return {
+    id: provider.id,
+    name: provider.name,
+    client_type: provider.type,
+    enable: provider.enabled,
+    config: provider.config as Record<string, unknown> | undefined,
+  };
+}
 </script>
 
 <template>

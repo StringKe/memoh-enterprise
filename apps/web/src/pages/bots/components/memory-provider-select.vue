@@ -48,18 +48,13 @@ import { Brain, Search } from "lucide-vue-next";
 import { Button } from "@stringke/ui";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
+import type { JsonObject } from "@bufbuild/protobuf";
+import type { MemoryProvider } from "@stringke/sdk/connect";
 import SearchableSelectPopover from "@/components/searchable-select-popover/index.vue";
 import type { SearchableSelectOption } from "@/components/searchable-select-popover/index.vue";
 
-interface MemoryProviderItem {
-  id: string;
-  name: string;
-  provider: string;
-  config?: Record<string, string>;
-}
-
 const props = defineProps<{
-  providers: MemoryProviderItem[];
+  providers: MemoryProvider[];
   placeholder?: string;
 }>();
 const { t } = useI18n();
@@ -76,11 +71,20 @@ const options = computed<SearchableSelectOption[]>(() => {
     value: provider.id || "",
     label: provider.name || provider.id || "",
     description:
-      provider.provider === "builtin"
-        ? t(`memory.modeNames.${provider.config?.memory_mode || "off"}`)
-        : provider.provider,
-    keywords: [provider.name ?? "", provider.provider ?? "", provider.config?.memory_mode ?? ""],
+      provider.type === "builtin"
+        ? t(`memory.modeNames.${getString(provider.config, "memory_mode") || "off"}`)
+        : provider.type,
+    keywords: [
+      provider.name ?? "",
+      provider.type ?? "",
+      getString(provider.config, "memory_mode") ?? "",
+    ],
   }));
   return [noneOption, ...providerOptions];
 });
+
+function getString(value: JsonObject | undefined, key: string): string | undefined {
+  const item = value?.[key];
+  return typeof item === "string" ? item : undefined;
+}
 </script>

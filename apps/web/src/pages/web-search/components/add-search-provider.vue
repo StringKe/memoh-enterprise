@@ -82,12 +82,11 @@ import { toTypedSchema } from "@vee-validate/zod";
 import z from "zod";
 import { useForm } from "vee-validate";
 import { useMutation, useQueryCache } from "@pinia/colada";
-import { postSearchProviders } from "@stringke/sdk";
-import type { SearchprovidersCreateRequest } from "@stringke/sdk";
 import { useI18n } from "vue-i18n";
 import { Plus } from "lucide-vue-next";
 import FormDialogShell from "@/components/form-dialog-shell/index.vue";
 import { useDialogMutation } from "@/composables/useDialogMutation";
+import { connectClients } from "@/lib/connect-client";
 
 const PROVIDER_TYPES = [
   "brave",
@@ -110,10 +109,11 @@ const { run } = useDialogMutation();
 
 const queryCache = useQueryCache();
 const { mutateAsync: createProviderMutation, isLoading } = useMutation({
-  mutation: async (data: Record<string, unknown>) => {
-    const { data: result } = await postSearchProviders({
-      body: data as SearchprovidersCreateRequest,
-      throwOnError: true,
+  mutation: async (data: { name: string; provider: string }) => {
+    const result = await connectClients.searchProviders.createSearchProvider({
+      name: data.name,
+      type: data.provider,
+      config: {},
     });
     return result;
   },
@@ -132,7 +132,7 @@ const form = useForm({
 });
 
 const handleCreate = form.handleSubmit(async (value) => {
-  await run(() => createProviderMutation({ ...value, config: {} }), {
+  await run(() => createProviderMutation(value), {
     fallbackMessage: t("common.saveFailed"),
     onSuccess: () => {
       open.value = false;

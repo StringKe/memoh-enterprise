@@ -164,21 +164,44 @@ import { inject, computed, watch, nextTick, type Ref, ref } from "vue";
 import { toTypedSchema } from "@vee-validate/zod";
 import z from "zod";
 import { useMutation, useQueryCache } from "@pinia/colada";
-import { postModels, putModelsById, putModelsModelByModelId } from "@stringke/sdk";
-import type { ModelsGetResponse, ModelsAddRequest, ModelsUpdateRequest } from "@stringke/sdk";
 import { useI18n } from "vue-i18n";
+import { toast } from "vue-sonner";
 import { COMPATIBILITY_OPTIONS } from "@/constants/compatibilities";
 import FormDialogShell from "@/components/form-dialog-shell/index.vue";
-import { useDialogMutation } from "@/composables/useDialogMutation";
+import { connectClients } from "@/lib/connect-client";
+import { resolveConnectErrorMessage } from "@/lib/connect-errors";
 
 interface ModelTypeOption {
   value: string;
   label: string;
 }
 
+type ModelView = {
+  id?: string;
+  provider_id?: string;
+  model_id: string;
+  name?: string;
+  type?: string;
+  config?: {
+    compatibilities?: string[];
+    dimensions?: number;
+    context_window?: number;
+    reasoning_efforts?: string[];
+  };
+};
+
+type ModelPayload = {
+  providerId: string;
+  modelId: string;
+  displayName: string;
+  type: string;
+  modalities: string[];
+  enabled: boolean;
+  metadata: Record<string, unknown>;
+};
+
 const selectedCompat = ref<string[]>([]);
 const { t } = useI18n();
-const { run } = useDialogMutation();
 
 const formSchema = toTypedSchema(
   z.object({
@@ -220,7 +243,7 @@ const selectedType = computed(() => form.values.type || props.defaultType);
 
 const open = inject<Ref<boolean>>("openModel", ref(false));
 const title = inject<Ref<"edit" | "title">>("openModelTitle", ref("title"));
-const editInfo = inject<Ref<ModelsGetResponse | null>>("openModelState", ref(null));
+const editInfo = inject<Ref<ModelView | null>>("openModelState", ref(null));
 
 const canSubmit = computed(() => {
   if (title.value === "edit") return true;
@@ -261,34 +284,38 @@ function invalidateModelQueries() {
 }
 
 const { mutateAsync: createModel, isLoading: createLoading } = useMutation({
-  mutation: async (data: Record<string, unknown>) => {
-    const { data: result } = await postModels({
-      body: data as ModelsAddRequest,
-      throwOnError: true,
-    });
-    return result;
+  mutation: async (data: ModelPayload) => {
+    const result = await connectClients.models.createModel(data);
+    return result.model;
   },
   onSettled: invalidateModelQueries,
 });
 const { mutateAsync: updateModel, isLoading: updateLoading } = useMutation({
-  mutation: async ({ id, data }: { id: string; data: Record<string, unknown> }) => {
-    const { data: result } = await putModelsById({
-      path: { id },
-      body: data as ModelsUpdateRequest,
-      throwOnError: true,
+  mutation: async ({ id, data }: { id: string; data: ModelPayload }) => {
+    const result = await connectClients.models.updateModel({
+      id,
+      modelId: data.modelId,
+      displayName: data.displayName,
+      type: data.type,
+      modalities: data.modalities,
+      enabled: data.enabled,
+      metadata: data.metadata,
     });
-    return result;
+    return result.model;
   },
   onSettled: invalidateModelQueries,
 });
 const { mutateAsync: updateModelByLegacyModelID, isLoading: updateLegacyLoading } = useMutation({
-  mutation: async ({ modelId, data }: { modelId: string; data: Record<string, unknown> }) => {
-    const { data: result } = await putModelsModelByModelId({
-      path: { modelId },
-      body: data as ModelsUpdateRequest,
-      throwOnError: true,
+  mutation: async ({ modelId, data }: { modelId: string; data: ModelPayload }) => {
+    const result = await connectClients.models.updateModel({
+      modelId,
+      displayName: data.displayName,
+      type: data.type,
+      modalities: data.modalities,
+      enabled: data.enabled,
+      metadata: data.metadata,
     });
-    return result;
+    return result.model;
   },
   onSettled: invalidateModelQueries,
 });
@@ -320,38 +347,34 @@ async function addModel() {
     if (ctxWin) config.context_window = ctxWin;
   }
 
-  const payload: Record<string, unknown> = {
+  const payload: ModelPayload = {
     type,
-    model_id,
-    provider_id: props.id,
-    config,
+    modelId: model_id,
+    providerId: props.id,
+    displayName: name || "",
+    modalities: selectedCompat.value,
+    enabled: true,
+    metadata: config,
   };
 
-  if (name) {
-    payload.name = name;
-  }
-
-  await run(
-    () => {
+  try {
+    await (async () => {
       if (isEdit) {
         const modelUUID = fallback?.id;
         if (modelUUID) {
-          return updateModel({ id: modelUUID, data: payload as ModelsUpdateRequest });
+          return updateModel({ id: modelUUID, data: payload });
         }
         return updateModelByLegacyModelID({
           modelId: fallback!.model_id,
-          data: payload as ModelsUpdateRequest,
+          data: payload,
         });
       }
       return createModel(payload);
-    },
-    {
-      fallbackMessage: t("common.saveFailed"),
-      onSuccess: () => {
-        open.value = false;
-      },
-    },
-  );
+    })();
+    open.value = false;
+  } catch (error) {
+    toast.error(resolveConnectErrorMessage(error, t("common.saveFailed")));
+  }
 }
 
 watch(

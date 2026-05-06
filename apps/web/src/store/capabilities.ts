@@ -1,6 +1,13 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import { getPing } from "@stringke/sdk";
+
+type PingResponse = {
+  container_backend?: string;
+  local_workspace_enabled?: boolean;
+  snapshot_supported?: boolean;
+  version?: string;
+  commit_hash?: string;
+};
 
 export const useCapabilitiesStore = defineStore("capabilities", () => {
   const containerBackend = ref("containerd");
@@ -13,14 +20,14 @@ export const useCapabilitiesStore = defineStore("capabilities", () => {
   async function load() {
     if (loaded.value) return;
     try {
-      const { data } = await getPing();
-      if (data) {
-        containerBackend.value = data.container_backend ?? "containerd";
-        localWorkspaceEnabled.value = data.local_workspace_enabled === true;
-        snapshotSupported.value = data.snapshot_supported !== false;
-        serverVersion.value = data.version ?? "";
-        commitHash.value = data.commit_hash ?? "";
-      }
+      const response = await fetch("/ping");
+      if (!response.ok) return;
+      const data = (await response.json()) as PingResponse;
+      containerBackend.value = data.container_backend ?? "containerd";
+      localWorkspaceEnabled.value = data.local_workspace_enabled === true;
+      snapshotSupported.value = data.snapshot_supported !== false;
+      serverVersion.value = data.version ?? "";
+      commitHash.value = data.commit_hash ?? "";
     } catch {
       // fallback: assume containerd
     }

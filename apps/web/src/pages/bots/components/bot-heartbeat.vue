@@ -234,15 +234,8 @@ import {
 import ConfirmPopover from "@/components/confirm-popover/index.vue";
 import SettingsShell from "@/components/settings-shell/index.vue";
 import ModelSelect from "./model-select.vue";
-import {
-  getBotsByBotIdSettings,
-  putBotsByBotIdSettings,
-  getBotsByBotIdHeartbeatLogs,
-  deleteBotsByBotIdHeartbeatLogs,
-  getModels,
-  getProviders,
-} from "@stringke/sdk";
-import type { SettingsSettings, SettingsUpsertRequest, HeartbeatLog } from "@stringke/sdk";
+import type { BotSettings, HeartbeatLog, TimestampMessage } from "@stringke/sdk/connect";
+import { connectClients } from "@/lib/connect-client";
 import { useQuery, useMutation, useQueryCache } from "@pinia/colada";
 import { resolveApiErrorMessage } from "@/utils/api-error";
 import { formatDateTime } from "@/utils/date-time";
@@ -261,29 +254,20 @@ const queryCache = useQueryCache();
 const { data: settings } = useQuery({
   key: () => ["bot-settings", botIdRef.value],
   query: async () => {
-    const { data } = await getBotsByBotIdSettings({
-      path: { bot_id: botIdRef.value },
-      throwOnError: true,
-    });
-    return data;
+    const response = await connectClients.settings.getBotSettings({ botId: botIdRef.value });
+    return response.settings?.settings;
   },
   enabled: () => !!botIdRef.value,
 });
 
 const { data: modelData } = useQuery({
   key: ["models"],
-  query: async () => {
-    const { data } = await getModels({ throwOnError: true });
-    return data;
-  },
+  query: async () => (await connectClients.models.listModels({})).models,
 });
 
 const { data: providerData } = useQuery({
   key: ["providers"],
-  query: async () => {
-    const { data } = await getProviders({ throwOnError: true });
-    return data;
-  },
+  query: async () => (await connectClients.providers.listProviders({})).providers,
 });
 
 const models = computed(() => modelData.value ?? []);
@@ -297,11 +281,11 @@ const settingsForm = reactive({
 
 watch(
   settings,
-  (val: SettingsSettings | undefined) => {
+  (val: BotSettings | undefined) => {
     if (val) {
-      settingsForm.heartbeat_enabled = val.heartbeat_enabled ?? false;
-      settingsForm.heartbeat_interval = val.heartbeat_interval ?? 30;
-      settingsForm.heartbeat_model_id = val.heartbeat_model_id ?? "";
+      settingsForm.heartbeat_enabled = val.heartbeatEnabled ?? false;
+      settingsForm.heartbeat_interval = val.heartbeatInterval ?? 30;
+      settingsForm.heartbeat_model_id = val.heartbeatModelId ?? "";
     }
   },
   { immediate: true },
@@ -309,29 +293,32 @@ watch(
 
 const settingsChanged = computed(() => {
   if (!settings.value) return false;
-  const s: SettingsSettings = settings.value;
+  const s: BotSettings = settings.value;
   return (
-    settingsForm.heartbeat_enabled !== (s.heartbeat_enabled ?? false) ||
-    settingsForm.heartbeat_interval !== (s.heartbeat_interval ?? 30) ||
-    settingsForm.heartbeat_model_id !== (s.heartbeat_model_id ?? "")
+    settingsForm.heartbeat_enabled !== (s.heartbeatEnabled ?? false) ||
+    settingsForm.heartbeat_interval !== (s.heartbeatInterval ?? 30) ||
+    settingsForm.heartbeat_model_id !== (s.heartbeatModelId ?? "")
   );
 });
 
 const { mutateAsync: updateSettings, isLoading: isSaving } = useMutation({
-  mutation: async (body: SettingsUpsertRequest) => {
-    const { data } = await putBotsByBotIdSettings({
-      path: { bot_id: botIdRef.value },
-      body,
-      throwOnError: true,
+  mutation: async (body: Partial<BotSettings>) => {
+    const response = await connectClients.settings.updateBotSettings({
+      botId: botIdRef.value,
+      settings: body,
     });
-    return data;
+    return response.settings?.settings;
   },
   onSettled: () => queryCache.invalidateQueries({ key: ["bot-settings", botIdRef.value] }),
 });
 
 async function handleSaveSettings() {
   try {
-    await updateSettings({ ...settingsForm });
+    await updateSettings({
+      heartbeatEnabled: settingsForm.heartbeat_enabled,
+      heartbeatInterval: settingsForm.heartbeat_interval,
+      heartbeatModelId: settingsForm.heartbeat_model_id,
+    });
     toast.success(t("bots.settings.saveSuccess"));
   } catch {
     return;
@@ -340,13 +327,23 @@ async function handleSaveSettings() {
 
 const isLoading = ref(false);
 const isClearing = ref(false);
-const logs = ref<HeartbeatLog[]>([]);
+const logs = ref<HeartbeatLogView[]>([]);
 const totalCount = ref(0);
 const statusFilter = ref("");
 const expandedIds = ref(new Set<string>());
 const currentPage = ref(1);
 
 const PAGE_SIZE = 20;
+
+interface HeartbeatLogView {
+  id: string;
+  status: string;
+  result_text: string;
+  error_message: string;
+  usage?: unknown;
+  started_at?: string;
+  completed_at?: string;
+}
 
 const filteredLogs = computed(() => {
   if (!statusFilter.value) return logs.value;
@@ -406,13 +403,12 @@ async function fetchLogs() {
   isLoading.value = true;
   try {
     const offset = (currentPage.value - 1) * PAGE_SIZE;
-    const { data } = await getBotsByBotIdHeartbeatLogs({
-      path: { bot_id: props.botId },
-      query: { limit: PAGE_SIZE, offset },
-      throwOnError: true,
+    const response = await connectClients.schedule.listHeartbeatLogs({
+      botId: props.botId,
+      page: { pageSize: PAGE_SIZE, pageToken: String(offset) },
     });
-    logs.value = data?.items ?? [];
-    totalCount.value = data?.total_count ?? 0;
+    logs.value = response.logs.map(heartbeatLogFromProto);
+    totalCount.value = response.totalCount;
   } catch (error) {
     toast.error(resolveApiErrorMessage(error, t("bots.heartbeat.loadFailed")));
   } finally {
@@ -429,10 +425,7 @@ async function handleRefresh() {
 async function handleClear() {
   isClearing.value = true;
   try {
-    await deleteBotsByBotIdHeartbeatLogs({
-      path: { bot_id: props.botId },
-      throwOnError: true,
-    });
+    await connectClients.schedule.deleteHeartbeatLogs({ botId: props.botId });
     logs.value = [];
     totalCount.value = 0;
     expandedIds.value.clear();
@@ -447,4 +440,23 @@ async function handleClear() {
 onMounted(() => {
   fetchLogs();
 });
+
+function heartbeatLogFromProto(log: HeartbeatLog): HeartbeatLogView {
+  return {
+    id: log.id,
+    status: log.status,
+    result_text: log.resultText,
+    error_message: log.errorMessage,
+    usage: log.usage,
+    started_at: timestampToISOString(log.startedAt),
+    completed_at: timestampToISOString(log.completedAt),
+  };
+}
+
+function timestampToISOString(value: TimestampMessage | undefined): string | undefined {
+  if (!value) return undefined;
+  const seconds = Number(value.seconds);
+  const nanos = value.nanos;
+  return new Date(seconds * 1000 + Math.floor(nanos / 1_000_000)).toISOString();
+}
 </script>

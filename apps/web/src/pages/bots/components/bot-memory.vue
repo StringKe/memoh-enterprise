@@ -370,26 +370,19 @@ import {
   RadioGroup,
   RadioGroupItem,
 } from "@stringke/ui";
-import {
-  getBotsByBotIdMemory,
-  getBotsByBotIdMemoryStatus,
-  postBotsByBotIdMemory,
-  deleteBotsByBotIdMemoryById,
-  postBotsByBotIdMemoryCompact,
-  getBotsByBotIdMessages,
-  postBotsByBotIdMemorySearch,
-} from "@stringke/sdk";
 import type {
-  AdaptersCdfPoint as MemoryCdfPoint,
-  AdaptersMemoryItem,
-  AdaptersMemoryStatusResponse,
-  AdaptersTopKBucket as MemoryTopKBucket,
-  MessageMessage,
-} from "@stringke/sdk";
+  BotMemory,
+  BotMemoryStatus,
+  MemoryCDFPoint,
+  MemoryTopKBucket,
+  TimestampMessage,
+} from "@stringke/sdk/connect";
 import { toast } from "vue-sonner";
 import { useI18n } from "vue-i18n";
 import ConfirmPopover from "@/components/confirm-popover/index.vue";
 import { useClipboard } from "@/composables/useClipboard";
+import { connectClients } from "@/lib/connect-client";
+import { apiHttpUrl } from "@/lib/runtime-url";
 import { formatDateTimeSeconds } from "@/utils/date-time";
 
 use([CanvasRenderer, LineChart, BarChart, GridComponent, TooltipComponent]);
@@ -401,7 +394,7 @@ interface MemoryItem {
   updated_at?: string;
   hash?: string;
   score?: number;
-  cdf_curve?: MemoryCdfPoint[];
+  cdf_curve?: MemoryCDFPoint[];
   top_k_buckets?: MemoryTopKBucket[];
 }
 
@@ -413,6 +406,12 @@ interface Message {
   content: MessageContent;
   created_at?: string;
 }
+
+type HistoryMessage = {
+  role?: string;
+  content?: MessageContent;
+  created_at?: string;
+};
 
 function extractMessageText(content: MessageContent): string {
   if (typeof content === "string") return content;
@@ -437,7 +436,7 @@ const actionLoading = ref(false);
 const compactLoading = ref(false);
 const denseSearchLoading = ref(false);
 const memories = ref<MemoryItem[]>([]);
-const memoryStatus = ref<AdaptersMemoryStatusResponse | null>(null);
+const memoryStatus = ref<BotMemoryStatus | null>(null);
 const denseSearchResults = ref<Array<{ id: string; memory: string; score: number }>>([]);
 const searchQuery = ref("");
 const selectedId = ref<string | null>(null);
@@ -461,7 +460,7 @@ const selectedCdfCurve = computed(() => selectedMemory.value?.cdf_curve ?? []);
 const hasSparseExplain = computed(
   () => selectedTopKBuckets.value.length > 0 && selectedCdfCurve.value.length > 0,
 );
-const memoryMode = computed(() => memoryStatus.value?.memory_mode ?? "off");
+const memoryMode = computed(() => memoryStatus.value?.memoryMode ?? "off");
 const isDenseMode = computed(() => memoryMode.value === "dense");
 const hasDenseExplain = computed(() => denseSearchResults.value.length > 0);
 const showChartSection = computed(
@@ -879,25 +878,10 @@ const isDirty = computed(() => editContent.value !== originalContent.value);
 async function loadMemories() {
   loading.value = true;
   try {
-    const { data } = await getBotsByBotIdMemory({
-      path: { bot_id: props.botId },
-      throwOnError: true,
+    const response = await connectClients.memory.listBotMemories({
+      botId: props.botId,
     });
-    memories.value = (data.results ?? [])
-      .filter(
-        (item): item is AdaptersMemoryItem & { id: string; memory: string } =>
-          typeof item?.id === "string" && item.id.length > 0 && typeof item.memory === "string",
-      )
-      .map((item) => ({
-        id: item.id,
-        memory: item.memory,
-        created_at: item.created_at,
-        updated_at: item.updated_at,
-        hash: item.hash,
-        score: item.score,
-        cdf_curve: item.cdf_curve ?? [],
-        top_k_buckets: item.top_k_buckets ?? [],
-      }));
+    memories.value = response.memories.map(botMemoryToItem);
   } catch (error) {
     console.error("Failed to load memories:", error);
     toast.error(t("common.loadFailed"));
@@ -908,11 +892,10 @@ async function loadMemories() {
 
 async function loadMemoryStatus() {
   try {
-    const { data } = await getBotsByBotIdMemoryStatus({
-      path: { bot_id: props.botId },
-      throwOnError: true,
+    const response = await connectClients.memory.getBotMemoryStatus({
+      botId: props.botId,
     });
-    memoryStatus.value = data ?? null;
+    memoryStatus.value = response.status ?? null;
   } catch (error) {
     console.error("Failed to load memory status:", error);
     memoryStatus.value = null;
@@ -926,24 +909,17 @@ async function loadDenseSearchDiagnostics(memory: MemoryItem | null) {
   }
   denseSearchLoading.value = true;
   try {
-    const { data } = await postBotsByBotIdMemorySearch({
-      path: { bot_id: props.botId },
-      body: {
-        query: memory.memory,
-        limit: 8,
-      },
-      throwOnError: true,
+    const response = await connectClients.memory.searchBotMemory({
+      botId: props.botId,
+      query: memory.memory,
+      limit: 8,
+      noStats: true,
     });
-    denseSearchResults.value = (data.results ?? [])
-      .filter(
-        (item): item is AdaptersMemoryItem & { id: string; memory: string; score: number } =>
-          typeof item?.id === "string" &&
-          typeof item.memory === "string" &&
-          typeof item.score === "number",
-      )
+    denseSearchResults.value = response.memories
+      .filter((item) => item.id.length > 0 && item.content.length > 0)
       .map((item) => ({
         id: item.id,
-        memory: item.memory,
+        memory: item.content,
         score: item.score,
       }));
   } catch (error) {
@@ -971,12 +947,18 @@ function openNewMemoryDialog() {
 async function loadHistory() {
   historyLoading.value = true;
   try {
-    const { data } = await getBotsByBotIdMessages({
-      path: { bot_id: props.botId },
-      query: { limit: 50 },
-      throwOnError: true,
-    });
-    historyMessages.value = (data.items ?? []).map((item: MessageMessage) => ({
+    const response = await fetch(
+      apiHttpUrl(`/bots/${encodeURIComponent(props.botId)}/messages?limit=50`),
+      {
+        headers: authHeaders(),
+      },
+    );
+    if (!response.ok) {
+      const message = await response.text();
+      throw new Error(message || `Request failed with status ${response.status}`);
+    }
+    const data = (await response.json()) as { items?: HistoryMessage[] };
+    historyMessages.value = (data.items ?? []).map((item) => ({
       role: item.role ?? "assistant",
       content: item.content,
       created_at: item.created_at,
@@ -987,6 +969,11 @@ async function loadHistory() {
   } finally {
     historyLoading.value = false;
   }
+}
+
+function authHeaders(): HeadersInit {
+  const token = localStorage.getItem("token") || "";
+  return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
 function toggleMessageSelection(msg: Message) {
@@ -1011,12 +998,13 @@ async function handleCreateMemory() {
 
   actionLoading.value = true;
   try {
-    await postBotsByBotIdMemory({
-      path: { bot_id: props.botId },
-      body: {
-        message: newMemoryContent.value,
-      },
-      throwOnError: true,
+    await connectClients.memory.addBotMemory({
+      botId: props.botId,
+      content: newMemoryContent.value,
+      messages: selectedHistoryMessages.value.map((message) => ({
+        role: message.role,
+        content: extractMessageText(message.content),
+      })),
     });
 
     toast.success(t("common.add"));
@@ -1039,18 +1027,15 @@ async function handleSave() {
   actionLoading.value = true;
   try {
     // Delete old
-    await deleteBotsByBotIdMemoryById({
-      path: { bot_id: props.botId, id: selectedId.value },
-      throwOnError: true,
+    await connectClients.memory.deleteBotMemory({
+      botId: props.botId,
+      memoryId: selectedId.value,
     });
 
     // Add new
-    await postBotsByBotIdMemory({
-      path: { bot_id: props.botId },
-      body: {
-        message: editContent.value,
-      },
-      throwOnError: true,
+    await connectClients.memory.addBotMemory({
+      botId: props.botId,
+      content: editContent.value,
     });
 
     toast.success(t("common.save"));
@@ -1071,9 +1056,9 @@ async function handleDelete() {
 
   actionLoading.value = true;
   try {
-    await deleteBotsByBotIdMemoryById({
-      path: { bot_id: props.botId, id: selectedId.value },
-      throwOnError: true,
+    await connectClients.memory.deleteBotMemory({
+      botId: props.botId,
+      memoryId: selectedId.value,
     });
     toast.success(t("common.delete"));
     selectedId.value = null;
@@ -1097,13 +1082,10 @@ function openCompactDialog() {
 async function handleCompact() {
   compactLoading.value = true;
   try {
-    await postBotsByBotIdMemoryCompact({
-      path: { bot_id: props.botId },
-      body: {
-        ratio: parseFloat(compactRatio.value),
-        decay_days: compactDecayDays.value || undefined,
-      },
-      throwOnError: true,
+    await connectClients.memory.compactBotMemory({
+      botId: props.botId,
+      ratio: parseFloat(compactRatio.value),
+      decayDays: compactDecayDays.value || undefined,
     });
     toast.success(t("bots.memory.compactSuccess"));
     compactDialogOpen.value = false;
@@ -1119,6 +1101,24 @@ async function handleCompact() {
 
 function formatDate(dateStr?: string) {
   return formatDateTimeSeconds(dateStr, { fallback: "Unknown" });
+}
+
+function botMemoryToItem(item: BotMemory): MemoryItem {
+  return {
+    id: item.id,
+    memory: item.content,
+    created_at: timestampToIso(item.createdAt),
+    updated_at: timestampToIso(item.updatedAt),
+    hash: item.hash,
+    score: item.score,
+    cdf_curve: item.cdfCurve,
+    top_k_buckets: item.topKBuckets,
+  };
+}
+
+function timestampToIso(value?: TimestampMessage): string | undefined {
+  if (!value) return undefined;
+  return new Date(Number(value.seconds) * 1000 + Math.floor(value.nanos / 1_000_000)).toISOString();
 }
 
 async function copyToClipboard(text: string) {
@@ -1156,16 +1156,16 @@ watch([selectedMemory, isDenseMode], ([memory, dense]) => {
   loadDenseSearchDiagnostics(memory);
 });
 
-function buildDisplayCdfCurve(data: MemoryCdfPoint[], maxPoints: number) {
+function buildDisplayCdfCurve(data: MemoryCDFPoint[], maxPoints: number) {
   if (!data || data.length === 0) return [];
-  const withOrigin: MemoryCdfPoint[] = [{ k: 0, cumulative: 0 }, ...data];
+  const withOrigin: MemoryCDFPoint[] = [{ k: 0, cumulative: 0 }, ...data];
   if (withOrigin.length <= maxPoints) return withOrigin;
 
   const firstPoint = withOrigin[0];
   const lastPoint = withOrigin[withOrigin.length - 1];
   if (!firstPoint || !lastPoint) return [];
   const targets = buildCdfSamplingTargets(maxPoints);
-  const sampled: MemoryCdfPoint[] = [];
+  const sampled: MemoryCDFPoint[] = [];
 
   let sourceIdx = 0;
   for (const target of targets) {

@@ -58,7 +58,8 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { Search, Check } from "lucide-vue-next";
-import type { ModelsGetResponse, ProvidersGetResponse } from "@stringke/sdk";
+import type { JsonObject } from "@bufbuild/protobuf";
+import type { Model, Provider } from "@stringke/sdk/connect";
 import ModelCapabilities from "@/components/model-capabilities/index.vue";
 import ContextWindowBadge from "@/components/context-window-badge/index.vue";
 
@@ -74,8 +75,8 @@ export interface ModelOption {
 }
 
 const props = defineProps<{
-  models: ModelsGetResponse[];
-  providers: ProvidersGetResponse[];
+  models: Model[];
+  providers: Provider[];
   modelType: "chat" | "embedding";
   open?: boolean;
 }>();
@@ -98,7 +99,7 @@ watch(
 const providerMap = computed(() => {
   const map = new Map<string, string>();
   for (const p of props.providers) {
-    if (p.id) map.set(p.id, p.name ?? p.id);
+    if (p.id) map.set(p.id, p.displayName || p.name || p.id);
   }
   return map;
 });
@@ -107,22 +108,34 @@ const typeFilteredModels = computed(() => props.models.filter((m) => m.type === 
 
 const options = computed<ModelOption[]>(() =>
   typeFilteredModels.value.map((model) => {
-    const providerId = model.provider_id ?? "";
-    const config = model.config as
+    const providerId = model.providerId ?? "";
+    const metadata = model.metadata as
       | { compatibilities?: string[]; context_window?: number }
       | undefined;
     return {
-      value: model.id || model.model_id || "",
-      label: model.name || model.model_id || "",
-      description: model.name ? model.model_id : undefined,
+      value: model.id || model.modelId || "",
+      label: model.displayName || model.modelId || "",
+      description: model.displayName ? model.modelId : undefined,
       groupKey: providerId,
       groupLabel: providerMap.value.get(providerId) ?? providerId,
-      keywords: [model.model_id ?? "", model.name ?? ""],
-      compatibilities: config?.compatibilities,
-      contextWindow: config?.context_window,
+      keywords: [model.modelId ?? "", model.displayName ?? ""],
+      compatibilities: getStringArray(metadata, "compatibilities"),
+      contextWindow: getNumber(metadata, "context_window"),
     };
   }),
 );
+
+function getStringArray(value: JsonObject | undefined, key: string): string[] | undefined {
+  const item = value?.[key];
+  return Array.isArray(item)
+    ? item.filter((entry): entry is string => typeof entry === "string")
+    : undefined;
+}
+
+function getNumber(value: JsonObject | undefined, key: string): number | undefined {
+  const item = value?.[key];
+  return typeof item === "number" ? item : undefined;
+}
 
 const filteredOptions = computed(() => {
   const keyword = searchTerm.value.trim().toLowerCase();

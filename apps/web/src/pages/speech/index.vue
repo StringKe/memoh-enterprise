@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, ref, provide, watch } from "vue";
-import { useQuery } from "@pinia/colada";
 import {
   ScrollArea,
   SidebarMenu,
@@ -14,26 +13,24 @@ import {
   EmptyTitle,
   Badge,
 } from "@stringke/ui";
-import { getSpeechProviders } from "@stringke/sdk";
-import type { TtsSpeechProviderResponse } from "@stringke/sdk";
+import type { SpeechProvider } from "@stringke/sdk/connect";
 import ProviderSetting from "./components/provider-setting.vue";
 import { Volume2 } from "lucide-vue-next";
 import MasterDetailSidebarLayout from "@/components/master-detail-sidebar-layout/index.vue";
 import ProviderIcon from "@/components/provider-icon/index.vue";
+import { connectClients } from "@/lib/connect-client";
+import { useConnectQuery } from "@/lib/connect-colada";
 
 function getInitials(name: string | undefined) {
   const label = name?.trim() ?? "";
   return label ? label.slice(0, 2).toUpperCase() : "?";
 }
 
-const { data: providerData } = useQuery({
+const { data: providerData } = useConnectQuery({
   key: () => ["speech-providers"],
-  query: async () => {
-    const { data } = await getSpeechProviders({ throwOnError: true });
-    return data;
-  },
+  query: () => connectClients.speech.listSpeechProviders({}),
 });
-const curProvider = ref<TtsSpeechProviderResponse>();
+const curProvider = ref<SpeechProvider>();
 provide("curTtsProvider", curProvider);
 
 const selectProvider = (name: string) =>
@@ -42,10 +39,10 @@ const selectProvider = (name: string) =>
   });
 
 const filteredProviders = computed(() => {
-  if (!Array.isArray(providerData.value)) return [];
-  return [...providerData.value].sort((a, b) => {
-    const ae = a.enable !== false ? 1 : 0;
-    const be = b.enable !== false ? 1 : 0;
+  const providers = providerData.value?.providers ?? [];
+  return [...providers].sort((a, b) => {
+    const ae = a.enabled ? 1 : 0;
+    const be = b.enabled ? 1 : 0;
     return be - ae;
   });
 });
@@ -59,7 +56,7 @@ watch(
     }
     const currentId = curProvider.value?.id;
     if (currentId) {
-      const stillExists = list.find((p: TtsSpeechProviderResponse) => p.id === currentId);
+      const stillExists = list.find((p: SpeechProvider) => p.id === currentId);
       if (stillExists) {
         curProvider.value = stillExists;
         return;
@@ -91,13 +88,14 @@ watch(
             >
               <span class="relative shrink-0">
                 <span class="flex size-7 items-center justify-center rounded-full bg-muted">
-                  <ProviderIcon v-if="item.icon" :icon="item.icon" size="1.25em" />
-                  <span v-else class="text-xs font-medium text-muted-foreground">
-                    {{ getInitials(item.name) }}
-                  </span>
+                  <ProviderIcon :icon="item.type" size="1.25em">
+                    <span class="text-xs font-medium text-muted-foreground">
+                      {{ getInitials(item.name) }}
+                    </span>
+                  </ProviderIcon>
                 </span>
                 <Badge
-                  v-if="item.enable !== false"
+                  v-if="item.enabled"
                   class="absolute -bottom-0.5 -right-0.5 size-2.5 p-0 rounded-full ring-2 ring-background"
                   variant="success"
                 />

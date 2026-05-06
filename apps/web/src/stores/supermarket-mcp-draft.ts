@@ -1,14 +1,14 @@
 import { ref } from "vue";
-import type { HandlersSupermarketMcpEntry } from "@stringke/sdk";
+import type { SupermarketMcpEntry } from "@/pages/supermarket/supermarket-items";
 
-const pendingDraft = ref<HandlersSupermarketMcpEntry | null>(null);
+const pendingDraft = ref<SupermarketMcpEntry | null>(null);
 
 export function useSupermarketMcpDraft() {
-  function setPendingDraft(entry: HandlersSupermarketMcpEntry) {
+  function setPendingDraft(entry: SupermarketMcpEntry) {
     pendingDraft.value = entry;
   }
 
-  function consumePendingDraft(): HandlersSupermarketMcpEntry | null {
+  function consumePendingDraft(): SupermarketMcpEntry | null {
     const draft = pendingDraft.value;
     pendingDraft.value = null;
     return draft;

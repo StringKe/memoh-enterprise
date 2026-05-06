@@ -1,6 +1,6 @@
-import type { BotsBot } from "@stringke/sdk";
+import type { Bot as ConnectBot } from "@stringke/sdk/connect";
 
-export type Bot = BotsBot;
+export type Bot = ConnectBot;
 
 export interface SessionSummary {
   id: string;

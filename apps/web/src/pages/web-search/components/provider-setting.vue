@@ -133,17 +133,19 @@ import YandexSettings from "./yandex-settings.vue";
 import { Trash2 } from "lucide-vue-next";
 import SearchProviderLogo from "@/components/search-provider-logo/index.vue";
 import { computed, inject, ref, watch } from "vue";
+import type { JsonObject } from "@bufbuild/protobuf";
 import { toTypedSchema } from "@vee-validate/zod";
 import z from "zod";
 import { useForm } from "vee-validate";
 import { useMutation, useQueryCache } from "@pinia/colada";
-import { putSearchProvidersById, deleteSearchProvidersById } from "@stringke/sdk";
-import type { SearchprovidersGetResponse, SearchprovidersUpdateRequest } from "@stringke/sdk";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
+import { connectClients } from "@/lib/connect-client";
+import { resolveConnectErrorMessage } from "@/lib/connect-errors";
+import type { SearchProviderItem } from "../index.vue";
 
 const { t } = useI18n();
-const curProvider = inject("curSearchProvider", ref<SearchprovidersGetResponse>());
+const curProvider = inject("curSearchProvider", ref<SearchProviderItem>());
 const curProviderId = computed(() => curProvider.value?.id);
 const enableLoading = ref(false);
 
@@ -162,7 +164,7 @@ const form = useForm({
 });
 
 // Store config separately since it varies by provider type
-const configData = ref<Record<string, unknown>>({});
+const configData = ref<JsonObject>({});
 
 const configProxy = computed({
   get: () => configData.value,
@@ -193,15 +195,14 @@ async function handleToggleEnable(value: boolean) {
 
   enableLoading.value = true;
   try {
-    await putSearchProvidersById({
-      path: { id: curProviderId.value },
-      body: { enable: value },
-      throwOnError: true,
+    await connectClients.searchProviders.updateSearchProvider({
+      id: curProviderId.value,
+      enabled: value,
     });
     queryCache.invalidateQueries({ key: ["search-providers"] });
-  } catch {
+  } catch (error) {
     curProvider.value = { ...curProvider.value, enable: prev };
-    toast.error(t("common.saveFailed"));
+    toast.error(resolveConnectErrorMessage(error, t("common.saveFailed")));
   } finally {
     enableLoading.value = false;
   }
@@ -209,12 +210,13 @@ async function handleToggleEnable(value: boolean) {
 
 // ---- mutations ----
 const { mutate: submitUpdate, isLoading: editLoading } = useMutation({
-  mutation: async (data: SearchprovidersUpdateRequest) => {
+  mutation: async (data: { name: string; provider: string; config: JsonObject }) => {
     if (!curProviderId.value) return;
-    const { data: result } = await putSearchProvidersById({
-      path: { id: curProviderId.value },
-      body: data,
-      throwOnError: true,
+    const result = await connectClients.searchProviders.updateSearchProvider({
+      id: curProviderId.value,
+      name: data.name,
+      type: data.provider,
+      config: data.config,
     });
     return result;
   },
@@ -224,7 +226,7 @@ const { mutate: submitUpdate, isLoading: editLoading } = useMutation({
 const { mutate: deleteProvider, isLoading: deleteLoading } = useMutation({
   mutation: async () => {
     if (!curProviderId.value) return;
-    await deleteSearchProvidersById({ path: { id: curProviderId.value }, throwOnError: true });
+    await connectClients.searchProviders.deleteSearchProvider({ id: curProviderId.value });
   },
   onSettled: () => queryCache.invalidateQueries({ key: ["search-providers"] }),
 });
@@ -232,7 +234,7 @@ const { mutate: deleteProvider, isLoading: deleteLoading } = useMutation({
 const editProvider = form.handleSubmit(async (values) => {
   submitUpdate({
     name: values.name,
-    provider: values.provider as SearchprovidersUpdateRequest["provider"],
+    provider: values.provider,
     config: configData.value,
   });
 });

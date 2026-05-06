@@ -6,24 +6,6 @@ import { useRoute } from "vue-router";
 import { useQuery } from "@pinia/colada";
 import { ChevronRight } from "lucide-vue-next";
 import {
-  deleteBotsByBotIdContainer,
-  getBotsByBotIdContainer,
-  getBotsByBotIdContainerMetrics,
-  getBotsByBotIdContainerSnapshots,
-  getBotsById,
-  postBotsByBotIdContainerDataExport,
-  postBotsByBotIdContainerDataImport,
-  postBotsByBotIdContainerDataRestore,
-  postBotsByBotIdContainerSnapshots,
-  postBotsByBotIdContainerSnapshotsRollback,
-  postBotsByBotIdContainerStart,
-  postBotsByBotIdContainerStop,
-  type HandlersCreateContainerRequest,
-  type HandlersGetContainerMetricsResponse,
-  type HandlersGetContainerResponse,
-  type HandlersListSnapshotsResponse,
-} from "@stringke/sdk";
-import {
   postBotsByBotIdContainerStream,
   type ContainerCreateLayerStatus,
   type ContainerCreateStreamEvent,
@@ -49,6 +31,8 @@ import { useCapabilitiesStore } from "@/store/capabilities";
 import { formatDateTime } from "@/utils/date-time";
 import { shortenImageRef } from "@/utils/image-ref";
 import { resolveApiErrorMessage } from "@/utils/api-error";
+import { connectClients } from "@/lib/connect-client";
+import { apiHttpUrl } from "@/lib/runtime-url";
 
 const route = useRoute();
 const { t } = useI18n();
@@ -105,11 +89,55 @@ const capabilitiesStore = useCapabilitiesStore();
 const botId = computed(() => route.params.botId as string);
 const containerBusy = computed(() => containerLoading.value || containerAction.value !== "");
 
-type BotContainerInfo = HandlersGetContainerResponse;
-type BotContainerMetrics = HandlersGetContainerMetricsResponse;
-type BotContainerSnapshot = HandlersListSnapshotsResponse extends { snapshots?: (infer T)[] }
-  ? T
-  : never;
+type BotContainerInfo = {
+  workspace_backend?: string;
+  container_id?: string;
+  status?: string;
+  task_running?: boolean;
+  namespace?: string;
+  image?: string;
+  cdi_devices?: string[];
+  container_path?: string;
+  data_restored?: boolean;
+  has_preserved_data?: boolean;
+  legacy?: boolean;
+  created_at?: string;
+  updated_at?: string;
+  [key: string]: unknown;
+};
+
+type BotContainerMetrics = {
+  cpu_percent?: number;
+  memory_usage_bytes?: number;
+  memory_limit_bytes?: number;
+  storage_usage_bytes?: number;
+  storage_limit_bytes?: number;
+  storage_path?: string;
+  sampled_at?: string;
+  supported?: boolean;
+  [key: string]: unknown;
+};
+
+type BotContainerSnapshot = {
+  id?: string;
+  name?: string;
+  display_name?: string;
+  runtime_snapshot_name?: string;
+  version?: number;
+  source?: string;
+  parent_id?: string;
+  managed?: boolean;
+  created_at?: string;
+  [key: string]: unknown;
+};
+
+type CreateContainerRequest = {
+  restore_data?: boolean;
+  image?: string;
+  gpu?: {
+    devices?: string[];
+  };
+};
 
 const containerInfo = ref<BotContainerInfo | null>(null);
 const containerMetrics = ref<BotContainerMetrics | null>(null);
@@ -120,6 +148,42 @@ const snapshotsLoading = ref(false);
 
 function resolveErrorMessage(error: unknown, fallback: string): string {
   return resolveApiErrorMessage(error, fallback);
+}
+
+function authHeaders(extra?: HeadersInit): HeadersInit {
+  const token = localStorage.getItem("token") || "";
+  return {
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...extra,
+  };
+}
+
+function botRuntimeUrl(path: string, query?: URLSearchParams): string {
+  const url = apiHttpUrl(`/bots/${encodeURIComponent(botId.value)}${path}`);
+  const queryString = query?.toString();
+  return queryString ? `${url}?${queryString}` : url;
+}
+
+async function readJsonResponse<T>(response: Response): Promise<T> {
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || `Request failed with status ${response.status}`);
+  }
+  return response.json() as Promise<T>;
+}
+
+async function readBlobResponse(response: Response): Promise<Blob> {
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || `Request failed with status ${response.status}`);
+  }
+  return response.blob();
+}
+
+async function ensureOk(response: Response): Promise<void> {
+  if (response.ok) return;
+  const message = await response.text();
+  throw new Error(message || `Request failed with status ${response.status}`);
 }
 
 async function runContainerAction<T>(
@@ -147,19 +211,18 @@ async function loadContainerData(showLoadingToast: boolean) {
   await capabilitiesStore.load();
   containerLoading.value = true;
   try {
-    const result = await getBotsByBotIdContainer({ path: { bot_id: botId.value } });
-    if (result.error !== undefined) {
-      if (result.response.status === 404) {
-        containerInfo.value = null;
-        containerMetrics.value = null;
-        containerMissing.value = true;
-        snapshots.value = [];
-        return;
-      }
-      throw result.error;
+    const response = await fetch(botRuntimeUrl("/container"), {
+      headers: authHeaders(),
+    });
+    if (response.status === 404) {
+      containerInfo.value = null;
+      containerMetrics.value = null;
+      containerMissing.value = true;
+      snapshots.value = [];
+      return;
     }
 
-    containerInfo.value = result.data;
+    containerInfo.value = await readJsonResponse<BotContainerInfo>(response);
     containerMissing.value = false;
 
     const metricsPromise = loadContainerMetrics(showLoadingToast);
@@ -182,11 +245,11 @@ async function loadContainerData(showLoadingToast: boolean) {
 async function loadContainerMetrics(showLoadingToast: boolean) {
   metricsLoading.value = true;
   try {
-    const { data } = await getBotsByBotIdContainerMetrics({
-      path: { bot_id: botId.value },
-      throwOnError: true,
-    });
-    containerMetrics.value = data;
+    containerMetrics.value = await readJsonResponse<BotContainerMetrics>(
+      await fetch(botRuntimeUrl("/container/metrics"), {
+        headers: authHeaders(),
+      }),
+    );
   } catch (error) {
     containerMetrics.value = null;
     if (showLoadingToast) {
@@ -205,10 +268,11 @@ async function loadSnapshots() {
 
   snapshotsLoading.value = true;
   try {
-    const { data } = await getBotsByBotIdContainerSnapshots({
-      path: { bot_id: botId.value },
-      throwOnError: true,
-    });
+    const data = await readJsonResponse<{ snapshots?: BotContainerSnapshot[] }>(
+      await fetch(botRuntimeUrl("/container/snapshots"), {
+        headers: authHeaders(),
+      }),
+    );
     snapshots.value = data.snapshots ?? [];
   } catch (error) {
     snapshots.value = [];
@@ -225,8 +289,8 @@ async function handleRefreshContainer() {
 const { data: bot, refetch: refetchBot } = useQuery({
   key: () => ["bot", botId.value],
   query: async () => {
-    const { data } = await getBotsById({ path: { id: botId.value }, throwOnError: true });
-    return data;
+    const response = await connectClients.bots.getBot({ id: botId.value });
+    return response.bot ?? null;
   },
   enabled: () => !!botId.value,
 });
@@ -327,7 +391,7 @@ function applyCreateContainerEvent(event: ContainerCreateStreamEvent): boolean {
 }
 
 async function createContainerSSE(
-  body: HandlersCreateContainerRequest,
+  body: CreateContainerRequest,
 ): Promise<{ dataRestored: boolean }> {
   const { stream } = await postBotsByBotIdContainerStream({
     path: { bot_id: botId.value },
@@ -354,7 +418,7 @@ async function handleCreateContainer() {
       throw new Error(t("bots.container.gpuDevicesRequired"));
     }
 
-    const body: HandlersCreateContainerRequest = {
+    const body: CreateContainerRequest = {
       restore_data: createRestoreData.value,
     };
     const trimmedImage = createImage.value.trim();
@@ -401,11 +465,12 @@ async function handleRecreateContainer() {
   containerAction.value = "recreate";
   try {
     createProgress.value = { phase: "preserving" };
-    await deleteBotsByBotIdContainer({
-      path: { bot_id: botId.value },
-      query: { preserve_data: true },
-      throwOnError: true,
-    });
+    await ensureOk(
+      await fetch(botRuntimeUrl("/container", new URLSearchParams({ preserve_data: "true" })), {
+        method: "DELETE",
+        headers: authHeaders(),
+      }),
+    );
 
     createProgress.value = { phase: "pulling" };
     await createContainerSSE({ restore_data: true });
@@ -425,7 +490,12 @@ async function handleStopContainer() {
   await runContainerAction(
     "stop",
     async () => {
-      await postBotsByBotIdContainerStop({ path: { bot_id: botId.value }, throwOnError: true });
+      await ensureOk(
+        await fetch(botRuntimeUrl("/container/stop"), {
+          method: "POST",
+          headers: authHeaders(),
+        }),
+      );
       await loadContainerData(false);
     },
     t("bots.container.stopSuccess"),
@@ -438,7 +508,12 @@ async function handleStartContainer() {
   await runContainerAction(
     "start",
     async () => {
-      await postBotsByBotIdContainerStart({ path: { bot_id: botId.value }, throwOnError: true });
+      await ensureOk(
+        await fetch(botRuntimeUrl("/container/start"), {
+          method: "POST",
+          headers: authHeaders(),
+        }),
+      );
       await loadContainerData(false);
     },
     t("bots.container.startSuccess"),
@@ -457,11 +532,18 @@ async function handleDeleteContainer(preserveData: boolean) {
   await runContainerAction(
     action,
     async () => {
-      await deleteBotsByBotIdContainer({
-        path: { bot_id: botId.value },
-        query: preserveData ? { preserve_data: true } : undefined,
-        throwOnError: true,
-      });
+      await ensureOk(
+        await fetch(
+          botRuntimeUrl(
+            "/container",
+            preserveData ? new URLSearchParams({ preserve_data: "true" }) : undefined,
+          ),
+          {
+            method: "DELETE",
+            headers: authHeaders(),
+          },
+        ),
+      );
       containerInfo.value = null;
       containerMetrics.value = null;
       containerMissing.value = true;
@@ -494,12 +576,13 @@ async function handleExportData() {
   await runContainerAction(
     "export",
     async () => {
-      const response = await postBotsByBotIdContainerDataExport({
-        path: { bot_id: botId.value },
-        parseAs: "blob",
-        throwOnError: true,
-      });
-      downloadBlob(response.data as unknown as Blob, buildExportFilename());
+      const blob = await readBlobResponse(
+        await fetch(botRuntimeUrl("/container/data/export"), {
+          method: "POST",
+          headers: authHeaders(),
+        }),
+      );
+      downloadBlob(blob, buildExportFilename());
     },
     t("bots.container.exportSuccess"),
   );
@@ -519,11 +602,15 @@ async function handleImportData(event: Event) {
   await runContainerAction(
     "import",
     async () => {
-      await postBotsByBotIdContainerDataImport({
-        path: { bot_id: botId.value },
-        body: { file },
-        throwOnError: true,
-      });
+      const body = new FormData();
+      body.set("file", file);
+      await ensureOk(
+        await fetch(botRuntimeUrl("/container/data/import"), {
+          method: "POST",
+          headers: authHeaders(),
+          body,
+        }),
+      );
       await loadContainerData(false);
     },
     t("bots.container.importSuccess"),
@@ -538,10 +625,12 @@ async function handleRestorePreservedData() {
   await runContainerAction(
     "restore",
     async () => {
-      await postBotsByBotIdContainerDataRestore({
-        path: { bot_id: botId.value },
-        throwOnError: true,
-      });
+      await ensureOk(
+        await fetch(botRuntimeUrl("/container/data/restore"), {
+          method: "POST",
+          headers: authHeaders(),
+        }),
+      );
       await loadContainerData(false);
     },
     t("bots.container.restoreSuccess"),
@@ -629,11 +718,13 @@ async function handleRollbackSnapshot(snapshot: BotContainerSnapshot) {
   await runContainerAction(
     "rollback",
     async () => {
-      await postBotsByBotIdContainerSnapshotsRollback({
-        path: { bot_id: botId.value },
-        body: { version: snapshot.version },
-        throwOnError: true,
-      });
+      await ensureOk(
+        await fetch(botRuntimeUrl("/container/snapshots/rollback"), {
+          method: "POST",
+          headers: authHeaders({ "Content-Type": "application/json" }),
+          body: JSON.stringify({ version: snapshot.version }),
+        }),
+      );
       await loadContainerData(false);
     },
     t("bots.container.rollbackSuccess"),
@@ -648,11 +739,13 @@ async function handleCreateSnapshot() {
   await runContainerAction(
     "snapshot",
     async () => {
-      await postBotsByBotIdContainerSnapshots({
-        path: { bot_id: botId.value },
-        body: { snapshot_name: newSnapshotName.value.trim() },
-        throwOnError: true,
-      });
+      await ensureOk(
+        await fetch(botRuntimeUrl("/container/snapshots"), {
+          method: "POST",
+          headers: authHeaders({ "Content-Type": "application/json" }),
+          body: JSON.stringify({ snapshot_name: newSnapshotName.value.trim() }),
+        }),
+      );
       newSnapshotName.value = "";
       await loadSnapshots();
     },

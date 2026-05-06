@@ -56,25 +56,78 @@ import ProviderForm from "./components/provider-form.vue";
 import ModelList from "./components/model-list.vue";
 import { computed, inject, provide, reactive, ref, toRef, watch } from "vue";
 import { useQuery, useMutation, useQueryCache } from "@pinia/colada";
-import {
-  putProvidersById,
-  deleteProvidersById,
-  getProvidersByIdModels,
-  deleteModelsById,
-} from "@stringke/sdk";
-import type {
-  ModelsGetResponse,
-  ProvidersGetResponse,
-  ProvidersUpdateRequest,
-} from "@stringke/sdk";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
+import { connectClients } from "@/lib/connect-client";
+import { resolveConnectErrorMessage } from "@/lib/connect-errors";
+import type { Model, Provider, ProviderModelSummary } from "@stringke/sdk/connect";
+
+type ProviderView = {
+  id?: string;
+  name?: string;
+  icon?: string;
+  enable?: boolean;
+  client_type?: string;
+  config?: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
+};
+
+type ModelView = {
+  id?: string;
+  provider_id?: string;
+  model_id?: string;
+  name?: string;
+  type?: string;
+  config?: {
+    compatibilities?: string[];
+    dimensions?: number;
+    context_window?: number;
+    reasoning_efforts?: string[];
+  };
+};
+
+function providerToView(provider: Provider): ProviderView {
+  return {
+    id: provider.id,
+    name: provider.displayName || provider.name,
+    enable: provider.enabled,
+    client_type: provider.clientType,
+    config: provider.config as Record<string, unknown> | undefined,
+  };
+}
+
+function modelToView(model: Model | ProviderModelSummary): ModelView {
+  const metadata = model.metadata as ModelView["config"] | undefined;
+  return {
+    id: model.id,
+    provider_id: model.providerId,
+    model_id: model.modelId,
+    name: model.displayName,
+    type: model.type,
+    config: {
+      ...metadata,
+      compatibilities: "modalities" in model ? model.modalities : metadata?.compatibilities,
+    },
+  };
+}
+
+function providerUpdatePayload(data: Record<string, unknown>) {
+  const config = data.config as Record<string, unknown> | undefined;
+  return {
+    displayName: typeof data.name === "string" ? data.name : undefined,
+    baseUrl: typeof config?.base_url === "string" ? config.base_url : undefined,
+    apiKey: typeof config?.api_key === "string" ? config.api_key : undefined,
+    clientType: typeof data.client_type === "string" ? data.client_type : undefined,
+    enabled: typeof data.enable === "boolean" ? data.enable : undefined,
+    config,
+  };
+}
 
 // ---- Model 编辑状态（provide 给 CreateModel） ----
 const openModel = reactive<{
   state: boolean;
   title: "title" | "edit";
-  curState: ModelsGetResponse | null;
+  curState: ModelView | null;
 }>({
   state: false,
   title: "title",
@@ -85,14 +138,14 @@ provide("openModel", toRef(openModel, "state"));
 provide("openModelTitle", toRef(openModel, "title"));
 provide("openModelState", toRef(openModel, "curState"));
 
-function handleEditModel(model: ModelsGetResponse) {
+function handleEditModel(model: ModelView) {
   openModel.state = true;
   openModel.title = "edit";
   openModel.curState = { ...model };
 }
 
 // ---- 当前 Provider ----
-const curProvider = inject("curProvider", ref<ProvidersGetResponse>());
+const curProvider = inject("curProvider", ref<ProviderView>());
 const curProviderId = computed(() => curProvider.value?.id);
 const enableLoading = ref(false);
 const { t } = useI18n();
@@ -113,7 +166,7 @@ function invalidateModelQueries() {
 const { mutate: deleteProvider, isLoading: deleteLoading } = useMutation({
   mutation: async () => {
     if (!curProviderId.value) return;
-    await deleteProvidersById({ path: { id: curProviderId.value }, throwOnError: true });
+    await connectClients.providers.deleteProvider({ id: curProviderId.value });
   },
   onSettled: invalidateProviderQueries,
 });
@@ -121,12 +174,11 @@ const { mutate: deleteProvider, isLoading: deleteLoading } = useMutation({
 const { mutate: changeProvider, isLoading: editLoading } = useMutation({
   mutation: async (data: Record<string, unknown>) => {
     if (!curProviderId.value) return;
-    const { data: result } = await putProvidersById({
-      path: { id: curProviderId.value },
-      body: data as ProvidersUpdateRequest,
-      throwOnError: true,
+    const result = await connectClients.providers.updateProvider({
+      id: curProviderId.value,
+      ...providerUpdatePayload(data),
     });
-    return result;
+    return result.provider ? providerToView(result.provider) : undefined;
   },
   onSettled: invalidateProviderQueries,
 });
@@ -142,18 +194,14 @@ async function handleToggleEnable(value: boolean) {
 
   enableLoading.value = true;
   try {
-    await putProvidersById({
-      path: { id: curProviderId.value },
-      body: { enable: value },
-      throwOnError: true,
-    });
+    await connectClients.providers.updateProvider({ id: curProviderId.value, enabled: value });
     invalidateProviderQueries();
-  } catch {
+  } catch (error) {
     curProvider.value = {
       ...curProvider.value,
       enable: prev,
     };
-    toast.error(t("common.saveFailed"));
+    toast.error(resolveConnectErrorMessage(error, t("common.saveFailed")));
   } finally {
     enableLoading.value = false;
   }
@@ -162,7 +210,7 @@ async function handleToggleEnable(value: boolean) {
 const { mutate: deleteModel, isLoading: deleteModelLoading } = useMutation({
   mutation: async (modelID: string) => {
     if (!modelID) return;
-    await deleteModelsById({ path: { id: modelID }, throwOnError: true });
+    await connectClients.models.deleteModel({ id: modelID });
   },
   onSettled: invalidateModelQueries,
 });
@@ -171,11 +219,10 @@ const { data: modelDataList } = useQuery({
   key: () => ["provider-models", curProviderId.value ?? ""],
   query: async () => {
     if (!curProviderId.value) return [];
-    const { data } = await getProvidersByIdModels({
-      path: { id: curProviderId.value },
-      throwOnError: true,
+    const response = await connectClients.providers.listProviderModels({
+      providerId: curProviderId.value,
     });
-    return data;
+    return response.models.map(modelToView);
   },
   enabled: () => !!curProviderId.value,
 });

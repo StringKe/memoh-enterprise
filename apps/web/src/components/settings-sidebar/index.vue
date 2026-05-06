@@ -52,6 +52,8 @@ import { useI18n } from "vue-i18n";
 import {
   ChevronLeft,
   Bot,
+  FolderKanban,
+  KeyRound,
   Boxes,
   Globe,
   Brain,
@@ -112,6 +114,8 @@ function isItemActive(name: string): boolean {
 
 const allNavItems: { title: string; name: string; icon: Component }[] = [
   { title: t("sidebar.bots"), name: "bots", icon: Bot },
+  { title: t("sidebar.botGroups"), name: "bot-groups", icon: FolderKanban },
+  { title: t("sidebar.integrationTokens"), name: "integration-tokens", icon: KeyRound },
   { title: t("sidebar.providers"), name: "providers", icon: Boxes },
   { title: t("sidebar.webSearch"), name: "web-search", icon: Globe },
   { title: t("sidebar.memory"), name: "memory", icon: Brain },

@@ -28,12 +28,12 @@
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useMutation, useQueryCache } from "@pinia/colada";
-import { postProvidersByIdImportModels } from "@stringke/sdk";
 import { toast } from "vue-sonner";
 import { FileInput } from "lucide-vue-next";
 import { Button } from "@stringke/ui";
 import FormDialogShell from "@/components/form-dialog-shell/index.vue";
-import { useDialogMutation } from "@/composables/useDialogMutation";
+import { connectClients } from "@/lib/connect-client";
+import { resolveConnectErrorMessage } from "@/lib/connect-errors";
 
 const props = defineProps<{
   providerId: string;
@@ -41,16 +41,11 @@ const props = defineProps<{
 
 const open = ref(false);
 const { t } = useI18n();
-const { run } = useDialogMutation();
 const queryCache = useQueryCache();
 
 const { mutateAsync: importModelsMutation, isLoading } = useMutation({
   mutation: async () => {
-    const { data } = await postProvidersByIdImportModels({
-      path: { id: props.providerId },
-      throwOnError: true,
-    });
-    return data;
+    return await connectClients.providers.importProviderModels({ id: props.providerId });
   },
   onSettled: () => {
     queryCache.invalidateQueries({ key: ["provider-models"] });
@@ -59,19 +54,19 @@ const { mutateAsync: importModelsMutation, isLoading } = useMutation({
 });
 
 async function handleImport() {
-  await run(() => importModelsMutation(), {
-    fallbackMessage: t("models.importFailed"),
-    onSuccess: (data) => {
-      if (data) {
-        toast.success(
-          t("models.importSuccess", {
-            created: data.created,
-            skipped: data.skipped,
-          }),
-        );
-      }
-      open.value = false;
-    },
-  });
+  try {
+    const data = await importModelsMutation();
+    if (data) {
+      toast.success(
+        t("models.importSuccess", {
+          created: data.models.length,
+          skipped: 0,
+        }),
+      );
+    }
+    open.value = false;
+  } catch (error) {
+    toast.error(resolveConnectErrorMessage(error, t("models.importFailed")));
+  }
 }
 </script>

@@ -15,22 +15,35 @@ import {
   EmptyTitle,
   Button,
 } from "@stringke/ui";
-import { getMemoryProviders } from "@stringke/sdk";
-import type { MemoryprovidersGetResponse } from "@stringke/sdk";
 import AddMemoryProvider from "./components/add-memory-provider.vue";
 import ProviderSetting from "./components/provider-setting.vue";
 import { Brain, Plus } from "lucide-vue-next";
 import MasterDetailSidebarLayout from "@/components/master-detail-sidebar-layout/index.vue";
+import { connectClients } from "@/lib/connect-client";
+
+type MemoryProviderView = {
+  id: string;
+  name: string;
+  type: string;
+  enabled: boolean;
+  config: Record<string, unknown>;
+};
 
 const { data: providerData } = useQuery({
   key: () => ["memory-providers"],
   query: async () => {
-    const { data } = await getMemoryProviders({ throwOnError: true });
-    return data;
+    const result = await connectClients.memoryProviders.listMemoryProviders({});
+    return result.providers.map((provider) => ({
+      id: provider.id,
+      name: provider.name,
+      type: provider.type,
+      enabled: provider.enabled,
+      config: provider.config ?? {},
+    }));
   },
 });
 
-const curProvider = ref<MemoryprovidersGetResponse>();
+const curProvider = ref<MemoryProviderView>();
 provide("curMemoryProvider", curProvider);
 
 const selectProvider = (value: string) =>

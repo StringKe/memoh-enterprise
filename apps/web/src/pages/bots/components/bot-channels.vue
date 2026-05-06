@@ -123,15 +123,37 @@ import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { Button, Popover, PopoverTrigger, PopoverContent, ScrollArea } from "@stringke/ui";
 import { useQuery } from "@pinia/colada";
-import { getChannels, getBotsByIdChannelByPlatform } from "@stringke/sdk";
-import type { HandlersChannelMeta, ChannelChannelConfig } from "@stringke/sdk";
+import type { BotChannelConfig, Channel } from "@stringke/sdk/connect";
 import ChannelSettingsPanel from "./channel-settings-panel.vue";
 import ChannelIcon from "@/components/channel-icon/index.vue";
+import { connectClients } from "@/lib/connect-client";
 import { channelTypeDisplayName } from "@/utils/channel-type-label";
 
+export type ChannelFieldSchema = {
+  type?: "string" | "secret" | "bool" | "number" | "enum";
+  required?: boolean;
+  order?: number;
+  title?: string;
+  description?: string;
+  enum?: string[];
+  example?: unknown;
+};
+
+export type ChannelConfigSchema = {
+  fields?: Record<string, ChannelFieldSchema>;
+  version?: number;
+};
+
+export type ChannelMeta = {
+  type: string;
+  display_name: string;
+  configless: boolean;
+  config_schema?: ChannelConfigSchema;
+};
+
 export interface BotChannelItem {
-  meta: HandlersChannelMeta;
-  config: ChannelChannelConfig | null;
+  meta: ChannelMeta;
+  config: BotChannelConfig | null;
   configured: boolean;
 }
 
@@ -141,7 +163,7 @@ const props = defineProps<{
 
 const { t } = useI18n();
 
-function channelTitle(meta: HandlersChannelMeta) {
+function channelTitle(meta: ChannelMeta) {
   return channelTypeDisplayName(t, meta.type, meta.display_name);
 }
 
@@ -154,25 +176,23 @@ const {
 } = useQuery({
   key: () => ["bot-channels", botIdRef.value],
   query: async (): Promise<BotChannelItem[]> => {
-    const { data: metas } = await getChannels({ throwOnError: true });
-    if (!metas) return [];
+    const response = await connectClients.channels.listChannels({});
+    const metas = response.channels.map(channelToMeta).filter((meta) => !meta.configless);
 
-    const configurableTypes = metas.filter((m) => !m.configless);
-
-    const results = await Promise.all(
-      configurableTypes.map(async (meta) => {
+    return await Promise.all(
+      metas.map(async (meta) => {
         try {
-          const { data: config } = await getBotsByIdChannelByPlatform({
-            path: { id: botIdRef.value, platform: meta.type ?? "" },
-            throwOnError: true,
+          const response = await connectClients.channels.getBotChannelConfig({
+            botId: botIdRef.value,
+            channel: meta.type,
           });
-          return { meta, config: config ?? null, configured: true } as BotChannelItem;
+          const config = response.config ?? null;
+          return { meta, config, configured: !!config } as BotChannelItem;
         } catch {
           return { meta, config: null, configured: false } as BotChannelItem;
         }
       }),
     );
-    return results;
   },
   enabled: () => !!botIdRef.value,
 });
@@ -213,5 +233,24 @@ watch(
 function addChannel(type: string) {
   addPopoverOpen.value = false;
   selectedType.value = type;
+}
+
+function channelToMeta(channel: Channel): ChannelMeta {
+  const metadata = channel.metadata ?? {};
+  return {
+    type: channel.id,
+    display_name: channel.displayName,
+    configless: metadata.configless === true,
+    config_schema: normalizeChannelConfigSchema(metadata.config_schema ?? metadata.configSchema),
+  };
+}
+
+function normalizeChannelConfigSchema(value: unknown): ChannelConfigSchema | undefined {
+  if (!value || typeof value !== "object") return undefined;
+  const schema = value as ChannelConfigSchema;
+  return {
+    version: typeof schema.version === "number" ? schema.version : undefined,
+    fields: schema.fields && typeof schema.fields === "object" ? schema.fields : {},
+  };
 }
 </script>

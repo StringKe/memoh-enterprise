@@ -116,14 +116,10 @@ import { useQuery, useQueryCache } from "@pinia/colada";
 import { toast } from "vue-sonner";
 import { Sparkles, ExternalLink, Loader2, Minimize2 } from "lucide-vue-next";
 import { ScrollArea } from "@stringke/ui";
-import {
-  getBotsByBotIdContainerSkills,
-  postBotsByBotIdSessionsBySessionIdCompact,
-} from "@stringke/sdk";
-import type { HandlersSkillItem } from "@stringke/sdk";
 import { resolveApiErrorMessage } from "@/utils/api-error";
 import { openInFileManagerKey } from "../composables/useFileManagerProvider";
 import { useSessionInfo } from "../composables/useSessionInfo";
+import { apiHttpUrl } from "@/lib/runtime-url";
 
 const props = defineProps<{
   visible: boolean;
@@ -134,10 +130,20 @@ const { t } = useI18n();
 const openInFileManager = inject(openInFileManagerKey, undefined);
 const queryCache = useQueryCache();
 
-type SkillItem = HandlersSkillItem & {
+type SkillItem = {
+  name?: string;
   source_path?: string;
+  source_kind?: string;
   state?: string;
 };
+
+function authHeaders(extra?: HeadersInit): HeadersInit {
+  const token = localStorage.getItem("token") || "";
+  return {
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...extra,
+  };
+}
 
 const visibleRef = toRef(props, "visible");
 const overrideModelIdRef = computed(() => props.overrideModelId ?? "");
@@ -152,13 +158,18 @@ const { info, usedTokens, contextWindow, contextPercent, currentBotId, sessionId
 const { data: skillCatalog } = useQuery({
   key: () => ["bot-skills-catalog", currentBotId.value ?? ""],
   query: async () => {
-    const { data } = await getBotsByBotIdContainerSkills({
-      path: {
-        bot_id: currentBotId.value!,
+    const response = await fetch(
+      apiHttpUrl(`/bots/${encodeURIComponent(currentBotId.value!)}/container/skills`),
+      {
+        headers: authHeaders(),
       },
-      throwOnError: true,
-    });
-    return (data.skills || []) as SkillItem[];
+    );
+    if (!response.ok) {
+      const message = await response.text();
+      throw new Error(message || `Request failed with status ${response.status}`);
+    }
+    const data = (await response.json()) as { skills?: SkillItem[] };
+    return data.skills ?? [];
   },
   enabled: () => !!currentBotId.value && props.visible,
   refetchOnWindowFocus: false,
@@ -207,10 +218,17 @@ async function triggerCompact() {
 
   isCompacting.value = true;
   try {
-    await postBotsByBotIdSessionsBySessionIdCompact({
-      path: { bot_id: botId, session_id: sid },
-      throwOnError: true,
-    });
+    const response = await fetch(
+      apiHttpUrl(`/bots/${encodeURIComponent(botId)}/sessions/${encodeURIComponent(sid)}/compact`),
+      {
+        method: "POST",
+        headers: authHeaders(),
+      },
+    );
+    if (!response.ok) {
+      const message = await response.text();
+      throw new Error(message || `Request failed with status ${response.status}`);
+    }
     toast.success(t("chat.compactSuccess"));
     queryCache.invalidateQueries({ key: ["session-status", botId, sid] });
   } catch (error) {

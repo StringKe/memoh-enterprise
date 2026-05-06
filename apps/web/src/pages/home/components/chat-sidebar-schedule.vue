@@ -99,8 +99,9 @@ import { toast } from "vue-sonner";
 import { useQuery, useQueryCache } from "@pinia/colada";
 import { CalendarClock, Plus, RefreshCw, ExternalLink } from "lucide-vue-next";
 import { Button, ScrollArea, Switch } from "@stringke/ui";
-import { getBotsByBotIdSchedule, putBotsByBotIdScheduleById } from "@stringke/sdk";
-import type { ScheduleSchedule } from "@stringke/sdk";
+import type { ScheduleTask } from "@stringke/sdk/connect";
+import type { JsonObject } from "@bufbuild/protobuf";
+import { connectClients } from "@/lib/connect-client";
 import { resolveApiErrorMessage } from "@/utils/api-error";
 
 const props = defineProps<{
@@ -114,24 +115,33 @@ const queryCache = useQueryCache();
 const togglingId = ref<string | null>(null);
 const localOverrides = ref<Record<string, boolean>>({});
 
+interface ScheduleView {
+  id: string;
+  name: string;
+  description: string;
+  pattern: string;
+  enabled: boolean;
+  max_calls: number | null;
+  current_calls: number;
+}
+
 const { data, isLoading, error } = useQuery({
   key: () => ["bot-schedule", props.botId],
   query: async () => {
-    const { data: resp } = await getBotsByBotIdSchedule({
-      path: { bot_id: props.botId },
-      throwOnError: true,
+    const response = await connectClients.schedule.listSchedules({
+      botId: props.botId,
     });
-    return (resp.items ?? []) as ScheduleSchedule[];
+    return response.schedules.map(scheduleFromProto);
   },
   enabled: () => !!props.botId,
   refetchOnWindowFocus: false,
 });
 
-const items = computed<ScheduleSchedule[]>(() => {
+const items = computed<ScheduleView[]>(() => {
   const list = data.value ?? [];
   const overrides = localOverrides.value;
   return list.map((item) => {
-    const id = item.id ?? "";
+    const id = item.id;
     return id && overrides[id] !== undefined ? { ...item, enabled: overrides[id]! } : item;
   });
 });
@@ -147,7 +157,7 @@ watch(
     if (Object.keys(localOverrides.value).length === 0) return;
     const next = { ...localOverrides.value };
     for (const item of list) {
-      const id = item.id ?? "";
+      const id = item.id;
       if (!id) continue;
       if (next[id] !== undefined && next[id] === item.enabled) {
         delete next[id];
@@ -169,23 +179,22 @@ function goToSettings() {
   });
 }
 
-function callsLabel(item: ScheduleSchedule): string {
+function callsLabel(item: ScheduleView): string {
   const max = item.max_calls ?? 0;
   if (!max || max <= 0) return "";
-  const cur = item.current_calls ?? 0;
+  const cur = item.current_calls;
   return `${cur}/${max}`;
 }
 
-async function onToggle(item: ScheduleSchedule, nextValue: boolean) {
+async function onToggle(item: ScheduleView, nextValue: boolean) {
   const id = item.id;
   if (!id || togglingId.value) return;
   togglingId.value = id;
   localOverrides.value = { ...localOverrides.value, [id]: nextValue };
   try {
-    await putBotsByBotIdScheduleById({
-      path: { bot_id: props.botId, id },
-      body: { enabled: nextValue },
-      throwOnError: true,
+    await connectClients.schedule.updateSchedule({
+      id,
+      enabled: nextValue,
     });
     queryCache.invalidateQueries({ key: ["bot-schedule", props.botId] });
   } catch (err) {
@@ -196,5 +205,33 @@ async function onToggle(item: ScheduleSchedule, nextValue: boolean) {
   } finally {
     togglingId.value = null;
   }
+}
+
+function scheduleFromProto(task: ScheduleTask): ScheduleView {
+  const metadata = task.metadata ?? {};
+  return {
+    id: task.id,
+    name: task.name,
+    description: getStringMetadata(metadata, "description"),
+    pattern: task.cron,
+    enabled: task.enabled,
+    max_calls: getPositiveNumberMetadata(metadata, "max_calls"),
+    current_calls: getNumberMetadata(metadata, "current_calls"),
+  };
+}
+
+function getStringMetadata(metadata: JsonObject, key: string): string {
+  const value = metadata[key];
+  return typeof value === "string" ? value : "";
+}
+
+function getNumberMetadata(metadata: JsonObject, key: string): number {
+  const value = metadata[key];
+  return typeof value === "number" ? value : 0;
+}
+
+function getPositiveNumberMetadata(metadata: JsonObject, key: string): number | null {
+  const value = metadata[key];
+  return typeof value === "number" && value > 0 ? value : null;
 }
 </script>

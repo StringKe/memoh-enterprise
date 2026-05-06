@@ -233,8 +233,8 @@ import { useChatStore } from "@/store/chat-list";
 import { storeToRefs } from "pinia";
 import { useScroll, useElementBounding, useIntersectionObserver } from "@vueuse/core";
 import { useQuery } from "@pinia/colada";
-import { getModels, getProviders, getBotsByBotIdSettings } from "@stringke/sdk";
-import type { ModelsGetResponse, ProvidersGetResponse } from "@stringke/sdk";
+import type { JsonObject } from "@bufbuild/protobuf";
+import type { BotSettings, Model, Provider } from "@stringke/sdk/connect";
 import { useI18n } from "vue-i18n";
 import MessageItem from "./message-item.vue";
 import MediaGalleryLightbox from "./media-gallery-lightbox.vue";
@@ -244,6 +244,7 @@ import ReasoningEffortSelect from "@/pages/bots/components/reasoning-effort-sele
 import { EFFORT_LABELS, EFFORT_OPACITY } from "@/pages/bots/components/reasoning-effort";
 import { useMediaGallery } from "../composables/useMediaGallery";
 import type { ChatAttachment } from "@/composables/api/useChat";
+import { connectClients } from "@/lib/connect-client";
 
 const { t } = useI18n();
 const chatStore = useChatStore();
@@ -268,54 +269,52 @@ const {
 const { data: modelData } = useQuery({
   key: ["models"],
   query: async () => {
-    const { data } = await getModels({ throwOnError: true });
-    return data;
+    const response = await connectClients.models.listModels({});
+    return response.models;
   },
 });
 
 const { data: providerData } = useQuery({
   key: ["providers"],
   query: async () => {
-    const { data } = await getProviders({ throwOnError: true });
-    return data;
+    const response = await connectClients.providers.listProviders({});
+    return response.providers;
   },
 });
 
 const { data: botSettings } = useQuery({
   key: () => ["bot-settings", currentBotId.value],
   query: async () => {
-    const { data } = await (getBotsByBotIdSettings as any)({
-      path: { bot_id: currentBotId.value! },
-      throwOnError: true,
+    const response = await connectClients.settings.getBotSettings({
+      botId: currentBotId.value!,
     });
-    return data as import("@stringke/sdk").SettingsSettings | undefined;
+    return response.settings?.settings;
   },
   enabled: () => !!currentBotId.value,
 });
 
-const models = computed<ModelsGetResponse[]>(() => modelData.value ?? []);
-const providers = computed<ProvidersGetResponse[]>(() => providerData.value ?? []);
+const models = computed<Model[]>(() => modelData.value ?? []);
+const providers = computed<Provider[]>(() => providerData.value ?? []);
 
 const activeModel = computed(() => {
-  const id = overrideModelId.value || botSettings.value?.chat_model_id || "";
+  const id = overrideModelId.value || botSettings.value?.chatModelId || "";
   return models.value.find((m) => m.id === id);
 });
 
 const activeModelSupportsReasoning = computed(
-  () => !!activeModel.value?.config?.compatibilities?.includes("reasoning"),
+  () => !!getStringArray(activeModel.value?.metadata, "compatibilities")?.includes("reasoning"),
 );
 
 const availableReasoningEfforts = computed(() => {
-  const efforts = (
-    (activeModel.value?.config as { reasoning_efforts?: string[] } | undefined)
-      ?.reasoning_efforts ?? []
-  ).filter((e) => ["none", "low", "medium", "high", "xhigh"].includes(e));
+  const efforts = getStringArray(activeModel.value?.reasoning, "reasoning_efforts").filter((e) =>
+    ["none", "low", "medium", "high", "xhigh"].includes(e),
+  );
   return efforts.length > 0 ? efforts : ["low", "medium", "high"];
 });
 
 const selectedModelLabel = computed(() => {
   const m = models.value.find((m) => m.id === overrideModelId.value);
-  return m?.name || m?.model_id || t("chat.modelDefault");
+  return m?.displayName || m?.modelId || t("chat.modelDefault");
 });
 
 const selectedReasoningLabel = computed(() => {
@@ -331,15 +330,20 @@ const reasoningTriggerOpacity = computed(
 function initFromBotSettings() {
   if (!botSettings.value) return;
   if (!overrideModelId.value) {
-    overrideModelId.value = botSettings.value.chat_model_id ?? "";
+    overrideModelId.value = botSettings.value.chatModelId ?? "";
   }
   if (!overrideReasoningEffort.value) {
-    if (botSettings.value.reasoning_enabled && botSettings.value.reasoning_effort) {
-      overrideReasoningEffort.value = botSettings.value.reasoning_effort;
+    if (botSettings.value.reasoningEnabled && botSettings.value.reasoningEffort) {
+      overrideReasoningEffort.value = botSettings.value.reasoningEffort;
     } else {
       overrideReasoningEffort.value = "off";
     }
   }
+}
+
+function getStringArray(value: JsonObject | undefined, key: string): string[] {
+  const item = value?.[key];
+  return Array.isArray(item) ? item.filter((v): v is string => typeof v === "string") : [];
 }
 
 watch(botSettings, () => initFromBotSettings(), { immediate: true });

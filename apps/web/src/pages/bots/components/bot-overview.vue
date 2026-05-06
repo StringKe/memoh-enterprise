@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
-import { type BotsBotCheck, getBotsByIdChecks, getBotsById } from "@stringke/sdk";
+import type { BotCheck } from "@stringke/sdk/connect";
 import { useRoute } from "vue-router";
 import { toast } from "vue-sonner";
 import { resolveApiErrorMessage } from "@/utils/api-error";
 import { useBotStatusMeta } from "@/composables/useBotStatusMeta";
-import { useQuery } from "@pinia/colada";
 import { useI18n } from "vue-i18n";
 import { Badge, Button, Spinner } from "@stringke/ui";
 import { useSyncedQueryParam } from "@/composables/useSyncedQueryParam";
+import { connectClients } from "@/lib/connect-client";
+import { useConnectQuery } from "@/lib/connect-colada";
 
 const checksLoading = ref(false);
 
@@ -34,22 +35,20 @@ watch(
 );
 
 const { t } = useI18n();
-const { data: bot } = useQuery({
+const { data: bot } = useConnectQuery({
   key: () => ["bot", botId.value],
   query: async () => {
-    const { data } = await getBotsById({ path: { id: botId.value }, throwOnError: true });
-    return data;
+    const response = await connectClients.bots.getBot({ id: botId.value });
+    return response.bot ?? null;
   },
   enabled: () => !!botId.value,
 });
 
 const { hasIssue } = useBotStatusMeta(bot, t);
 
-type BotCheck = BotsBotCheck;
-
 async function fetchChecks(id: string): Promise<BotCheck[]> {
-  const { data } = await getBotsByIdChecks({ path: { id }, throwOnError: true });
-  return data?.items ?? [];
+  const response = await connectClients.bots.listBotChecks({ botId: id });
+  return response.checks;
 }
 
 async function loadChecks(showToast: boolean) {
@@ -95,14 +94,14 @@ function checkStatusLabel(status: BotCheck["status"]): string {
 }
 
 function checkTitleLabel(item: BotCheck): string {
-  const titleKey = (item.title_key ?? "").trim();
+  const titleKey = item.titleKey.trim();
   if (titleKey) {
     const translated = t(titleKey);
     if (translated !== titleKey) {
       return translated;
     }
   }
-  return (item.type ?? "").trim() || (item.id ?? "").trim() || "-";
+  return item.type.trim() || item.id.trim() || "-";
 }
 
 function checkStatusVariant(status: BotCheck["status"]): "default" | "secondary" | "destructive" {

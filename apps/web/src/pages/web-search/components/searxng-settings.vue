@@ -6,7 +6,7 @@
         id="searxng-base-url"
         v-model="localConfig.base_url"
         aria-label="Base URL"
-        placeholder="http://localhost:8080/search"
+        placeholder="http://localhost:26810/search"
       />
     </div>
     <div class="space-y-2">

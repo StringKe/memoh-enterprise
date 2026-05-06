@@ -130,16 +130,14 @@ import ConfirmPopover from "@/components/confirm-popover/index.vue";
 import ProfileSection from "./components/profile-section.vue";
 import PasswordSection from "./components/password-section.vue";
 import BindCodeSection from "./components/bind-code-section.vue";
-import { getUsersMe, putUsersMe, putUsersMePassword, getUsersMeIdentities } from "@stringke/sdk";
-import { client } from "@stringke/sdk/client";
 import type {
-  AccountsAccount,
-  AccountsUpdateProfileRequest,
-  AccountsUpdatePasswordRequest,
-  IdentitiesChannelIdentity,
-} from "@stringke/sdk";
+  TimestampMessage,
+  User as ConnectUser,
+  UserIdentity as ConnectUserIdentity,
+} from "@stringke/sdk/connect";
+import { connectClients } from "@/lib/connect-client";
+import { resolveConnectErrorMessage } from "@/lib/connect-errors";
 import { useUserStore } from "@/store/user";
-import { resolveApiErrorMessage } from "@/utils/api-error";
 import { formatDateTime } from "@/utils/date-time";
 import { useClipboard } from "@/composables/useClipboard";
 import { useAvatarInitials } from "@/composables/useAvatarInitials";
@@ -151,7 +149,22 @@ interface IssueBindCodeResponse {
   expires_at: string;
 }
 
-type UserAccount = AccountsAccount;
+type UserAccount = {
+  id: string;
+  username: string;
+  email: string;
+  role: string;
+  display_name: string;
+  avatar_url: string;
+  timezone: string;
+};
+
+type LinkedIdentity = {
+  id: string;
+  channel: string;
+  channel_subject_id: string;
+  display_name: string;
+};
 
 const anyPlatformValue = "__all__";
 
@@ -163,7 +176,7 @@ const { userInfo, exitLogin, patchUserInfo } = userStore;
 
 // ---- User data ----
 const account = ref<UserAccount | null>(null);
-const identities = ref<IdentitiesChannelIdentity[]>([]);
+const identities = ref<LinkedIdentity[]>([]);
 const bindCode = ref<IssueBindCodeResponse | null>(null);
 
 const loadingInitial = ref(false);
@@ -233,26 +246,27 @@ async function loadPageData() {
 }
 
 async function loadMyAccount() {
-  const { data } = await getUsersMe({ throwOnError: true });
+  const response = await connectClients.users.getCurrentUser({});
+  const data = toUserAccount(response.user);
   account.value = data;
-  profileForm.display_name = data.display_name || "";
-  profileForm.avatar_url = data.avatar_url || "";
-  profileForm.timezone = data.timezone || "UTC";
+  profileForm.display_name = data.display_name;
+  profileForm.avatar_url = data.avatar_url;
+  profileForm.timezone = data.timezone;
   patchUserInfo({
     id: data.id,
     username: data.username,
     role: data.role,
-    displayName: data.display_name || "",
-    avatarUrl: data.avatar_url || "",
-    timezone: data.timezone || "UTC",
+    displayName: data.display_name,
+    avatarUrl: data.avatar_url,
+    timezone: data.timezone,
   });
 }
 
 async function loadMyIdentities() {
   loadingIdentities.value = true;
   try {
-    const { data } = await getUsersMeIdentities({ throwOnError: true });
-    identities.value = data.items ?? [];
+    const response = await connectClients.users.listMyIdentities({});
+    identities.value = response.identities.map(toLinkedIdentity);
   } finally {
     loadingIdentities.value = false;
   }
@@ -261,26 +275,24 @@ async function loadMyIdentities() {
 async function onSaveProfile() {
   savingProfile.value = true;
   try {
-    const body: AccountsUpdateProfileRequest = {
-      display_name: profileForm.display_name.trim(),
-      avatar_url: profileForm.avatar_url.trim(),
+    const response = await connectClients.users.updateCurrentUser({
+      displayName: profileForm.display_name.trim(),
+      avatarUrl: profileForm.avatar_url.trim(),
       timezone: profileForm.timezone.trim(),
-    };
-    const { data } = await putUsersMe({ body, throwOnError: true });
+    });
+    const data = toUserAccount(response.user);
     account.value = data;
-    profileForm.display_name = data.display_name || "";
-    profileForm.avatar_url = data.avatar_url || "";
-    profileForm.timezone = data.timezone || "UTC";
+    profileForm.display_name = data.display_name;
+    profileForm.avatar_url = data.avatar_url;
+    profileForm.timezone = data.timezone;
     patchUserInfo({
-      displayName: data.display_name || "",
-      avatarUrl: data.avatar_url || "",
-      timezone: data.timezone || "UTC",
+      displayName: data.display_name,
+      avatarUrl: data.avatar_url,
+      timezone: data.timezone,
     });
     toast.success(t("settings.profileUpdated"));
   } catch (error) {
-    toast.error(
-      resolveApiErrorMessage(error, t("settings.profileUpdateFailed"), { prefixFallback: true }),
-    );
+    toast.error(resolveConnectErrorMessage(error, t("settings.profileUpdateFailed")));
   } finally {
     savingProfile.value = false;
   }
@@ -300,19 +312,16 @@ async function onUpdatePassword() {
   }
   savingPassword.value = true;
   try {
-    const body: AccountsUpdatePasswordRequest = {
-      current_password: currentPassword,
-      new_password: newPassword,
-    };
-    await putUsersMePassword({ body, throwOnError: true });
+    await connectClients.users.updateCurrentUserPassword({
+      currentPassword,
+      newPassword,
+    });
     passwordForm.currentPassword = "";
     passwordForm.newPassword = "";
     passwordForm.confirmPassword = "";
     toast.success(t("settings.passwordUpdated"));
   } catch (error) {
-    toast.error(
-      resolveApiErrorMessage(error, t("settings.passwordUpdateFailed"), { prefixFallback: true }),
-    );
+    toast.error(resolveConnectErrorMessage(error, t("settings.passwordUpdateFailed")));
   } finally {
     savingPassword.value = false;
   }
@@ -328,20 +337,18 @@ async function onGenerateBindCode() {
     const ttl = Number.isFinite(bindForm.ttlSeconds)
       ? Math.max(60, Number(bindForm.ttlSeconds))
       : 3600;
-    const { data } = await client.post<IssueBindCodeResponse>({
-      url: "/users/me/bind_codes",
-      body: {
-        platform: bindForm.platform || undefined,
-        ttl_seconds: ttl,
-      },
-      throwOnError: true,
+    const response = await connectClients.users.issueBindCode({
+      channel: bindForm.platform,
+      ttlSeconds: ttl,
     });
-    bindCode.value = data;
+    bindCode.value = {
+      token: response.bindCode?.code ?? "",
+      platform: response.bindCode?.channel || undefined,
+      expires_at: timestampToIso(response.bindCode?.expiresAt),
+    };
     toast.success(t("settings.bindCodeGenerated"));
   } catch (error) {
-    toast.error(
-      resolveApiErrorMessage(error, t("settings.bindCodeGenerateFailed"), { prefixFallback: true }),
-    );
+    toast.error(resolveConnectErrorMessage(error, t("settings.bindCodeGenerateFailed")));
   } finally {
     generatingBindCode.value = false;
   }
@@ -370,5 +377,31 @@ function formatDate(value: string) {
 function onLogout() {
   exitLogin();
   void router.replace({ name: "Login" });
+}
+
+function toUserAccount(user?: ConnectUser): UserAccount {
+  return {
+    id: user?.id ?? "",
+    username: user?.username ?? "",
+    email: user?.email ?? "",
+    role: user?.role ?? "",
+    display_name: user?.displayName ?? "",
+    avatar_url: user?.avatarUrl ?? "",
+    timezone: user?.timezone || "UTC",
+  };
+}
+
+function toLinkedIdentity(identity: ConnectUserIdentity): LinkedIdentity {
+  return {
+    id: identity.id,
+    channel: identity.channel,
+    channel_subject_id: identity.externalId,
+    display_name: identity.displayName,
+  };
+}
+
+function timestampToIso(value?: TimestampMessage): string {
+  if (!value) return "";
+  return new Date(Number(value.seconds) * 1000 + Math.floor(value.nanos / 1_000_000)).toISOString();
 }
 </script>

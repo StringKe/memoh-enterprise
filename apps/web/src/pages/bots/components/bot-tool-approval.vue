@@ -8,6 +8,12 @@
         <p class="max-w-2xl text-xs leading-relaxed text-muted-foreground">
           {{ $t("bots.toolApproval.intro") }}
         </p>
+        <InheritanceField
+          :fields="[FIELD_TOOL_APPROVAL_CONFIG]"
+          :sources="effectiveSettings?.sources"
+          :loading="restoreLoading"
+          @restore="handleRestoreInheritance([FIELD_TOOL_APPROVAL_CONFIG])"
+        />
       </div>
       <Switch
         :model-value="form.tool_approval_config.enabled"
@@ -123,10 +129,11 @@ import type { Component, Ref } from "vue";
 import { toast } from "vue-sonner";
 import { useI18n } from "vue-i18n";
 import { useQuery, useMutation, useQueryCache } from "@pinia/colada";
-import { getBotsByBotIdSettings, putBotsByBotIdSettings } from "@stringke/sdk";
-import type { SettingsSettings } from "@stringke/sdk";
+import type { BotSettings } from "@stringke/sdk/connect";
 import SettingsShell from "@/components/settings-shell/index.vue";
 import { resolveApiErrorMessage } from "@/utils/api-error";
+import { connectClients } from "@/lib/connect-client";
+import InheritanceField from "./inheritance-field.vue";
 
 const props = defineProps<{
   botId: string;
@@ -186,28 +193,37 @@ const botIdRef = computed(() => props.botId) as Ref<string>;
 
 const queryCache = useQueryCache();
 
-const { data: settings } = useQuery({
+const FIELD_TOOL_APPROVAL_CONFIG = "tool_approval_config";
+
+const { data: effectiveSettings } = useQuery({
   key: () => ["bot-settings", botIdRef.value],
   query: async () => {
-    const { data } = await getBotsByBotIdSettings({
-      path: { bot_id: botIdRef.value },
-      throwOnError: true,
-    });
-    return data;
+    const response = await connectClients.settings.getBotSettings({ botId: botIdRef.value });
+    return response.settings;
   },
   enabled: () => !!botIdRef.value,
 });
 
+const settings = computed(() => effectiveSettings.value?.settings);
+
 const { mutateAsync: updateSettings, isLoading: saveLoading } = useMutation({
-  mutation: async (
-    body: Partial<SettingsSettings> & { tool_approval_config?: ToolApprovalConfig },
-  ) => {
-    const { data } = await putBotsByBotIdSettings({
-      path: { bot_id: botIdRef.value },
-      body,
-      throwOnError: true,
+  mutation: async (body: Partial<BotSettings> & { toolApprovalConfig?: ToolApprovalConfig }) => {
+    const response = await connectClients.settings.updateBotSettings({
+      botId: botIdRef.value,
+      settings: body,
     });
-    return data;
+    return response.settings?.settings;
+  },
+  onSettled: () => queryCache.invalidateQueries({ key: ["bot-settings", botIdRef.value] }),
+});
+
+const { mutateAsync: restoreInheritance, isLoading: restoreLoading } = useMutation({
+  mutation: async (fields: string[]) => {
+    const response = await connectClients.settings.restoreBotSettingsInheritance({
+      botId: botIdRef.value,
+      fields,
+    });
+    return response.settings;
   },
   onSettled: () => queryCache.invalidateQueries({ key: ["bot-settings", botIdRef.value] }),
 });
@@ -308,7 +324,7 @@ watch(
   (val) => {
     if (val) {
       form.tool_approval_config = normalizeToolApprovalConfig(
-        (val as SettingsSettings & { tool_approval_config?: unknown }).tool_approval_config,
+        (val as BotSettings & { toolApprovalConfig?: unknown }).toolApprovalConfig,
       );
     }
   },
@@ -318,17 +334,26 @@ watch(
 const hasChanges = computed(() => {
   if (!settings.value) return false;
   const current = normalizeToolApprovalConfig(
-    (settings.value as SettingsSettings & { tool_approval_config?: unknown }).tool_approval_config,
+    (settings.value as BotSettings & { toolApprovalConfig?: unknown }).toolApprovalConfig,
   );
   return JSON.stringify(form.tool_approval_config) !== JSON.stringify(current);
 });
 
 async function handleSave() {
   try {
-    await updateSettings({ tool_approval_config: form.tool_approval_config });
+    await updateSettings({ toolApprovalConfig: form.tool_approval_config });
     toast.success(t("bots.settings.saveSuccess"));
   } catch (error) {
     toast.error(resolveApiErrorMessage(error, t("common.saveFailed")));
+  }
+}
+
+async function handleRestoreInheritance(fields: string[]) {
+  try {
+    await restoreInheritance(fields);
+    toast.success(t("bots.settings.inheritance.restoreSuccess"));
+  } catch (error) {
+    toast.error(resolveApiErrorMessage(error, t("bots.settings.inheritance.restoreFailed")));
   }
 }
 </script>

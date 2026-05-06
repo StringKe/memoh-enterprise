@@ -1,5 +1,5 @@
-import { client } from "@stringke/sdk/client";
 import type { ChatAttachment, UIStreamEvent, UIStreamEventHandler } from "./useChat.types";
+import { apiWebSocketUrl } from "../../lib/runtime-url";
 
 export interface WSClientMessage {
   type: "message" | "abort" | "tool_approval_response";
@@ -25,25 +25,7 @@ export interface ChatWebSocket {
 }
 
 function resolveWebSocketUrl(botId: string): string {
-  const baseUrl = String(client.getConfig().baseUrl || "").trim();
-  const path = `/bots/${encodeURIComponent(botId)}/web/ws`;
-
-  if (!baseUrl || baseUrl.startsWith("/")) {
-    const loc = window.location;
-    const proto = loc.protocol === "https:" ? "wss:" : "ws:";
-    const base = baseUrl || "/api";
-    return `${proto}//${loc.host}${base.replace(/\/+$/, "")}${path}`;
-  }
-
-  try {
-    const url = new URL(path, baseUrl);
-    url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
-    return url.toString();
-  } catch {
-    const loc = window.location;
-    const proto = loc.protocol === "https:" ? "wss:" : "ws:";
-    return `${proto}//${loc.host}/api${path}`;
-  }
+  return apiWebSocketUrl(`/bots/${encodeURIComponent(botId)}/web/ws`);
 }
 
 export function connectWebSocket(

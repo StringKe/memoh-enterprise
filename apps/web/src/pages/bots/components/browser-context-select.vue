@@ -47,13 +47,13 @@
 import { AppWindow, Search } from "lucide-vue-next";
 import { Button } from "@stringke/ui";
 import { computed } from "vue";
-import type { BrowsercontextsBrowserContext } from "@stringke/sdk";
+import type { BrowserContext } from "@stringke/sdk/connect";
 import { useI18n } from "vue-i18n";
 import SearchableSelectPopover from "@/components/searchable-select-popover/index.vue";
 import type { SearchableSelectOption } from "@/components/searchable-select-popover/index.vue";
 
 const props = defineProps<{
-  contexts: BrowsercontextsBrowserContext[];
+  contexts: BrowserContext[];
   placeholder?: string;
 }>();
 const { t } = useI18n();

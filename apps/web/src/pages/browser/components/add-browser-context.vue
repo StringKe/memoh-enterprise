@@ -43,26 +43,20 @@ import { toTypedSchema } from "@vee-validate/zod";
 import z from "zod";
 import { useForm } from "vee-validate";
 import { useMutation, useQueryCache } from "@pinia/colada";
-import { postBrowserContexts } from "@stringke/sdk";
-import type { BrowsercontextsCreateRequest } from "@stringke/sdk";
 import { useI18n } from "vue-i18n";
 import { Plus } from "lucide-vue-next";
 import FormDialogShell from "@/components/form-dialog-shell/index.vue";
-import { useDialogMutation } from "@/composables/useDialogMutation";
+import { connectClients } from "@/lib/connect-client";
+import { resolveConnectErrorMessage } from "@/lib/connect-errors";
+import { toast } from "vue-sonner";
 
 const open = defineModel<boolean>("open");
 const { t } = useI18n();
-const { run } = useDialogMutation();
 
 const queryCache = useQueryCache();
 const { mutateAsync: createMutation, isLoading } = useMutation({
-  mutation: async (data: { name: string }) => {
-    const { data: result } = await postBrowserContexts({
-      body: { name: data.name } as BrowsercontextsCreateRequest,
-      throwOnError: true,
-    });
-    return result;
-  },
+  mutation: (data: { name: string }) =>
+    connectClients.browserContexts.createBrowserContext({ name: data.name }),
   onSettled: () =>
     queryCache.invalidateQueries({ key: ["browser-contexts"] }).catch((err) => {
       console.error(err);
@@ -81,11 +75,11 @@ const schema = toTypedSchema(
 const form = useForm({ validationSchema: schema });
 
 const handleCreate = form.handleSubmit(async (value) => {
-  await run(() => createMutation(value), {
-    fallbackMessage: t("common.saveFailed"),
-    onSuccess: () => {
-      open.value = false;
-    },
-  });
+  try {
+    await createMutation(value);
+    open.value = false;
+  } catch (err) {
+    toast.error(resolveConnectErrorMessage(err, t("common.saveFailed")));
+  }
 });
 </script>

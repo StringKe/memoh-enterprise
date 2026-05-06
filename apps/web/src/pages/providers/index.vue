@@ -17,12 +17,32 @@ import {
   Button,
   Badge,
 } from "@stringke/ui";
-import { getProviders } from "@stringke/sdk";
-import type { ProvidersGetResponse } from "@stringke/sdk";
 import AddProvider from "@/components/add-provider/index.vue";
 import ProviderIcon from "@/components/provider-icon/index.vue";
 import { List } from "lucide-vue-next";
 import MasterDetailSidebarLayout from "@/components/master-detail-sidebar-layout/index.vue";
+import { connectClients } from "@/lib/connect-client";
+import type { Provider } from "@stringke/sdk/connect";
+
+type ProviderView = {
+  id?: string;
+  name?: string;
+  icon?: string;
+  enable?: boolean;
+  client_type?: string;
+  config?: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
+};
+
+function providerToView(provider: Provider): ProviderView {
+  return {
+    id: provider.id,
+    name: provider.displayName || provider.name,
+    enable: provider.enabled,
+    client_type: provider.clientType,
+    config: provider.config as Record<string, unknown> | undefined,
+  };
+}
 
 function getInitials(name: string | undefined) {
   const label = name?.trim() ?? "";
@@ -32,14 +52,12 @@ function getInitials(name: string | undefined) {
 const { data: providerData } = useQuery({
   key: () => ["providers"],
   query: async () => {
-    const { data } = await getProviders({
-      throwOnError: true,
-    });
-    return data;
+    const response = await connectClients.providers.listProviders({});
+    return response.providers.map(providerToView);
   },
 });
 
-const curProvider = ref<ProvidersGetResponse>();
+const curProvider = ref<ProviderView>();
 provide("curProvider", curProvider);
 
 const selectProvider = (value: string) =>
@@ -51,7 +69,7 @@ const curFilterProvider = computed(() => {
   if (!Array.isArray(providerData.value)) {
     return [];
   }
-  let list = providerData.value as ProvidersGetResponse[];
+  const list = providerData.value;
   return [...list].sort((a, b) => {
     const ae = a.enable !== false ? 1 : 0;
     const be = b.enable !== false ? 1 : 0;

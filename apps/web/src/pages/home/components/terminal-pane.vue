@@ -20,8 +20,8 @@ import { ref, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
-import { client } from "@stringke/sdk/client";
 import { Button } from "@stringke/ui";
+import { apiWebSocketUrl } from "@/lib/runtime-url";
 import "@xterm/xterm/css/xterm.css";
 
 const props = defineProps<{
@@ -54,27 +54,10 @@ let fitTimer: ReturnType<typeof setTimeout> | null = null;
 let disposables: Array<{ dispose(): void }> = [];
 
 function resolveTerminalWsUrl(cols: number, rows: number): string {
-  const baseUrl = String(client.getConfig().baseUrl || "").trim();
   const token = localStorage.getItem("token") ?? "";
   const path = `/bots/${encodeURIComponent(props.botId)}/container/terminal/ws`;
   const query = `?token=${encodeURIComponent(token)}&cols=${cols}&rows=${rows}`;
-
-  if (!baseUrl || baseUrl.startsWith("/")) {
-    const loc = window.location;
-    const proto = loc.protocol === "https:" ? "wss:" : "ws:";
-    const base = baseUrl || "/api";
-    return `${proto}//${loc.host}${base.replace(/\/+$/, "")}${path}${query}`;
-  }
-
-  try {
-    const url = new URL(path, baseUrl);
-    url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
-    return url.toString() + query;
-  } catch {
-    const loc = window.location;
-    const proto = loc.protocol === "https:" ? "wss:" : "ws:";
-    return `${proto}//${loc.host}/api${path}${query}`;
-  }
+  return `${apiWebSocketUrl(path)}${query}`;
 }
 
 function closeWs() {

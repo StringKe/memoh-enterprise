@@ -51,13 +51,13 @@ import {
   Button,
   Badge,
 } from "@stringke/ui";
-import type { HandlersSupermarketMcpEntry } from "@stringke/sdk";
 import BotSelect from "@/components/bot-select/index.vue";
 import { useSupermarketMcpDraft } from "@/stores/supermarket-mcp-draft";
+import type { SupermarketMcpEntry } from "../supermarket-items";
 
 const props = defineProps<{
   open: boolean;
-  mcp: HandlersSupermarketMcpEntry | null;
+  mcp: SupermarketMcpEntry | null;
 }>();
 
 const emit = defineEmits<{

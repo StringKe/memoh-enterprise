@@ -50,6 +50,23 @@
 
       <Separator class="my-6" />
 
+      <!-- Bot Group -->
+      <div>
+        <h3 class="text-sm font-medium mb-4">
+          {{ $t("botGroups.title") }}
+        </h3>
+        <p class="text-xs text-muted-foreground mb-3">
+          {{ $t("botGroups.createBotHint") }}
+        </p>
+        <BotGroupSelect
+          v-model="form.group_id"
+          :groups="botGroups"
+          :placeholder="$t('botGroups.selectPlaceholder')"
+        />
+      </div>
+
+      <Separator class="my-6" />
+
       <!-- Workspace (conditional) -->
       <template v-if="localWorkspaceEnabled">
         <div>
@@ -268,9 +285,9 @@ import { ref, reactive, computed, watch, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { toast } from "vue-sonner";
 import { useI18n } from "vue-i18n";
-import { useQuery, useMutation, useQueryCache } from "@pinia/colada";
-import { getModels, getProviders, getMemoryProviders, putBotsByBotIdSettings } from "@stringke/sdk";
-import { postBotsMutation, getBotsQueryKey } from "@stringke/sdk/colada";
+import { useMutation, useQueryCache } from "@pinia/colada";
+import { connectClients } from "@/lib/connect-client";
+import { useConnectQuery } from "@/lib/connect-colada";
 import { useCapabilitiesStore } from "@/store/capabilities";
 import { useAvatarInitials } from "@/composables/useAvatarInitials";
 import { resolveApiErrorMessage } from "@/utils/api-error";
@@ -280,6 +297,8 @@ import TimezoneSelect from "@/components/timezone-select/index.vue";
 import ModelSelect from "./components/model-select.vue";
 import MemoryProviderSelect from "./components/memory-provider-select.vue";
 import AvatarEditDialog from "./components/avatar-edit-dialog.vue";
+import BotGroupSelect from "./components/bot-group-select.vue";
+import { buildInitialBotSettingsUpdateRequest } from "./components/bot-settings-payload";
 
 const router = useRouter();
 const { t } = useI18n();
@@ -294,6 +313,7 @@ const localWorkspaceEnabled = computed(() => capabilities.localWorkspaceEnabled)
 
 const form = reactive({
   display_name: "",
+  group_id: "",
   avatar_url: "",
   acl_preset: defaultAclPreset as string,
   chat_model_id: "",
@@ -336,44 +356,51 @@ const avatarDialogOpen = ref(false);
 const avatarFallback = useAvatarInitials(() => form.display_name || "");
 
 // Data queries
-const { data: modelData } = useQuery({
+const { data: modelData } = useConnectQuery({
   key: ["models"],
-  query: async () => {
-    const { data } = await getModels({ throwOnError: true });
-    return data;
-  },
+  query: () => connectClients.models.listModels({}),
 });
 
-const { data: providerData } = useQuery({
+const { data: providerData } = useConnectQuery({
   key: ["providers"],
-  query: async () => {
-    const { data } = await getProviders({ throwOnError: true });
-    return data;
-  },
+  query: () => connectClients.providers.listProviders({}),
 });
 
-const { data: memoryProviderData } = useQuery({
+const { data: memoryProviderData } = useConnectQuery({
   key: ["memory-providers"],
-  query: async () => {
-    const { data } = await getMemoryProviders({ throwOnError: true });
-    return data;
-  },
+  query: () => connectClients.memoryProviders.listMemoryProviders({}),
 });
 
-const models = computed(() => modelData.value ?? []);
-const providers = computed(() => providerData.value ?? []);
-const memoryProviders = computed(() => memoryProviderData.value ?? []);
+const { data: botGroupData } = useConnectQuery({
+  key: ["bot-groups"],
+  query: () => connectClients.botGroups.listBotGroups({}),
+});
+
+const models = computed(() => modelData.value?.models ?? []);
+const providers = computed(() => providerData.value?.providers ?? []);
+const memoryProviders = computed(() => memoryProviderData.value?.providers ?? []);
+const botGroups = computed(() => botGroupData.value?.groups ?? []);
 
 watch(
   memoryProviders,
   (list) => {
     if (form.memory_provider_id) return;
-    const builtin = list.find((p) => p.provider === "builtin");
+    if (form.group_id) return;
+    const builtin = list.find((p) => p.type === "builtin");
     if (builtin?.id) {
       form.memory_provider_id = builtin.id;
     }
   },
   { immediate: true },
+);
+
+watch(
+  () => form.group_id,
+  (groupId, previousGroupId) => {
+    if (groupId && !previousGroupId) {
+      form.memory_provider_id = "";
+    }
+  },
 );
 
 // ACL description
@@ -397,8 +424,9 @@ const canSubmit = computed(() => {
 
 // Submit
 const { mutateAsync: createBot, isLoading: submitLoading } = useMutation({
-  ...postBotsMutation(),
-  onSettled: () => queryCache.invalidateQueries({ key: getBotsQueryKey() }),
+  mutation: (input: Parameters<typeof connectClients.bots.createBot>[0]) =>
+    connectClients.bots.createBot(input),
+  onSettled: () => queryCache.invalidateQueries({ key: ["bots"] }),
 });
 
 async function handleSubmit() {
@@ -417,28 +445,23 @@ async function handleSubmit() {
   const tz = form.timezone === emptyTimezoneValue ? undefined : form.timezone || undefined;
 
   try {
-    const bot = await createBot({
-      body: {
-        display_name: form.display_name.trim(),
-        avatar_url: form.avatar_url.trim() || undefined,
-        timezone: tz,
-        is_active: true,
-        acl_preset: form.acl_preset,
-        metadata,
-      },
+    const response = await createBot({
+      displayName: form.display_name.trim(),
+      groupId: form.group_id,
+      avatarUrl: form.avatar_url.trim(),
+      timezone: tz,
+      isActive: true,
+      aclPreset: form.acl_preset,
+      metadata,
     });
 
-    const botId = bot?.id;
+    const botId = response.bot?.id;
     if (botId && (form.chat_model_id || form.memory_provider_id)) {
       try {
-        await putBotsByBotIdSettings({
-          path: { bot_id: botId },
-          body: {
-            ...(form.chat_model_id ? { chat_model_id: form.chat_model_id } : {}),
-            ...(form.memory_provider_id ? { memory_provider_id: form.memory_provider_id } : {}),
-          },
-          throwOnError: true,
-        });
+        const payload = buildInitialBotSettingsUpdateRequest(botId, form);
+        if (payload) {
+          await connectClients.settings.updateBotSettings(payload);
+        }
       } catch {
         // Bot created successfully, settings save failed — non-fatal
       }

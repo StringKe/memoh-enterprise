@@ -1,9 +1,20 @@
 import { computed, ref, type Ref } from "vue";
 import { storeToRefs } from "pinia";
 import { useQuery } from "@pinia/colada";
-import { getBotsByBotIdSessionsBySessionIdStatus } from "@stringke/sdk";
-import type { HandlersSessionInfoResponse } from "@stringke/sdk";
 import { useChatStore } from "@/store/chat-list";
+import { apiHttpUrl } from "@/lib/runtime-url";
+
+export interface SessionInfoResponse {
+  context_usage?: {
+    used_tokens?: number;
+    context_window?: number;
+  };
+  cache_stats?: {
+    cache_hit_rate?: number;
+  };
+  skills?: string[];
+  [key: string]: unknown;
+}
 
 interface UseSessionInfoOptions {
   visible?: Ref<boolean>;
@@ -23,17 +34,11 @@ export function useSessionInfo(options: UseSessionInfoOptions = {}) {
       options.overrideModelId?.value ?? "",
     ],
     query: async () => {
-      const { data } = await getBotsByBotIdSessionsBySessionIdStatus({
-        path: {
-          bot_id: currentBotId.value!,
-          session_id: sessionId.value!,
-        },
-        query: {
-          model_id: options.overrideModelId?.value || undefined,
-        },
-        throwOnError: true,
-      });
-      return data as HandlersSessionInfoResponse;
+      return fetchSessionInfo(
+        currentBotId.value!,
+        sessionId.value!,
+        options.overrideModelId?.value || undefined,
+      );
     },
     enabled: () => !!currentBotId.value && !!sessionId.value && visible.value,
     refetchOnWindowFocus: false,
@@ -54,4 +59,26 @@ export function useSessionInfo(options: UseSessionInfoOptions = {}) {
     currentBotId,
     sessionId,
   };
+}
+
+async function fetchSessionInfo(
+  botId: string,
+  sessionId: string,
+  modelId?: string,
+): Promise<SessionInfoResponse> {
+  const query = new URLSearchParams();
+  if (modelId) query.set("model_id", modelId);
+  const queryString = query.toString();
+  const url = `${apiHttpUrl(
+    `/bots/${encodeURIComponent(botId)}/sessions/${encodeURIComponent(sessionId)}/status`,
+  )}${queryString ? `?${queryString}` : ""}`;
+  const token = localStorage.getItem("token") || "";
+  const response = await fetch(url, {
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+  });
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || `Request failed with status ${response.status}`);
+  }
+  return response.json() as Promise<SessionInfoResponse>;
 }

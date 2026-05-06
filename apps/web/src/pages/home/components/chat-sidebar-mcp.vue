@@ -96,8 +96,8 @@ import { toast } from "vue-sonner";
 import { useQuery, useQueryCache } from "@pinia/colada";
 import { Plug, Plus, RefreshCw, ExternalLink } from "lucide-vue-next";
 import { Button, ScrollArea, Switch } from "@stringke/ui";
-import { getBotsByBotIdMcp, putBotsByBotIdMcpById } from "@stringke/sdk";
-import type { McpUpsertRequest } from "@stringke/sdk";
+import type { McpConnection } from "@stringke/sdk/connect";
+import { connectClients } from "@/lib/connect-client";
 import { resolveApiErrorMessage } from "@/utils/api-error";
 
 interface McpItem {
@@ -125,22 +125,8 @@ const localOverrides = ref<Record<string, boolean>>({});
 const { data, isLoading, error } = useQuery({
   key: () => ["bot-mcp", props.botId],
   query: async () => {
-    const { data: resp } = await getBotsByBotIdMcp({
-      path: { bot_id: props.botId },
-      throwOnError: true,
-    });
-    return ((resp.items ?? []) as Record<string, unknown>[]).map(
-      (raw): McpItem => ({
-        id: String(raw.id ?? ""),
-        name: String(raw.name ?? ""),
-        type: String(raw.type ?? ""),
-        config: (raw.config as Record<string, unknown>) ?? {},
-        is_active: !!raw.is_active,
-        status: String(raw.status ?? "unknown"),
-        status_message: String(raw.status_message ?? ""),
-        auth_type: String(raw.auth_type ?? "none"),
-      }),
-    );
+    const response = await connectClients.mcp.listMcpConnections({ botId: props.botId });
+    return response.connections.map(mcpItemFromProto);
   },
   enabled: () => !!props.botId,
   refetchOnWindowFocus: false,
@@ -186,6 +172,19 @@ function statusText(item: McpItem): string {
   }
 }
 
+function mcpItemFromProto(item: McpConnection): McpItem {
+  return {
+    id: item.id,
+    name: item.name,
+    type: item.transport,
+    config: (item.config as Record<string, unknown> | undefined) ?? {},
+    is_active: item.enabled,
+    status: item.status || "unknown",
+    status_message: item.statusMessage,
+    auth_type: item.authType || "none",
+  };
+}
+
 function goToSettings(mcpId?: string) {
   void router.push({
     name: "bot-detail",
@@ -194,24 +193,28 @@ function goToSettings(mcpId?: string) {
   });
 }
 
-function buildToggleBody(item: McpItem, nextValue: boolean): McpUpsertRequest {
+function buildToggleBody(item: McpItem, nextValue: boolean) {
   const cfg = item.config ?? {};
-  const body: McpUpsertRequest = {
+  const config: Record<string, unknown> = {};
+  const body = {
     name: item.name,
-    is_active: nextValue,
+    transport: item.type,
+    enabled: nextValue,
+    config,
   };
   if (typeof cfg.command === "string" && cfg.command) {
-    body.command = cfg.command;
-    if (Array.isArray(cfg.args)) body.args = cfg.args as string[];
-    if (cfg.env && typeof cfg.env === "object") body.env = cfg.env as Record<string, string>;
-    if (typeof cfg.cwd === "string" && cfg.cwd) body.cwd = cfg.cwd;
+    body.transport = "stdio";
+    config.command = cfg.command;
+    if (Array.isArray(cfg.args)) config.args = cfg.args as string[];
+    if (cfg.env && typeof cfg.env === "object") config.env = cfg.env as Record<string, string>;
+    if (typeof cfg.cwd === "string" && cfg.cwd) config.cwd = cfg.cwd;
   } else {
-    if (typeof cfg.url === "string") body.url = cfg.url;
+    if (typeof cfg.url === "string") config.url = cfg.url;
     if (cfg.headers && typeof cfg.headers === "object")
-      body.headers = cfg.headers as Record<string, string>;
+      config.headers = cfg.headers as Record<string, string>;
     if (cfg.transport === "sse" || cfg.transport === "http") body.transport = cfg.transport;
   }
-  if (item.auth_type) body.auth_type = item.auth_type;
+  if (item.auth_type) config.auth_type = item.auth_type;
   return body;
 }
 
@@ -220,10 +223,9 @@ async function onToggle(item: McpItem, nextValue: boolean) {
   togglingId.value = item.id;
   localOverrides.value = { ...localOverrides.value, [item.id]: nextValue };
   try {
-    await putBotsByBotIdMcpById({
-      path: { bot_id: props.botId, id: item.id },
-      body: buildToggleBody(item, nextValue),
-      throwOnError: true,
+    await connectClients.mcp.updateMcpConnection({
+      id: item.id,
+      ...buildToggleBody(item, nextValue),
     });
     queryCache.invalidateQueries({ key: ["bot-mcp", props.botId] });
   } catch (err) {

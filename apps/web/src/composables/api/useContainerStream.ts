@@ -1,11 +1,14 @@
-import { client } from "@stringke/sdk/client";
-import type { Options } from "@stringke/sdk";
-import type { HandlersCreateContainerResponse, PostBotsByBotIdContainerData } from "@stringke/sdk";
+import { apiHttpUrl } from "@/lib/runtime-url";
 
 export type ContainerCreateLayerStatus = {
   ref: string;
   offset: number;
   total: number;
+};
+
+export type ContainerCreateResponse = {
+  data_restored?: boolean;
+  [key: string]: unknown;
 };
 
 // codesync(container-create-stream): keep these manual SSE payload types in sync
@@ -17,11 +20,19 @@ export type ContainerCreateStreamEvent =
   | { type: "pull_delegated"; image: string; message?: string }
   | { type: "creating" }
   | { type: "restoring" }
-  | { type: "complete"; container: HandlersCreateContainerResponse }
+  | { type: "complete"; container: ContainerCreateResponse }
   | { type: "error"; message: string };
 
 export type ContainerCreateStreamResult = {
   stream: AsyncGenerator<ContainerCreateStreamEvent, void, unknown>;
+};
+
+export type PostBotsByBotIdContainerStreamOptions = {
+  path: { bot_id: string };
+  body?: unknown;
+  headers?: Record<string, string>;
+  signal?: AbortSignal;
+  throwOnError?: boolean;
 };
 
 function isLayerStatus(value: unknown): value is ContainerCreateLayerStatus {
@@ -68,42 +79,77 @@ function toError(error: unknown): Error {
 }
 
 export async function postBotsByBotIdContainerStream(
-  options: Options<PostBotsByBotIdContainerData>,
+  options: PostBotsByBotIdContainerStreamOptions,
 ): Promise<ContainerCreateStreamResult> {
-  let streamError: unknown;
+  const botID = options.path.bot_id.trim();
+  if (!botID) throw new Error("bot id is required");
 
-  const { throwOnError: _throwOnError, ...rest } = options;
-  const result = await client.sse.post<ContainerCreateStreamEvent>({
-    url: "/bots/{bot_id}/container",
-    ...rest,
+  const response = await fetch(apiHttpUrl(`/bots/${encodeURIComponent(botID)}/container`), {
+    method: "POST",
     headers: {
-      ...(options.headers as Record<string, string>),
+      Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
       Accept: "text/event-stream",
       "Content-Type": "application/json",
+      ...options.headers,
     },
-    onSseError: (error) => {
-      streamError = error;
-    },
-    responseValidator: async (data) => {
-      if (!isContainerCreateStreamEvent(data)) {
-        throw new Error("Invalid container create stream event");
-      }
-    },
-    sseMaxRetryAttempts: 1,
+    body: JSON.stringify(options.body ?? {}),
+    signal: options.signal,
   });
+  if (!response.ok) {
+    throw new Error((await response.text()) || `request failed: ${response.status}`);
+  }
+  if (!response.body) throw new Error("No response body");
 
   return {
     stream: (async function* () {
-      for await (const event of result.stream as AsyncGenerator<unknown, void, unknown>) {
+      for await (const event of readContainerSSE(response.body!)) {
         if (!isContainerCreateStreamEvent(event)) {
           throw new Error("Invalid container create stream event");
         }
         yield event;
       }
-
-      if (streamError) {
-        throw toError(streamError);
-      }
     })(),
   };
+}
+
+async function* readContainerSSE(body: ReadableStream<Uint8Array>): AsyncGenerator<unknown> {
+  const reader = body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+
+      const chunks = buffer.split("\n\n");
+      buffer = chunks.pop() ?? "";
+
+      for (const chunk of chunks) {
+        const event = parseContainerSSEChunk(chunk);
+        if (event !== undefined) yield event;
+      }
+    }
+
+    const event = parseContainerSSEChunk(buffer);
+    if (event !== undefined) yield event;
+  } finally {
+    reader.releaseLock();
+  }
+}
+
+function parseContainerSSEChunk(chunk: string): unknown {
+  for (const line of chunk.split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed.startsWith("data:")) continue;
+    const payload = trimmed.replace(/^data:\s*/, "").trim();
+    if (!payload || payload === "[DONE]") continue;
+    try {
+      return JSON.parse(payload);
+    } catch (error) {
+      throw toError(error);
+    }
+  }
+  return undefined;
 }

@@ -61,6 +61,8 @@
     "session": "Session",
     "chat": "Chat",
     "bots": "Bots",
+    "botGroups": "Bot Groups",
+    "integrationTokens": "Integration Tokens",
     "providers": "Providers",
     "webSearch": "Web Search",
     "memory": "Memory",
@@ -726,6 +728,49 @@
   "home": {
     "title": "Home"
   },
+  "botGroups": {
+    "title": "Bot Groups",
+    "createTitle": "New Bot Group",
+    "detailSubtitle": "Configure group profile and inherited defaults.",
+    "profile": "Profile",
+    "profileHint": "Names and descriptions are visible to administrators.",
+    "settingsTitle": "Default Settings",
+    "settingsHint": "Bots in this group inherit these defaults until a bot overrides the field.",
+    "empty": "No bot groups",
+    "namePlaceholder": "Group name",
+    "selectPlaceholder": "Select bot group",
+    "createBotHint": "Assigning a group lets this bot inherit group defaults.",
+    "description": "Description",
+    "descriptionPlaceholder": "Description",
+    "botCount": "Bots",
+    "ungrouped": "Ungrouped",
+    "createSuccess": "Bot group created",
+    "saveSuccess": "Bot group saved",
+    "resetSettings": "Reset defaults",
+    "resetSettingsSuccess": "Group defaults reset",
+    "resetSettingsFailed": "Failed to reset group defaults"
+  },
+  "integrationTokens": {
+    "title": "Integration Tokens",
+    "createTitle": "New Integration Token",
+    "createDescription": "Create an API token for the external WebSocket integration SDK.",
+    "empty": "No integration tokens",
+    "namePlaceholder": "Token name",
+    "scope": "Scope",
+    "scopeGlobal": "Global",
+    "scopeBot": "Bot",
+    "scopeBotGroup": "Bot Group",
+    "botIdPlaceholder": "Bot ID",
+    "botGroupIdPlaceholder": "Bot Group ID",
+    "allowedEvents": "Allowed Events",
+    "allowedEventsPlaceholder": "Allowed events, comma separated",
+    "allowedActions": "Allowed Actions",
+    "allowedActionsPlaceholder": "Allowed actions, comma separated",
+    "expiresAt": "Expires At",
+    "rawToken": "Raw token",
+    "enabled": "Enabled",
+    "disabled": "Disabled"
+  },
   "bots": {
     "toolApproval": {
       "title": "Tool Call Approval",
@@ -1200,6 +1245,19 @@
       "noModel": "No models available",
       "saveSuccess": "Settings saved",
       "save": "Save Settings",
+      "inheritance": {
+        "source": "Source",
+        "restore": "Restore inheritance",
+        "restoreSuccess": "Inheritance restored",
+        "restoreFailed": "Failed to restore inheritance",
+        "unknown": "Unknown",
+        "mixed": "Mixed",
+        "sources": {
+          "bot": "Bot override",
+          "bot_group": "Bot group",
+          "system": "System default"
+        }
+      },
       "dangerZone": "Danger Zone",
       "deleteBotDescription": "Deleting this bot cannot be undone. Proceed with caution.",
       "deleteBot": "Delete Bot"
@@ -1606,6 +1664,9 @@
     "chartPie": "Pie",
     "chartBar": "Bar",
     "records": "Records",
+    "currency": "Currency",
+    "previousPage": "Previous",
+    "nextPage": "Next",
     "noRecords": "No records",
     "colTime": "Time",
     "colBot": "Bot",

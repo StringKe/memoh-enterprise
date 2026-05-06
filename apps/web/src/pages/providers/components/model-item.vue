@@ -79,22 +79,40 @@ import { RefreshCw, Settings, Trash2, MessageSquare, Binary } from "lucide-vue-n
 import ConfirmPopover from "@/components/confirm-popover/index.vue";
 import ModelCapabilities from "@/components/model-capabilities/index.vue";
 import ContextWindowBadge from "@/components/context-window-badge/index.vue";
-import { postModelsByIdTest } from "@stringke/sdk";
-import type { ModelsGetResponse, ModelsTestResponse } from "@stringke/sdk";
 import { ref, computed } from "vue";
+import { connectClients } from "@/lib/connect-client";
+import { resolveConnectErrorMessage } from "@/lib/connect-errors";
+
+type ModelView = {
+  id?: string;
+  provider_id?: string;
+  model_id?: string;
+  name?: string;
+  type?: string;
+  config?: {
+    compatibilities?: string[];
+    context_window?: number;
+  };
+};
+
+type ModelTestResult = {
+  status: "ok" | "auth_error" | "error";
+  message?: string;
+  latency_ms?: number;
+};
 
 const props = defineProps<{
-  model: ModelsGetResponse;
+  model: ModelView;
   deleteLoading: boolean;
 }>();
 
 defineEmits<{
-  edit: [model: ModelsGetResponse];
+  edit: [model: ModelView];
   delete: [id: string];
 }>();
 
 const testLoading = ref(false);
-const testResult = ref<ModelsTestResponse | null>(null);
+const testResult = ref<ModelTestResult | null>(null);
 
 const typeIcon = computed(() => {
   return props.model.type === "embedding" ? Binary : MessageSquare;
@@ -118,13 +136,20 @@ async function runTest() {
   testLoading.value = true;
   testResult.value = null;
   try {
-    const { data } = await postModelsByIdTest({
-      path: { id: props.model.id },
-      throwOnError: true,
-    });
-    testResult.value = data ?? null;
-  } catch {
-    testResult.value = { status: "error" };
+    const response = await connectClients.models.testModel({ id: props.model.id });
+    testResult.value = {
+      status: response.ok ? "ok" : "error",
+      message: response.message,
+      latency_ms:
+        typeof response.metadata?.latency_ms === "number"
+          ? response.metadata.latency_ms
+          : undefined,
+    };
+  } catch (error) {
+    testResult.value = {
+      status: "error",
+      message: resolveConnectErrorMessage(error, ""),
+    };
   } finally {
     testLoading.value = false;
   }

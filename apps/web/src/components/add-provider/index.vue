@@ -140,8 +140,6 @@ import { toTypedSchema } from "@vee-validate/zod";
 import z from "zod";
 import { useForm } from "vee-validate";
 import { useMutation, useQueryCache } from "@pinia/colada";
-import { postProviders, postProvidersByIdImportModels } from "@stringke/sdk";
-import type { ProvidersCreateRequest } from "@stringke/sdk";
 import { useI18n } from "vue-i18n";
 import { Plus } from "lucide-vue-next";
 import FormDialogShell from "@/components/form-dialog-shell/index.vue";
@@ -150,6 +148,8 @@ import SearchableSelectPopover from "@/components/searchable-select-popover/inde
 import { LLM_CLIENT_TYPE_LIST, CLIENT_TYPE_META } from "@/constants/client-types";
 import { toast } from "vue-sonner";
 import { computed, watch } from "vue";
+import { connectClients } from "@/lib/connect-client";
+import { resolveConnectErrorMessage } from "@/lib/connect-errors";
 
 const open = defineModel<boolean>("open");
 const { t } = useI18n();
@@ -176,35 +176,29 @@ const { mutateAsync: createProviderMutation, isLoading } = useMutation({
     ) {
       config.api_key = data.api_key.trim();
     }
-    const payload = {
-      name: data.name,
-      client_type: data.client_type,
+    const result = await connectClients.providers.createProvider({
+      name: String(data.name),
+      clientType: String(data.client_type),
+      baseUrl: String(data.base_url || ""),
+      apiKey: data.client_type === "github-copilot" ? "" : String(data.api_key || ""),
       config,
-    };
-    const { data: result } = await postProviders({
-      body: payload as ProvidersCreateRequest,
-      throwOnError: true,
     });
-    if (data.auto_import && result?.id) {
+    if (data.auto_import && result.provider?.id) {
       try {
-        const { data: importResult } = await postProvidersByIdImportModels({
-          path: { id: result.id },
-          throwOnError: true,
+        const importResult = await connectClients.providers.importProviderModels({
+          id: result.provider.id,
         });
-        if (importResult) {
-          toast.success(
-            t("models.importSuccess", {
-              created: importResult.created,
-              skipped: importResult.skipped,
-            }),
-          );
-        }
+        toast.success(
+          t("models.importSuccess", {
+            created: importResult.models.length,
+            skipped: 0,
+          }),
+        );
       } catch (e) {
-        console.error("Auto import failed:", e);
-        toast.error(t("models.importFailed"));
+        toast.error(resolveConnectErrorMessage(e, t("models.importFailed")));
       }
     }
-    return result;
+    return result.provider;
   },
   onSettled: () => {
     queryCache.invalidateQueries({ key: ["providers"] });

@@ -1,5 +1,5 @@
 <template>
-  <SidebarMenuButton :tooltip="bot.display_name || bot.id" as-child>
+  <SidebarMenuButton :tooltip="bot.displayName || bot.id" as-child>
     <button
       :class="[
         'group/bot flex items-center gap-2.5 w-full h-9.5 px-2.5 rounded-lg transition-colors',
@@ -17,9 +17,9 @@
         class="size-6.5 shrink-0 rounded-full border border-border bg-accent overflow-hidden p-px group-data-[collapsible=icon]:mx-auto"
       >
         <img
-          v-if="bot.avatar_url && !isError"
-          :src="bot.avatar_url"
-          :alt="bot.display_name || bot.id"
+          v-if="bot.avatarUrl && !isError"
+          :src="bot.avatarUrl"
+          :alt="bot.displayName || bot.id"
           class="size-full rounded-full object-cover"
           @error="
             () => {
@@ -42,7 +42,7 @@
       <span
         class="truncate text-xs font-medium text-foreground leading-4.5 flex-1 text-left group-data-[collapsible=icon]:hidden"
       >
-        {{ bot.display_name || bot.id }}
+        {{ bot.displayName || bot.id }}
       </span>
 
       <div class="group-data-[collapsible=icon]:hidden">
@@ -74,7 +74,7 @@
 import { computed } from "vue";
 import { storeToRefs } from "pinia";
 import { useRouter } from "vue-router";
-import type { BotsBot } from "@stringke/sdk";
+import type { Bot } from "@stringke/sdk/connect";
 import { useChatStore } from "@/store/chat-list";
 import { useAvatarInitials } from "@/composables/useAvatarInitials";
 import { usePinnedBots } from "@/composables/usePinnedBots";
@@ -88,14 +88,14 @@ import {
 } from "@stringke/ui";
 import { ref } from "vue";
 
-const props = defineProps<{ bot: BotsBot }>();
+const props = defineProps<{ bot: Bot }>();
 
 const router = useRouter();
 const chatStore = useChatStore();
 const { currentBotId } = storeToRefs(chatStore);
 const { isPinned, togglePin } = usePinnedBots();
 
-const displayName = computed(() => props.bot.display_name || props.bot.id || "");
+const displayName = computed(() => props.bot.displayName || props.bot.id || "");
 const avatarFallback = useAvatarInitials(() => displayName.value, "B");
 
 const isActive = computed(() => currentBotId.value === props.bot.id);

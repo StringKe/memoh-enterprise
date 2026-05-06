@@ -4,7 +4,7 @@
     <div class="flex p-4 items-center gap-4">
       <div class="group/avatar relative size-16 shrink-0 rounded-full overflow-hidden">
         <Avatar class="size-16 rounded-full">
-          <AvatarImage v-if="bot?.avatar_url" :src="bot.avatar_url" :alt="bot.display_name" />
+          <AvatarImage v-if="bot?.avatarUrl" :src="bot.avatarUrl" :alt="bot.displayName" />
           <AvatarFallback class="text-xl">
             {{ avatarFallback }}
           </AvatarFallback>
@@ -50,7 +50,7 @@
           </template>
           <template v-else>
             <h2 class="truncate text-sm font-medium">
-              {{ botNameDraft.trim() || bot?.display_name || botId }}
+              {{ botNameDraft.trim() || bot?.displayName || botId }}
             </h2>
             <Button
               v-if="bot"
@@ -150,20 +150,8 @@ import { computed, ref, watch, onMounted, toValue } from "vue";
 import { useRoute } from "vue-router";
 import { toast } from "vue-sonner";
 import { useI18n } from "vue-i18n";
-import { useQuery, useMutation, useQueryCache } from "@pinia/colada";
-import {
-  getBotsById,
-  putBotsById,
-  getBotsByIdChecks,
-  getBotsByBotIdContainer,
-  getBotsByBotIdContainerSnapshots,
-} from "@stringke/sdk";
-import { getBotsQueryKey } from "@stringke/sdk/colada";
-import type {
-  BotsBotCheck,
-  HandlersGetContainerResponse,
-  HandlersListSnapshotsResponse,
-} from "@stringke/sdk";
+import { useMutation, useQueryCache } from "@pinia/colada";
+import type { BotCheck } from "@stringke/sdk/connect";
 import { useCapabilitiesStore } from "@/store/capabilities";
 import LoadingButton from "@/components/loading-button/index.vue";
 import BotSettings from "./components/bot-settings.vue";
@@ -186,21 +174,44 @@ import { useAvatarInitials } from "@/composables/useAvatarInitials";
 import { useSyncedQueryParam } from "@/composables/useSyncedQueryParam";
 import { useBotStatusMeta } from "@/composables/useBotStatusMeta";
 import MasterDetailSidebarLayout from "@/components/master-detail-sidebar-layout/index.vue";
-type BotCheck = BotsBotCheck;
-type BotContainerInfo = HandlersGetContainerResponse;
-type BotContainerSnapshot = HandlersListSnapshotsResponse extends { snapshots?: (infer T)[] }
-  ? T
-  : never;
+import { connectClients } from "@/lib/connect-client";
+import { useConnectQuery } from "@/lib/connect-colada";
+import { apiHttpUrl } from "@/lib/runtime-url";
+
+type BotContainerInfo = {
+  workspace_backend?: string;
+  container_id?: string;
+  status?: string;
+  task_running?: boolean;
+  namespace?: string;
+  image?: string;
+  cdi_devices?: string[];
+  container_path?: string;
+  data_restored?: boolean;
+  created_at?: string;
+  updated_at?: string;
+  [key: string]: unknown;
+};
+
+type BotContainerSnapshot = {
+  id?: string;
+  name?: string;
+  version?: number;
+  source?: string;
+  parent_id?: string;
+  created_at?: string;
+  [key: string]: unknown;
+};
 
 const route = useRoute();
 const { t } = useI18n();
 const botId = computed(() => route.params.botId as string);
 
-const { data: bot } = useQuery({
+const { data: bot } = useConnectQuery({
   key: () => ["bot", botId.value],
   query: async () => {
-    const { data } = await getBotsById({ path: { id: botId.value }, throwOnError: true });
-    return data;
+    const response = await connectClients.bots.getBot({ id: botId.value });
+    return response.bot ?? null;
   },
   enabled: () => !!botId.value,
 });
@@ -220,6 +231,26 @@ const isLocalWorkspace = computed(
     workspaceBackendFromMetadata(bot.value?.metadata) === "local" ||
     containerInfo.value?.workspace_backend === "local",
 );
+
+function authHeaders(extra?: HeadersInit): HeadersInit {
+  const token = localStorage.getItem("token") || "";
+  return {
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...extra,
+  };
+}
+
+function botRuntimeUrl(path: string): string {
+  return apiHttpUrl(`/bots/${encodeURIComponent(botId.value)}${path}`);
+}
+
+async function readJsonResponse<T>(response: Response): Promise<T> {
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || `Request failed with status ${response.status}`);
+  }
+  return response.json() as Promise<T>;
+}
 
 const tabList = computed(() => {
   const bot_id = toValue(botId);
@@ -317,18 +348,22 @@ onMounted(() => {
 const queryCache = useQueryCache();
 const { mutateAsync: updateBot, isLoading: updateBotLoading } = useMutation({
   mutation: async ({ id, ...body }: Record<string, unknown> & { id: string }) => {
-    const { data } = await putBotsById({ path: { id }, body, throwOnError: true });
-    return data;
+    const response = await connectClients.bots.updateBot({
+      id,
+      displayName: typeof body.displayName === "string" ? body.displayName : undefined,
+      avatarUrl: typeof body.avatarUrl === "string" ? body.avatarUrl : undefined,
+    });
+    return response.bot ?? null;
   },
   onSettled: () => {
-    queryCache.invalidateQueries({ key: getBotsQueryKey() });
+    queryCache.invalidateQueries({ key: ["bots"] });
     queryCache.invalidateQueries({ key: ["bot"] });
   },
 });
 
 async function fetchChecks(id: string): Promise<BotCheck[]> {
-  const { data } = await getBotsByIdChecks({ path: { id }, throwOnError: true });
-  return data?.items ?? [];
+  const response = await connectClients.bots.listBotChecks({ botId: id });
+  return response.checks;
 }
 
 const isEditingBotName = ref(false);
@@ -339,12 +374,12 @@ watch(
   bot,
   (val) => {
     if (!val) return;
-    const currentName = (val.display_name || "").trim();
+    const currentName = val.displayName.trim();
     if (currentName) {
       route.meta.breadcrumb = () => currentName;
     }
     if (!isEditingBotName.value) {
-      botNameDraft.value = val.display_name || "";
+      botNameDraft.value = val.displayName;
     }
   },
   { immediate: true },
@@ -362,11 +397,11 @@ watch(
 );
 const avatarDialogOpen = ref(false);
 const avatarUrlModel = ref("");
-const avatarFallback = useAvatarInitials(() => bot.value?.display_name || botId.value || "");
+const avatarFallback = useAvatarInitials(() => bot.value?.displayName || botId.value || "");
 const isSavingBotName = computed(() => updateBotLoading.value);
 
 watch(
-  () => bot.value?.avatar_url,
+  () => bot.value?.avatarUrl,
   (url) => {
     avatarUrlModel.value = url || "";
   },
@@ -375,12 +410,12 @@ watch(
 
 watch(avatarUrlModel, async (nextUrl) => {
   if (!bot.value) return;
-  const current = (bot.value.avatar_url || "").trim();
+  const current = bot.value.avatarUrl.trim();
   if (nextUrl.trim() === current) return;
   try {
     await updateBot({
-      id: bot.value.id as string,
-      avatar_url: nextUrl || undefined,
+      id: bot.value.id,
+      avatarUrl: nextUrl || "",
     });
     toast.success(t("bots.avatarUpdateSuccess"));
   } catch (error) {
@@ -391,7 +426,7 @@ const canConfirmBotName = computed(() => {
   if (!bot.value) return false;
   const nextName = botNameDraft.value.trim();
   if (!nextName) return false;
-  return nextName !== (bot.value.display_name || "").trim();
+  return nextName !== bot.value.displayName.trim();
 });
 const {
   hasIssue,
@@ -449,12 +484,12 @@ function handleEditAvatar() {
 function handleStartEditBotName() {
   if (!bot.value) return;
   isEditingBotName.value = true;
-  botNameDraft.value = bot.value.display_name || "";
+  botNameDraft.value = bot.value.displayName;
 }
 
 function handleCancelBotName() {
   isEditingBotName.value = false;
-  botNameDraft.value = bot.value?.display_name || "";
+  botNameDraft.value = bot.value?.displayName || "";
 }
 
 async function handleConfirmBotName() {
@@ -465,8 +500,8 @@ async function handleConfirmBotName() {
   const nextName = botNameDraft.value.trim();
   try {
     await updateBot({
-      id: bot.value.id as string,
-      display_name: nextName,
+      id: bot.value.id,
+      displayName: nextName,
     });
     route.meta.breadcrumb = () => nextName;
     isEditingBotName.value = false;
@@ -494,17 +529,16 @@ async function loadContainerData(showLoadingToast: boolean) {
   await capabilitiesStore.load();
   containerLoading.value = true;
   try {
-    const result = await getBotsByBotIdContainer({ path: { bot_id: botId.value } });
-    if (result.error !== undefined) {
-      if (result.response.status === 404) {
-        containerInfo.value = null;
-        containerMissing.value = true;
-        snapshots.value = [];
-        return;
-      }
-      throw result.error;
+    const response = await fetch(botRuntimeUrl("/container"), {
+      headers: authHeaders(),
+    });
+    if (response.status === 404) {
+      containerInfo.value = null;
+      containerMissing.value = true;
+      snapshots.value = [];
+      return;
     }
-    containerInfo.value = result.data;
+    containerInfo.value = await readJsonResponse<BotContainerInfo>(response);
     containerMissing.value = false;
     if (capabilitiesStore.snapshotSupported) {
       await loadSnapshots();
@@ -525,10 +559,11 @@ async function loadSnapshots() {
   }
   snapshotsLoading.value = true;
   try {
-    const { data } = await getBotsByBotIdContainerSnapshots({
-      path: { bot_id: botId.value },
-      throwOnError: true,
-    });
+    const data = await readJsonResponse<{ snapshots?: BotContainerSnapshot[] }>(
+      await fetch(botRuntimeUrl("/container/snapshots"), {
+        headers: authHeaders(),
+      }),
+    );
     snapshots.value = data.snapshots ?? [];
   } catch (error) {
     snapshots.value = [];

@@ -5,15 +5,15 @@
         <div v-if="selectedBot" class="flex items-center gap-2">
           <Avatar class="size-5 shrink-0">
             <AvatarImage
-              v-if="selectedBot.avatar_url"
-              :src="selectedBot.avatar_url"
-              :alt="selectedBot.display_name"
+              v-if="selectedBot.avatarUrl"
+              :src="selectedBot.avatarUrl"
+              :alt="selectedBot.displayName"
             />
             <AvatarFallback class="text-[9px]">
-              {{ initials(selectedBot.display_name || selectedBot.id || "") }}
+              {{ initials(selectedBot.displayName || selectedBot.id || "") }}
             </AvatarFallback>
           </Avatar>
-          <span class="truncate text-xs">{{ selectedBot.display_name || selectedBot.id }}</span>
+          <span class="truncate text-xs">{{ selectedBot.displayName || selectedBot.id }}</span>
         </div>
       </SelectValue>
     </SelectTrigger>
@@ -21,12 +21,12 @@
       <SelectItem v-for="bot in bots" :key="bot.id" :value="bot.id!">
         <div class="flex items-center gap-2">
           <Avatar class="size-5 shrink-0">
-            <AvatarImage v-if="bot.avatar_url" :src="bot.avatar_url" :alt="bot.display_name" />
+            <AvatarImage v-if="bot.avatarUrl" :src="bot.avatarUrl" :alt="bot.displayName" />
             <AvatarFallback class="text-[9px]">
-              {{ initials(bot.display_name || bot.id || "") }}
+              {{ initials(bot.displayName || bot.id || "") }}
             </AvatarFallback>
           </Avatar>
-          <span class="truncate text-xs">{{ bot.display_name || bot.id }}</span>
+          <span class="truncate text-xs">{{ bot.displayName || bot.id }}</span>
         </div>
       </SelectItem>
     </SelectContent>
@@ -35,7 +35,6 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { useQuery } from "@pinia/colada";
 import {
   Select,
   SelectTrigger,
@@ -46,8 +45,9 @@ import {
   AvatarImage,
   AvatarFallback,
 } from "@stringke/ui";
-import { getBotsQuery } from "@stringke/sdk/colada";
-import type { BotsBot } from "@stringke/sdk";
+import type { Bot } from "@stringke/sdk/connect";
+import { connectClients } from "@/lib/connect-client";
+import { useConnectQuery } from "@/lib/connect-colada";
 
 const props = defineProps<{
   modelValue: string;
@@ -59,8 +59,11 @@ defineEmits<{
   "update:modelValue": [value: string];
 }>();
 
-const { data: botsData } = useQuery(getBotsQuery());
-const bots = computed<BotsBot[]>(() => botsData.value?.items ?? []);
+const { data: botsData } = useConnectQuery({
+  key: ["bots"],
+  query: () => connectClients.bots.listBots({}),
+});
+const bots = computed<Bot[]>(() => botsData.value?.bots ?? []);
 
 const selectedBot = computed(() => bots.value.find((b) => b.id === props.modelValue));
 

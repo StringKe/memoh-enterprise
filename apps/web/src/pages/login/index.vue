@@ -113,7 +113,7 @@ import { ref } from "vue";
 import { storeToRefs } from "pinia";
 import { toast } from "vue-sonner";
 import { useI18n } from "vue-i18n";
-import { postAuthLogin } from "@stringke/sdk";
+import { connectClients } from "@/lib/connect-client";
 import type { Locale } from "@/i18n";
 
 const router = useRouter();
@@ -142,18 +142,18 @@ const loading = ref(false);
 const login = form.handleSubmit(async (values) => {
   try {
     loading.value = true;
-    const { data } = await postAuthLogin({ body: values });
-    if (data?.access_token && data?.user_id) {
+    const data = await connectClients.auth.login(values);
+    if (data.accessToken && data.userId) {
       loginHandle(
         {
-          id: data.user_id,
+          id: data.userId,
           username: data.username,
-          displayName: data.display_name ?? "",
-          role: data.role ?? "",
-          avatarUrl: data.avatar_url ?? "",
+          displayName: data.displayName,
+          role: "",
+          avatarUrl: "",
           timezone: data.timezone ?? "UTC",
         },
-        data.access_token,
+        data.accessToken,
       );
     } else {
       throw new Error(t("auth.loginFailed"));

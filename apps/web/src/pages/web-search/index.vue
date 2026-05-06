@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, provide, watch, reactive } from "vue";
 import { useQuery } from "@pinia/colada";
+import type { JsonObject } from "@bufbuild/protobuf";
 import {
   ScrollArea,
   SidebarMenu,
@@ -16,25 +17,31 @@ import {
   Button,
   Badge,
 } from "@stringke/ui";
-import { getSearchProviders } from "@stringke/sdk";
-import type { SearchprovidersGetResponse } from "@stringke/sdk";
 import AddSearchProvider from "./components/add-search-provider.vue";
 import ProviderSetting from "./components/provider-setting.vue";
 import SearchProviderLogo from "@/components/search-provider-logo/index.vue";
 import { Globe, Plus } from "lucide-vue-next";
 import MasterDetailSidebarLayout from "@/components/master-detail-sidebar-layout/index.vue";
+import { connectClients } from "@/lib/connect-client";
+import type { SearchProvider } from "@stringke/sdk/connect";
+
+export type SearchProviderItem = {
+  id: string;
+  name: string;
+  provider: string;
+  enable: boolean;
+  config: JsonObject;
+};
 
 const { data: providerData } = useQuery({
   key: () => ["search-providers"],
   query: async () => {
-    const { data } = await getSearchProviders({
-      throwOnError: true,
-    });
-    return data;
+    const response = await connectClients.searchProviders.listSearchProviders({});
+    return response.providers.map(toSearchProviderItem);
   },
 });
 
-const curProvider = ref<SearchprovidersGetResponse>();
+const curProvider = ref<SearchProviderItem>();
 provide("curSearchProvider", curProvider);
 
 const selectProvider = (value: string) =>
@@ -78,6 +85,16 @@ watch(
 const openStatus = reactive({
   addOpen: false,
 });
+
+function toSearchProviderItem(provider: SearchProvider): SearchProviderItem {
+  return {
+    id: provider.id,
+    name: provider.name,
+    provider: provider.type,
+    enable: provider.enabled,
+    config: provider.config ?? {},
+  };
+}
 </script>
 
 <template>

@@ -290,7 +290,9 @@ import {
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
-import { useQuery, useQueryCache } from "@pinia/colada";
+import { useQueryCache } from "@pinia/colada";
+import type { JsonObject } from "@bufbuild/protobuf";
+import type { Skill } from "@stringke/sdk/connect";
 import {
   Badge,
   Button,
@@ -312,19 +314,15 @@ import {
 } from "@stringke/ui";
 import ConfirmPopover from "@/components/confirm-popover/index.vue";
 import MonacoEditor from "@/components/monaco-editor/index.vue";
-import {
-  getBotsById,
-  getBotsByBotIdContainerSkills,
-  postBotsByBotIdContainerSkills,
-  postBotsByBotIdContainerSkillsActions,
-  deleteBotsByBotIdContainerSkills,
-  putBotsById,
-  type HandlersSkillItem,
-} from "@stringke/sdk";
-import { getBotsQueryKey } from "@stringke/sdk/colada";
 import { resolveApiErrorMessage } from "@/utils/api-error";
+import { connectClients } from "@/lib/connect-client";
+import { useConnectQuery } from "@/lib/connect-colada";
 
-type SkillItem = HandlersSkillItem & {
+type SkillItem = {
+  id?: string;
+  name?: string;
+  description?: string;
+  raw?: string;
   source_path?: string;
   source_root?: string;
   source_kind?: string;
@@ -379,11 +377,11 @@ const canSave = computed(() => {
   return draftRaw.value.trim().length > 0;
 });
 
-const { data: bot, refetch: refetchBot } = useQuery({
+const { data: bot, refetch: refetchBot } = useConnectQuery({
   key: () => ["bot", props.botId],
   query: async () => {
-    const { data } = await getBotsById({ path: { id: props.botId }, throwOnError: true });
-    return data;
+    const response = await connectClients.bots.getBot({ id: props.botId });
+    return response.bot;
   },
   enabled: () => !!props.botId,
 });
@@ -421,11 +419,8 @@ async function fetchSkills() {
   if (!props.botId) return;
   isLoading.value = true;
   try {
-    const { data } = await getBotsByBotIdContainerSkills({
-      path: { bot_id: props.botId },
-      throwOnError: true,
-    });
-    skills.value = data.skills || [];
+    const response = await connectClients.skills.listSkills({ botId: props.botId });
+    skills.value = response.skills.map(skillFromProto);
   } catch (error) {
     toast.error(resolveApiErrorMessage(error, t("bots.skills.loadFailed")));
   } finally {
@@ -509,6 +504,33 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === "object" && !Array.isArray(value);
 }
 
+function skillFromProto(skill: Skill): SkillItem {
+  const metadata = skill.metadata ?? {};
+  const sourcePath = readString(metadata, "source_path") || skill.source;
+  return {
+    id: skill.id,
+    name: skill.name,
+    description: skill.description,
+    raw: readString(metadata, "raw"),
+    source_path: sourcePath,
+    source_root: readString(metadata, "source_root"),
+    source_kind: readString(metadata, "source_kind"),
+    managed: readBool(metadata, "managed"),
+    state: readString(metadata, "state") || (skill.enabled ? "effective" : "disabled"),
+    shadowed_by: readString(metadata, "shadowed_by"),
+  };
+}
+
+function readString(value: JsonObject, key: string): string | undefined {
+  const item = value[key];
+  return typeof item === "string" ? item : undefined;
+}
+
+function readBool(value: JsonObject, key: string): boolean | undefined {
+  const item = value[key];
+  return typeof item === "boolean" ? item : undefined;
+}
+
 function readDiscoveryRoots(metadata: Record<string, unknown> | undefined) {
   const workspace = metadata?.[WORKSPACE_METADATA_KEY];
   if (!isRecord(workspace)) {
@@ -564,7 +586,7 @@ function handleCreate() {
   isDialogOpen.value = true;
 }
 
-function handleEdit(skill: HandlersSkillItem) {
+function handleEdit(skill: SkillItem) {
   isEditing.value = true;
   draftRaw.value = skill.raw || "";
   isDialogOpen.value = true;
@@ -617,13 +639,13 @@ async function handleSkillAction(action: "adopt" | "disable" | "enable", skill: 
   actionTargetPath.value = skill.source_path;
   actionName.value = action;
   try {
-    await postBotsByBotIdContainerSkillsActions({
-      path: { bot_id: props.botId },
-      body: {
-        action,
+    await connectClients.skills.applySkillAction({
+      botId: props.botId,
+      skillId: skill.source_path,
+      action,
+      payload: {
         target_path: skill.source_path,
       },
-      throwOnError: true,
     });
     toast.success(
       action === "adopt"
@@ -656,12 +678,15 @@ async function handleSave() {
   if (!canSave.value) return;
   isSaving.value = true;
   try {
-    await postBotsByBotIdContainerSkills({
-      path: { bot_id: props.botId },
-      body: {
-        skills: [draftRaw.value],
-      },
-      throwOnError: true,
+    await connectClients.skills.upsertSkills({
+      botId: props.botId,
+      skills: [
+        {
+          metadata: {
+            raw: draftRaw.value,
+          },
+        },
+      ],
     });
     toast.success(t("bots.skills.saveSuccess"));
     isDialogOpen.value = false;
@@ -684,15 +709,14 @@ async function handleSaveDiscoveryRoots() {
       normalizedDiscoveryRootDrafts.value,
     );
 
-    await putBotsById({
-      path: { id: props.botId },
-      body: { metadata },
-      throwOnError: true,
+    await connectClients.bots.updateBot({
+      id: props.botId,
+      metadata,
     });
 
     void queryCache.invalidateQueries({ key: ["bot", props.botId] });
     void queryCache.invalidateQueries({ key: ["bot"] });
-    void queryCache.invalidateQueries({ key: getBotsQueryKey() });
+    void queryCache.invalidateQueries({ key: ["bots"] });
 
     syncDiscoveryRoots(normalizedDiscoveryRootDrafts.value);
     isDiscoveryDialogOpen.value = false;
@@ -711,12 +735,9 @@ async function handleDelete(name?: string) {
   isDeleting.value = true;
   deletingName.value = name;
   try {
-    await deleteBotsByBotIdContainerSkills({
-      path: { bot_id: props.botId },
-      body: {
-        names: [name],
-      },
-      throwOnError: true,
+    await connectClients.skills.deleteSkills({
+      botId: props.botId,
+      skillIds: [name],
     });
     toast.success(t("bots.skills.deleteSuccess"));
     await fetchSkills();

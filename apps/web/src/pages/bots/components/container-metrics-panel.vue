@@ -89,13 +89,34 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { Spinner } from "@stringke/ui";
-import type { HandlersGetContainerMetricsResponse } from "@stringke/sdk";
 import { formatDateTime } from "@/utils/date-time";
+
+type ContainerMetricsResponse = {
+  supported?: boolean;
+  sampled_at?: string;
+  status?: {
+    task_running?: boolean;
+  };
+  metrics?: {
+    cpu?: {
+      usage_percent?: number;
+    };
+    memory?: {
+      usage_bytes?: number;
+      usage_percent?: number;
+      limit_bytes?: number;
+    };
+    storage?: {
+      used_bytes?: number;
+      path?: string;
+    };
+  };
+};
 
 const props = defineProps<{
   backend: string;
   loading: boolean;
-  metrics: HandlersGetContainerMetricsResponse | null;
+  metrics: ContainerMetricsResponse | null;
 }>();
 
 const { t } = useI18n();

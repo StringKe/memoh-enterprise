@@ -36,7 +36,7 @@
             >
               <Spinner v-if="addingProviderId === p.id" class="size-3" />
               {{ p.name }}
-              <span class="text-xs text-muted-foreground ml-auto">{{ p.provider }}</span>
+              <span class="text-xs text-muted-foreground ml-auto">{{ p.type }}</span>
             </button>
           </PopoverContent>
         </Popover>
@@ -57,10 +57,10 @@
           <div class="flex items-center justify-between">
             <div class="min-w-0">
               <p class="font-medium text-xs">
-                {{ providerNameMap[binding.email_provider_id!] || binding.email_provider_id }}
+                {{ providerNameMap[binding.providerId] || binding.providerId }}
               </p>
-              <p v-if="binding.email_address" class="text-xs text-muted-foreground mt-0.5">
-                {{ binding.email_address }}
+              <p v-if="binding.address" class="text-xs text-muted-foreground mt-0.5">
+                {{ binding.address }}
               </p>
             </div>
             <ConfirmPopover
@@ -171,31 +171,35 @@ import { computed, ref } from "vue";
 import { toast } from "vue-sonner";
 import { useI18n } from "vue-i18n";
 import { useQuery, useQueryCache } from "@pinia/colada";
-import {
-  getEmailProviders,
-  getBotsByBotIdEmailBindings,
-  postBotsByBotIdEmailBindings,
-  putBotsByBotIdEmailBindingsById,
-  deleteBotsByBotIdEmailBindingsById,
-  getBotsByBotIdEmailOutbox,
-} from "@stringke/sdk";
 import type {
-  EmailProviderResponse,
-  EmailBindingResponse,
-  EmailOutboxItemResponse,
-} from "@stringke/sdk";
+  EmailBinding,
+  EmailOutboxItem,
+  EmailProvider,
+  TimestampMessage,
+} from "@stringke/sdk/connect";
 import { formatDateTime } from "@/utils/date-time";
+import { connectClients } from "@/lib/connect-client";
 
 const props = defineProps<{ botId: string }>();
 const { t } = useI18n();
+
+type EmailBindingView = EmailBinding & {
+  can_read?: boolean;
+  can_write?: boolean;
+  can_delete?: boolean;
+};
+
+type EmailOutboxItemView = Omit<EmailOutboxItem, "sentAt"> & {
+  sent_at?: string;
+};
 
 const queryCache = useQueryCache();
 
 const { data: providersData } = useQuery({
   key: () => ["email-providers"],
   query: async () => {
-    const { data } = await getEmailProviders({ throwOnError: true });
-    return data ?? [];
+    const response = await connectClients.emailProviders.listEmailProviders({});
+    return response.providers;
   },
 });
 
@@ -206,12 +210,11 @@ const {
 } = useQuery({
   key: () => ["bot-email-bindings", props.botId],
   query: async () => {
-    if (!props.botId) return [] as EmailBindingResponse[];
-    const { data } = await getBotsByBotIdEmailBindings({
-      path: { bot_id: props.botId },
-      throwOnError: true,
+    if (!props.botId) return [] as EmailBindingView[];
+    const response = await connectClients.emailBindings.listEmailBindings({
+      botId: props.botId,
     });
-    return data ?? [];
+    return response.bindings.map(emailBindingFromProto);
   },
   enabled: () => !!props.botId,
 });
@@ -219,20 +222,19 @@ const {
 const { data: outboxData, isLoading: outboxLoading } = useQuery({
   key: () => ["bot-email-outbox", props.botId],
   query: async () => {
-    if (!props.botId) return [] as EmailOutboxItemResponse[];
-    const { data } = await getBotsByBotIdEmailOutbox({
-      path: { bot_id: props.botId },
-      query: { limit: 50, offset: 0 },
-      throwOnError: true,
+    if (!props.botId) return [] as EmailOutboxItemView[];
+    const response = await connectClients.emailOutbox.listEmailOutbox({
+      botId: props.botId,
+      page: { pageSize: 50 },
     });
-    return ((data as Record<string, unknown>)?.items as EmailOutboxItemResponse[]) ?? [];
+    return response.items.map(emailOutboxFromProto);
   },
   enabled: () => !!props.botId,
 });
 
-const providers = computed<EmailProviderResponse[]>(() => providersData.value ?? []);
-const bindings = computed<EmailBindingResponse[]>(() => bindingsData.value ?? []);
-const outboxItems = computed<EmailOutboxItemResponse[]>(() => outboxData.value ?? []);
+const providers = computed<EmailProvider[]>(() => providersData.value ?? []);
+const bindings = computed<EmailBindingView[]>(() => bindingsData.value ?? []);
+const outboxItems = computed<EmailOutboxItemView[]>(() => outboxData.value ?? []);
 
 const addingBinding = ref(false);
 const addingProviderId = ref("");
@@ -247,7 +249,7 @@ const providerNameMap = computed(() => {
 });
 
 const unboundProviders = computed(() => {
-  const boundIds = new Set(bindings.value.map((b) => b.email_provider_id));
+  const boundIds = new Set(bindings.value.map((b) => b.providerId));
   return providers.value.filter((p) => !boundIds.has(p.id));
 });
 
@@ -255,22 +257,22 @@ function invalidateBindings() {
   queryCache.invalidateQueries({ key: ["bot-email-bindings", props.botId] });
 }
 
-async function handleAddBinding(provider: EmailProviderResponse) {
+async function handleAddBinding(provider: EmailProvider) {
   addingBinding.value = true;
-  addingProviderId.value = provider.id!;
+  addingProviderId.value = provider.id;
   const emailAddr =
     ((provider.config as Record<string, unknown>)?.username as string) || provider.name || "";
   try {
-    await postBotsByBotIdEmailBindings({
-      path: { bot_id: props.botId },
-      body: {
-        email_provider_id: provider.id!,
-        email_address: emailAddr,
+    await connectClients.emailBindings.createEmailBinding({
+      botId: props.botId,
+      providerId: provider.id,
+      address: emailAddr,
+      enabled: true,
+      config: {
         can_read: true,
         can_write: true,
         can_delete: false,
       },
-      throwOnError: true,
     });
     invalidateBindings();
     await refetchBindings();
@@ -283,12 +285,18 @@ async function handleAddBinding(provider: EmailProviderResponse) {
   }
 }
 
-async function handleTogglePerm(binding: EmailBindingResponse, field: string, value: boolean) {
+async function handleTogglePerm(binding: EmailBindingView, field: string, value: boolean) {
   try {
-    await putBotsByBotIdEmailBindingsById({
-      path: { bot_id: props.botId, id: binding.id! },
-      body: { [field]: value },
-      throwOnError: true,
+    await connectClients.emailBindings.updateEmailBinding({
+      id: binding.id,
+      address: binding.address,
+      enabled: field === "can_read" ? value || !!binding.can_write : !!binding.can_read || value,
+      config: {
+        ...(binding.config as Record<string, unknown> | undefined),
+        can_read: field === "can_read" ? value : !!binding.can_read,
+        can_write: field === "can_write" ? value : !!binding.can_write,
+        can_delete: !!binding.can_delete,
+      },
     });
     invalidateBindings();
     await refetchBindings();
@@ -300,10 +308,7 @@ async function handleTogglePerm(binding: EmailBindingResponse, field: string, va
 async function handleDeleteBinding(id: string) {
   deletingId.value = id;
   try {
-    await deleteBotsByBotIdEmailBindingsById({
-      path: { bot_id: props.botId, id },
-      throwOnError: true,
-    });
+    await connectClients.emailBindings.deleteEmailBinding({ id });
     invalidateBindings();
     await refetchBindings();
     toast.success(t("bots.email.unbindSuccess"));
@@ -316,5 +321,29 @@ async function handleDeleteBinding(id: string) {
 
 function formatDate(value: string | undefined) {
   return formatDateTime(value, { fallback: "-" });
+}
+
+function emailBindingFromProto(binding: EmailBinding): EmailBindingView {
+  const config = (binding.config ?? {}) as Record<string, unknown>;
+  return {
+    ...binding,
+    can_read: config.can_read === true,
+    can_write: config.can_write === true,
+    can_delete: config.can_delete === true,
+  };
+}
+
+function emailOutboxFromProto(item: EmailOutboxItem): EmailOutboxItemView {
+  return {
+    ...item,
+    sent_at: timestampToISOString(item.sentAt),
+  };
+}
+
+function timestampToISOString(value: TimestampMessage | undefined): string | undefined {
+  if (!value) return undefined;
+  const seconds = Number(value.seconds ?? 0n);
+  const nanos = Number(value.nanos ?? 0);
+  return new Date(seconds * 1000 + Math.floor(nanos / 1_000_000)).toISOString();
 }
 </script>

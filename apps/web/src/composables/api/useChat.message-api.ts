@@ -1,6 +1,4 @@
-import { client } from "@stringke/sdk/client";
-import { getBotsByBotIdMessages, postBotsByBotIdLocalMessages } from "@stringke/sdk";
-import type { ChannelAttachment, ChannelMessage } from "@stringke/sdk";
+import { apiHttpUrl } from "../../lib/runtime-url";
 import type {
   ChatAttachment,
   FetchMessagesOptions,
@@ -11,22 +9,70 @@ import type {
 } from "./useChat.types";
 import { parseStreamPayload, readSSEStream } from "./useChat.sse";
 
+interface ChannelAttachmentPayload {
+  type: string;
+  base64: string;
+  mime: string;
+  name: string;
+}
+
+interface ChannelMessagePayload {
+  text?: string;
+  attachments?: ChannelAttachmentPayload[];
+}
+
+function authHeaders(extra?: HeadersInit): HeadersInit {
+  const token = localStorage.getItem("token") || "";
+  return {
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...extra,
+  };
+}
+
+function botRuntimeUrl(botId: string, path: string, query?: URLSearchParams): string {
+  const url = apiHttpUrl(`/bots/${encodeURIComponent(botId)}${path}`);
+  const queryString = query?.toString();
+  return queryString ? `${url}?${queryString}` : url;
+}
+
+function messagesQuery(sessionId?: string, options?: FetchMessagesOptions): URLSearchParams {
+  const query = new URLSearchParams();
+  query.set("limit", String(options?.limit ?? 30));
+  if (options?.before?.trim()) query.set("before", options.before.trim());
+  if (sessionId?.trim()) query.set("session_id", sessionId.trim());
+  return query;
+}
+
+async function readJsonResponse<T>(response: Response): Promise<T> {
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || `Request failed with status ${response.status}`);
+  }
+  return response.json() as Promise<T>;
+}
+
+async function readStreamResponse(response: Response): Promise<ReadableStream<Uint8Array>> {
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || `Request failed with status ${response.status}`);
+  }
+  if (!response.body) throw new Error("No response body");
+  return response.body;
+}
+
 export async function fetchMessages(
   botId: string,
   sessionId?: string,
   options?: FetchMessagesOptions,
 ): Promise<Message[]> {
-  const { data } = await getBotsByBotIdMessages({
-    path: { bot_id: botId },
-    query: {
-      limit: options?.limit ?? 30,
-      ...(options?.before?.trim() ? { before: options.before.trim() } : {}),
-      ...(sessionId?.trim() ? { session_id: sessionId.trim() } : {}),
+  const response = await fetch(
+    botRuntimeUrl(botId, "/messages", messagesQuery(sessionId, options)),
+    {
+      headers: authHeaders(),
     },
-    throwOnError: true,
-  });
-
-  return (data as unknown as { items?: Message[] })?.items ?? [];
+  );
+  const data = await readJsonResponse<{ items?: Message[] }>(response);
+  return data.items ?? [];
 }
 
 export async function fetchMessagesUI(
@@ -34,19 +80,13 @@ export async function fetchMessagesUI(
   sessionId?: string,
   options?: FetchMessagesOptions,
 ): Promise<UITurn[]> {
-  const response = await client.get({
-    url: "/bots/{bot_id}/messages",
-    path: { bot_id: botId },
-    query: {
-      limit: options?.limit ?? 30,
-      format: "ui",
-      ...(options?.before?.trim() ? { before: options.before.trim() } : {}),
-      ...(sessionId?.trim() ? { session_id: sessionId.trim() } : {}),
-    },
-    throwOnError: true,
+  const query = messagesQuery(sessionId, options);
+  query.set("format", "ui");
+  const response = await fetch(botRuntimeUrl(botId, "/messages", query), {
+    headers: authHeaders(),
   });
-
-  return (response.data as { items?: UITurn[] } | undefined)?.items ?? [];
+  const data = await readJsonResponse<{ items?: UITurn[] }>(response);
+  return data.items ?? [];
 }
 
 export interface SendMessageOverrides {
@@ -60,15 +100,15 @@ export async function sendLocalChannelMessage(
   attachments?: ChatAttachment[],
   overrides?: SendMessageOverrides,
 ): Promise<void> {
-  const msg: ChannelMessage = {};
+  const msg: ChannelMessagePayload = {};
   const trimmedText = text.trim();
   if (trimmedText) {
     msg.text = trimmedText;
   }
   if (attachments?.length) {
     msg.attachments = attachments.map(
-      (item): ChannelAttachment => ({
-        type: item.type as ChannelAttachment["type"],
+      (item): ChannelAttachmentPayload => ({
+        type: item.type,
         base64: item.base64,
         mime: item.mime ?? "",
         name: item.name ?? "",
@@ -78,11 +118,16 @@ export async function sendLocalChannelMessage(
   const body: Record<string, unknown> = { message: msg };
   if (overrides?.modelId) body.model_id = overrides.modelId;
   if (overrides?.reasoningEffort) body.reasoning_effort = overrides.reasoningEffort;
-  await postBotsByBotIdLocalMessages({
-    path: { bot_id: botId },
-    body: body as { message: ChannelMessage; model_id?: string; reasoning_effort?: string },
-    throwOnError: true,
+
+  const response = await fetch(botRuntimeUrl(botId, "/local/messages"), {
+    method: "POST",
+    headers: authHeaders({ "Content-Type": "application/json" }),
+    body: JSON.stringify(body),
   });
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || `Request failed with status ${response.status}`);
+  }
 }
 
 export async function streamLocalChannel(
@@ -93,16 +138,11 @@ export async function streamLocalChannel(
   const id = botId.trim();
   if (!id) throw new Error("bot id is required");
 
-  const response = await client.get({
-    url: "/bots/{bot_id}/local/stream",
-    path: { bot_id: id },
-    parseAs: "stream",
+  const response = await fetch(botRuntimeUrl(id, "/local/stream"), {
+    headers: authHeaders({ Accept: "text/event-stream" }),
     signal,
-    throwOnError: true,
   });
-  const body = response.data as ReadableStream<Uint8Array> | null;
-
-  if (!body) throw new Error("No response body");
+  const body = await readStreamResponse(response);
 
   await readSSEStream(body, (payload) => {
     const event = parseStreamPayload(payload);
@@ -122,17 +162,11 @@ export async function streamMessageEvents(
   const query: Record<string, string> = {};
   if (since?.trim()) query.since = since.trim();
 
-  const response = await client.get({
-    url: "/bots/{bot_id}/messages/events",
-    path: { bot_id: id },
-    query,
-    parseAs: "stream",
+  const response = await fetch(botRuntimeUrl(id, "/messages/events", new URLSearchParams(query)), {
+    headers: authHeaders({ Accept: "text/event-stream" }),
     signal,
-    throwOnError: true,
   });
-  const body = response.data as ReadableStream<Uint8Array> | null;
-
-  if (!body) throw new Error("No response body");
+  const body = await readStreamResponse(response);
 
   await readSSEStream(body, (payload) => {
     try {

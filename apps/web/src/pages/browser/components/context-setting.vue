@@ -182,29 +182,31 @@ import { toTypedSchema } from "@vee-validate/zod";
 import z from "zod";
 import { useForm } from "vee-validate";
 import { useMutation, useQuery, useQueryCache } from "@pinia/colada";
-import { putBrowserContextsById, deleteBrowserContextsById } from "@stringke/sdk";
-import { getBrowserContextsCoresQuery } from "@stringke/sdk/colada";
-import type { BrowsercontextsBrowserContext, BrowsercontextsUpdateRequest } from "@stringke/sdk";
 import { inject, watch, computed, type Ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
-import { useDialogMutation } from "@/composables/useDialogMutation";
 import ConfirmPopover from "@/components/confirm-popover/index.vue";
 import LoadingButton from "@/components/loading-button/index.vue";
 import SettingsShell from "@/components/settings-shell/index.vue";
-import { resolveApiErrorMessage } from "@/utils/api-error";
 import { AppWindow, Trash2 } from "lucide-vue-next";
 import { emptyTimezoneValue } from "@/utils/timezones";
 import TimezoneSelect from "@/components/timezone-select/index.vue";
+import { connectClients } from "@/lib/connect-client";
+import { resolveConnectErrorMessage } from "@/lib/connect-errors";
+import type { BrowserContext } from "@stringke/sdk/connect";
 
 const { t } = useI18n();
-const { run } = useDialogMutation();
 const queryCache = useQueryCache();
 
-const curContext = inject<Ref<BrowsercontextsBrowserContext | undefined>>("curBrowserContext");
+const curContext = inject<Ref<BrowserContext | undefined>>("curBrowserContext");
 
-const { data: coresData } = useQuery(getBrowserContextsCoresQuery());
-const availableCores = computed(() => coresData.value?.cores ?? ["chromium"]);
+const { data: coresData } = useQuery({
+  key: () => ["browser-context-cores"],
+  query: () => connectClients.browserContexts.listBrowserCores({}),
+});
+const availableCores = computed(
+  () => coresData.value?.cores.map((core) => core.id) ?? ["chromium"],
+);
 
 interface ConfigShape {
   core?: string;
@@ -217,15 +219,8 @@ interface ConfigShape {
   ignoreHTTPSErrors?: boolean;
 }
 
-function parseConfig(ctx: BrowsercontextsBrowserContext | undefined): ConfigShape {
+function parseConfig(ctx: BrowserContext | undefined): ConfigShape {
   if (!ctx?.config) return {};
-  if (typeof ctx.config === "string") {
-    try {
-      return JSON.parse(ctx.config);
-    } catch {
-      return {};
-    }
-  }
   if (typeof ctx.config === "object" && !Array.isArray(ctx.config)) {
     return ctx.config as unknown as ConfigShape;
   }
@@ -274,10 +269,11 @@ watch(
 
 const { mutateAsync: updateMutation, isLoading: isSaving } = useMutation({
   mutation: async (data: { id: string; name: string; config: Record<string, unknown> }) => {
-    const { data: result } = await putBrowserContextsById({
-      path: { id: data.id },
-      body: { name: data.name, config: data.config } as BrowsercontextsUpdateRequest,
-      throwOnError: true,
+    const result = await connectClients.browserContexts.updateBrowserContext({
+      id: data.id,
+      name: data.name,
+      core: String(data.config.core ?? ""),
+      config: data.config,
     });
     return result;
   },
@@ -285,12 +281,7 @@ const { mutateAsync: updateMutation, isLoading: isSaving } = useMutation({
 });
 
 const { mutateAsync: deleteMutation, isLoading: isDeleting } = useMutation({
-  mutation: async (id: string) => {
-    await deleteBrowserContextsById({
-      path: { id },
-      throwOnError: true,
-    });
-  },
+  mutation: (id: string) => connectClients.browserContexts.deleteBrowserContext({ id }),
   onSettled: () => queryCache.invalidateQueries({ key: ["browser-contexts"] }),
 });
 
@@ -314,10 +305,12 @@ const handleSave = form.handleSubmit(async (values) => {
   if (values.timezoneId) config.timezoneId = values.timezoneId;
   if (values.ignoreHTTPSErrors) config.ignoreHTTPSErrors = values.ignoreHTTPSErrors;
 
-  await run(() => updateMutation({ id, name: values.name, config }), {
-    fallbackMessage: t("common.saveFailed"),
-    onSuccess: () => toast.success(t("browser.saveSuccess")),
-  });
+  try {
+    await updateMutation({ id, name: values.name, config });
+    toast.success(t("browser.saveSuccess"));
+  } catch (err) {
+    toast.error(resolveConnectErrorMessage(err, t("common.saveFailed")));
+  }
 });
 
 async function handleDelete() {
@@ -327,7 +320,7 @@ async function handleDelete() {
     await deleteMutation(id);
     toast.success(t("browser.deleteSuccess"));
   } catch (err) {
-    toast.error(resolveApiErrorMessage(err, t("common.deleteFailed")));
+    toast.error(resolveConnectErrorMessage(err, t("common.deleteFailed")));
   }
 }
 </script>

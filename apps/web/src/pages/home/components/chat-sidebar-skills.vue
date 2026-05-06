@@ -80,10 +80,9 @@ import { toast } from "vue-sonner";
 import { useQuery, useQueryCache } from "@pinia/colada";
 import { Sparkles, RefreshCw } from "lucide-vue-next";
 import { Button, ScrollArea, Badge } from "@stringke/ui";
-import { getBotsByBotIdContainerSkills } from "@stringke/sdk";
-import type { HandlersSkillItem } from "@stringke/sdk";
 import { resolveApiErrorMessage } from "@/utils/api-error";
 import { openInFileManagerKey } from "../composables/useFileManagerProvider";
+import { apiHttpUrl } from "@/lib/runtime-url";
 
 const props = defineProps<{
   botId: string;
@@ -93,26 +92,45 @@ const { t } = useI18n();
 const queryCache = useQueryCache();
 const openInFileManager = inject(openInFileManagerKey, undefined);
 
+type SkillItem = {
+  name?: string;
+  source_path?: string;
+  source_kind?: string;
+  state?: string;
+};
+
 const { data, isLoading, error } = useQuery({
   key: () => ["bot-skills-catalog", props.botId],
   query: async () => {
-    const { data: resp } = await getBotsByBotIdContainerSkills({
-      path: { bot_id: props.botId },
-      throwOnError: true,
-    });
-    return (resp.skills ?? []) as HandlersSkillItem[];
+    const response = await fetch(
+      apiHttpUrl(`/bots/${encodeURIComponent(props.botId)}/container/skills`),
+      {
+        headers: authHeaders(),
+      },
+    );
+    if (!response.ok) {
+      const message = await response.text();
+      throw new Error(message || `Request failed with status ${response.status}`);
+    }
+    const resp = (await response.json()) as { skills?: SkillItem[] };
+    return resp.skills ?? [];
   },
   enabled: () => !!props.botId,
   refetchOnWindowFocus: false,
 });
 
-const skills = computed<HandlersSkillItem[]>(() => data.value ?? []);
+function authHeaders(): HeadersInit {
+  const token = localStorage.getItem("token") || "";
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+const skills = computed<SkillItem[]>(() => data.value ?? []);
 
 watch(error, (err) => {
   if (err) toast.error(resolveApiErrorMessage(err, t("bots.skills.loadFailed")));
 });
 
-function skillKey(skill: HandlersSkillItem): string {
+function skillKey(skill: SkillItem): string {
   return skill.source_path || `${skill.name ?? ""}:${skill.source_kind ?? ""}`;
 }
 
@@ -137,7 +155,7 @@ function parentDir(filePath: string): string {
   return filePath.slice(0, idx);
 }
 
-function handleSkillClick(skill: HandlersSkillItem) {
+function handleSkillClick(skill: SkillItem) {
   const path = skill.source_path;
   if (!path) return;
   openInFileManager?.(parentDir(path), true);

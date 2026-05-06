@@ -8,7 +8,7 @@
             {{ curProvider?.name }}
           </h2>
           <p class="text-xs text-muted-foreground">
-            {{ curProvider?.provider }}
+            {{ curProvider?.type }}
           </p>
         </div>
       </div>
@@ -223,44 +223,53 @@ import { toTypedSchema } from "@vee-validate/zod";
 import z from "zod";
 import { useForm } from "vee-validate";
 import { useMutation, useQuery, useQueryCache } from "@pinia/colada";
-import {
-  putEmailProvidersById,
-  deleteEmailProvidersById,
-  getEmailProvidersMeta,
-  getEmailProvidersByIdOauthAuthorize,
-  getEmailProvidersByIdOauthStatus,
-  deleteEmailProvidersByIdOauthToken,
-} from "@stringke/sdk";
 import type {
-  EmailProviderResponse,
+  EmailProvider,
   EmailProviderMeta,
-  EmailFieldSchema,
-  HandlersEmailOAuthStatusResponse,
-} from "@stringke/sdk";
+  GetEmailOauthStatusResponse,
+} from "@stringke/sdk/connect";
+import { connectClients } from "@/lib/connect-client";
 
 const OAUTH_PROVIDERS = ["gmail"];
 
 const { t } = useI18n();
-const curProvider = inject("curEmailProvider", ref<EmailProviderResponse>());
+const curProvider = inject("curEmailProvider", ref<EmailProvider>());
 const curProviderId = computed(() => curProvider.value?.id);
+
+interface EmailFieldSchema {
+  key: string;
+  type: string;
+  title?: string;
+  description?: string;
+  required?: boolean;
+  enum?: string[];
+  example?: unknown;
+  order?: number;
+}
+
+interface EmailOAuthStatusView {
+  configured?: boolean;
+  has_token?: boolean;
+  expired?: boolean;
+  email_address?: string;
+}
 
 const { data: metaList } = useQuery({
   key: () => ["email-providers-meta"],
   query: async () => {
-    const { data } = await getEmailProvidersMeta({ throwOnError: true });
-    return data;
+    const response = await connectClients.emailProviders.listEmailProviderMeta({});
+    return response.providers;
   },
 });
 
 const currentMeta = computed(() => {
-  if (!metaList.value || !curProvider.value?.provider) return null;
-  return (metaList.value as EmailProviderMeta[]).find(
-    (m) => m.provider === curProvider.value?.provider,
-  );
+  if (!metaList.value || !curProvider.value?.type) return null;
+  return (metaList.value as EmailProviderMeta[]).find((m) => m.type === curProvider.value?.type);
 });
 
 const orderedFields = computed<EmailFieldSchema[]>(() => {
-  const fields = currentMeta.value?.config_schema?.fields;
+  const schema = currentMeta.value?.schema as { fields?: EmailFieldSchema[] } | undefined;
+  const fields = schema?.fields;
   if (!Array.isArray(fields)) return [];
   return [...fields].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 });
@@ -286,9 +295,9 @@ function isWideField(field: EmailFieldSchema) {
   return false;
 }
 
-const isOAuthProvider = computed(() => OAUTH_PROVIDERS.includes(curProvider.value?.provider ?? ""));
+const isOAuthProvider = computed(() => OAUTH_PROVIDERS.includes(curProvider.value?.type ?? ""));
 
-const oauthStatus = ref<HandlersEmailOAuthStatusResponse | null>(null);
+const oauthStatus = ref<EmailOAuthStatusView | null>(null);
 const oauthStatusLoading = ref(false);
 const revokeLoading = ref(false);
 
@@ -336,12 +345,12 @@ watch([isOAuthProvider, curProviderId], () => {
 const { mutateAsync: submitUpdate, isLoading: editLoading } = useMutation({
   mutation: async (data: { name: string; config: Record<string, unknown> }) => {
     if (!curProviderId.value) return;
-    const { data: result } = await putEmailProvidersById({
-      path: { id: curProviderId.value },
-      body: { name: data.name, config: data.config },
-      throwOnError: true,
+    const result = await connectClients.emailProviders.updateEmailProvider({
+      id: curProviderId.value,
+      name: data.name,
+      config: data.config,
     });
-    return result;
+    return result.provider;
   },
   onSettled: () => queryCache.invalidateQueries({ key: ["email-providers"] }),
 });
@@ -349,7 +358,7 @@ const { mutateAsync: submitUpdate, isLoading: editLoading } = useMutation({
 const { mutateAsync: doDelete, isLoading: deleteLoading } = useMutation({
   mutation: async () => {
     if (!curProviderId.value) return;
-    await deleteEmailProvidersById({ path: { id: curProviderId.value }, throwOnError: true });
+    await connectClients.emailProviders.deleteEmailProvider({ id: curProviderId.value });
   },
   onSettled: () => queryCache.invalidateQueries({ key: ["email-providers"] }),
 });
@@ -391,14 +400,15 @@ async function handleAuthorize() {
   if (!curProviderId.value) return;
   authorizeLoading.value = true;
   try {
-    const { data, error } = await getEmailProvidersByIdOauthAuthorize({
-      path: { id: curProviderId.value },
+    const data = await connectClients.emailProviders.startEmailOauth({
+      providerId: curProviderId.value,
+      redirectUri: `${window.location.origin}/api/email/oauth/callback`,
     });
-    if (error || !data?.auth_url) {
+    if (!data.authorizeUrl) {
       throw new Error(t("email.oauth.authorizeFailed"));
     }
 
-    const popup = window.open(data.auth_url, "email-oauth", "width=600,height=720");
+    const popup = window.open(data.authorizeUrl, "email-oauth", "width=600,height=720");
     if (!popup) {
       throw new Error(t("email.oauth.authorizeFailed"));
     }
@@ -446,13 +456,10 @@ async function fetchOAuthStatus() {
   }
   oauthStatusLoading.value = true;
   try {
-    const { data, error } = await getEmailProvidersByIdOauthStatus({
-      path: { id: curProviderId.value },
+    const data = await connectClients.emailProviders.getEmailOauthStatus({
+      providerId: curProviderId.value,
     });
-    if (error) {
-      throw error;
-    }
-    oauthStatus.value = data ?? null;
+    oauthStatus.value = oauthStatusFromProto(data);
   } catch (error: unknown) {
     oauthStatus.value = null;
     console.error("failed to fetch email oauth status", error);
@@ -465,10 +472,9 @@ async function handleRevoke() {
   if (!curProviderId.value) return;
   revokeLoading.value = true;
   try {
-    const { error } = await deleteEmailProvidersByIdOauthToken({
-      path: { id: curProviderId.value },
+    await connectClients.emailProviders.revokeEmailOauth({
+      providerId: curProviderId.value,
     });
-    if (error) throw error;
     toast.success(t("email.oauth.logoutSuccess"));
     await fetchOAuthStatus();
   } catch (error: unknown) {
@@ -476,5 +482,15 @@ async function handleRevoke() {
   } finally {
     revokeLoading.value = false;
   }
+}
+
+function oauthStatusFromProto(value: GetEmailOauthStatusResponse): EmailOAuthStatusView {
+  const metadata = (value.metadata ?? {}) as Record<string, unknown>;
+  return {
+    configured: metadata.configured === true,
+    has_token: value.authorized,
+    expired: metadata.expired === true,
+    email_address: value.account,
+  };
 }
 </script>

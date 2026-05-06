@@ -17,7 +17,7 @@ import { useRoute } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { Spinner } from "@stringke/ui";
 import { CircleCheck, CircleX } from "lucide-vue-next";
-import { postBotsByBotIdMcpByIdOauthExchange } from "@stringke/sdk";
+import { connectClients } from "@/lib/connect-client";
 
 const route = useRoute();
 const { t } = useI18n();
@@ -56,11 +56,7 @@ onMounted(async () => {
   }
 
   try {
-    await postBotsByBotIdMcpByIdOauthExchange({
-      path: { bot_id: "-", id: "-" },
-      body: { code, state },
-      throwOnError: true,
-    });
+    await connectClients.mcp.exchangeMcpOauth({ code, state });
     loading.value = false;
     success.value = true;
     message.value = t("mcp.oauth.authSuccess");

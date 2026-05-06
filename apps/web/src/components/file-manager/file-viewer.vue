@@ -4,21 +4,17 @@ import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 import { File, Download, Save } from "lucide-vue-next";
 import { Button, Spinner } from "@stringke/ui";
-import {
-  getBotsByBotIdContainerFsRead,
-  postBotsByBotIdContainerFsWrite,
-  getBotsByBotIdContainerFsDownload,
-} from "@stringke/sdk";
-import type { HandlersFsFileInfo } from "@stringke/sdk";
 import { resolveApiErrorMessage } from "@/utils/api-error";
 import MonacoEditor from "@/components/monaco-editor/index.vue";
 import { isTextFile, isImageFile } from "./utils";
+import type { FsFileInfo, FsReadResponse } from "./types";
 import { useChatStore } from "@/store/chat-list";
 import { storeToRefs } from "pinia";
+import { apiHttpUrl } from "@/lib/runtime-url";
 
 const props = defineProps<{
   botId: string;
-  file: HandlersFsFileInfo;
+  file: FsFileInfo;
 }>();
 
 const emit = defineEmits<{
@@ -40,6 +36,35 @@ const isText = computed(() => isTextFile(filename.value));
 const isImage = computed(() => isImageFile(filename.value));
 const isDirty = computed(() => content.value !== originalContent.value);
 
+function authHeaders(extra?: HeadersInit): HeadersInit {
+  const token = localStorage.getItem("token") || "";
+  return {
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...extra,
+  };
+}
+
+function fileApiUrl(path: string): string {
+  const query = new URLSearchParams({ path: filePath.value });
+  return `${apiHttpUrl(`/bots/${encodeURIComponent(props.botId)}${path}`)}?${query.toString()}`;
+}
+
+async function readJsonResponse<T>(response: Response): Promise<T> {
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || `Request failed with status ${response.status}`);
+  }
+  return response.json() as Promise<T>;
+}
+
+async function readBlobResponse(response: Response): Promise<Blob> {
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || `Request failed with status ${response.status}`);
+  }
+  return response.blob();
+}
+
 watch(
   isDirty,
   (dirty) => {
@@ -51,11 +76,11 @@ watch(
 async function loadTextContent() {
   loading.value = true;
   try {
-    const { data } = await getBotsByBotIdContainerFsRead({
-      path: { bot_id: props.botId },
-      query: { path: filePath.value },
-      throwOnError: true,
-    });
+    const data = await readJsonResponse<FsReadResponse>(
+      await fetch(fileApiUrl("/container/fs/read"), {
+        headers: authHeaders(),
+      }),
+    );
     content.value = data.content ?? "";
     originalContent.value = content.value;
   } catch (error) {
@@ -68,13 +93,11 @@ async function loadTextContent() {
 async function loadImageBlob() {
   loading.value = true;
   try {
-    const response = await getBotsByBotIdContainerFsDownload({
-      path: { bot_id: props.botId },
-      query: { path: filePath.value },
-      parseAs: "blob",
-      throwOnError: true,
-    });
-    const blob = response.data as unknown as Blob;
+    const blob = await readBlobResponse(
+      await fetch(fileApiUrl("/container/fs/download"), {
+        headers: authHeaders(),
+      }),
+    );
     imageUrl.value = URL.createObjectURL(blob);
   } catch (error) {
     toast.error(resolveApiErrorMessage(error, t("bots.files.readFailed")));
@@ -87,11 +110,18 @@ async function handleSave() {
   if (!isDirty.value || saving.value) return;
   saving.value = true;
   try {
-    await postBotsByBotIdContainerFsWrite({
-      path: { bot_id: props.botId },
-      body: { path: filePath.value, content: content.value },
-      throwOnError: true,
-    });
+    const response = await fetch(
+      apiHttpUrl(`/bots/${encodeURIComponent(props.botId)}/container/fs/write`),
+      {
+        method: "POST",
+        headers: authHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({ path: filePath.value, content: content.value }),
+      },
+    );
+    if (!response.ok) {
+      const message = await response.text();
+      throw new Error(message || `Request failed with status ${response.status}`);
+    }
     originalContent.value = content.value;
     toast.success(t("bots.files.saveSuccess"));
     emit("saved");
@@ -104,7 +134,10 @@ async function handleSave() {
 
 function handleDownload() {
   const token = localStorage.getItem("token") ?? "";
-  const url = `/api/bots/${props.botId}/container/fs/download?path=${encodeURIComponent(filePath.value)}&token=${encodeURIComponent(token)}`;
+  const query = new URLSearchParams({ path: filePath.value, token });
+  const url = `${apiHttpUrl(
+    `/bots/${encodeURIComponent(props.botId)}/container/fs/download`,
+  )}?${query.toString()}`;
   const a = document.createElement("a");
   a.href = url;
   a.download = filename.value;

@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import { reactive, watch } from "vue";
 import { useLocalStorage } from "@vueuse/core";
 import { useRouter } from "vue-router";
+import { connectClients } from "@/lib/connect-client";
 
 export interface UserInfo {
   id: string;
@@ -42,6 +43,18 @@ export const useUserStore = defineStore(
       }
     };
 
+    const syncCurrentUser = async () => {
+      const response = await connectClients.auth.getMe({});
+      if (!response.user) return;
+      patchUserInfo({
+        id: response.user.id,
+        username: response.user.username,
+        displayName: response.user.displayName,
+        avatarUrl: response.user.avatarUrl,
+        timezone: response.user.timezone || "UTC",
+      });
+    };
+
     const exitLogin = () => {
       localToken.value = "";
       for (const key of Object.keys(userInfo) as (keyof UserInfo)[]) {
@@ -65,6 +78,7 @@ export const useUserStore = defineStore(
       userInfo,
       login,
       patchUserInfo,
+      syncCurrentUser,
       exitLogin,
     };
   },

@@ -2,6 +2,7 @@ import { createRouter, createWebHistory, type RouteLocationNormalized } from "vu
 import { h } from "vue";
 import { RouterView } from "vue-router";
 import { i18nRef } from "./i18n";
+import { resolveAuthRedirect } from "./router-auth";
 
 const routes = [
   {
@@ -67,6 +68,44 @@ const routes = [
         component: () => import("@/pages/providers/index.vue"),
         meta: {
           breadcrumb: i18nRef("sidebar.providers"),
+        },
+      },
+      {
+        path: "bot-groups",
+        component: { render: () => h(RouterView) },
+        meta: {
+          breadcrumb: i18nRef("sidebar.botGroups"),
+        },
+        children: [
+          {
+            name: "bot-groups",
+            path: "",
+            component: () => import("@/pages/bot-groups/index.vue"),
+          },
+          {
+            name: "bot-group-new",
+            path: "new",
+            component: () => import("@/pages/bot-groups/new.vue"),
+            meta: {
+              breadcrumb: i18nRef("botGroups.createTitle"),
+            },
+          },
+          {
+            name: "bot-group-detail",
+            path: ":groupId",
+            component: () => import("@/pages/bot-groups/detail.vue"),
+            meta: {
+              breadcrumb: (route: RouteLocationNormalized) => route.params.groupId,
+            },
+          },
+        ],
+      },
+      {
+        name: "integration-tokens",
+        path: "integration-tokens",
+        component: () => import("@/pages/integration-tokens/index.vue"),
+        meta: {
+          breadcrumb: i18nRef("sidebar.integrationTokens"),
         },
       },
       {
@@ -190,16 +229,6 @@ router.onError((error) => {
   throw error;
 });
 
-router.beforeEach((to) => {
-  const token = localStorage.getItem("token");
-
-  if (to.fullPath === "/login") {
-    return token ? { path: "/" } : true;
-  }
-  if (to.path.startsWith("/oauth/")) {
-    return true;
-  }
-  return token ? true : { name: "Login" };
-});
+router.beforeEach(resolveAuthRedirect);
 
 export default router;

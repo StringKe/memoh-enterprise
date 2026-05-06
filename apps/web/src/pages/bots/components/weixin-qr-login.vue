@@ -91,8 +91,8 @@ import { ref, computed, onUnmounted } from "vue";
 import { Button, Spinner } from "@stringke/ui";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
-import { client } from "@stringke/sdk/client";
 import QRCode from "qrcode";
+import { apiHttpUrl } from "@/lib/runtime-url";
 
 const props = defineProps<{
   botId: string;
@@ -136,9 +136,8 @@ async function startLogin() {
   qrImageDataUrl.value = "";
 
   try {
-    const baseUrl = client.getConfig().baseUrl || "";
     const resp = await fetch(
-      `${baseUrl}/bots/${encodeURIComponent(props.botId)}/channel/weixin/qr/start`,
+      apiHttpUrl(`/bots/${encodeURIComponent(props.botId)}/channel/weixin/qr/start`),
       {
         method: "POST",
         headers: {
@@ -182,9 +181,8 @@ async function pollOnce() {
   if (aborted || qrState.value !== "showing") return;
 
   try {
-    const baseUrl = client.getConfig().baseUrl || "";
     const resp = await fetch(
-      `${baseUrl}/bots/${encodeURIComponent(props.botId)}/channel/weixin/qr/poll`,
+      apiHttpUrl(`/bots/${encodeURIComponent(props.botId)}/channel/weixin/qr/poll`),
       {
         method: "POST",
         headers: {

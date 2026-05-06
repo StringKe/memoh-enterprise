@@ -30,12 +30,12 @@
 import { computed, ref, watch } from "vue";
 import { Search } from "lucide-vue-next";
 import { Popover, PopoverTrigger, PopoverContent, Button } from "@stringke/ui";
-import type { ModelsGetResponse, ProvidersGetResponse } from "@stringke/sdk";
+import type { Model, Provider } from "@stringke/sdk/connect";
 import ModelOptions from "./model-options.vue";
 
 const props = defineProps<{
-  models: ModelsGetResponse[];
-  providers: ProvidersGetResponse[];
+  models: Model[];
+  providers: Provider[];
   modelType: "chat" | "embedding";
   placeholder?: string;
 }>();
@@ -48,7 +48,7 @@ watch(selected, () => {
 });
 
 const displayLabel = computed(() => {
-  const model = props.models.find((m) => (m.id || m.model_id) === selected.value);
-  return model?.name || model?.model_id || selected.value;
+  const model = props.models.find((m) => (m.id || m.modelId) === selected.value);
+  return model?.displayName || model?.modelId || selected.value;
 });
 </script>

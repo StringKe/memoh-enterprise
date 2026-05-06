@@ -67,14 +67,14 @@
 <script setup lang="ts">
 import { Plug, Download, ExternalLink } from "lucide-vue-next";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter, Badge, Button } from "@stringke/ui";
-import type { HandlersSupermarketMcpEntry } from "@stringke/sdk";
+import type { SupermarketMcpEntry } from "../supermarket-items";
 
 defineProps<{
-  mcp: HandlersSupermarketMcpEntry;
+  mcp: SupermarketMcpEntry;
 }>();
 
 defineEmits<{
   "tag-click": [tag: string];
-  install: [mcp: HandlersSupermarketMcpEntry];
+  install: [mcp: SupermarketMcpEntry];
 }>();
 </script>

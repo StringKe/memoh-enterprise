@@ -129,18 +129,19 @@ import {
   TabsTrigger,
   TabsContent,
 } from "@stringke/ui";
-import {
-  getSupermarketMcps,
-  getSupermarketSkills,
-  type HandlersSupermarketMcpEntry,
-  type HandlersSupermarketSkillEntry,
-} from "@stringke/sdk";
 import { toast } from "vue-sonner";
+import { connectClients } from "@/lib/connect-client";
 import { resolveApiErrorMessage } from "@/utils/api-error";
 import McpCard from "./components/mcp-card.vue";
 import SkillCard from "./components/skill-card.vue";
 import InstallMcpDialog from "./components/install-mcp-dialog.vue";
 import InstallSkillDialog from "./components/install-skill-dialog.vue";
+import {
+  mcpEntryFromConnect,
+  skillEntryFromConnect,
+  type SupermarketMcpEntry,
+  type SupermarketSkillEntry,
+} from "./supermarket-items";
 
 const { t } = useI18n();
 
@@ -148,15 +149,15 @@ const searchInput = ref("");
 const searchQuery = ref("");
 const activeTag = ref("");
 
-const mcps = ref<HandlersSupermarketMcpEntry[]>([]);
-const skills = ref<HandlersSupermarketSkillEntry[]>([]);
+const mcps = ref<SupermarketMcpEntry[]>([]);
+const skills = ref<SupermarketSkillEntry[]>([]);
 const mcpLoading = ref(false);
 const skillsLoading = ref(false);
 
 const mcpDialogOpen = ref(false);
 const skillDialogOpen = ref(false);
-const selectedMcp = ref<HandlersSupermarketMcpEntry | null>(null);
-const selectedSkill = ref<HandlersSupermarketSkillEntry | null>(null);
+const selectedMcp = ref<SupermarketMcpEntry | null>(null);
+const selectedSkill = ref<SupermarketSkillEntry | null>(null);
 
 function applySearch() {
   searchQuery.value = searchInput.value.trim();
@@ -178,12 +179,12 @@ function clearTag() {
   activeTag.value = "";
 }
 
-function openMcpInstall(mcp: HandlersSupermarketMcpEntry) {
+function openMcpInstall(mcp: SupermarketMcpEntry) {
   selectedMcp.value = mcp;
   mcpDialogOpen.value = true;
 }
 
-function openSkillInstall(skill: HandlersSupermarketSkillEntry) {
+function openSkillInstall(skill: SupermarketSkillEntry) {
   selectedSkill.value = skill;
   skillDialogOpen.value = true;
 }
@@ -191,15 +192,12 @@ function openSkillInstall(skill: HandlersSupermarketSkillEntry) {
 async function loadMcps() {
   mcpLoading.value = true;
   try {
-    const { data } = await getSupermarketMcps({
-      query: {
-        q: searchQuery.value || undefined,
-        tag: activeTag.value || undefined,
-        limit: 50,
-      },
-      throwOnError: true,
+    const response = await connectClients.supermarket.listSupermarketMcps({
+      query: searchQuery.value,
+      tags: activeTag.value ? [activeTag.value] : [],
+      page: { pageSize: 50 },
     });
-    mcps.value = data.data ?? [];
+    mcps.value = response.items.map(mcpEntryFromConnect);
   } catch (error) {
     toast.error(resolveApiErrorMessage(error, t("supermarket.loadError")));
   } finally {
@@ -210,15 +208,12 @@ async function loadMcps() {
 async function loadSkills() {
   skillsLoading.value = true;
   try {
-    const { data } = await getSupermarketSkills({
-      query: {
-        q: searchQuery.value || undefined,
-        tag: activeTag.value || undefined,
-        limit: 50,
-      },
-      throwOnError: true,
+    const response = await connectClients.supermarket.listSupermarketSkills({
+      query: searchQuery.value,
+      tags: activeTag.value ? [activeTag.value] : [],
+      page: { pageSize: 50 },
     });
-    skills.value = data.data ?? [];
+    skills.value = response.items.map(skillEntryFromConnect);
   } catch (error) {
     toast.error(resolveApiErrorMessage(error, t("supermarket.loadError")));
   } finally {

@@ -107,18 +107,31 @@ import { Search, List } from "lucide-vue-next";
 import CreateModel from "@/components/create-model/index.vue";
 import ImportModelsDialog from "@/components/import-models-dialog/index.vue";
 import ModelItem from "./model-item.vue";
-import type { ModelsGetResponse } from "@stringke/sdk";
+
+type ModelView = {
+  id?: string;
+  provider_id?: string;
+  model_id?: string;
+  name?: string;
+  type?: string;
+  config?: {
+    compatibilities?: string[];
+    dimensions?: number;
+    context_window?: number;
+    reasoning_efforts?: string[];
+  };
+};
 
 const PAGE_SIZE = 30;
 
 const props = defineProps<{
   providerId: string | undefined;
-  models: ModelsGetResponse[] | undefined;
+  models: ModelView[] | undefined;
   deleteModelLoading: boolean;
 }>();
 
 defineEmits<{
-  edit: [model: ModelsGetResponse];
+  edit: [model: ModelView];
   delete: [id: string];
 }>();
 

@@ -71,11 +71,11 @@ import {
   SelectGroup,
   SelectItem,
 } from "@stringke/ui";
-import { postMemoryProviders } from "@stringke/sdk";
-import type { AdaptersProviderType } from "@stringke/sdk";
 import { toast } from "vue-sonner";
 import { useI18n } from "vue-i18n";
 import { useQueryCache } from "@pinia/colada";
+import { connectClients } from "@/lib/connect-client";
+import { resolveConnectErrorMessage } from "@/lib/connect-errors";
 
 const open = defineModel<boolean>("open", { default: false });
 const { t } = useI18n();
@@ -90,21 +90,17 @@ const form = reactive({
 async function handleCreate() {
   loading.value = true;
   try {
-    await postMemoryProviders({
-      body: {
-        name: form.name.trim(),
-        provider: form.provider as AdaptersProviderType,
-        config: {},
-      },
-      throwOnError: true,
+    await connectClients.memoryProviders.createMemoryProvider({
+      name: form.name.trim(),
+      type: form.provider,
+      config: {},
     });
     toast.success(t("memory.saveSuccess"));
     queryCache.invalidateQueries({ key: ["memory-providers"] });
     open.value = false;
     form.name = "";
   } catch (error) {
-    console.error("Failed to create memory provider:", error);
-    toast.error(t("common.saveFailed"));
+    toast.error(resolveConnectErrorMessage(error, t("common.saveFailed")));
   } finally {
     loading.value = false;
   }

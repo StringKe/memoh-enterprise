@@ -1,52 +1,45 @@
 <template>
-  <Card class="h-full flex flex-col">
+  <Card class="flex h-full flex-col">
     <CardHeader>
-      <CardTitle class="text-muted-foreground flex justify-between">
-        <span>{{ $t("platform.platformLabel") }}: {{ platform.name }}</span>
-        <Badge v-if="platform.active" variant="outline">
-          {{ $t("platform.running") }}
-        </Badge>
+      <CardTitle class="text-muted-foreground flex items-center justify-between gap-3">
+        <span class="flex min-w-0 items-center gap-2">
+          <ChannelIcon :channel="platform.id" size="1.25em" />
+          <span class="truncate">{{ platform.displayName || platform.id }}</span>
+        </span>
+        <Badge v-if="platform.supportsWebhook" variant="outline"> Webhook </Badge>
       </CardTitle>
       <CardContent class="px-0 pb-0">
         <ol class="space-y-2 text-xs">
-          <li v-for="(value, key) in platform.config" :key="key">{{ key }}: {{ value }}</li>
+          <li>{{ $t("platform.platformLabel") }}: {{ platform.id }}</li>
+          <li>
+            Identity Config:
+            {{ platform.supportsIdentityConfig ? $t("common.yes") : $t("common.no") }}
+          </li>
         </ol>
       </CardContent>
     </CardHeader>
-    <CardFooter class="flex gap-4 mt-auto">
-      <Switch :model-value="platform.active" :aria-label="`Toggle ${platform.name}`" />
-      <Button class="ml-auto" @click="$emit('edit', platform)">
-        {{ $t("common.edit") }}
-      </Button>
-      <Button variant="destructive" @click="$emit('delete', platform)">
-        {{ $t("common.delete") }}
-      </Button>
+    <CardFooter class="text-muted-foreground mt-auto text-xs">
+      {{ capabilitiesText }}
     </CardFooter>
   </Card>
 </template>
 
 <script setup lang="ts">
-import {
-  Card,
-  CardHeader,
-  CardFooter,
-  CardContent,
-  CardTitle,
-  Switch,
-  Button,
-  Badge,
-} from "@stringke/ui";
+import { computed } from "vue";
+import { Card, CardHeader, CardFooter, CardContent, CardTitle, Badge } from "@stringke/ui";
+import type { Channel } from "@stringke/sdk/connect";
+import ChannelIcon from "@/components/channel-icon/index.vue";
 
-defineProps<{
-  platform: {
-    name: string;
-    active: boolean;
-    config: Record<string, string>;
-  };
+const props = defineProps<{
+  platform: Channel;
 }>();
 
-defineEmits<{
-  edit: [platform: unknown];
-  delete: [platform: unknown];
-}>();
+const capabilitiesText = computed(() => {
+  const capabilities = props.platform.metadata?.capabilities;
+  if (!capabilities || typeof capabilities !== "object") return "";
+  const enabled = Object.entries(capabilities)
+    .filter(([, value]) => value === true)
+    .map(([key]) => key.replaceAll("_", " "));
+  return enabled.slice(0, 5).join(", ");
+});
 </script>

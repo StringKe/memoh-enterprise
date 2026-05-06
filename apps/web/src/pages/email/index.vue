@@ -15,21 +15,21 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@stringke/ui";
-import { getEmailProviders } from "@stringke/sdk";
-import type { EmailProviderResponse } from "@stringke/sdk";
+import type { EmailProvider } from "@stringke/sdk/connect";
 import AddEmailProvider from "./components/add-email-provider.vue";
 import ProviderSetting from "./components/provider-setting.vue";
 import { Mail, Plus } from "lucide-vue-next";
 import MasterDetailSidebarLayout from "@/components/master-detail-sidebar-layout/index.vue";
+import { connectClients } from "@/lib/connect-client";
 
 const { data: providerData } = useQuery({
   key: () => ["email-providers"],
   query: async () => {
-    const { data } = await getEmailProviders({ throwOnError: true });
-    return data;
+    const response = await connectClients.emailProviders.listEmailProviders({});
+    return response.providers;
   },
 });
-const curProvider = ref<EmailProviderResponse>();
+const curProvider = ref<EmailProvider>();
 provide("curEmailProvider", curProvider);
 
 const selectProvider = (name: string) =>
@@ -51,7 +51,7 @@ watch(
     }
     const currentId = curProvider.value?.id;
     if (currentId) {
-      const stillExists = list.find((p: EmailProviderResponse) => p.id === currentId);
+      const stillExists = list.find((p: EmailProvider) => p.id === currentId);
       if (stillExists) {
         curProvider.value = stillExists;
         return;

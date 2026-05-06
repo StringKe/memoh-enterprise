@@ -82,9 +82,7 @@
 import { computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { useI18n } from "vue-i18n";
-import { useQuery } from "@pinia/colada";
-import { getBotsQuery } from "@stringke/sdk/colada";
-import type { BotsBot } from "@stringke/sdk";
+import type { Bot } from "@stringke/sdk/connect";
 import {
   Button,
   Sidebar,
@@ -102,6 +100,8 @@ import {
 import { Plus, LoaderCircle, Settings, PanelLeftClose, PanelLeftOpen } from "lucide-vue-next";
 import BotItem from "./bot-item.vue";
 import { usePinnedBots } from "@/composables/usePinnedBots";
+import { connectClients } from "@/lib/connect-client";
+import { useConnectQuery } from "@/lib/connect-colada";
 
 const router = useRouter();
 const route = useRoute();
@@ -109,8 +109,11 @@ const { t } = useI18n();
 const { toggleSidebar } = useSidebar();
 const { sortBots } = usePinnedBots();
 
-const { data: botData, isLoading } = useQuery(getBotsQuery());
-const bots = computed<BotsBot[]>(() => sortBots(botData.value?.items ?? []));
+const { data: botData, isLoading } = useConnectQuery({
+  key: ["bots"],
+  query: () => connectClients.bots.listBots({}),
+});
+const bots = computed<Bot[]>(() => sortBots(botData.value?.bots ?? []));
 
 const isSettingsActive = computed(() => route.path.startsWith("/settings"));
 </script>

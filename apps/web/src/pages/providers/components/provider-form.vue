@@ -369,15 +369,28 @@ import { computed, onBeforeUnmount, ref, watch } from "vue";
 import { toTypedSchema } from "@vee-validate/zod";
 import z from "zod";
 import { useForm } from "vee-validate";
-import { postProvidersByIdTest } from "@stringke/sdk";
-import type { ProvidersGetResponse, ProvidersTestResponse } from "@stringke/sdk";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
+import { connectClients } from "@/lib/connect-client";
+import { resolveConnectErrorMessage } from "@/lib/connect-errors";
 
 const { t } = useI18n();
 const { copyText } = useClipboard();
 
-type ProviderWithAuth = Partial<ProvidersGetResponse>;
+type ProviderWithAuth = {
+  id?: string;
+  name?: string;
+  enable?: boolean;
+  client_type?: string;
+  config?: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
+};
+
+type ProviderTestResult = {
+  reachable: boolean;
+  message?: string;
+  latency_ms?: number;
+};
 
 type ProviderOAuthStatus = {
   configured: boolean;
@@ -441,7 +454,7 @@ const emit = defineEmits<{
 }>();
 
 const testLoading = ref(false);
-const testResult = ref<ProvidersTestResponse | null>(null);
+const testResult = ref<ProviderTestResult | null>(null);
 const testError = ref("");
 const oauthStatus = ref<ProviderOAuthStatus | null>(null);
 const oauthStatusLoading = ref(false);
@@ -456,13 +469,17 @@ async function runTest() {
   testResult.value = null;
   testError.value = "";
   try {
-    const { data } = await postProvidersByIdTest({
-      path: { id: props.provider.id },
-      throwOnError: true,
-    });
-    testResult.value = data ?? null;
+    const response = await connectClients.providers.testProvider({ id: props.provider.id });
+    testResult.value = {
+      reachable: response.ok,
+      message: response.message,
+      latency_ms:
+        typeof response.metadata?.latency_ms === "number"
+          ? response.metadata.latency_ms
+          : undefined,
+    };
   } catch (err: unknown) {
-    testError.value = err instanceof Error ? err.message : t("provider.testFailed");
+    testError.value = resolveConnectErrorMessage(err, t("provider.testFailed"));
   } finally {
     testLoading.value = false;
   }

@@ -22,11 +22,20 @@
     </div>
 
     <!-- Bot grid -->
-    <div
-      v-if="filteredBots.length > 0"
-      class="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-    >
-      <BotCard v-for="bot in filteredBots" :key="bot.id" :bot="bot" />
+    <div v-if="groupedBots.length > 0" class="space-y-6">
+      <section v-for="section in groupedBots" :key="section.id" class="space-y-3">
+        <div class="flex items-center gap-2">
+          <h3 class="text-sm font-medium">
+            {{ section.name }}
+          </h3>
+          <span class="text-xs text-muted-foreground">
+            {{ section.bots.length }}
+          </span>
+        </div>
+        <div class="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <BotCard v-for="bot in section.bots" :key="bot.id" :bot="bot" />
+        </div>
+      </section>
     </div>
 
     <!-- Empty state -->
@@ -57,27 +66,59 @@ import {
 import { Search, Bot, Plus } from "lucide-vue-next";
 import { ref, computed, watch, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 import BotCard from "./components/bot-card.vue";
-import { useQuery, useQueryCache } from "@pinia/colada";
-import { getBotsQuery, getBotsQueryKey } from "@stringke/sdk/colada";
+import { useQueryCache } from "@pinia/colada";
+import { connectClients } from "@/lib/connect-client";
+import { useConnectQuery } from "@/lib/connect-colada";
+import type { Bot as ConnectBot } from "@stringke/sdk/connect";
 
 const router = useRouter();
+const { t } = useI18n();
 const searchText = ref("");
 const queryCache = useQueryCache();
 
-const { data: botData, status } = useQuery(getBotsQuery());
+const { data: botData, isLoading } = useConnectQuery({
+  key: ["bots"],
+  query: () => connectClients.bots.listBots({}),
+});
 
-const isLoading = computed(() => status.value === "loading");
+const { data: botGroupData } = useConnectQuery({
+  key: ["bot-groups"],
+  query: () => connectClients.botGroups.listBotGroups({}),
+});
 
-const allBots = computed(() => botData.value?.items ?? []);
+const allBots = computed(() => botData.value?.bots ?? []);
+const botGroups = computed(() => botGroupData.value?.groups ?? []);
+const groupNameByID = computed(
+  () => new Map(botGroups.value.map((group) => [group.id, group.name])),
+);
 
 const filteredBots = computed(() => {
   const keyword = searchText.value.trim().toLowerCase();
   if (!keyword) return allBots.value;
   return allBots.value.filter(
     (bot) =>
-      bot.display_name?.toLowerCase().includes(keyword) || bot.id?.toLowerCase().includes(keyword),
+      bot.displayName.toLowerCase().includes(keyword) || bot.id.toLowerCase().includes(keyword),
   );
+});
+
+const groupedBots = computed(() => {
+  const sections = new Map<string, { id: string; name: string; bots: ConnectBot[] }>();
+  for (const bot of filteredBots.value) {
+    const id = bot.groupId || "__ungrouped__";
+    const name = bot.groupId
+      ? (groupNameByID.value.get(bot.groupId) ?? bot.groupId)
+      : t("botGroups.ungrouped");
+    const section = sections.get(id) ?? { id, name, bots: [] };
+    section.bots.push(bot);
+    sections.set(id, section);
+  }
+  return Array.from(sections.values()).sort((a, b) => {
+    if (a.id === "__ungrouped__") return 1;
+    if (b.id === "__ungrouped__") return -1;
+    return a.name.localeCompare(b.name);
+  });
 });
 
 const hasPendingBots = computed(() =>
@@ -92,7 +133,7 @@ watch(
     if (pending) {
       if (pollTimer == null) {
         pollTimer = setInterval(() => {
-          queryCache.invalidateQueries({ key: getBotsQueryKey() });
+          queryCache.invalidateQueries({ key: ["bots"] });
         }, 2000);
       }
       return;

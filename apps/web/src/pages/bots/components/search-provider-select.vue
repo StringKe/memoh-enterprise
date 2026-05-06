@@ -18,11 +18,7 @@
         class="w-full justify-between font-normal"
       >
         <span class="flex min-w-0 items-center gap-2 truncate">
-          <SearchProviderLogo
-            v-if="selectedProvider"
-            :provider="selectedProvider.provider || ''"
-            size="xs"
-          />
+          <SearchProviderLogo v-if="selectedProvider" :provider="selectedProvider.type" size="xs" />
           <span class="truncate" :title="displayLabel || placeholder">{{
             displayLabel || placeholder
           }}</span>
@@ -51,14 +47,14 @@
 import { Search } from "lucide-vue-next";
 import { Button } from "@stringke/ui";
 import { computed } from "vue";
-import type { SearchprovidersGetResponse } from "@stringke/sdk";
+import type { SearchProvider } from "@stringke/sdk/connect";
 import { useI18n } from "vue-i18n";
 import SearchProviderLogo from "@/components/search-provider-logo/index.vue";
 import SearchableSelectPopover from "@/components/searchable-select-popover/index.vue";
 import type { SearchableSelectOption } from "@/components/searchable-select-popover/index.vue";
 
 const props = defineProps<{
-  providers: SearchprovidersGetResponse[];
+  providers: SearchProvider[];
   placeholder?: string;
 }>();
 const { t } = useI18n();
@@ -79,13 +75,13 @@ const options = computed<SearchableSelectOption[]>(() => {
   const providerOptions = props.providers.map((provider) => ({
     value: provider.id || "",
     label: provider.name || provider.id || "",
-    description: provider.provider,
-    keywords: [provider.name ?? "", provider.provider ?? ""],
+    description: provider.type,
+    keywords: [provider.name ?? "", provider.type ?? ""],
   }));
   return [noneOption, ...providerOptions];
 });
 
 function getProviderName(id: string) {
-  return props.providers.find((provider) => provider.id === id)?.provider || "";
+  return props.providers.find((provider) => provider.id === id)?.type || "";
 }
 </script>

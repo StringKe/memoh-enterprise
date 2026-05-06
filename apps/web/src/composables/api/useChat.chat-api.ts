@@ -1,37 +1,57 @@
-import {
-  getBots,
-  deleteBotsByBotIdMessages,
-  getBotsByBotIdSessions,
-  postBotsByBotIdSessions,
-  deleteBotsByBotIdSessionsBySessionId,
-  patchBotsByBotIdSessionsBySessionId,
-} from "@stringke/sdk";
+import { connectClients } from "../../lib/connect-client";
+import { apiHttpUrl } from "../../lib/runtime-url";
 import type { Bot, SessionSummary } from "./useChat.types";
 
+function authHeaders(extra?: HeadersInit): HeadersInit {
+  const token = localStorage.getItem("token") || "";
+  return {
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...extra,
+  };
+}
+
+function botRuntimeUrl(botId: string, path: string): string {
+  return apiHttpUrl(`/bots/${encodeURIComponent(botId)}${path}`);
+}
+
+async function readJsonResponse<T>(response: Response): Promise<T> {
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || `Request failed with status ${response.status}`);
+  }
+  return response.json() as Promise<T>;
+}
+
+async function ensureOk(response: Response): Promise<void> {
+  if (response.ok) return;
+  const message = await response.text();
+  throw new Error(message || `Request failed with status ${response.status}`);
+}
+
 export async function fetchBots(): Promise<Bot[]> {
-  const { data } = await getBots({ throwOnError: true });
-  return data?.items ?? [];
+  const response = await connectClients.bots.listBots({});
+  return response.bots;
 }
 
 export async function fetchSessions(botId: string): Promise<SessionSummary[]> {
   const id = botId.trim();
   if (!id) return [];
-  const { data } = await getBotsByBotIdSessions({
-    path: { bot_id: id },
-    throwOnError: true,
+  const response = await fetch(botRuntimeUrl(id, "/sessions"), {
+    headers: authHeaders(),
   });
-  return ((data as Record<string, unknown>)?.items as SessionSummary[]) ?? [];
+  const data = await readJsonResponse<{ items?: SessionSummary[] }>(response);
+  return data.items ?? [];
 }
 
 export async function createSession(botId: string, title?: string): Promise<SessionSummary> {
   const id = botId.trim();
   if (!id) throw new Error("bot id is required");
-  const { data } = await postBotsByBotIdSessions({
-    path: { bot_id: id },
-    body: { title: title ?? "", channel_type: "local" },
-    throwOnError: true,
+  const response = await fetch(botRuntimeUrl(id, "/sessions"), {
+    method: "POST",
+    headers: authHeaders({ "Content-Type": "application/json" }),
+    body: JSON.stringify({ title: title ?? "", channel_type: "local" }),
   });
-  return data as SessionSummary;
+  return readJsonResponse<SessionSummary>(response);
 }
 
 export async function updateSessionTitle(
@@ -39,24 +59,32 @@ export async function updateSessionTitle(
   sessionId: string,
   title: string,
 ): Promise<SessionSummary> {
-  const { data } = await patchBotsByBotIdSessionsBySessionId({
-    path: { bot_id: botId.trim(), session_id: sessionId.trim() },
-    body: { title },
-    throwOnError: true,
-  });
-  return data as SessionSummary;
+  const response = await fetch(
+    botRuntimeUrl(botId.trim(), `/sessions/${encodeURIComponent(sessionId.trim())}`),
+    {
+      method: "PATCH",
+      headers: authHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify({ title }),
+    },
+  );
+  return readJsonResponse<SessionSummary>(response);
 }
 
 export async function deleteSession(botId: string, sessionId: string): Promise<void> {
-  await deleteBotsByBotIdSessionsBySessionId({
-    path: { bot_id: botId.trim(), session_id: sessionId.trim() },
-    throwOnError: true,
-  });
+  const response = await fetch(
+    botRuntimeUrl(botId.trim(), `/sessions/${encodeURIComponent(sessionId.trim())}`),
+    {
+      method: "DELETE",
+      headers: authHeaders(),
+    },
+  );
+  await ensureOk(response);
 }
 
 export async function deleteAllMessages(botId: string): Promise<void> {
-  await deleteBotsByBotIdMessages({
-    path: { bot_id: botId },
-    throwOnError: true,
+  const response = await fetch(botRuntimeUrl(botId, "/messages"), {
+    method: "DELETE",
+    headers: authHeaders(),
   });
+  await ensureOk(response);
 }

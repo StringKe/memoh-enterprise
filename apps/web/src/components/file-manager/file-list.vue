@@ -17,20 +17,20 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@stringke/ui";
-import type { HandlersFsFileInfo } from "@stringke/sdk";
+import type { FsFileInfo } from "./types";
 import { formatFileSize, formatRelativeTime } from "./utils";
 
 const props = defineProps<{
-  entries: HandlersFsFileInfo[];
+  entries: FsFileInfo[];
   loading?: boolean;
 }>();
 
 const emit = defineEmits<{
   navigate: [path: string];
-  open: [entry: HandlersFsFileInfo];
-  download: [entry: HandlersFsFileInfo];
-  rename: [entry: HandlersFsFileInfo];
-  delete: [entry: HandlersFsFileInfo];
+  open: [entry: FsFileInfo];
+  download: [entry: FsFileInfo];
+  rename: [entry: FsFileInfo];
+  delete: [entry: FsFileInfo];
 }>();
 
 const { t } = useI18n();
@@ -45,7 +45,7 @@ const sortedEntries = computed(() => {
   return [...dirs, ...files];
 });
 
-function handleClick(entry: HandlersFsFileInfo) {
+function handleClick(entry: FsFileInfo) {
   if (entry.isDir) {
     emit("navigate", entry.path ?? "");
   } else {

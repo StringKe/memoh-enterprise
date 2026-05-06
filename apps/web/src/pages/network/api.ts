@@ -1,5 +1,3 @@
-import { client } from "@stringke/sdk/client";
-
 export interface OverlayConfigSchemaField {
   key: string;
   type: "string" | "secret" | "number" | "bool" | "enum" | "textarea";
@@ -88,43 +86,4 @@ export interface NetworkNodeListResponse {
   provider?: string;
   items?: NetworkNodeOption[];
   message?: string;
-}
-
-async function request<T>(method: "GET" | "POST", path: string, body?: unknown): Promise<T> {
-  const { data, response, error } = await client[method === "GET" ? "get" : "post"]({
-    url: path,
-    ...(body !== undefined ? { body: body as Record<string, unknown> } : {}),
-  });
-  if (error || !response.ok) {
-    const text =
-      typeof error === "string"
-        ? error
-        : ((error as Record<string, unknown>)?.message as string | undefined);
-    throw new Error(text || `request failed: ${response.status}`);
-  }
-  return data as T;
-}
-
-export function listOverlayProviderMeta() {
-  return request<OverlayProviderMeta[]>("GET", "/network/meta");
-}
-
-export function getBotNetworkStatus(botID: string) {
-  return request<NetworkBotStatus>("GET", `/bots/${botID}/network/status`);
-}
-
-export function listBotNetworkNodes(botID: string) {
-  return request<NetworkNodeListResponse>("GET", `/bots/${botID}/network/nodes`);
-}
-
-export function executeBotNetworkAction(
-  botID: string,
-  actionID: string,
-  body: Record<string, unknown>,
-) {
-  return request<OverlayProviderActionExecution>(
-    "POST",
-    `/bots/${botID}/network/actions/${actionID}`,
-    body,
-  );
 }

@@ -207,26 +207,17 @@ import { reactive, watch, computed, ref } from "vue";
 import { toast } from "vue-sonner";
 import { useI18n } from "vue-i18n";
 import { useMutation, useQueryCache } from "@pinia/colada";
-import {
-  putBotsByIdChannelByPlatform,
-  deleteBotsByIdChannelByPlatform,
-  patchBotsByIdChannelByPlatformStatus,
-} from "@stringke/sdk";
-import type {
-  HandlersChannelMeta,
-  ChannelChannelConfig,
-  ChannelFieldSchema,
-  ChannelUpsertConfigRequest,
-} from "@stringke/sdk";
-import { client } from "@stringke/sdk/client";
+import type { BotChannelConfig, UpsertBotChannelConfigRequest } from "@stringke/sdk/connect";
 import ConfirmPopover from "@/components/confirm-popover/index.vue";
 import ChannelIcon from "@/components/channel-icon/index.vue";
 import WeixinQrLogin from "./weixin-qr-login.vue";
+import type { ChannelFieldSchema, ChannelMeta } from "./bot-channels.vue";
+import { connectClients } from "@/lib/connect-client";
 import { channelTypeDisplayName } from "@/utils/channel-type-label";
 
 interface BotChannelItem {
-  meta: HandlersChannelMeta;
-  config: ChannelChannelConfig | null;
+  meta: ChannelMeta;
+  config: BotChannelConfig | null;
   configured: boolean;
 }
 
@@ -249,24 +240,31 @@ const channelTitle = computed(() =>
 const platformKeyLine = computed(() => t("bots.channels.platformKey", { key: platformType.value }));
 const queryCache = useQueryCache();
 const { mutateAsync: upsertChannel, isLoading } = useMutation({
-  mutation: async ({ platform, data }: { platform: string; data: ChannelUpsertConfigRequest }) => {
-    const { data: result } = await putBotsByIdChannelByPlatform({
-      path: { id: botIdRef.value, platform },
-      body: data,
-      throwOnError: true,
+  mutation: async ({
+    platform,
+    data,
+  }: {
+    platform: string;
+    data: Pick<UpsertBotChannelConfigRequest, "credentials" | "disabled">;
+  }) => {
+    const result = await connectClients.channels.upsertBotChannelConfig({
+      botId: botIdRef.value,
+      channel: platform,
+      credentials: data.credentials,
+      disabled: data.disabled,
     });
-    return result;
+    return result.config;
   },
   onSettled: () => queryCache.invalidateQueries({ key: ["bot-channels", botIdRef.value] }),
 });
 const { mutateAsync: updateChannelStatus, isLoading: isStatusLoading } = useMutation({
   mutation: async ({ platform, disabled }: { platform: string; disabled: boolean }) => {
-    const { data } = await patchBotsByIdChannelByPlatformStatus({
-      path: { id: botIdRef.value, platform },
-      body: { disabled },
-      throwOnError: true,
+    const result = await connectClients.channels.updateBotChannelStatus({
+      botId: botIdRef.value,
+      channel: platform,
+      disabled,
     });
-    return data;
+    return result.config;
   },
   onSettled: () => queryCache.invalidateQueries({ key: ["bot-channels", botIdRef.value] }),
 });
@@ -507,9 +505,9 @@ async function handleToggleDisabled() {
 async function handleDelete() {
   action.value = "delete";
   try {
-    await deleteBotsByIdChannelByPlatform({
-      path: { id: botIdRef.value, platform: platformType.value },
-      throwOnError: true,
+    await connectClients.channels.deleteBotChannelConfig({
+      botId: botIdRef.value,
+      channel: platformType.value,
     });
     lastSavedConfigId.value = "";
     toast.success(t("bots.channels.deleteSuccess"));
@@ -548,9 +546,7 @@ function resolveWebhookCallbackBaseUrl(): string {
     return explicitRaw;
   }
 
-  const apiBase = String(
-    client.getConfig().baseUrl || import.meta.env.VITE_API_URL?.trim() || "",
-  ).trim();
+  const apiBase = String(import.meta.env.VITE_API_URL?.trim() || "").trim();
   if (isAbsoluteHttpUrl(apiBase)) {
     return apiBase;
   }
@@ -558,7 +554,7 @@ function resolveWebhookCallbackBaseUrl(): string {
   if (typeof window === "undefined") {
     return "";
   }
-  const fallbackApiPort = String(import.meta.env.VITE_API_PORT || "8080").trim();
+  const fallbackApiPort = String(import.meta.env.VITE_API_PORT || "26810").trim();
   const fallback = new URL(window.location.origin);
   if (fallbackApiPort) {
     fallback.port = fallbackApiPort;

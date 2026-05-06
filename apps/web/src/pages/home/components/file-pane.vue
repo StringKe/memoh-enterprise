@@ -7,7 +7,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount } from "vue";
 import { storeToRefs } from "pinia";
-import type { HandlersFsFileInfo } from "@stringke/sdk";
+import type { FsFileInfo } from "@/components/file-manager/types";
 import FileViewer from "@/components/file-manager/file-viewer.vue";
 import { useChatStore } from "@/store/chat-list";
 import { useWorkspaceTabsStore } from "@/store/workspace-tabs";
@@ -23,7 +23,7 @@ const workspaceTabs = useWorkspaceTabsStore();
 
 const botId = computed(() => currentBotId.value ?? "");
 
-const fileInfo = computed<HandlersFsFileInfo>(() => {
+const fileInfo = computed<FsFileInfo>(() => {
   const path = props.filePath;
   const idx = path.lastIndexOf("/");
   const name = idx >= 0 ? path.slice(idx + 1) : path;
@@ -31,7 +31,7 @@ const fileInfo = computed<HandlersFsFileInfo>(() => {
     path,
     name,
     isDir: false,
-  } as HandlersFsFileInfo;
+  };
 });
 
 function handleDirty(dirty: boolean) {

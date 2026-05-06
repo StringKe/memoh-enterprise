@@ -570,25 +570,13 @@ import MonacoEditor from "@/components/monaco-editor/index.vue";
 import KeyValueEditor from "@/components/key-value-editor/index.vue";
 import type { KeyValuePair } from "@/components/key-value-editor/index.vue";
 import ConfirmPopover from "@/components/confirm-popover/index.vue";
-import {
-  getBotsByBotIdMcp,
-  postBotsByBotIdMcp,
-  putBotsByBotIdMcpById,
-  deleteBotsByBotIdMcpById,
-  postBotsByBotIdMcpByIdProbe,
-  putBotsByBotIdMcpImport,
-  getBotsByBotIdMcpByIdOauthStatus,
-  postBotsByBotIdMcpByIdOauthDiscover,
-  postBotsByBotIdMcpByIdOauthAuthorize,
-  deleteBotsByBotIdMcpByIdOauthToken,
-} from "@stringke/sdk";
 import type {
-  McpUpsertRequest,
-  McpImportRequest,
   McpToolDescriptor,
-  McpMcpServerEntry,
-  McpOAuthStatus,
-} from "@stringke/sdk";
+  McpConnection,
+  TimestampMessage,
+  GetMcpOauthStatusResponse,
+} from "@stringke/sdk/connect";
+import { connectClients } from "@/lib/connect-client";
 import { resolveApiErrorMessage } from "@/utils/api-error";
 import { useClipboard } from "@/composables/useClipboard";
 import { useSyncedQueryParam } from "@/composables/useSyncedQueryParam";
@@ -605,6 +593,35 @@ interface McpItem {
   last_probed_at: string | null;
   status_message: string;
   auth_type: string;
+}
+
+interface McpServerEntry {
+  command?: string;
+  args?: string[];
+  env?: Record<string, string>;
+  cwd?: string;
+  url?: string;
+  headers?: Record<string, string>;
+  transport?: string;
+}
+
+interface McpImportPayload {
+  mcpServers: Record<string, McpServerEntry>;
+}
+
+interface McpConnectionMutation {
+  name: string;
+  transport: string;
+  enabled: boolean;
+  config: Record<string, unknown>;
+}
+
+interface McpOAuthStatusView {
+  configured: boolean;
+  has_token: boolean;
+  expired: boolean;
+  auth_server: string;
+  registration_endpoint: string;
 }
 
 const DRAFT_ID = "";
@@ -643,7 +660,7 @@ const probeAuthRequired = ref(false);
 const oauthDiscovering = ref(false);
 const oauthAuthorizing = ref(false);
 
-const oauthStatus = ref<McpOAuthStatus | null>(null);
+const oauthStatus = ref<McpOAuthStatusView | null>(null);
 const oauthClientId = ref("");
 const oauthClientSecret = ref("");
 const oauthNeedsClientId = ref(false);
@@ -742,6 +759,39 @@ function pairsToRecord(pairs: KeyValuePair[]): Record<string, string> {
   return out;
 }
 
+function mcpItemFromProto(item: McpConnection): McpItem {
+  return {
+    id: item.id,
+    name: item.name,
+    type: item.transport,
+    config: (item.config as Record<string, unknown> | undefined) ?? {},
+    is_active: item.enabled,
+    status: item.status || "unknown",
+    tools_cache: item.toolsCache ?? [],
+    last_probed_at: timestampToISOString(item.lastProbedAt),
+    status_message: item.statusMessage,
+    auth_type: item.authType || "none",
+  };
+}
+
+function timestampToISOString(value: TimestampMessage | undefined): string | null {
+  if (!value) return null;
+  const seconds = Number(value.seconds ?? 0n);
+  const nanos = Number(value.nanos ?? 0);
+  return new Date(seconds * 1000 + Math.floor(nanos / 1_000_000)).toISOString();
+}
+
+function mcpOAuthStatusFromProto(response: GetMcpOauthStatusResponse): McpOAuthStatusView {
+  const metadata = (response.metadata as Record<string, unknown> | undefined) ?? {};
+  return {
+    configured: metadata.configured === true,
+    has_token: metadata.has_token === true || response.authorized,
+    expired: metadata.expired === true,
+    auth_server: String(metadata.auth_server ?? ""),
+    registration_endpoint: String(metadata.registration_endpoint ?? ""),
+  };
+}
+
 function selectItem(item: McpItem) {
   selectedItem.value = item;
   probeAuthRequired.value = false;
@@ -805,7 +855,7 @@ function handleCreateDraft() {
   createDialogOpen.value = false;
 }
 
-function itemToExportEntry(item: McpItem): McpMcpServerEntry {
+function itemToExportEntry(item: McpItem): McpServerEntry {
   const cfg = item.config ?? {};
   if (item.type === "stdio") {
     return {
@@ -828,23 +878,26 @@ function buildRequestBody(
   args: string[],
   env: KeyValuePair[],
   headers: KeyValuePair[],
-): McpUpsertRequest {
-  const body: McpUpsertRequest = {
+): McpConnectionMutation {
+  const config: Record<string, unknown> = {};
+  const body: McpConnectionMutation = {
     name: fd.name.trim(),
-    is_active: fd.active,
+    transport: mode === "stdio" ? "stdio" : fd.transport,
+    enabled: fd.active,
+    config,
   };
   if (mode === "stdio") {
-    body.command = fd.command.trim();
-    if (args.length > 0) body.args = args;
+    config.command = fd.command.trim();
+    if (args.length > 0) config.args = args;
     const envRecord = pairsToRecord(env);
-    if (Object.keys(envRecord).length > 0) body.env = envRecord;
-    if (fd.cwd.trim()) body.cwd = fd.cwd.trim();
+    if (Object.keys(envRecord).length > 0) config.env = envRecord;
+    if (fd.cwd.trim()) config.cwd = fd.cwd.trim();
   } else {
-    body.url = fd.url.trim();
+    config.url = fd.url.trim();
     const headerRecord = pairsToRecord(headers);
-    if (Object.keys(headerRecord).length > 0) body.headers = headerRecord;
-    if (fd.transport === "sse") body.transport = "sse";
+    if (Object.keys(headerRecord).length > 0) config.headers = headerRecord;
   }
+  if (selectedItem.value?.auth_type) config.auth_type = selectedItem.value.auth_type;
   return body;
 }
 
@@ -857,18 +910,8 @@ function invalidateSidebarMcp() {
 async function loadList() {
   loading.value = true;
   try {
-    const { data } = await getBotsByBotIdMcp({
-      path: { bot_id: props.botId },
-      throwOnError: true,
-    });
-    const serverItems: McpItem[] = (data.items ?? []).map((item: Record<string, unknown>) => ({
-      ...item,
-      status: item.status ?? "unknown",
-      tools_cache: item.tools_cache ?? [],
-      last_probed_at: item.last_probed_at ?? null,
-      status_message: item.status_message ?? "",
-      auth_type: item.auth_type ?? "none",
-    }));
+    const response = await connectClients.mcp.listMcpConnections({ botId: props.botId });
+    const serverItems = response.connections.map(mcpItemFromProto);
     const draft = items.value.find((i) => i.id === DRAFT_ID);
     items.value = draft ? [draft, ...serverItems] : serverItems;
 
@@ -895,22 +938,22 @@ async function handleProbe(item: McpItem) {
   probing.value = true;
   probeAuthRequired.value = false;
   try {
-    const { data } = await postBotsByBotIdMcpByIdProbe({
-      path: { bot_id: props.botId, id: item.id },
-      throwOnError: true,
-    });
-    if (data) {
-      item.status = data.status ?? item.status;
-      item.tools_cache = data.tools ?? [];
-      item.status_message = data.error ?? "";
+    const response = await connectClients.mcp.probeMcpConnection({ id: item.id });
+    const result = response.result;
+    if (result) {
+      item.status = result.ok ? "connected" : "error";
+      item.tools_cache = result.tools ?? [];
+      item.status_message = result.message ?? "";
       item.last_probed_at = new Date().toISOString();
-      probeAuthRequired.value = !!data.auth_required;
-      if (data.status === "connected") {
+      probeAuthRequired.value =
+        ((result.metadata as Record<string, unknown> | undefined)?.auth_required as boolean) ??
+        false;
+      if (result.ok) {
         toast.success(t("mcp.probeSuccess"));
-      } else if (data.auth_required) {
+      } else if (probeAuthRequired.value) {
         toast.warning(t("mcp.authRequired"));
       } else {
-        toast.error(data.error || t("mcp.probeFailed"));
+        toast.error(result.message || t("mcp.probeFailed"));
       }
     }
   } catch (error) {
@@ -933,12 +976,11 @@ async function handleSubmit() {
     );
     let savedId: string | undefined;
     if (isDraft.value) {
-      const { data } = await postBotsByBotIdMcp({
-        path: { bot_id: props.botId },
-        body,
-        throwOnError: true,
+      const response = await connectClients.mcp.createMcpConnection({
+        botId: props.botId,
+        ...body,
       });
-      savedId = data?.id;
+      savedId = response.connection?.id;
       removeDraft();
       await loadList();
       invalidateSidebarMcp();
@@ -948,10 +990,9 @@ async function handleSubmit() {
       toast.success(t("mcp.createSuccess"));
     } else {
       savedId = selectedItem.value.id;
-      await putBotsByBotIdMcpById({
-        path: { bot_id: props.botId, id: selectedItem.value.id },
-        body,
-        throwOnError: true,
+      await connectClients.mcp.updateMcpConnection({
+        id: selectedItem.value.id,
+        ...body,
       });
       await loadList();
       invalidateSidebarMcp();
@@ -975,10 +1016,7 @@ async function handleDelete(item: McpItem) {
     return;
   }
   try {
-    await deleteBotsByBotIdMcpById({
-      path: { bot_id: props.botId, id: item.id },
-      throwOnError: true,
-    });
+    await connectClients.mcp.deleteMcpConnection({ id: item.id });
     if (selectedItem.value?.id === item.id) selectedItem.value = null;
     await loadList();
     invalidateSidebarMcp();
@@ -991,15 +1029,11 @@ async function handleDelete(item: McpItem) {
 async function handleImportFromDialog() {
   importSubmitting.value = true;
   try {
-    let parsed: McpImportRequest = JSON.parse(importJson.value);
+    let parsed: McpImportPayload = JSON.parse(importJson.value);
     if (!parsed.mcpServers && typeof parsed === "object") {
-      parsed = { mcpServers: parsed as McpImportRequest["mcpServers"] };
+      parsed = { mcpServers: parsed as McpImportPayload["mcpServers"] };
     }
-    await putBotsByBotIdMcpImport({
-      path: { bot_id: props.botId },
-      body: parsed,
-      throwOnError: true,
-    });
+    await connectClients.mcp.importMcpConnections({ botId: props.botId, payload: parsed });
     importDialogOpen.value = false;
     importJson.value = "";
     await loadList();
@@ -1014,7 +1048,7 @@ async function handleImportFromDialog() {
 
 function handleExportSingle() {
   if (!selectedItem.value || !selectedItem.value.id) return;
-  const mcpServers: Record<string, McpMcpServerEntry> = {
+  const mcpServers: Record<string, McpServerEntry> = {
     [selectedItem.value.name]: itemToExportEntry(selectedItem.value),
   };
   exportJson.value = JSON.stringify({ mcpServers }, null, 2);
@@ -1032,11 +1066,8 @@ async function loadOAuthStatus(item: McpItem) {
     return;
   }
   try {
-    const { data } = await getBotsByBotIdMcpByIdOauthStatus({
-      path: { bot_id: props.botId, id: item.id },
-      throwOnError: true,
-    });
-    oauthStatus.value = data ?? null;
+    const response = await connectClients.mcp.getMcpOauthStatus({ connectionId: item.id });
+    oauthStatus.value = mcpOAuthStatusFromProto(response);
     oauthCallbackUrl.value = `${window.location.origin}/oauth/mcp/callback`;
   } catch {
     oauthStatus.value = null;
@@ -1050,14 +1081,8 @@ async function handleOAuthDiscover() {
   oauthDiscovering.value = true;
   oauthNeedsClientId.value = false;
   try {
-    const { data } = await postBotsByBotIdMcpByIdOauthDiscover({
-      path: { bot_id: props.botId, id: item.id },
-      throwOnError: true,
-    });
+    await connectClients.mcp.discoverMcp({ botId: props.botId, source: item.id });
     toast.success(t("mcp.oauth.discoverSuccess"));
-    if (!data?.registration_endpoint) {
-      oauthNeedsClientId.value = true;
-    }
   } catch (error) {
     toast.error(resolveApiErrorMessage(error, t("mcp.oauth.discoverFailed")));
     oauthDiscovering.value = false;
@@ -1082,22 +1107,19 @@ async function handleOAuthFlow() {
 
   oauthAuthorizing.value = true;
   try {
-    const { data } = await postBotsByBotIdMcpByIdOauthAuthorize({
-      path: { bot_id: props.botId, id: item.id },
-      body: {
-        client_id: oauthClientId.value.trim() || undefined,
-        client_secret: oauthClientSecret.value.trim() || undefined,
-        callback_url: `${window.location.origin}/oauth/mcp/callback`,
-      },
-      throwOnError: true,
+    const response = await connectClients.mcp.startMcpOauth({
+      connectionId: item.id,
+      clientId: oauthClientId.value.trim(),
+      clientSecret: oauthClientSecret.value.trim(),
+      redirectUri: `${window.location.origin}/oauth/mcp/callback`,
     });
-    if (!data?.authorization_url) {
+    if (!response.authorizeUrl) {
       toast.error(t("mcp.oauth.authFailed"));
       oauthAuthorizing.value = false;
       return;
     }
 
-    const popup = window.open(data.authorization_url, "mcp-oauth", "width=600,height=700");
+    const popup = window.open(response.authorizeUrl, "mcp-oauth", "width=600,height=700");
 
     const onMessage = async (event: MessageEvent) => {
       if (event.data?.type === "mcp-oauth-callback") {
@@ -1123,7 +1145,11 @@ async function handleOAuthFlow() {
       }
     }, 500);
   } catch (error) {
-    toast.error(resolveApiErrorMessage(error, t("mcp.oauth.authFailed")));
+    const message = resolveApiErrorMessage(error, t("mcp.oauth.authFailed"));
+    if (message.includes("client_id is required")) {
+      oauthNeedsClientId.value = true;
+    }
+    toast.error(message);
     oauthAuthorizing.value = false;
   }
 }
@@ -1131,10 +1157,7 @@ async function handleOAuthFlow() {
 async function handleOAuthRevoke() {
   if (!selectedItem.value?.id) return;
   try {
-    await deleteBotsByBotIdMcpByIdOauthToken({
-      path: { bot_id: props.botId, id: selectedItem.value.id },
-      throwOnError: true,
-    });
+    await connectClients.mcp.revokeMcpOauth({ connectionId: selectedItem.value.id });
     toast.success(t("mcp.oauth.revokeSuccess"));
     oauthDiscovered.value = false;
     oauthNeedsClientId.value = false;

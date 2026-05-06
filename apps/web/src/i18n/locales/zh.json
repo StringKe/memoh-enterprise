@@ -61,6 +61,8 @@
     "session": "会话",
     "chat": "对话",
     "bots": "Bots",
+    "botGroups": "Bot 分组",
+    "integrationTokens": "集成 Token",
     "providers": "模型",
     "settings": "设置",
     "webSearch": "搜索",
@@ -722,6 +724,49 @@
   "home": {
     "title": "首页"
   },
+  "botGroups": {
+    "title": "Bot 分组",
+    "createTitle": "新建 Bot 分组",
+    "detailSubtitle": "配置分组资料和可继承默认值。",
+    "profile": "资料",
+    "profileHint": "名称和描述会展示给管理员。",
+    "settingsTitle": "默认设置",
+    "settingsHint": "分组内 Bot 会继承这些默认值，直到 Bot 自身覆盖对应字段。",
+    "empty": "暂无 Bot 分组",
+    "namePlaceholder": "分组名称",
+    "selectPlaceholder": "选择 Bot 分组",
+    "createBotHint": "分配分组后，此 Bot 可继承分组默认配置。",
+    "description": "描述",
+    "descriptionPlaceholder": "描述",
+    "botCount": "Bot 数",
+    "ungrouped": "未分组",
+    "createSuccess": "Bot 分组已创建",
+    "saveSuccess": "Bot 分组已保存",
+    "resetSettings": "重置默认值",
+    "resetSettingsSuccess": "分组默认值已重置",
+    "resetSettingsFailed": "重置分组默认值失败"
+  },
+  "integrationTokens": {
+    "title": "集成 Token",
+    "createTitle": "新建集成 Token",
+    "createDescription": "为外部 WebSocket 集成 SDK 创建 API Token。",
+    "empty": "暂无集成 Token",
+    "namePlaceholder": "Token 名称",
+    "scope": "范围",
+    "scopeGlobal": "全局",
+    "scopeBot": "Bot",
+    "scopeBotGroup": "Bot 分组",
+    "botIdPlaceholder": "Bot ID",
+    "botGroupIdPlaceholder": "Bot 分组 ID",
+    "allowedEvents": "允许事件",
+    "allowedEventsPlaceholder": "允许事件，逗号分隔",
+    "allowedActions": "允许动作",
+    "allowedActionsPlaceholder": "允许动作，逗号分隔",
+    "expiresAt": "过期时间",
+    "rawToken": "原始 Token",
+    "enabled": "启用",
+    "disabled": "禁用"
+  },
   "bots": {
     "toolApproval": {
       "title": "工具调用审核",
@@ -1196,6 +1241,19 @@
       "noModel": "暂无可选模型",
       "saveSuccess": "设置已保存",
       "save": "保存设置",
+      "inheritance": {
+        "source": "来源",
+        "restore": "恢复继承",
+        "restoreSuccess": "已恢复继承",
+        "restoreFailed": "恢复继承失败",
+        "unknown": "未知",
+        "mixed": "混合",
+        "sources": {
+          "bot": "Bot 覆盖",
+          "bot_group": "Bot 分组",
+          "system": "系统默认"
+        }
+      },
       "dangerZone": "危险操作",
       "deleteBotDescription": "删除此 Bot 后无法恢复，请谨慎操作。",
       "deleteBot": "删除 Bot"
@@ -1602,6 +1660,9 @@
     "chartPie": "饼图",
     "chartBar": "柱状图",
     "records": "调用记录",
+    "currency": "币种",
+    "previousPage": "上一页",
+    "nextPage": "下一页",
     "noRecords": "无调用记录",
     "colTime": "时间",
     "colBot": "Bot",

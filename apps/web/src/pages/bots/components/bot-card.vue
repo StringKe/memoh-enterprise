@@ -5,14 +5,14 @@
     role="button"
     :tabindex="isPending ? -1 : 0"
     :aria-disabled="isPending"
-    :aria-label="`Open bot ${bot.display_name || bot.id}`"
+    :aria-label="`Open bot ${bot.displayName || bot.id}`"
     @click="onOpenDetail"
     @keydown.enter.prevent="onOpenDetail"
     @keydown.space.prevent="onOpenDetail"
   >
     <CardHeader class="flex flex-row items-start gap-3 space-y-0 pb-2">
       <Avatar class="size-11 shrink-0">
-        <AvatarImage v-if="bot.avatar_url" :src="bot.avatar_url" :alt="bot.display_name" />
+        <AvatarImage v-if="bot.avatarUrl" :src="bot.avatarUrl" :alt="bot.displayName" />
         <AvatarFallback class="text-sm">
           {{ avatarFallback }}
         </AvatarFallback>
@@ -20,7 +20,7 @@
       <div class="flex-1 min-w-0 flex flex-col gap-1.5">
         <div class="flex items-center justify-between gap-2">
           <CardTitle class="text-sm truncate">
-            {{ bot.display_name || bot.id }}
+            {{ bot.displayName || bot.id }}
           </CardTitle>
           <Badge
             :variant="statusVariant"
@@ -53,7 +53,7 @@ import { LoaderCircle } from "lucide-vue-next";
 import { computed } from "vue";
 import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
-import type { BotsBot } from "@stringke/sdk";
+import type { Bot, TimestampMessage } from "@stringke/sdk/connect";
 import { formatDate } from "@/utils/date-time";
 import { useAvatarInitials } from "@/composables/useAvatarInitials";
 import { useBotStatusMeta } from "@/composables/useBotStatusMeta";
@@ -62,16 +62,17 @@ const router = useRouter();
 const { t } = useI18n();
 
 const props = defineProps<{
-  bot: BotsBot;
+  bot: Bot;
 }>();
 
 const botRef = computed(() => props.bot);
 
-const avatarFallback = useAvatarInitials(() => props.bot.display_name || props.bot.id);
+const avatarFallback = useAvatarInitials(() => props.bot.displayName || props.bot.id);
 
 const formattedDate = computed(() => {
-  if (!props.bot.created_at) return "";
-  return formatDate(props.bot.created_at);
+  const createdAt = timestampToIso(props.bot.audit?.createdAt);
+  if (!createdAt) return "";
+  return formatDate(createdAt);
 });
 
 const { hasIssue, isPending, issueTitle, statusLabel, statusVariant } = useBotStatusMeta(botRef, t);
@@ -79,5 +80,10 @@ const { hasIssue, isPending, issueTitle, statusLabel, statusVariant } = useBotSt
 function onOpenDetail() {
   if (isPending.value) return;
   router.push({ name: "bot-detail", params: { botId: props.bot.id } });
+}
+
+function timestampToIso(value?: TimestampMessage): string {
+  if (!value) return "";
+  return new Date(Number(value.seconds) * 1000 + Math.floor(value.nanos / 1_000_000)).toISOString();
 }
 </script>

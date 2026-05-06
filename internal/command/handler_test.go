@@ -396,7 +396,6 @@ func TestExecute_StatusLatest(t *testing.T) {
 		latestUsage:     1200,
 		cacheRow: dbsqlc.GetSessionCacheStatsRow{
 			CacheReadTokens:  300,
-			CacheWriteTokens: 150,
 			TotalInputTokens: 1200,
 		},
 		skills: []string{"search", "browser"},
@@ -410,6 +409,9 @@ func TestExecute_StatusLatest(t *testing.T) {
 	}
 	if !strings.Contains(result, "- Messages: 42") {
 		t.Errorf("expected message count, got: %s", result)
+	}
+	if strings.Contains(result, "Cache Write") {
+		t.Errorf("status output should not include cache write, got: %s", result)
 	}
 }
 

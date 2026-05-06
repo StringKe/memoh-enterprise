@@ -752,7 +752,6 @@ func TestChannelInboundProcessorStatusUsesRouteSession(t *testing.T) {
 			usage:        512,
 			cacheRow: dbsqlc.GetSessionCacheStatsRow{
 				CacheReadTokens:  64,
-				CacheWriteTokens: 32,
 				TotalInputTokens: 512,
 			},
 			skills: []string{"search"},
@@ -787,6 +786,9 @@ func TestChannelInboundProcessorStatusUsesRouteSession(t *testing.T) {
 	}
 	if !strings.Contains(sender.sent[0].Message.Text, "- Session ID: 11111111-1111-1111-1111-111111111111") {
 		t.Fatalf("expected active route session in reply, got %q", sender.sent[0].Message.Text)
+	}
+	if strings.Contains(sender.sent[0].Message.Text, "Cache Write") {
+		t.Fatalf("status reply should not include cache write, got %q", sender.sent[0].Message.Text)
 	}
 }
 

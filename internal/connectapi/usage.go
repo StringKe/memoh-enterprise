@@ -55,7 +55,7 @@ func (s *UsageService) GetTokenUsage(ctx context.Context, req *connect.Request[p
 	summary.BotId = req.Msg.GetBotId()
 	summary.Currency = "USD"
 	for _, row := range rows {
-		summary.PromptTokens += row.InputTokens + row.CacheReadTokens + row.CacheWriteTokens
+		summary.PromptTokens += row.InputTokens + row.CacheReadTokens
 		summary.CompletionTokens += row.OutputTokens + row.ReasoningTokens
 	}
 	summary.TotalTokens = summary.PromptTokens + summary.CompletionTokens
@@ -156,7 +156,7 @@ func usagePagination(page *privatev1.PageRequest) (int32, int32, error) {
 }
 
 func tokenUsageRecordToProto(botID string, row sqlc.ListTokenUsageRecordsRow) *privatev1.TokenUsageRecord {
-	inputTokens := row.InputTokens + row.CacheReadTokens + row.CacheWriteTokens
+	inputTokens := row.InputTokens + row.CacheReadTokens
 	outputTokens := row.OutputTokens + row.ReasoningTokens
 	return &privatev1.TokenUsageRecord{
 		Id:               usageOptionalUUID(row.ID),
@@ -168,14 +168,13 @@ func tokenUsageRecordToProto(botID string, row sqlc.ListTokenUsageRecordsRow) *p
 		Currency:         "USD",
 		CreatedAt:        usageTimeToProto(row.CreatedAt),
 		Metadata: mapToStruct(map[string]any{
-			"session_id":         usageOptionalUUID(row.SessionID),
-			"session_type":       row.SessionType,
-			"model_slug":         row.ModelSlug,
-			"model_name":         row.ModelName,
-			"provider_name":      row.ProviderName,
-			"cache_read_tokens":  row.CacheReadTokens,
-			"cache_write_tokens": row.CacheWriteTokens,
-			"reasoning_tokens":   row.ReasoningTokens,
+			"session_id":        usageOptionalUUID(row.SessionID),
+			"session_type":      row.SessionType,
+			"model_slug":        row.ModelSlug,
+			"model_name":        row.ModelName,
+			"provider_name":     row.ProviderName,
+			"cache_read_tokens": row.CacheReadTokens,
+			"reasoning_tokens":  row.ReasoningTokens,
 		}),
 	}
 }

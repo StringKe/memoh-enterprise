@@ -1,27 +1,62 @@
 # Memoh Enterprise
 
-Memoh Enterprise is an enterprise-focused fork of Memoh. It keeps the containerized AI agent platform and the web management UI, while removing Desktop GUI, TUI, and SQLite support.
+Memoh Enterprise is an enterprise-focused, fully open-source fork of [Memoh](https://github.com/memohai/Memoh). The upstream project is a self-hosted, always-on AI agent platform that runs bots in containers with long-term memory and chat integrations.
 
-Supported runtime targets: Linux `amd64` and Linux `arm64`. macOS remains supported for local development compatibility.
+This fork keeps the core agent platform and web management experience, but narrows the product to enterprise server deployments. It removes desktop and terminal UI surfaces, removes SQLite, standardizes on PostgreSQL, and replaces the OpenAPI management surface with ConnectRPC.
 
-## Scope
+## Upstream
 
-Kept:
+- Upstream repository: [memohai/Memoh](https://github.com/memohai/Memoh)
+- Current upstream alignment commit: `4509b6db06a888e2688103e7ffb7a4e4b9a60863`
+- Alignment marker: [`.parent-commit`](./.parent-commit)
 
-- Go server with ConnectRPC management API.
-- Non-interactive `memoh` CLI.
+This fork is expected to keep syncing useful upstream server, agent, memory, provider, channel, workspace, and web management improvements. Upstream changes for Desktop GUI, TUI, SQLite, Windows packaging, Docker Hub publishing, npmjs publishing, and China-specific optimizations are intentionally excluded.
+
+## Enterprise Scope
+
+Included:
+
+- Go server with ConnectRPC management APIs under `/connect`.
+- Vue web management UI in `apps/web`.
 - PostgreSQL as the only relational database backend.
-- Docker Engine and containerd workspace backends.
-- Browser Gateway for agent browser automation.
-- Web management UI in `apps/web`.
-- Agent, MCP, memory, schedule, providers, models, channels, email, workspace, and container management.
-- `web-ui` configuration for the bundled web management UI.
+- Docker Engine, containerd, and Kubernetes workspace runtimes.
+- Browser Gateway for headless browser automation used by agent tools.
+- In-process AI agent runtime with tools, MCP, memory, schedule, providers, models, channels, email, workspace, and container management.
+- Bot Groups for enterprise-level configuration inheritance and grouped bot operations.
+- Enterprise integration API tokens for global, bot-scoped, and bot-group-scoped access.
+- WebSocket-based external integration protocol with Go and TypeScript SDKs.
+- GHCR-based publishing for Docker images and packages.
+- Non-interactive `memoh` CLI for server operations and administrative maintenance.
 
 Removed:
 
-- Electron/Desktop app.
+- Electron/Desktop application.
 - Terminal TUI.
-- SQLite support.
+- SQLite database backend.
+- Docker Hub publishing.
+- npmjs publishing.
+- Windows-specific packaging.
+- China-specific installation and runtime optimizations.
+
+## ConnectRPC And Integration APIs
+
+The internal management API is ConnectRPC-first. Protocol definitions live in [`proto/memoh/private/v1`](./proto/memoh/private/v1), generated Go handlers live under [`internal/connectapi`](./internal/connectapi), and generated TypeScript client types live under [`packages/sdk`](./packages/sdk).
+
+External enterprise integrations use a separate WebSocket protocol. Its protobuf definitions live in [`proto/memoh/integration/v1`](./proto/memoh/integration/v1). SDKs are provided for:
+
+- Go: [`sdk/go/integration`](./sdk/go/integration)
+- TypeScript: [`packages/integration-sdk-ts`](./packages/integration-sdk-ts)
+
+Other languages are not supported at this stage.
+
+## Runtime Targets
+
+Supported deployment targets:
+
+- Linux `amd64`
+- Linux `arm64`
+
+macOS is supported for local development compatibility, especially on Apple Silicon. Desktop GUI support is not part of this fork.
 
 ## Quick Start
 
@@ -36,15 +71,15 @@ Enable optional services:
 docker compose --profile qdrant --profile browser --profile sparse up -d
 ```
 
-API: `http://localhost:26810`
+Default local endpoints:
 
-Web UI: `http://localhost:26811`
-
-Browser Gateway: `http://localhost:26812` when the `browser` profile is enabled.
+- Server API: `http://localhost:26810`
+- Web UI: `http://localhost:26811`
+- Browser Gateway: `http://localhost:26812` when the `browser` profile is enabled
 
 Default admin account in templates: `admin` / `admin123`. Change it before production use.
 
-## Development
+## Local Development
 
 ```bash
 mise install
@@ -67,6 +102,8 @@ mise run build-unified
 go test ./cmd/... ./internal/...
 ```
 
-## Upstream Alignment
+## Documentation
 
-`.parent-commit` records the upstream Memoh commit this fork is aligned with.
+- Enterprise scope: [`docs/enterprise-scope.md`](./docs/enterprise-scope.md)
+- Upstream sync process: [`docs/upstream-sync.md`](./docs/upstream-sync.md)
+- Deployment guide: [`DEPLOYMENT.md`](./DEPLOYMENT.md)

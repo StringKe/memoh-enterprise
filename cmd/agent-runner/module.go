@@ -20,7 +20,7 @@ import (
 
 const (
 	defaultAgentRunnerAddr    = ":26813"
-	defaultServerAddr         = "http://127.0.0.1:26810"
+	defaultServerAddr         = "http://127.0.0.1:26810/connect"
 	defaultBrowserGatewayAddr = "http://127.0.0.1:26812"
 )
 

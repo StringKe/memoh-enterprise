@@ -34,7 +34,7 @@ spec:
             - name: MEMOH_INTEGRATION_GATEWAY_ADDR
               value: ":26815"
             - name: MEMOH_SERVER_INTERNAL_URL
-              value: "http://memoh-server:8080"
+              value: "http://memoh-server:8080/connect"
           ports:
             - name: http
               containerPort: 26815

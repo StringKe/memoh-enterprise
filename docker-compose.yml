@@ -60,6 +60,68 @@ services:
     networks:
       - memoh-network
 
+  agent-runner:
+    image: ghcr.io/stringke/agent-runner:${AGENT_RUNNER_TAG:-latest}
+    container_name: memoh-agent-runner
+    environment:
+      MEMOH_AGENT_RUNNER_ADDR: ":26813"
+      MEMOH_SERVER_ADDR: "http://server:8080/connect"
+      MEMOH_BROWSER_GATEWAY_ADDR: "http://browser:8083"
+    volumes:
+      - ${MEMOH_CONFIG:-./config.toml}:/app/config.toml:ro
+      - memoh_data:/opt/memoh/data
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "${AGENT_RUNNER_PORT:-26813}:26813"
+    depends_on:
+      - server
+    restart: unless-stopped
+    networks:
+      - memoh-network
+
+  connector:
+    image: ghcr.io/stringke/connector:${CONNECTOR_TAG:-latest}
+    container_name: memoh-connector
+    command: ["--channel", "local"]
+    volumes:
+      - ${MEMOH_CONFIG:-./config.toml}:/app/config.toml:ro
+      - /etc/localtime:/etc/localtime:ro
+    depends_on:
+      - server
+    restart: unless-stopped
+    networks:
+      - memoh-network
+
+  integration-gateway:
+    image: ghcr.io/stringke/integration-gateway:${INTEGRATION_GATEWAY_TAG:-latest}
+    container_name: memoh-integration-gateway
+    environment:
+      MEMOH_INTEGRATION_GATEWAY_ADDR: ":26815"
+      MEMOH_SERVER_INTERNAL_URL: "http://server:8080/connect"
+      MEMOH_SERVICE_TOKEN: "${MEMOH_SERVICE_TOKEN:-}"
+    volumes:
+      - ${MEMOH_CONFIG:-./config.toml}:/app/config.toml:ro
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "${INTEGRATION_GATEWAY_PORT:-26815}:26815"
+    depends_on:
+      - server
+    restart: unless-stopped
+    networks:
+      - memoh-network
+
+  worker:
+    image: ghcr.io/stringke/worker:${WORKER_TAG:-latest}
+    container_name: memoh-worker
+    volumes:
+      - ${MEMOH_CONFIG:-./config.toml}:/app/config.toml:ro
+      - /etc/localtime:/etc/localtime:ro
+    depends_on:
+      - server
+    restart: unless-stopped
+    networks:
+      - memoh-network
+
   web:
     image: ghcr.io/stringke/web:${WEB_TAG:-latest}
     container_name: memoh-web

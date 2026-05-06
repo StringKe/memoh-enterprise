@@ -67,14 +67,14 @@ jobs:
 
       - name: Build images
         run: |
-          docker compose -f deploy/compose/images/docker-compose.yml build server web sparse browser
+          docker compose -f deploy/compose/images/docker-compose.yml build server agent-runner connector integration-gateway worker web sparse browser
 
       - name: Start stack
         run: |
           docker compose --profile qdrant --profile sparse --profile browser up -d
 
       - name: Smoke test
-        run: scripts/e2e/smoke.sh --browser
+        run: scripts/e2e/unified-runtime-smoke.sh
 
       - name: Connect Bot Groups E2E
         run: scripts/e2e/connect-bot-groups.sh

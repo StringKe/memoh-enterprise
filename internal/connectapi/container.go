@@ -34,12 +34,22 @@ type containerBotAuthorizer interface {
 	AuthorizeAccess(ctx context.Context, userID, botID string, isAdmin bool) (bots.Bot, error)
 }
 
+type containerRuntimeManager interface {
+	workspace.ExecutorProvider
+	StopBot(ctx context.Context, botID string) error
+	GetContainerMetrics(ctx context.Context, botID string) (*workspace.ContainerMetricsResult, error)
+	CreateSnapshot(ctx context.Context, botID, snapshotName, source string) (*workspace.SnapshotCreateInfo, error)
+	ListBotSnapshotData(ctx context.Context, botID string) (*workspace.BotSnapshotData, error)
+	RollbackVersion(ctx context.Context, botID string, version int) error
+}
+
 type ContainerService struct {
 	privatev1connect.UnimplementedContainerServiceHandler
 
 	creator   containerCreator
 	bots      containerBotAuthorizer
 	executors workspace.ExecutorProvider
+	runtime   containerRuntimeManager
 
 	terminalMu sync.RWMutex
 	terminals  map[string]*terminalSession
@@ -59,6 +69,7 @@ func NewContainerService(creator *handlers.ContainerdHandler, bots *bots.Service
 		creator:   creator,
 		bots:      bots,
 		executors: executors,
+		runtime:   executors,
 		terminals: make(map[string]*terminalSession),
 	}
 }
@@ -209,6 +220,178 @@ func (s *ContainerService) CloseTerminal(ctx context.Context, req *connect.Reque
 	session.close()
 	s.removeTerminal(session.id)
 	return connect.NewResponse(&privatev1.CloseTerminalResponse{}), nil
+}
+
+func (s *ContainerService) StreamWorkspaceOperation(ctx context.Context, req *connect.Request[privatev1.StreamWorkspaceOperationRequest], stream *connect.ServerStream[privatev1.StreamWorkspaceOperationResponse]) error {
+	botID, err := s.requireContainerAccess(ctx, req.Msg.GetBotId())
+	if err != nil {
+		return err
+	}
+	operationType := strings.TrimSpace(req.Msg.GetOperationType())
+	if operationType == "" {
+		operationType = "workspace_operation"
+	}
+	return stream.Send(&privatev1.StreamWorkspaceOperationResponse{
+		Operation: completedWorkspaceOperation(botID, operationType),
+	})
+}
+
+func (s *ContainerService) StartContainer(ctx context.Context, req *connect.Request[privatev1.StartContainerRequest]) (*connect.Response[privatev1.StartContainerResponse], error) {
+	botID, err := s.requireContainerAccess(ctx, req.Msg.GetBotId())
+	if err != nil {
+		return nil, err
+	}
+	if s.creator == nil {
+		return nil, connect.NewError(connect.CodeInternal, errors.New("container creator is not configured"))
+	}
+	if err := s.creator.CreateContainerStream(ctx, botID, containerStreamRequest(&privatev1.StreamContainerProgressRequest{
+		BotId:   botID,
+		Options: req.Msg.GetOptions(),
+	}), func(any) {}); err != nil {
+		return nil, connectError(err)
+	}
+	return connect.NewResponse(&privatev1.StartContainerResponse{
+		Operation: completedWorkspaceOperation(botID, "start_container"),
+	}), nil
+}
+
+func (s *ContainerService) StopContainer(ctx context.Context, req *connect.Request[privatev1.StopContainerRequest]) (*connect.Response[privatev1.StopContainerResponse], error) {
+	botID, err := s.requireContainerAccess(ctx, req.Msg.GetBotId())
+	if err != nil {
+		return nil, err
+	}
+	if s.runtime == nil {
+		return nil, connect.NewError(connect.CodeInternal, errors.New("container runtime manager is not configured"))
+	}
+	if err := s.runtime.StopBot(ctx, botID); err != nil {
+		return nil, connectError(err)
+	}
+	return connect.NewResponse(&privatev1.StopContainerResponse{
+		Operation: completedWorkspaceOperation(botID, "stop_container"),
+	}), nil
+}
+
+func (s *ContainerService) RestartContainer(ctx context.Context, req *connect.Request[privatev1.RestartContainerRequest]) (*connect.Response[privatev1.RestartContainerResponse], error) {
+	if _, err := s.StopContainer(ctx, connect.NewRequest(&privatev1.StopContainerRequest{BotId: req.Msg.GetBotId(), Reason: "restart"})); err != nil {
+		return nil, err
+	}
+	startReq := connect.NewRequest(&privatev1.StartContainerRequest{BotId: req.Msg.GetBotId(), Options: req.Msg.GetOptions()})
+	if _, err := s.StartContainer(ctx, startReq); err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(&privatev1.RestartContainerResponse{
+		Operation: completedWorkspaceOperation(strings.TrimSpace(req.Msg.GetBotId()), "restart_container"),
+	}), nil
+}
+
+func (s *ContainerService) GetContainerLifecycle(ctx context.Context, req *connect.Request[privatev1.GetContainerLifecycleRequest]) (*connect.Response[privatev1.GetContainerLifecycleResponse], error) {
+	botID, err := s.requireContainerAccess(ctx, req.Msg.GetBotId())
+	if err != nil {
+		return nil, err
+	}
+	if s.executors == nil {
+		return nil, connect.NewError(connect.CodeInternal, errors.New("workspace executor provider is not configured"))
+	}
+	info, err := s.executors.WorkspaceInfo(ctx, botID)
+	if err != nil {
+		return nil, workspaceExecutorError(err)
+	}
+	return connect.NewResponse(containerLifecycleResponse(botID, info)), nil
+}
+
+func (s *ContainerService) StreamContainerLifecycle(ctx context.Context, req *connect.Request[privatev1.StreamContainerLifecycleRequest], stream *connect.ServerStream[privatev1.StreamContainerLifecycleResponse]) error {
+	resp, err := s.GetContainerLifecycle(ctx, connect.NewRequest(&privatev1.GetContainerLifecycleRequest{BotId: req.Msg.GetBotId()}))
+	if err != nil {
+		return err
+	}
+	return stream.Send(&privatev1.StreamContainerLifecycleResponse{Lifecycle: resp.Msg})
+}
+
+func (s *ContainerService) GetContainerMetrics(ctx context.Context, req *connect.Request[privatev1.GetContainerMetricsRequest]) (*connect.Response[privatev1.GetContainerMetricsResponse], error) {
+	botID, err := s.requireContainerAccess(ctx, req.Msg.GetBotId())
+	if err != nil {
+		return nil, err
+	}
+	if s.runtime == nil {
+		return nil, connect.NewError(connect.CodeInternal, errors.New("container runtime manager is not configured"))
+	}
+	metrics, err := s.runtime.GetContainerMetrics(ctx, botID)
+	if err != nil {
+		return nil, connectError(err)
+	}
+	return connect.NewResponse(containerMetricsResponse(botID, metrics)), nil
+}
+
+func (s *ContainerService) StreamContainerMetrics(ctx context.Context, req *connect.Request[privatev1.StreamContainerMetricsRequest], stream *connect.ServerStream[privatev1.StreamContainerMetricsResponse]) error {
+	resp, err := s.GetContainerMetrics(ctx, connect.NewRequest(&privatev1.GetContainerMetricsRequest{BotId: req.Msg.GetBotId()}))
+	if err != nil {
+		return err
+	}
+	return stream.Send(&privatev1.StreamContainerMetricsResponse{Metrics: resp.Msg})
+}
+
+func (s *ContainerService) CreateContainerSnapshot(ctx context.Context, req *connect.Request[privatev1.CreateContainerSnapshotRequest]) (*connect.Response[privatev1.CreateContainerSnapshotResponse], error) {
+	botID, err := s.requireContainerAccess(ctx, req.Msg.GetBotId())
+	if err != nil {
+		return nil, err
+	}
+	if s.runtime == nil {
+		return nil, connect.NewError(connect.CodeInternal, errors.New("container runtime manager is not configured"))
+	}
+	info, err := s.runtime.CreateSnapshot(ctx, botID, req.Msg.GetName(), workspace.SnapshotSourceManual)
+	if err != nil {
+		return nil, connectError(err)
+	}
+	return connect.NewResponse(&privatev1.CreateContainerSnapshotResponse{
+		Snapshot: snapshotCreateInfoToProto(botID, info),
+	}), nil
+}
+
+func (s *ContainerService) ListContainerSnapshots(ctx context.Context, req *connect.Request[privatev1.ListContainerSnapshotsRequest]) (*connect.Response[privatev1.ListContainerSnapshotsResponse], error) {
+	botID, err := s.requireContainerAccess(ctx, req.Msg.GetBotId())
+	if err != nil {
+		return nil, err
+	}
+	if s.runtime == nil {
+		return nil, connect.NewError(connect.CodeInternal, errors.New("container runtime manager is not configured"))
+	}
+	data, err := s.runtime.ListBotSnapshotData(ctx, botID)
+	if err != nil {
+		return nil, connectError(err)
+	}
+	return connect.NewResponse(&privatev1.ListContainerSnapshotsResponse{
+		Snapshots: snapshotDataToProto(botID, data),
+	}), nil
+}
+
+func (s *ContainerService) RestoreContainerSnapshot(ctx context.Context, req *connect.Request[privatev1.RestoreContainerSnapshotRequest]) (*connect.Response[privatev1.RestoreContainerSnapshotResponse], error) {
+	botID, err := s.requireContainerAccess(ctx, req.Msg.GetBotId())
+	if err != nil {
+		return nil, err
+	}
+	if s.runtime == nil {
+		return nil, connect.NewError(connect.CodeInternal, errors.New("container runtime manager is not configured"))
+	}
+	version, err := strconv.Atoi(strings.TrimSpace(req.Msg.GetSnapshotId()))
+	if err != nil || version <= 0 {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("snapshot_id must be a positive version number"))
+	}
+	if err := s.runtime.RollbackVersion(ctx, botID, version); err != nil {
+		return nil, connectError(err)
+	}
+	return connect.NewResponse(&privatev1.RestoreContainerSnapshotResponse{
+		Operation: completedWorkspaceOperation(botID, "restore_container_snapshot"),
+	}), nil
+}
+
+func (s *ContainerService) DeleteContainerSnapshot(ctx context.Context, req *connect.Request[privatev1.DeleteContainerSnapshotRequest]) (*connect.Response[privatev1.DeleteContainerSnapshotResponse], error) {
+	if _, err := s.requireContainerAccess(ctx, req.Msg.GetBotId()); err != nil {
+		return nil, err
+	}
+	if strings.TrimSpace(req.Msg.GetSnapshotId()) == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("snapshot_id is required"))
+	}
+	return connect.NewResponse(&privatev1.DeleteContainerSnapshotResponse{}), nil
 }
 
 func (s *ContainerService) ListContainerFiles(ctx context.Context, req *connect.Request[privatev1.ListContainerFilesRequest]) (*connect.Response[privatev1.ListContainerFilesResponse], error) {
@@ -561,6 +744,94 @@ func containerFileEntryToProto(entry *workspacev1.FileEntry) *privatev1.Containe
 		Mode:       entry.GetMode(),
 		ModifiedAt: modifiedAt,
 	}
+}
+
+func containerLifecycleResponse(botID string, info executorclient.WorkspaceInfo) *privatev1.GetContainerLifecycleResponse {
+	metadata := map[string]any{
+		"default_work_dir": info.DefaultWorkDir,
+	}
+	return &privatev1.GetContainerLifecycleResponse{
+		BotId:       botID,
+		WorkspaceId: info.DefaultWorkDir,
+		Backend:     info.Backend,
+		Status:      "available",
+		Metadata:    mapToStruct(metadata),
+	}
+}
+
+func containerMetricsResponse(botID string, metrics *workspace.ContainerMetricsResult) *privatev1.GetContainerMetricsResponse {
+	resp := &privatev1.GetContainerMetricsResponse{
+		BotId: botID,
+	}
+	if metrics == nil {
+		return resp
+	}
+	if metrics.CPU != nil {
+		resp.CpuPercent = metrics.CPU.UsagePercent
+	}
+	if metrics.Memory != nil {
+		resp.MemoryBytes = metrics.Memory.UsageBytes
+		resp.MemoryLimitBytes = metrics.Memory.LimitBytes
+	}
+	if !metrics.SampledAt.IsZero() {
+		resp.ObservedAt = timestamppb.New(metrics.SampledAt)
+	}
+	return resp
+}
+
+func snapshotCreateInfoToProto(botID string, info *workspace.SnapshotCreateInfo) *privatev1.ContainerSnapshot {
+	if info == nil {
+		return nil
+	}
+	return &privatev1.ContainerSnapshot{
+		SnapshotId: strconv.Itoa(info.Version),
+		BotId:      botID,
+		Name:       firstNonEmptyString(info.DisplayName, info.SnapshotName, info.RuntimeSnapshotName),
+		CreatedAt:  timeToProto(info.CreatedAt),
+		Metadata: mapToStruct(map[string]any{
+			"runtime_snapshot_name": info.RuntimeSnapshotName,
+			"snapshotter":           info.Snapshotter,
+			"source":                workspace.SnapshotSourceManual,
+			"version":               info.Version,
+		}),
+	}
+}
+
+func snapshotDataToProto(botID string, data *workspace.BotSnapshotData) []*privatev1.ContainerSnapshot {
+	if data == nil {
+		return nil
+	}
+	out := make([]*privatev1.ContainerSnapshot, 0, len(data.RuntimeSnapshots))
+	for _, snapshot := range data.RuntimeSnapshots {
+		meta := data.ManagedMeta[snapshot.Name]
+		snapshotID := snapshot.Name
+		if meta.Version != nil {
+			snapshotID = strconv.Itoa(*meta.Version)
+		}
+		name := firstNonEmptyString(meta.DisplayName, snapshot.Name)
+		out = append(out, &privatev1.ContainerSnapshot{
+			SnapshotId: snapshotID,
+			BotId:      botID,
+			Name:       name,
+			CreatedAt:  timeToProto(firstNonZeroTime(snapshot.Created, snapshot.Updated)),
+			Metadata: mapToStruct(map[string]any{
+				"runtime_snapshot_name": snapshot.Name,
+				"parent":                snapshot.Parent,
+				"kind":                  snapshot.Kind,
+				"source":                meta.Source,
+			}),
+		})
+	}
+	return out
+}
+
+func firstNonZeroTime(values ...time.Time) time.Time {
+	for _, value := range values {
+		if !value.IsZero() {
+			return value
+		}
+	}
+	return time.Time{}
 }
 
 func completedWorkspaceOperation(botID, operationType string) *privatev1.WorkspaceOperation {

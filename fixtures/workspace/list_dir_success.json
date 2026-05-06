@@ -1,0 +1,14 @@
+{
+  "path": ".",
+  "page_size": 200,
+  "entries": [
+    {
+      "name": "README.md",
+      "type": "file"
+    },
+    {
+      "name": "src",
+      "type": "directory"
+    }
+  ]
+}

@@ -6,9 +6,11 @@ CREATE TABLE IF NOT EXISTS bot_groups (
   owner_user_id UUID NOT NULL REFERENCES iam_users(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   description TEXT NOT NULL DEFAULT '',
+  visibility TEXT NOT NULL DEFAULT 'private',
   metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT bot_groups_visibility_check CHECK (visibility IN ('private', 'organization', 'public')),
   CONSTRAINT bot_groups_owner_name_unique UNIQUE (owner_user_id, name)
 );
 

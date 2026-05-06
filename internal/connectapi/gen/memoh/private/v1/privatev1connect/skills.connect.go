@@ -50,6 +50,15 @@ const (
 	// SkillServiceInstallSkillProcedure is the fully-qualified name of the SkillService's InstallSkill
 	// RPC.
 	SkillServiceInstallSkillProcedure = "/memoh.private.v1.SkillService/InstallSkill"
+	// SkillServiceListBotContainerSkillsProcedure is the fully-qualified name of the SkillService's
+	// ListBotContainerSkills RPC.
+	SkillServiceListBotContainerSkillsProcedure = "/memoh.private.v1.SkillService/ListBotContainerSkills"
+	// SkillServiceInstallBotContainerSkillProcedure is the fully-qualified name of the SkillService's
+	// InstallBotContainerSkill RPC.
+	SkillServiceInstallBotContainerSkillProcedure = "/memoh.private.v1.SkillService/InstallBotContainerSkill"
+	// SkillServiceRemoveBotContainerSkillProcedure is the fully-qualified name of the SkillService's
+	// RemoveBotContainerSkill RPC.
+	SkillServiceRemoveBotContainerSkillProcedure = "/memoh.private.v1.SkillService/RemoveBotContainerSkill"
 )
 
 // SkillServiceClient is a client for the memoh.private.v1.SkillService service.
@@ -60,6 +69,9 @@ type SkillServiceClient interface {
 	ApplySkillAction(context.Context, *connect.Request[v1.ApplySkillActionRequest]) (*connect.Response[v1.ApplySkillActionResponse], error)
 	ListSkillCatalog(context.Context, *connect.Request[v1.ListSkillCatalogRequest]) (*connect.Response[v1.ListSkillCatalogResponse], error)
 	InstallSkill(context.Context, *connect.Request[v1.InstallSkillRequest]) (*connect.Response[v1.InstallSkillResponse], error)
+	ListBotContainerSkills(context.Context, *connect.Request[v1.ListBotContainerSkillsRequest]) (*connect.Response[v1.ListBotContainerSkillsResponse], error)
+	InstallBotContainerSkill(context.Context, *connect.Request[v1.InstallBotContainerSkillRequest]) (*connect.Response[v1.InstallBotContainerSkillResponse], error)
+	RemoveBotContainerSkill(context.Context, *connect.Request[v1.RemoveBotContainerSkillRequest]) (*connect.Response[v1.RemoveBotContainerSkillResponse], error)
 }
 
 // NewSkillServiceClient constructs a client for the memoh.private.v1.SkillService service. By
@@ -109,17 +121,38 @@ func NewSkillServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 			connect.WithSchema(skillServiceMethods.ByName("InstallSkill")),
 			connect.WithClientOptions(opts...),
 		),
+		listBotContainerSkills: connect.NewClient[v1.ListBotContainerSkillsRequest, v1.ListBotContainerSkillsResponse](
+			httpClient,
+			baseURL+SkillServiceListBotContainerSkillsProcedure,
+			connect.WithSchema(skillServiceMethods.ByName("ListBotContainerSkills")),
+			connect.WithClientOptions(opts...),
+		),
+		installBotContainerSkill: connect.NewClient[v1.InstallBotContainerSkillRequest, v1.InstallBotContainerSkillResponse](
+			httpClient,
+			baseURL+SkillServiceInstallBotContainerSkillProcedure,
+			connect.WithSchema(skillServiceMethods.ByName("InstallBotContainerSkill")),
+			connect.WithClientOptions(opts...),
+		),
+		removeBotContainerSkill: connect.NewClient[v1.RemoveBotContainerSkillRequest, v1.RemoveBotContainerSkillResponse](
+			httpClient,
+			baseURL+SkillServiceRemoveBotContainerSkillProcedure,
+			connect.WithSchema(skillServiceMethods.ByName("RemoveBotContainerSkill")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // skillServiceClient implements SkillServiceClient.
 type skillServiceClient struct {
-	listSkills       *connect.Client[v1.ListSkillsRequest, v1.ListSkillsResponse]
-	upsertSkills     *connect.Client[v1.UpsertSkillsRequest, v1.UpsertSkillsResponse]
-	deleteSkills     *connect.Client[v1.DeleteSkillsRequest, v1.DeleteSkillsResponse]
-	applySkillAction *connect.Client[v1.ApplySkillActionRequest, v1.ApplySkillActionResponse]
-	listSkillCatalog *connect.Client[v1.ListSkillCatalogRequest, v1.ListSkillCatalogResponse]
-	installSkill     *connect.Client[v1.InstallSkillRequest, v1.InstallSkillResponse]
+	listSkills               *connect.Client[v1.ListSkillsRequest, v1.ListSkillsResponse]
+	upsertSkills             *connect.Client[v1.UpsertSkillsRequest, v1.UpsertSkillsResponse]
+	deleteSkills             *connect.Client[v1.DeleteSkillsRequest, v1.DeleteSkillsResponse]
+	applySkillAction         *connect.Client[v1.ApplySkillActionRequest, v1.ApplySkillActionResponse]
+	listSkillCatalog         *connect.Client[v1.ListSkillCatalogRequest, v1.ListSkillCatalogResponse]
+	installSkill             *connect.Client[v1.InstallSkillRequest, v1.InstallSkillResponse]
+	listBotContainerSkills   *connect.Client[v1.ListBotContainerSkillsRequest, v1.ListBotContainerSkillsResponse]
+	installBotContainerSkill *connect.Client[v1.InstallBotContainerSkillRequest, v1.InstallBotContainerSkillResponse]
+	removeBotContainerSkill  *connect.Client[v1.RemoveBotContainerSkillRequest, v1.RemoveBotContainerSkillResponse]
 }
 
 // ListSkills calls memoh.private.v1.SkillService.ListSkills.
@@ -152,6 +185,21 @@ func (c *skillServiceClient) InstallSkill(ctx context.Context, req *connect.Requ
 	return c.installSkill.CallUnary(ctx, req)
 }
 
+// ListBotContainerSkills calls memoh.private.v1.SkillService.ListBotContainerSkills.
+func (c *skillServiceClient) ListBotContainerSkills(ctx context.Context, req *connect.Request[v1.ListBotContainerSkillsRequest]) (*connect.Response[v1.ListBotContainerSkillsResponse], error) {
+	return c.listBotContainerSkills.CallUnary(ctx, req)
+}
+
+// InstallBotContainerSkill calls memoh.private.v1.SkillService.InstallBotContainerSkill.
+func (c *skillServiceClient) InstallBotContainerSkill(ctx context.Context, req *connect.Request[v1.InstallBotContainerSkillRequest]) (*connect.Response[v1.InstallBotContainerSkillResponse], error) {
+	return c.installBotContainerSkill.CallUnary(ctx, req)
+}
+
+// RemoveBotContainerSkill calls memoh.private.v1.SkillService.RemoveBotContainerSkill.
+func (c *skillServiceClient) RemoveBotContainerSkill(ctx context.Context, req *connect.Request[v1.RemoveBotContainerSkillRequest]) (*connect.Response[v1.RemoveBotContainerSkillResponse], error) {
+	return c.removeBotContainerSkill.CallUnary(ctx, req)
+}
+
 // SkillServiceHandler is an implementation of the memoh.private.v1.SkillService service.
 type SkillServiceHandler interface {
 	ListSkills(context.Context, *connect.Request[v1.ListSkillsRequest]) (*connect.Response[v1.ListSkillsResponse], error)
@@ -160,6 +208,9 @@ type SkillServiceHandler interface {
 	ApplySkillAction(context.Context, *connect.Request[v1.ApplySkillActionRequest]) (*connect.Response[v1.ApplySkillActionResponse], error)
 	ListSkillCatalog(context.Context, *connect.Request[v1.ListSkillCatalogRequest]) (*connect.Response[v1.ListSkillCatalogResponse], error)
 	InstallSkill(context.Context, *connect.Request[v1.InstallSkillRequest]) (*connect.Response[v1.InstallSkillResponse], error)
+	ListBotContainerSkills(context.Context, *connect.Request[v1.ListBotContainerSkillsRequest]) (*connect.Response[v1.ListBotContainerSkillsResponse], error)
+	InstallBotContainerSkill(context.Context, *connect.Request[v1.InstallBotContainerSkillRequest]) (*connect.Response[v1.InstallBotContainerSkillResponse], error)
+	RemoveBotContainerSkill(context.Context, *connect.Request[v1.RemoveBotContainerSkillRequest]) (*connect.Response[v1.RemoveBotContainerSkillResponse], error)
 }
 
 // NewSkillServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -205,6 +256,24 @@ func NewSkillServiceHandler(svc SkillServiceHandler, opts ...connect.HandlerOpti
 		connect.WithSchema(skillServiceMethods.ByName("InstallSkill")),
 		connect.WithHandlerOptions(opts...),
 	)
+	skillServiceListBotContainerSkillsHandler := connect.NewUnaryHandler(
+		SkillServiceListBotContainerSkillsProcedure,
+		svc.ListBotContainerSkills,
+		connect.WithSchema(skillServiceMethods.ByName("ListBotContainerSkills")),
+		connect.WithHandlerOptions(opts...),
+	)
+	skillServiceInstallBotContainerSkillHandler := connect.NewUnaryHandler(
+		SkillServiceInstallBotContainerSkillProcedure,
+		svc.InstallBotContainerSkill,
+		connect.WithSchema(skillServiceMethods.ByName("InstallBotContainerSkill")),
+		connect.WithHandlerOptions(opts...),
+	)
+	skillServiceRemoveBotContainerSkillHandler := connect.NewUnaryHandler(
+		SkillServiceRemoveBotContainerSkillProcedure,
+		svc.RemoveBotContainerSkill,
+		connect.WithSchema(skillServiceMethods.ByName("RemoveBotContainerSkill")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/memoh.private.v1.SkillService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case SkillServiceListSkillsProcedure:
@@ -219,6 +288,12 @@ func NewSkillServiceHandler(svc SkillServiceHandler, opts ...connect.HandlerOpti
 			skillServiceListSkillCatalogHandler.ServeHTTP(w, r)
 		case SkillServiceInstallSkillProcedure:
 			skillServiceInstallSkillHandler.ServeHTTP(w, r)
+		case SkillServiceListBotContainerSkillsProcedure:
+			skillServiceListBotContainerSkillsHandler.ServeHTTP(w, r)
+		case SkillServiceInstallBotContainerSkillProcedure:
+			skillServiceInstallBotContainerSkillHandler.ServeHTTP(w, r)
+		case SkillServiceRemoveBotContainerSkillProcedure:
+			skillServiceRemoveBotContainerSkillHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -250,4 +325,16 @@ func (UnimplementedSkillServiceHandler) ListSkillCatalog(context.Context, *conne
 
 func (UnimplementedSkillServiceHandler) InstallSkill(context.Context, *connect.Request[v1.InstallSkillRequest]) (*connect.Response[v1.InstallSkillResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.SkillService.InstallSkill is not implemented"))
+}
+
+func (UnimplementedSkillServiceHandler) ListBotContainerSkills(context.Context, *connect.Request[v1.ListBotContainerSkillsRequest]) (*connect.Response[v1.ListBotContainerSkillsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.SkillService.ListBotContainerSkills is not implemented"))
+}
+
+func (UnimplementedSkillServiceHandler) InstallBotContainerSkill(context.Context, *connect.Request[v1.InstallBotContainerSkillRequest]) (*connect.Response[v1.InstallBotContainerSkillResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.SkillService.InstallBotContainerSkill is not implemented"))
+}
+
+func (UnimplementedSkillServiceHandler) RemoveBotContainerSkill(context.Context, *connect.Request[v1.RemoveBotContainerSkillRequest]) (*connect.Response[v1.RemoveBotContainerSkillResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.SkillService.RemoveBotContainerSkill is not implemented"))
 }

@@ -24,6 +24,72 @@ FROM bots
 WHERE owner_user_id = $1
 ORDER BY created_at DESC;
 
+-- name: ListAccessibleBots :many
+SELECT bots.id, bots.owner_user_id, bots.group_id, bots.display_name, bots.avatar_url, bots.timezone, bots.is_active, bots.status, bots.language, bots.reasoning_enabled, bots.reasoning_effort, bots.chat_model_id, bots.search_provider_id, bots.memory_provider_id, bots.heartbeat_enabled, bots.heartbeat_interval, bots.heartbeat_prompt, bots.settings_override_mask, bots.metadata, bots.created_at, bots.updated_at
+FROM bots
+LEFT JOIN bot_groups ON bot_groups.id = bots.group_id
+WHERE bots.owner_user_id = sqlc.arg(user_id)
+  OR bot_groups.visibility IN ('organization', 'public')
+  OR EXISTS (
+    SELECT 1
+    FROM iam_principal_roles pr
+    JOIN iam_roles r ON r.id = pr.role_id
+    JOIN iam_role_permissions rp ON rp.role_id = r.id
+    JOIN iam_permissions p ON p.id = rp.permission_id
+    WHERE p.key = 'bot.read'
+      AND pr.resource_type = 'bot'
+      AND (pr.resource_id = bots.id OR pr.resource_id IS NULL)
+      AND (
+        (pr.principal_type = 'user' AND pr.principal_id = sqlc.arg(user_id))
+        OR (
+          pr.principal_type = 'group'
+          AND pr.principal_id IN (
+            SELECT group_id FROM iam_group_members WHERE user_id = sqlc.arg(user_id)
+          )
+        )
+      )
+  )
+  OR EXISTS (
+    SELECT 1
+    FROM iam_principal_roles pr
+    JOIN iam_roles r ON r.id = pr.role_id
+    JOIN iam_role_permissions rp ON rp.role_id = r.id
+    JOIN iam_permissions p ON p.id = rp.permission_id
+    WHERE p.key = 'bot_group.read'
+      AND pr.resource_type = 'bot_group'
+      AND bots.group_id IS NOT NULL
+      AND (pr.resource_id = bots.group_id OR pr.resource_id IS NULL)
+      AND (
+        (pr.principal_type = 'user' AND pr.principal_id = sqlc.arg(user_id))
+        OR (
+          pr.principal_type = 'group'
+          AND pr.principal_id IN (
+            SELECT group_id FROM iam_group_members WHERE user_id = sqlc.arg(user_id)
+          )
+        )
+      )
+  )
+  OR EXISTS (
+    SELECT 1
+    FROM iam_principal_roles pr
+    JOIN iam_roles r ON r.id = pr.role_id
+    JOIN iam_role_permissions rp ON rp.role_id = r.id
+    JOIN iam_permissions p ON p.id = rp.permission_id
+    WHERE p.key = 'system.admin'
+      AND pr.resource_type = 'system'
+      AND pr.resource_id IS NULL
+      AND (
+        (pr.principal_type = 'user' AND pr.principal_id = sqlc.arg(user_id))
+        OR (
+          pr.principal_type = 'group'
+          AND pr.principal_id IN (
+            SELECT group_id FROM iam_group_members WHERE user_id = sqlc.arg(user_id)
+          )
+        )
+      )
+  )
+ORDER BY bots.created_at DESC;
+
 -- name: UpdateBotProfile :one
 UPDATE bots
 SET display_name = sqlc.arg(display_name),

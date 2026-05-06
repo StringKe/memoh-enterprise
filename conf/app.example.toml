@@ -73,7 +73,7 @@ service_account_name = ""
 image_pull_secret = ""
 pvc_storage_class = ""
 pvc_size = "10Gi"
-bridge_port = 9090
+workspace_executor_port = 9090
 
 [apple]
 # Used when [container].backend = "apple". Leave empty to use socktainer defaults.

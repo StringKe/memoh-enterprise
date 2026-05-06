@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package memoh.private.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1;privatev1";
+
+service InternalAuthService {
+  rpc IssueServiceToken(IssueServiceTokenRequest) returns (IssueServiceTokenResponse);
+}
+
+message IssueServiceTokenRequest {
+  string caller_service = 1;
+  string caller_instance_id = 2;
+  string target_audience = 3;
+  repeated string scopes = 4;
+  string bootstrap_token = 5;
+  string run_id = 6;
+  int64 lease_version = 7;
+  string workspace_id = 8;
+  string workspace_executor_target = 9;
+  int32 ttl_seconds = 10;
+}
+
+message IssueServiceTokenResponse {
+  string token = 1;
+  string key_id = 2;
+  string issuer = 3;
+  string audience = 4;
+  google.protobuf.Timestamp issued_at = 5;
+  google.protobuf.Timestamp expires_at = 6;
+}

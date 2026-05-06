@@ -15,7 +15,7 @@ import (
 	"github.com/memohai/memoh/internal/models"
 	"github.com/memohai/memoh/internal/providers"
 	"github.com/memohai/memoh/internal/settings"
-	"github.com/memohai/memoh/internal/workspace/bridge"
+	"github.com/memohai/memoh/internal/workspace/executorclient"
 )
 
 const imageGenDir = "/data/generated-images"
@@ -25,7 +25,7 @@ type ImageGenProvider struct {
 	settings   *settings.Service
 	models     *models.Service
 	queries    dbstore.Queries
-	containers bridge.Provider
+	containers executorclient.Provider
 	dataMount  string
 }
 
@@ -34,7 +34,7 @@ func NewImageGenProvider(
 	settingsSvc *settings.Service,
 	modelsSvc *models.Service,
 	queries dbstore.Queries,
-	containers bridge.Provider,
+	containers executorclient.Provider,
 	dataMount string,
 ) *ImageGenProvider {
 	if log == nil {
@@ -173,14 +173,14 @@ func (p *ImageGenProvider) execGenerateImage(ctx context.Context, session Sessio
 	}
 
 	imageDir := strings.TrimRight(p.dataMount, "/") + strings.TrimPrefix(imageGenDir, "/data")
-	if resolver, ok := p.containers.(bridge.WorkspaceInfoProvider); ok {
-		if info, err := resolver.WorkspaceInfo(ctx, botID); err == nil && info.Backend == bridge.WorkspaceBackendLocal && strings.TrimSpace(info.DefaultWorkDir) != "" {
+	if resolver, ok := p.containers.(executorclient.WorkspaceInfoProvider); ok {
+		if info, err := resolver.WorkspaceInfo(ctx, botID); err == nil && info.Backend == executorclient.WorkspaceBackendLocal && strings.TrimSpace(info.DefaultWorkDir) != "" {
 			imageDir = strings.TrimRight(info.DefaultWorkDir, "/") + "/generated-images"
 		}
 	}
 	containerPath := fmt.Sprintf("%s/%d.%s", imageDir, time.Now().UnixMilli(), ext)
 
-	client, clientErr := p.containers.MCPClient(ctx, botID)
+	client, clientErr := p.containers.ExecutorClient(ctx, botID)
 	if clientErr != nil {
 		return map[string]any{
 			"content": []map[string]any{

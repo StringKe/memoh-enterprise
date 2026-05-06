@@ -95,7 +95,7 @@ func (h *ContainerdHandler) UpsertSkills(c echo.Context) error {
 	}
 
 	ctx := c.Request().Context()
-	client, err := h.getGRPCClient(ctx, botID)
+	client, err := h.getWorkspaceExecutorClient(ctx, botID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("container not reachable: %v", err))
 	}
@@ -143,7 +143,7 @@ func (h *ContainerdHandler) DeleteSkills(c echo.Context) error {
 	}
 
 	ctx := c.Request().Context()
-	client, err := h.getGRPCClient(ctx, botID)
+	client, err := h.getWorkspaceExecutorClient(ctx, botID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("container not reachable: %v", err))
 	}
@@ -187,7 +187,7 @@ func (h *ContainerdHandler) ApplySkillAction(c echo.Context) error {
 	}
 
 	ctx := c.Request().Context()
-	client, err := h.getGRPCClient(ctx, botID)
+	client, err := h.getWorkspaceExecutorClient(ctx, botID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("container not reachable: %v", err))
 	}
@@ -208,7 +208,7 @@ func (h *ContainerdHandler) ApplySkillAction(c echo.Context) error {
 
 // LoadSkills loads the effective skills from the container for the given bot.
 func (h *ContainerdHandler) LoadSkills(ctx context.Context, botID string) ([]SkillItem, error) {
-	client, err := h.getGRPCClient(ctx, botID)
+	client, err := h.getWorkspaceExecutorClient(ctx, botID)
 	if err != nil {
 		return nil, err
 	}
@@ -224,7 +224,7 @@ func (h *ContainerdHandler) LoadSkills(ctx context.Context, botID string) ([]Ski
 }
 
 func (h *ContainerdHandler) listSkillsFromContainer(ctx context.Context, botID string) ([]SkillItem, error) {
-	client, err := h.getGRPCClient(ctx, botID)
+	client, err := h.getWorkspaceExecutorClient(ctx, botID)
 	if err != nil {
 		return nil, err
 	}

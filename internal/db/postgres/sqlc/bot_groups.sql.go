@@ -25,15 +25,16 @@ func (q *Queries) CountBotsInGroup(ctx context.Context, groupID pgtype.UUID) (in
 }
 
 const createBotGroup = `-- name: CreateBotGroup :one
-INSERT INTO bot_groups (owner_user_id, name, description, metadata)
-VALUES ($1, $2, $3, $4)
-RETURNING id, owner_user_id, name, description, metadata, created_at, updated_at
+INSERT INTO bot_groups (owner_user_id, name, description, visibility, metadata)
+VALUES ($1, $2, $3, $4, $5)
+RETURNING id, owner_user_id, name, description, visibility, metadata, created_at, updated_at
 `
 
 type CreateBotGroupParams struct {
 	OwnerUserID pgtype.UUID `json:"owner_user_id"`
 	Name        string      `json:"name"`
 	Description string      `json:"description"`
+	Visibility  string      `json:"visibility"`
 	Metadata    []byte      `json:"metadata"`
 }
 
@@ -42,6 +43,7 @@ func (q *Queries) CreateBotGroup(ctx context.Context, arg CreateBotGroupParams) 
 		arg.OwnerUserID,
 		arg.Name,
 		arg.Description,
+		arg.Visibility,
 		arg.Metadata,
 	)
 	var i BotGroup
@@ -50,6 +52,7 @@ func (q *Queries) CreateBotGroup(ctx context.Context, arg CreateBotGroupParams) 
 		&i.OwnerUserID,
 		&i.Name,
 		&i.Description,
+		&i.Visibility,
 		&i.Metadata,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -78,7 +81,7 @@ func (q *Queries) DeleteBotGroupSettings(ctx context.Context, groupID pgtype.UUI
 }
 
 const getBotGroupByID = `-- name: GetBotGroupByID :one
-SELECT id, owner_user_id, name, description, metadata, created_at, updated_at
+SELECT id, owner_user_id, name, description, visibility, metadata, created_at, updated_at
 FROM bot_groups
 WHERE id = $1
 `
@@ -91,6 +94,7 @@ func (q *Queries) GetBotGroupByID(ctx context.Context, id pgtype.UUID) (BotGroup
 		&i.OwnerUserID,
 		&i.Name,
 		&i.Description,
+		&i.Visibility,
 		&i.Metadata,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -99,7 +103,7 @@ func (q *Queries) GetBotGroupByID(ctx context.Context, id pgtype.UUID) (BotGroup
 }
 
 const getBotGroupByOwnerAndID = `-- name: GetBotGroupByOwnerAndID :one
-SELECT id, owner_user_id, name, description, metadata, created_at, updated_at
+SELECT id, owner_user_id, name, description, visibility, metadata, created_at, updated_at
 FROM bot_groups
 WHERE owner_user_id = $1
   AND id = $2
@@ -118,6 +122,7 @@ func (q *Queries) GetBotGroupByOwnerAndID(ctx context.Context, arg GetBotGroupBy
 		&i.OwnerUserID,
 		&i.Name,
 		&i.Description,
+		&i.Visibility,
 		&i.Metadata,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -169,15 +174,54 @@ func (q *Queries) GetBotGroupSettings(ctx context.Context, groupID pgtype.UUID) 
 	return i, err
 }
 
-const listBotGroupsByOwner = `-- name: ListBotGroupsByOwner :many
-SELECT id, owner_user_id, name, description, metadata, created_at, updated_at
+const listAccessibleBotGroups = `-- name: ListAccessibleBotGroups :many
+SELECT id, owner_user_id, name, description, visibility, metadata, created_at, updated_at
 FROM bot_groups
 WHERE owner_user_id = $1
+  OR visibility IN ('organization', 'public')
+  OR EXISTS (
+    SELECT 1
+    FROM iam_principal_roles pr
+    JOIN iam_roles r ON r.id = pr.role_id
+    JOIN iam_role_permissions rp ON rp.role_id = r.id
+    JOIN iam_permissions p ON p.id = rp.permission_id
+    WHERE p.key = 'bot_group.read'
+      AND pr.resource_type = 'bot_group'
+      AND (pr.resource_id = bot_groups.id OR pr.resource_id IS NULL)
+      AND (
+        (pr.principal_type = 'user' AND pr.principal_id = $1)
+        OR (
+          pr.principal_type = 'group'
+          AND pr.principal_id IN (
+            SELECT group_id FROM iam_group_members WHERE user_id = $1
+          )
+        )
+      )
+  )
+  OR EXISTS (
+    SELECT 1
+    FROM iam_principal_roles pr
+    JOIN iam_roles r ON r.id = pr.role_id
+    JOIN iam_role_permissions rp ON rp.role_id = r.id
+    JOIN iam_permissions p ON p.id = rp.permission_id
+    WHERE p.key = 'system.admin'
+      AND pr.resource_type = 'system'
+      AND pr.resource_id IS NULL
+      AND (
+        (pr.principal_type = 'user' AND pr.principal_id = $1)
+        OR (
+          pr.principal_type = 'group'
+          AND pr.principal_id IN (
+            SELECT group_id FROM iam_group_members WHERE user_id = $1
+          )
+        )
+      )
+  )
 ORDER BY name ASC, created_at DESC
 `
 
-func (q *Queries) ListBotGroupsByOwner(ctx context.Context, ownerUserID pgtype.UUID) ([]BotGroup, error) {
-	rows, err := q.db.Query(ctx, listBotGroupsByOwner, ownerUserID)
+func (q *Queries) ListAccessibleBotGroups(ctx context.Context, userID pgtype.UUID) ([]BotGroup, error) {
+	rows, err := q.db.Query(ctx, listAccessibleBotGroups, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -190,6 +234,7 @@ func (q *Queries) ListBotGroupsByOwner(ctx context.Context, ownerUserID pgtype.U
 			&i.OwnerUserID,
 			&i.Name,
 			&i.Description,
+			&i.Visibility,
 			&i.Metadata,
 			&i.CreatedAt,
 			&i.UpdatedAt,
@@ -208,15 +253,17 @@ const updateBotGroup = `-- name: UpdateBotGroup :one
 UPDATE bot_groups
 SET name = $1,
     description = $2,
-    metadata = $3,
+    visibility = $3,
+    metadata = $4,
     updated_at = now()
-WHERE id = $4
-RETURNING id, owner_user_id, name, description, metadata, created_at, updated_at
+WHERE id = $5
+RETURNING id, owner_user_id, name, description, visibility, metadata, created_at, updated_at
 `
 
 type UpdateBotGroupParams struct {
 	Name        string      `json:"name"`
 	Description string      `json:"description"`
+	Visibility  string      `json:"visibility"`
 	Metadata    []byte      `json:"metadata"`
 	ID          pgtype.UUID `json:"id"`
 }
@@ -225,6 +272,7 @@ func (q *Queries) UpdateBotGroup(ctx context.Context, arg UpdateBotGroupParams) 
 	row := q.db.QueryRow(ctx, updateBotGroup,
 		arg.Name,
 		arg.Description,
+		arg.Visibility,
 		arg.Metadata,
 		arg.ID,
 	)
@@ -234,6 +282,7 @@ func (q *Queries) UpdateBotGroup(ctx context.Context, arg UpdateBotGroupParams) 
 		&i.OwnerUserID,
 		&i.Name,
 		&i.Description,
+		&i.Visibility,
 		&i.Metadata,
 		&i.CreatedAt,
 		&i.UpdatedAt,

@@ -80,7 +80,7 @@ func (m *fakeWebhookManager) HandleInbound(_ context.Context, cfg ChannelConfig,
 	return nil
 }
 
-func (m *fakeWebhookManager) Registry() *Registry { return m.registry }
+func (m *fakeWebhookManager) Registry() AdapterRegistry { return m.registry }
 
 func TestGenericWebhookHandlerDispatchesToAdapter(t *testing.T) {
 	t.Parallel()

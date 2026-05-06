@@ -160,7 +160,7 @@ CREATE TABLE IF NOT EXISTS iam_roles (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   CONSTRAINT iam_roles_key_unique UNIQUE (key),
-  CONSTRAINT iam_roles_scope_check CHECK (scope IN ('system', 'bot'))
+  CONSTRAINT iam_roles_scope_check CHECK (scope IN ('system', 'bot', 'bot_group'))
 );
 
 CREATE TABLE IF NOT EXISTS iam_role_permissions (
@@ -182,11 +182,11 @@ CREATE TABLE IF NOT EXISTS iam_principal_roles (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   CONSTRAINT iam_principal_roles_principal_type_check CHECK (principal_type IN ('user', 'group')),
-  CONSTRAINT iam_principal_roles_resource_type_check CHECK (resource_type IN ('system', 'bot')),
+  CONSTRAINT iam_principal_roles_resource_type_check CHECK (resource_type IN ('system', 'bot', 'bot_group')),
   CONSTRAINT iam_principal_roles_source_check CHECK (source IN ('system', 'manual', 'sso', 'scim')),
   CONSTRAINT iam_principal_roles_resource_id_check CHECK (
     (resource_type = 'system' AND resource_id IS NULL)
-    OR resource_type = 'bot'
+    OR resource_type IN ('bot', 'bot_group')
   ),
   CONSTRAINT iam_principal_roles_unique UNIQUE NULLS NOT DISTINCT (
     principal_type, principal_id, role_id, resource_type, resource_id, source, provider_id
@@ -215,7 +215,13 @@ VALUES
   ('bot.chat', 'Chat with bot', true),
   ('bot.update', 'Update bot configuration', true),
   ('bot.delete', 'Delete bot', true),
-  ('bot.permissions.manage', 'Manage bot permissions', true)
+  ('bot.permissions.manage', 'Manage bot permissions', true),
+  ('bot_group.read', 'Read bot group data', true),
+  ('bot_group.use', 'Use bots in a bot group', true),
+  ('bot_group.update', 'Update bot group configuration', true),
+  ('bot_group.delete', 'Delete bot group', true),
+  ('bot_group.permissions.manage', 'Manage bot group permissions', true),
+  ('bot_group.bots.manage', 'Manage bots in a bot group', true)
 ON CONFLICT (key) DO NOTHING;
 
 INSERT INTO iam_roles (key, scope, description, is_system)
@@ -224,7 +230,11 @@ VALUES
   ('admin', 'system', 'System administrator', true),
   ('bot_viewer', 'bot', 'Bot viewer', true),
   ('bot_operator', 'bot', 'Bot operator', true),
-  ('bot_owner', 'bot', 'Bot owner', true)
+  ('bot_owner', 'bot', 'Bot owner', true),
+  ('bot_group_viewer', 'bot_group', 'Bot group viewer', true),
+  ('bot_group_operator', 'bot_group', 'Bot group operator', true),
+  ('bot_group_editor', 'bot_group', 'Bot group editor', true),
+  ('bot_group_owner', 'bot_group', 'Bot group owner', true)
 ON CONFLICT (key) DO NOTHING;
 
 INSERT INTO iam_role_permissions (role_id, permission_id)
@@ -235,7 +245,11 @@ JOIN iam_permissions p ON (
   (r.key = 'admin' AND p.key IN ('system.login', 'system.admin')) OR
   (r.key = 'bot_viewer' AND p.key IN ('bot.read', 'bot.chat')) OR
   (r.key = 'bot_operator' AND p.key IN ('bot.read', 'bot.chat', 'bot.update')) OR
-  (r.key = 'bot_owner' AND p.key IN ('bot.read', 'bot.chat', 'bot.update', 'bot.delete', 'bot.permissions.manage'))
+  (r.key = 'bot_owner' AND p.key IN ('bot.read', 'bot.chat', 'bot.update', 'bot.delete', 'bot.permissions.manage')) OR
+  (r.key = 'bot_group_viewer' AND p.key IN ('bot_group.read')) OR
+  (r.key = 'bot_group_operator' AND p.key IN ('bot_group.read', 'bot_group.use')) OR
+  (r.key = 'bot_group_editor' AND p.key IN ('bot_group.read', 'bot_group.use', 'bot_group.update', 'bot_group.bots.manage')) OR
+  (r.key = 'bot_group_owner' AND p.key IN ('bot_group.read', 'bot_group.use', 'bot_group.update', 'bot_group.delete', 'bot_group.permissions.manage', 'bot_group.bots.manage'))
 )
 ON CONFLICT DO NOTHING;
 

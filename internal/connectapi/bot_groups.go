@@ -2,23 +2,33 @@ package connectapi
 
 import (
 	"context"
+	"errors"
+	"strings"
 	"time"
 
 	"connectrpc.com/connect"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/memohai/memoh/internal/botgroups"
 	privatev1 "github.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1"
 	"github.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1/privatev1connect"
+	"github.com/memohai/memoh/internal/db"
+	"github.com/memohai/memoh/internal/db/postgres/sqlc"
+	dbstore "github.com/memohai/memoh/internal/db/store"
+	"github.com/memohai/memoh/internal/iam/rbac"
 )
 
 type BotGroupService struct {
-	groups *botgroups.Service
+	groups  *botgroups.Service
+	queries dbstore.Queries
+	rbac    *rbac.Service
 }
 
-func NewBotGroupService(groups *botgroups.Service) *BotGroupService {
-	return &BotGroupService{groups: groups}
+func NewBotGroupService(groups *botgroups.Service, queries dbstore.Queries, rbacService *rbac.Service) *BotGroupService {
+	return &BotGroupService{groups: groups, queries: queries, rbac: rbacService}
 }
 
 func NewBotGroupHandler(service *BotGroupService) Handler {
@@ -35,6 +45,7 @@ func (s *BotGroupService) CreateBotGroup(ctx context.Context, req *connect.Reque
 	group, err := s.groups.CreateGroup(ctx, userID, botgroups.CreateGroupRequest{
 		Name:        req.Msg.GetName(),
 		Description: req.Msg.GetDescription(),
+		Visibility:  req.Msg.GetVisibility(),
 		Metadata:    metadata,
 	})
 	if err != nil {
@@ -79,6 +90,7 @@ func (s *BotGroupService) UpdateBotGroup(ctx context.Context, req *connect.Reque
 	group, err := s.groups.UpdateGroup(ctx, userID, req.Msg.GetId(), botgroups.UpdateGroupRequest{
 		Name:        req.Msg.GetName(),
 		Description: req.Msg.GetDescription(),
+		Visibility:  req.Msg.GetVisibility(),
 		Metadata:    structToMap(req.Msg.GetMetadata()),
 	})
 	if err != nil {
@@ -135,12 +147,141 @@ func (s *BotGroupService) DeleteBotGroupSettings(ctx context.Context, req *conne
 	return connect.NewResponse(&privatev1.DeleteBotGroupSettingsResponse{}), nil
 }
 
+func (s *BotGroupService) ListBotGroupPrincipalRoles(ctx context.Context, req *connect.Request[privatev1.ListBotGroupPrincipalRolesRequest]) (*connect.Response[privatev1.ListBotGroupPrincipalRolesResponse], error) {
+	userID, err := UserIDFromContext(ctx)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeUnauthenticated, err)
+	}
+	if err := s.requireGroupPermission(ctx, userID, req.Msg.GetGroupId(), rbac.PermissionBotGroupPermissionsManage); err != nil {
+		return nil, connectError(err)
+	}
+	groupID, err := db.ParseUUID(req.Msg.GetGroupId())
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+	rows, err := s.queries.ListPrincipalRoles(ctx, sqlc.ListPrincipalRolesParams{
+		ResourceType: string(rbac.ResourceBotGroup),
+		ResourceID:   groupID,
+	})
+	if err != nil {
+		return nil, connectError(err)
+	}
+	out := make([]*privatev1.BotGroupPrincipalRole, 0, len(rows))
+	for _, row := range rows {
+		out = append(out, botGroupPrincipalRoleToProto(row))
+	}
+	return connect.NewResponse(&privatev1.ListBotGroupPrincipalRolesResponse{Roles: out, Page: &privatev1.PageResponse{}}), nil
+}
+
+func (s *BotGroupService) AssignBotGroupPrincipalRole(ctx context.Context, req *connect.Request[privatev1.AssignBotGroupPrincipalRoleRequest]) (*connect.Response[privatev1.AssignBotGroupPrincipalRoleResponse], error) {
+	userID, err := UserIDFromContext(ctx)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeUnauthenticated, err)
+	}
+	if err := s.requireGroupPermission(ctx, userID, req.Msg.GetGroupId(), rbac.PermissionBotGroupPermissionsManage); err != nil {
+		return nil, connectError(err)
+	}
+	groupID, err := db.ParseUUID(req.Msg.GetGroupId())
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+	principalType := strings.TrimSpace(req.Msg.GetPrincipalType())
+	if principalType != string(rbac.PrincipalUser) && principalType != string(rbac.PrincipalGroup) {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("principal_type must be user or group"))
+	}
+	principalID, err := db.ParseUUID(req.Msg.GetPrincipalId())
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+	role, err := s.queries.GetRoleByKey(ctx, strings.TrimSpace(req.Msg.GetRole()))
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("role not found"))
+		}
+		return nil, connectError(err)
+	}
+	if role.Scope != string(rbac.ResourceBotGroup) {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("role must be bot_group-scoped"))
+	}
+	row, err := s.queries.AssignPrincipalRole(ctx, sqlc.AssignPrincipalRoleParams{
+		PrincipalType: principalType,
+		PrincipalID:   principalID,
+		RoleID:        role.ID,
+		ResourceType:  string(rbac.ResourceBotGroup),
+		ResourceID:    groupID,
+		Source:        string(rbac.SourceManual),
+	})
+	if errors.Is(err, pgx.ErrNoRows) {
+		return connect.NewResponse(&privatev1.AssignBotGroupPrincipalRoleResponse{}), nil
+	}
+	if err != nil {
+		return nil, connectError(err)
+	}
+	if s.rbac != nil {
+		s.rbac.ClearCache()
+	}
+	rows, err := s.queries.ListPrincipalRoles(ctx, sqlc.ListPrincipalRolesParams{
+		ResourceType: string(rbac.ResourceBotGroup),
+		ResourceID:   groupID,
+	})
+	if err != nil {
+		return nil, connectError(err)
+	}
+	for _, item := range rows {
+		if item.ID == row.ID {
+			return connect.NewResponse(&privatev1.AssignBotGroupPrincipalRoleResponse{Role: botGroupPrincipalRoleToProto(item)}), nil
+		}
+	}
+	return connect.NewResponse(&privatev1.AssignBotGroupPrincipalRoleResponse{}), nil
+}
+
+func (s *BotGroupService) DeleteBotGroupPrincipalRole(ctx context.Context, req *connect.Request[privatev1.DeleteBotGroupPrincipalRoleRequest]) (*connect.Response[privatev1.DeleteBotGroupPrincipalRoleResponse], error) {
+	userID, err := UserIDFromContext(ctx)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeUnauthenticated, err)
+	}
+	if err := s.requireGroupPermission(ctx, userID, req.Msg.GetGroupId(), rbac.PermissionBotGroupPermissionsManage); err != nil {
+		return nil, connectError(err)
+	}
+	groupID, err := db.ParseUUID(req.Msg.GetGroupId())
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+	roleID, err := db.ParseUUID(req.Msg.GetId())
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+	if err := s.queries.DeletePrincipalRoleByResourceAndID(ctx, sqlc.DeletePrincipalRoleByResourceAndIDParams{
+		ID:           roleID,
+		ResourceType: string(rbac.ResourceBotGroup),
+		ResourceID:   groupID,
+	}); err != nil {
+		return nil, connectError(err)
+	}
+	if s.rbac != nil {
+		s.rbac.ClearCache()
+	}
+	return connect.NewResponse(&privatev1.DeleteBotGroupPrincipalRoleResponse{}), nil
+}
+
+func (s *BotGroupService) requireGroupPermission(ctx context.Context, userID, groupID string, permission rbac.PermissionKey) error {
+	allowed, err := s.groups.HasGroupPermission(ctx, userID, groupID, permission)
+	if err != nil {
+		return err
+	}
+	if !allowed {
+		return botgroups.ErrGroupAccessDenied
+	}
+	return nil
+}
+
 func groupToProto(group botgroups.Group) *privatev1.BotGroup {
 	return &privatev1.BotGroup{
 		Id:          group.ID,
 		OwnerUserId: group.OwnerUserID,
 		Name:        group.Name,
 		Description: group.Description,
+		Visibility:  group.Visibility,
 		Metadata:    mapToStruct(group.Metadata),
 		BotCount:    group.BotCount,
 		Audit: &privatev1.AuditFields{
@@ -148,6 +289,34 @@ func groupToProto(group botgroups.Group) *privatev1.BotGroup {
 			UpdatedAt: timeToProto(group.UpdatedAt),
 		},
 	}
+}
+
+func botGroupPrincipalRoleToProto(row sqlc.ListPrincipalRolesRow) *privatev1.BotGroupPrincipalRole {
+	return &privatev1.BotGroupPrincipalRole{
+		Id:            row.ID.String(),
+		GroupId:       uuidString(row.ResourceID),
+		PrincipalType: row.PrincipalType,
+		PrincipalId:   row.PrincipalID.String(),
+		Role:          row.RoleKey,
+		Audit: &privatev1.AuditFields{
+			CreatedAt: pgTimeToProto(row.CreatedAt),
+			UpdatedAt: pgTimeToProto(row.UpdatedAt),
+		},
+	}
+}
+
+func uuidString(value pgtype.UUID) string {
+	if !value.Valid {
+		return ""
+	}
+	return value.String()
+}
+
+func pgTimeToProto(value pgtype.Timestamptz) *timestamppb.Timestamp {
+	if !value.Valid || value.Time.IsZero() {
+		return nil
+	}
+	return timestamppb.New(value.Time)
 }
 
 func settingsFromProto(settings *privatev1.BotSettings) botgroups.GroupSettings {

@@ -28,9 +28,10 @@ type BotGroup struct {
 	OwnerUserId   string                 `protobuf:"bytes,2,opt,name=owner_user_id,json=ownerUserId,proto3" json:"owner_user_id,omitempty"`
 	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
 	Description   string                 `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
-	Metadata      *structpb.Struct       `protobuf:"bytes,5,opt,name=metadata,proto3" json:"metadata,omitempty"`
-	BotCount      int64                  `protobuf:"varint,6,opt,name=bot_count,json=botCount,proto3" json:"bot_count,omitempty"`
-	Audit         *AuditFields           `protobuf:"bytes,7,opt,name=audit,proto3" json:"audit,omitempty"`
+	Visibility    string                 `protobuf:"bytes,5,opt,name=visibility,proto3" json:"visibility,omitempty"`
+	Metadata      *structpb.Struct       `protobuf:"bytes,6,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	BotCount      int64                  `protobuf:"varint,7,opt,name=bot_count,json=botCount,proto3" json:"bot_count,omitempty"`
+	Audit         *AuditFields           `protobuf:"bytes,8,opt,name=audit,proto3" json:"audit,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -93,6 +94,13 @@ func (x *BotGroup) GetDescription() string {
 	return ""
 }
 
+func (x *BotGroup) GetVisibility() string {
+	if x != nil {
+		return x.Visibility
+	}
+	return ""
+}
+
 func (x *BotGroup) GetMetadata() *structpb.Struct {
 	if x != nil {
 		return x.Metadata
@@ -118,7 +126,8 @@ type CreateBotGroupRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	Description   string                 `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
-	Metadata      *structpb.Struct       `protobuf:"bytes,3,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	Visibility    string                 `protobuf:"bytes,3,opt,name=visibility,proto3" json:"visibility,omitempty"`
+	Metadata      *structpb.Struct       `protobuf:"bytes,4,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -163,6 +172,13 @@ func (x *CreateBotGroupRequest) GetName() string {
 func (x *CreateBotGroupRequest) GetDescription() string {
 	if x != nil {
 		return x.Description
+	}
+	return ""
+}
+
+func (x *CreateBotGroupRequest) GetVisibility() string {
+	if x != nil {
+		return x.Visibility
 	}
 	return ""
 }
@@ -407,7 +423,8 @@ type UpdateBotGroupRequest struct {
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
-	Metadata      *structpb.Struct       `protobuf:"bytes,4,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	Visibility    string                 `protobuf:"bytes,4,opt,name=visibility,proto3" json:"visibility,omitempty"`
+	Metadata      *structpb.Struct       `protobuf:"bytes,5,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -459,6 +476,13 @@ func (x *UpdateBotGroupRequest) GetName() string {
 func (x *UpdateBotGroupRequest) GetDescription() string {
 	if x != nil {
 		return x.Description
+	}
+	return ""
+}
+
+func (x *UpdateBotGroupRequest) GetVisibility() string {
+	if x != nil {
+		return x.Visibility
 	}
 	return ""
 }
@@ -858,23 +882,417 @@ func (*DeleteBotGroupSettingsResponse) Descriptor() ([]byte, []int) {
 	return file_memoh_private_v1_bot_groups_proto_rawDescGZIP(), []int{16}
 }
 
+type BotGroupPrincipalRole struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	GroupId       string                 `protobuf:"bytes,2,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
+	PrincipalType string                 `protobuf:"bytes,3,opt,name=principal_type,json=principalType,proto3" json:"principal_type,omitempty"`
+	PrincipalId   string                 `protobuf:"bytes,4,opt,name=principal_id,json=principalId,proto3" json:"principal_id,omitempty"`
+	Role          string                 `protobuf:"bytes,5,opt,name=role,proto3" json:"role,omitempty"`
+	Audit         *AuditFields           `protobuf:"bytes,6,opt,name=audit,proto3" json:"audit,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BotGroupPrincipalRole) Reset() {
+	*x = BotGroupPrincipalRole{}
+	mi := &file_memoh_private_v1_bot_groups_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BotGroupPrincipalRole) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BotGroupPrincipalRole) ProtoMessage() {}
+
+func (x *BotGroupPrincipalRole) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_bot_groups_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BotGroupPrincipalRole.ProtoReflect.Descriptor instead.
+func (*BotGroupPrincipalRole) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_bot_groups_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *BotGroupPrincipalRole) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *BotGroupPrincipalRole) GetGroupId() string {
+	if x != nil {
+		return x.GroupId
+	}
+	return ""
+}
+
+func (x *BotGroupPrincipalRole) GetPrincipalType() string {
+	if x != nil {
+		return x.PrincipalType
+	}
+	return ""
+}
+
+func (x *BotGroupPrincipalRole) GetPrincipalId() string {
+	if x != nil {
+		return x.PrincipalId
+	}
+	return ""
+}
+
+func (x *BotGroupPrincipalRole) GetRole() string {
+	if x != nil {
+		return x.Role
+	}
+	return ""
+}
+
+func (x *BotGroupPrincipalRole) GetAudit() *AuditFields {
+	if x != nil {
+		return x.Audit
+	}
+	return nil
+}
+
+type ListBotGroupPrincipalRolesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	GroupId       string                 `protobuf:"bytes,1,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
+	Page          *PageRequest           `protobuf:"bytes,2,opt,name=page,proto3" json:"page,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListBotGroupPrincipalRolesRequest) Reset() {
+	*x = ListBotGroupPrincipalRolesRequest{}
+	mi := &file_memoh_private_v1_bot_groups_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListBotGroupPrincipalRolesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListBotGroupPrincipalRolesRequest) ProtoMessage() {}
+
+func (x *ListBotGroupPrincipalRolesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_bot_groups_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListBotGroupPrincipalRolesRequest.ProtoReflect.Descriptor instead.
+func (*ListBotGroupPrincipalRolesRequest) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_bot_groups_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *ListBotGroupPrincipalRolesRequest) GetGroupId() string {
+	if x != nil {
+		return x.GroupId
+	}
+	return ""
+}
+
+func (x *ListBotGroupPrincipalRolesRequest) GetPage() *PageRequest {
+	if x != nil {
+		return x.Page
+	}
+	return nil
+}
+
+type ListBotGroupPrincipalRolesResponse struct {
+	state         protoimpl.MessageState   `protogen:"open.v1"`
+	Roles         []*BotGroupPrincipalRole `protobuf:"bytes,1,rep,name=roles,proto3" json:"roles,omitempty"`
+	Page          *PageResponse            `protobuf:"bytes,2,opt,name=page,proto3" json:"page,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListBotGroupPrincipalRolesResponse) Reset() {
+	*x = ListBotGroupPrincipalRolesResponse{}
+	mi := &file_memoh_private_v1_bot_groups_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListBotGroupPrincipalRolesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListBotGroupPrincipalRolesResponse) ProtoMessage() {}
+
+func (x *ListBotGroupPrincipalRolesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_bot_groups_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListBotGroupPrincipalRolesResponse.ProtoReflect.Descriptor instead.
+func (*ListBotGroupPrincipalRolesResponse) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_bot_groups_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *ListBotGroupPrincipalRolesResponse) GetRoles() []*BotGroupPrincipalRole {
+	if x != nil {
+		return x.Roles
+	}
+	return nil
+}
+
+func (x *ListBotGroupPrincipalRolesResponse) GetPage() *PageResponse {
+	if x != nil {
+		return x.Page
+	}
+	return nil
+}
+
+type AssignBotGroupPrincipalRoleRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	GroupId       string                 `protobuf:"bytes,1,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
+	PrincipalType string                 `protobuf:"bytes,2,opt,name=principal_type,json=principalType,proto3" json:"principal_type,omitempty"`
+	PrincipalId   string                 `protobuf:"bytes,3,opt,name=principal_id,json=principalId,proto3" json:"principal_id,omitempty"`
+	Role          string                 `protobuf:"bytes,4,opt,name=role,proto3" json:"role,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AssignBotGroupPrincipalRoleRequest) Reset() {
+	*x = AssignBotGroupPrincipalRoleRequest{}
+	mi := &file_memoh_private_v1_bot_groups_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AssignBotGroupPrincipalRoleRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AssignBotGroupPrincipalRoleRequest) ProtoMessage() {}
+
+func (x *AssignBotGroupPrincipalRoleRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_bot_groups_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AssignBotGroupPrincipalRoleRequest.ProtoReflect.Descriptor instead.
+func (*AssignBotGroupPrincipalRoleRequest) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_bot_groups_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *AssignBotGroupPrincipalRoleRequest) GetGroupId() string {
+	if x != nil {
+		return x.GroupId
+	}
+	return ""
+}
+
+func (x *AssignBotGroupPrincipalRoleRequest) GetPrincipalType() string {
+	if x != nil {
+		return x.PrincipalType
+	}
+	return ""
+}
+
+func (x *AssignBotGroupPrincipalRoleRequest) GetPrincipalId() string {
+	if x != nil {
+		return x.PrincipalId
+	}
+	return ""
+}
+
+func (x *AssignBotGroupPrincipalRoleRequest) GetRole() string {
+	if x != nil {
+		return x.Role
+	}
+	return ""
+}
+
+type AssignBotGroupPrincipalRoleResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Role          *BotGroupPrincipalRole `protobuf:"bytes,1,opt,name=role,proto3" json:"role,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AssignBotGroupPrincipalRoleResponse) Reset() {
+	*x = AssignBotGroupPrincipalRoleResponse{}
+	mi := &file_memoh_private_v1_bot_groups_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AssignBotGroupPrincipalRoleResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AssignBotGroupPrincipalRoleResponse) ProtoMessage() {}
+
+func (x *AssignBotGroupPrincipalRoleResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_bot_groups_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AssignBotGroupPrincipalRoleResponse.ProtoReflect.Descriptor instead.
+func (*AssignBotGroupPrincipalRoleResponse) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_bot_groups_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *AssignBotGroupPrincipalRoleResponse) GetRole() *BotGroupPrincipalRole {
+	if x != nil {
+		return x.Role
+	}
+	return nil
+}
+
+type DeleteBotGroupPrincipalRoleRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	GroupId       string                 `protobuf:"bytes,1,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
+	Id            string                 `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteBotGroupPrincipalRoleRequest) Reset() {
+	*x = DeleteBotGroupPrincipalRoleRequest{}
+	mi := &file_memoh_private_v1_bot_groups_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteBotGroupPrincipalRoleRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteBotGroupPrincipalRoleRequest) ProtoMessage() {}
+
+func (x *DeleteBotGroupPrincipalRoleRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_bot_groups_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteBotGroupPrincipalRoleRequest.ProtoReflect.Descriptor instead.
+func (*DeleteBotGroupPrincipalRoleRequest) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_bot_groups_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *DeleteBotGroupPrincipalRoleRequest) GetGroupId() string {
+	if x != nil {
+		return x.GroupId
+	}
+	return ""
+}
+
+func (x *DeleteBotGroupPrincipalRoleRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type DeleteBotGroupPrincipalRoleResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteBotGroupPrincipalRoleResponse) Reset() {
+	*x = DeleteBotGroupPrincipalRoleResponse{}
+	mi := &file_memoh_private_v1_bot_groups_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteBotGroupPrincipalRoleResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteBotGroupPrincipalRoleResponse) ProtoMessage() {}
+
+func (x *DeleteBotGroupPrincipalRoleResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_bot_groups_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteBotGroupPrincipalRoleResponse.ProtoReflect.Descriptor instead.
+func (*DeleteBotGroupPrincipalRoleResponse) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_bot_groups_proto_rawDescGZIP(), []int{23}
+}
+
 var File_memoh_private_v1_bot_groups_proto protoreflect.FileDescriptor
 
 const file_memoh_private_v1_bot_groups_proto_rawDesc = "" +
 	"\n" +
-	"!memoh/private/v1/bot_groups.proto\x12\x10memoh.private.v1\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1dmemoh/private/v1/common.proto\"\xfb\x01\n" +
+	"!memoh/private/v1/bot_groups.proto\x12\x10memoh.private.v1\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1dmemoh/private/v1/common.proto\"\x9b\x02\n" +
 	"\bBotGroup\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\"\n" +
 	"\rowner_user_id\x18\x02 \x01(\tR\vownerUserId\x12\x12\n" +
 	"\x04name\x18\x03 \x01(\tR\x04name\x12 \n" +
-	"\vdescription\x18\x04 \x01(\tR\vdescription\x123\n" +
-	"\bmetadata\x18\x05 \x01(\v2\x17.google.protobuf.StructR\bmetadata\x12\x1b\n" +
-	"\tbot_count\x18\x06 \x01(\x03R\bbotCount\x123\n" +
-	"\x05audit\x18\a \x01(\v2\x1d.memoh.private.v1.AuditFieldsR\x05audit\"\x82\x01\n" +
+	"\vdescription\x18\x04 \x01(\tR\vdescription\x12\x1e\n" +
+	"\n" +
+	"visibility\x18\x05 \x01(\tR\n" +
+	"visibility\x123\n" +
+	"\bmetadata\x18\x06 \x01(\v2\x17.google.protobuf.StructR\bmetadata\x12\x1b\n" +
+	"\tbot_count\x18\a \x01(\x03R\bbotCount\x123\n" +
+	"\x05audit\x18\b \x01(\v2\x1d.memoh.private.v1.AuditFieldsR\x05audit\"\xa2\x01\n" +
 	"\x15CreateBotGroupRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12 \n" +
-	"\vdescription\x18\x02 \x01(\tR\vdescription\x123\n" +
-	"\bmetadata\x18\x03 \x01(\v2\x17.google.protobuf.StructR\bmetadata\"J\n" +
+	"\vdescription\x18\x02 \x01(\tR\vdescription\x12\x1e\n" +
+	"\n" +
+	"visibility\x18\x03 \x01(\tR\n" +
+	"visibility\x123\n" +
+	"\bmetadata\x18\x04 \x01(\v2\x17.google.protobuf.StructR\bmetadata\"J\n" +
 	"\x16CreateBotGroupResponse\x120\n" +
 	"\x05group\x18\x01 \x01(\v2\x1a.memoh.private.v1.BotGroupR\x05group\"$\n" +
 	"\x12GetBotGroupRequest\x12\x0e\n" +
@@ -885,12 +1303,15 @@ const file_memoh_private_v1_bot_groups_proto_rawDesc = "" +
 	"\x04page\x18\x01 \x01(\v2\x1d.memoh.private.v1.PageRequestR\x04page\"\x7f\n" +
 	"\x15ListBotGroupsResponse\x122\n" +
 	"\x06groups\x18\x01 \x03(\v2\x1a.memoh.private.v1.BotGroupR\x06groups\x122\n" +
-	"\x04page\x18\x02 \x01(\v2\x1e.memoh.private.v1.PageResponseR\x04page\"\x92\x01\n" +
+	"\x04page\x18\x02 \x01(\v2\x1e.memoh.private.v1.PageResponseR\x04page\"\xb2\x01\n" +
 	"\x15UpdateBotGroupRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
-	"\vdescription\x18\x03 \x01(\tR\vdescription\x123\n" +
-	"\bmetadata\x18\x04 \x01(\v2\x17.google.protobuf.StructR\bmetadata\"J\n" +
+	"\vdescription\x18\x03 \x01(\tR\vdescription\x12\x1e\n" +
+	"\n" +
+	"visibility\x18\x04 \x01(\tR\n" +
+	"visibility\x123\n" +
+	"\bmetadata\x18\x05 \x01(\v2\x17.google.protobuf.StructR\bmetadata\"J\n" +
 	"\x16UpdateBotGroupResponse\x120\n" +
 	"\x05group\x18\x01 \x01(\v2\x1a.memoh.private.v1.BotGroupR\x05group\"'\n" +
 	"\x15DeleteBotGroupRequest\x12\x0e\n" +
@@ -907,7 +1328,32 @@ const file_memoh_private_v1_bot_groups_proto_rawDesc = "" +
 	"\bsettings\x18\x01 \x01(\v2\x1d.memoh.private.v1.BotSettingsR\bsettings\":\n" +
 	"\x1dDeleteBotGroupSettingsRequest\x12\x19\n" +
 	"\bgroup_id\x18\x01 \x01(\tR\agroupId\" \n" +
-	"\x1eDeleteBotGroupSettingsResponse2\xec\x06\n" +
+	"\x1eDeleteBotGroupSettingsResponse\"\xd5\x01\n" +
+	"\x15BotGroupPrincipalRole\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
+	"\bgroup_id\x18\x02 \x01(\tR\agroupId\x12%\n" +
+	"\x0eprincipal_type\x18\x03 \x01(\tR\rprincipalType\x12!\n" +
+	"\fprincipal_id\x18\x04 \x01(\tR\vprincipalId\x12\x12\n" +
+	"\x04role\x18\x05 \x01(\tR\x04role\x123\n" +
+	"\x05audit\x18\x06 \x01(\v2\x1d.memoh.private.v1.AuditFieldsR\x05audit\"q\n" +
+	"!ListBotGroupPrincipalRolesRequest\x12\x19\n" +
+	"\bgroup_id\x18\x01 \x01(\tR\agroupId\x121\n" +
+	"\x04page\x18\x02 \x01(\v2\x1d.memoh.private.v1.PageRequestR\x04page\"\x97\x01\n" +
+	"\"ListBotGroupPrincipalRolesResponse\x12=\n" +
+	"\x05roles\x18\x01 \x03(\v2'.memoh.private.v1.BotGroupPrincipalRoleR\x05roles\x122\n" +
+	"\x04page\x18\x02 \x01(\v2\x1e.memoh.private.v1.PageResponseR\x04page\"\x9d\x01\n" +
+	"\"AssignBotGroupPrincipalRoleRequest\x12\x19\n" +
+	"\bgroup_id\x18\x01 \x01(\tR\agroupId\x12%\n" +
+	"\x0eprincipal_type\x18\x02 \x01(\tR\rprincipalType\x12!\n" +
+	"\fprincipal_id\x18\x03 \x01(\tR\vprincipalId\x12\x12\n" +
+	"\x04role\x18\x04 \x01(\tR\x04role\"b\n" +
+	"#AssignBotGroupPrincipalRoleResponse\x12;\n" +
+	"\x04role\x18\x01 \x01(\v2'.memoh.private.v1.BotGroupPrincipalRoleR\x04role\"O\n" +
+	"\"DeleteBotGroupPrincipalRoleRequest\x12\x19\n" +
+	"\bgroup_id\x18\x01 \x01(\tR\agroupId\x12\x0e\n" +
+	"\x02id\x18\x02 \x01(\tR\x02id\"%\n" +
+	"#DeleteBotGroupPrincipalRoleResponse2\x90\n" +
+	"\n" +
 	"\x0fBotGroupService\x12c\n" +
 	"\x0eCreateBotGroup\x12'.memoh.private.v1.CreateBotGroupRequest\x1a(.memoh.private.v1.CreateBotGroupResponse\x12Z\n" +
 	"\vGetBotGroup\x12$.memoh.private.v1.GetBotGroupRequest\x1a%.memoh.private.v1.GetBotGroupResponse\x12`\n" +
@@ -916,7 +1362,10 @@ const file_memoh_private_v1_bot_groups_proto_rawDesc = "" +
 	"\x0eDeleteBotGroup\x12'.memoh.private.v1.DeleteBotGroupRequest\x1a(.memoh.private.v1.DeleteBotGroupResponse\x12r\n" +
 	"\x13GetBotGroupSettings\x12,.memoh.private.v1.GetBotGroupSettingsRequest\x1a-.memoh.private.v1.GetBotGroupSettingsResponse\x12{\n" +
 	"\x16UpdateBotGroupSettings\x12/.memoh.private.v1.UpdateBotGroupSettingsRequest\x1a0.memoh.private.v1.UpdateBotGroupSettingsResponse\x12{\n" +
-	"\x16DeleteBotGroupSettings\x12/.memoh.private.v1.DeleteBotGroupSettingsRequest\x1a0.memoh.private.v1.DeleteBotGroupSettingsResponseBMZKgithub.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1;privatev1b\x06proto3"
+	"\x16DeleteBotGroupSettings\x12/.memoh.private.v1.DeleteBotGroupSettingsRequest\x1a0.memoh.private.v1.DeleteBotGroupSettingsResponse\x12\x87\x01\n" +
+	"\x1aListBotGroupPrincipalRoles\x123.memoh.private.v1.ListBotGroupPrincipalRolesRequest\x1a4.memoh.private.v1.ListBotGroupPrincipalRolesResponse\x12\x8a\x01\n" +
+	"\x1bAssignBotGroupPrincipalRole\x124.memoh.private.v1.AssignBotGroupPrincipalRoleRequest\x1a5.memoh.private.v1.AssignBotGroupPrincipalRoleResponse\x12\x8a\x01\n" +
+	"\x1bDeleteBotGroupPrincipalRole\x124.memoh.private.v1.DeleteBotGroupPrincipalRoleRequest\x1a5.memoh.private.v1.DeleteBotGroupPrincipalRoleResponseBMZKgithub.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1;privatev1b\x06proto3"
 
 var (
 	file_memoh_private_v1_bot_groups_proto_rawDescOnce sync.Once
@@ -930,66 +1379,84 @@ func file_memoh_private_v1_bot_groups_proto_rawDescGZIP() []byte {
 	return file_memoh_private_v1_bot_groups_proto_rawDescData
 }
 
-var file_memoh_private_v1_bot_groups_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
+var file_memoh_private_v1_bot_groups_proto_msgTypes = make([]protoimpl.MessageInfo, 24)
 var file_memoh_private_v1_bot_groups_proto_goTypes = []any{
-	(*BotGroup)(nil),                       // 0: memoh.private.v1.BotGroup
-	(*CreateBotGroupRequest)(nil),          // 1: memoh.private.v1.CreateBotGroupRequest
-	(*CreateBotGroupResponse)(nil),         // 2: memoh.private.v1.CreateBotGroupResponse
-	(*GetBotGroupRequest)(nil),             // 3: memoh.private.v1.GetBotGroupRequest
-	(*GetBotGroupResponse)(nil),            // 4: memoh.private.v1.GetBotGroupResponse
-	(*ListBotGroupsRequest)(nil),           // 5: memoh.private.v1.ListBotGroupsRequest
-	(*ListBotGroupsResponse)(nil),          // 6: memoh.private.v1.ListBotGroupsResponse
-	(*UpdateBotGroupRequest)(nil),          // 7: memoh.private.v1.UpdateBotGroupRequest
-	(*UpdateBotGroupResponse)(nil),         // 8: memoh.private.v1.UpdateBotGroupResponse
-	(*DeleteBotGroupRequest)(nil),          // 9: memoh.private.v1.DeleteBotGroupRequest
-	(*DeleteBotGroupResponse)(nil),         // 10: memoh.private.v1.DeleteBotGroupResponse
-	(*GetBotGroupSettingsRequest)(nil),     // 11: memoh.private.v1.GetBotGroupSettingsRequest
-	(*GetBotGroupSettingsResponse)(nil),    // 12: memoh.private.v1.GetBotGroupSettingsResponse
-	(*UpdateBotGroupSettingsRequest)(nil),  // 13: memoh.private.v1.UpdateBotGroupSettingsRequest
-	(*UpdateBotGroupSettingsResponse)(nil), // 14: memoh.private.v1.UpdateBotGroupSettingsResponse
-	(*DeleteBotGroupSettingsRequest)(nil),  // 15: memoh.private.v1.DeleteBotGroupSettingsRequest
-	(*DeleteBotGroupSettingsResponse)(nil), // 16: memoh.private.v1.DeleteBotGroupSettingsResponse
-	(*structpb.Struct)(nil),                // 17: google.protobuf.Struct
-	(*AuditFields)(nil),                    // 18: memoh.private.v1.AuditFields
-	(*PageRequest)(nil),                    // 19: memoh.private.v1.PageRequest
-	(*PageResponse)(nil),                   // 20: memoh.private.v1.PageResponse
-	(*BotSettings)(nil),                    // 21: memoh.private.v1.BotSettings
+	(*BotGroup)(nil),                            // 0: memoh.private.v1.BotGroup
+	(*CreateBotGroupRequest)(nil),               // 1: memoh.private.v1.CreateBotGroupRequest
+	(*CreateBotGroupResponse)(nil),              // 2: memoh.private.v1.CreateBotGroupResponse
+	(*GetBotGroupRequest)(nil),                  // 3: memoh.private.v1.GetBotGroupRequest
+	(*GetBotGroupResponse)(nil),                 // 4: memoh.private.v1.GetBotGroupResponse
+	(*ListBotGroupsRequest)(nil),                // 5: memoh.private.v1.ListBotGroupsRequest
+	(*ListBotGroupsResponse)(nil),               // 6: memoh.private.v1.ListBotGroupsResponse
+	(*UpdateBotGroupRequest)(nil),               // 7: memoh.private.v1.UpdateBotGroupRequest
+	(*UpdateBotGroupResponse)(nil),              // 8: memoh.private.v1.UpdateBotGroupResponse
+	(*DeleteBotGroupRequest)(nil),               // 9: memoh.private.v1.DeleteBotGroupRequest
+	(*DeleteBotGroupResponse)(nil),              // 10: memoh.private.v1.DeleteBotGroupResponse
+	(*GetBotGroupSettingsRequest)(nil),          // 11: memoh.private.v1.GetBotGroupSettingsRequest
+	(*GetBotGroupSettingsResponse)(nil),         // 12: memoh.private.v1.GetBotGroupSettingsResponse
+	(*UpdateBotGroupSettingsRequest)(nil),       // 13: memoh.private.v1.UpdateBotGroupSettingsRequest
+	(*UpdateBotGroupSettingsResponse)(nil),      // 14: memoh.private.v1.UpdateBotGroupSettingsResponse
+	(*DeleteBotGroupSettingsRequest)(nil),       // 15: memoh.private.v1.DeleteBotGroupSettingsRequest
+	(*DeleteBotGroupSettingsResponse)(nil),      // 16: memoh.private.v1.DeleteBotGroupSettingsResponse
+	(*BotGroupPrincipalRole)(nil),               // 17: memoh.private.v1.BotGroupPrincipalRole
+	(*ListBotGroupPrincipalRolesRequest)(nil),   // 18: memoh.private.v1.ListBotGroupPrincipalRolesRequest
+	(*ListBotGroupPrincipalRolesResponse)(nil),  // 19: memoh.private.v1.ListBotGroupPrincipalRolesResponse
+	(*AssignBotGroupPrincipalRoleRequest)(nil),  // 20: memoh.private.v1.AssignBotGroupPrincipalRoleRequest
+	(*AssignBotGroupPrincipalRoleResponse)(nil), // 21: memoh.private.v1.AssignBotGroupPrincipalRoleResponse
+	(*DeleteBotGroupPrincipalRoleRequest)(nil),  // 22: memoh.private.v1.DeleteBotGroupPrincipalRoleRequest
+	(*DeleteBotGroupPrincipalRoleResponse)(nil), // 23: memoh.private.v1.DeleteBotGroupPrincipalRoleResponse
+	(*structpb.Struct)(nil),                     // 24: google.protobuf.Struct
+	(*AuditFields)(nil),                         // 25: memoh.private.v1.AuditFields
+	(*PageRequest)(nil),                         // 26: memoh.private.v1.PageRequest
+	(*PageResponse)(nil),                        // 27: memoh.private.v1.PageResponse
+	(*BotSettings)(nil),                         // 28: memoh.private.v1.BotSettings
 }
 var file_memoh_private_v1_bot_groups_proto_depIdxs = []int32{
-	17, // 0: memoh.private.v1.BotGroup.metadata:type_name -> google.protobuf.Struct
-	18, // 1: memoh.private.v1.BotGroup.audit:type_name -> memoh.private.v1.AuditFields
-	17, // 2: memoh.private.v1.CreateBotGroupRequest.metadata:type_name -> google.protobuf.Struct
+	24, // 0: memoh.private.v1.BotGroup.metadata:type_name -> google.protobuf.Struct
+	25, // 1: memoh.private.v1.BotGroup.audit:type_name -> memoh.private.v1.AuditFields
+	24, // 2: memoh.private.v1.CreateBotGroupRequest.metadata:type_name -> google.protobuf.Struct
 	0,  // 3: memoh.private.v1.CreateBotGroupResponse.group:type_name -> memoh.private.v1.BotGroup
 	0,  // 4: memoh.private.v1.GetBotGroupResponse.group:type_name -> memoh.private.v1.BotGroup
-	19, // 5: memoh.private.v1.ListBotGroupsRequest.page:type_name -> memoh.private.v1.PageRequest
+	26, // 5: memoh.private.v1.ListBotGroupsRequest.page:type_name -> memoh.private.v1.PageRequest
 	0,  // 6: memoh.private.v1.ListBotGroupsResponse.groups:type_name -> memoh.private.v1.BotGroup
-	20, // 7: memoh.private.v1.ListBotGroupsResponse.page:type_name -> memoh.private.v1.PageResponse
-	17, // 8: memoh.private.v1.UpdateBotGroupRequest.metadata:type_name -> google.protobuf.Struct
+	27, // 7: memoh.private.v1.ListBotGroupsResponse.page:type_name -> memoh.private.v1.PageResponse
+	24, // 8: memoh.private.v1.UpdateBotGroupRequest.metadata:type_name -> google.protobuf.Struct
 	0,  // 9: memoh.private.v1.UpdateBotGroupResponse.group:type_name -> memoh.private.v1.BotGroup
-	21, // 10: memoh.private.v1.GetBotGroupSettingsResponse.settings:type_name -> memoh.private.v1.BotSettings
-	21, // 11: memoh.private.v1.UpdateBotGroupSettingsRequest.settings:type_name -> memoh.private.v1.BotSettings
-	21, // 12: memoh.private.v1.UpdateBotGroupSettingsResponse.settings:type_name -> memoh.private.v1.BotSettings
-	1,  // 13: memoh.private.v1.BotGroupService.CreateBotGroup:input_type -> memoh.private.v1.CreateBotGroupRequest
-	3,  // 14: memoh.private.v1.BotGroupService.GetBotGroup:input_type -> memoh.private.v1.GetBotGroupRequest
-	5,  // 15: memoh.private.v1.BotGroupService.ListBotGroups:input_type -> memoh.private.v1.ListBotGroupsRequest
-	7,  // 16: memoh.private.v1.BotGroupService.UpdateBotGroup:input_type -> memoh.private.v1.UpdateBotGroupRequest
-	9,  // 17: memoh.private.v1.BotGroupService.DeleteBotGroup:input_type -> memoh.private.v1.DeleteBotGroupRequest
-	11, // 18: memoh.private.v1.BotGroupService.GetBotGroupSettings:input_type -> memoh.private.v1.GetBotGroupSettingsRequest
-	13, // 19: memoh.private.v1.BotGroupService.UpdateBotGroupSettings:input_type -> memoh.private.v1.UpdateBotGroupSettingsRequest
-	15, // 20: memoh.private.v1.BotGroupService.DeleteBotGroupSettings:input_type -> memoh.private.v1.DeleteBotGroupSettingsRequest
-	2,  // 21: memoh.private.v1.BotGroupService.CreateBotGroup:output_type -> memoh.private.v1.CreateBotGroupResponse
-	4,  // 22: memoh.private.v1.BotGroupService.GetBotGroup:output_type -> memoh.private.v1.GetBotGroupResponse
-	6,  // 23: memoh.private.v1.BotGroupService.ListBotGroups:output_type -> memoh.private.v1.ListBotGroupsResponse
-	8,  // 24: memoh.private.v1.BotGroupService.UpdateBotGroup:output_type -> memoh.private.v1.UpdateBotGroupResponse
-	10, // 25: memoh.private.v1.BotGroupService.DeleteBotGroup:output_type -> memoh.private.v1.DeleteBotGroupResponse
-	12, // 26: memoh.private.v1.BotGroupService.GetBotGroupSettings:output_type -> memoh.private.v1.GetBotGroupSettingsResponse
-	14, // 27: memoh.private.v1.BotGroupService.UpdateBotGroupSettings:output_type -> memoh.private.v1.UpdateBotGroupSettingsResponse
-	16, // 28: memoh.private.v1.BotGroupService.DeleteBotGroupSettings:output_type -> memoh.private.v1.DeleteBotGroupSettingsResponse
-	21, // [21:29] is the sub-list for method output_type
-	13, // [13:21] is the sub-list for method input_type
-	13, // [13:13] is the sub-list for extension type_name
-	13, // [13:13] is the sub-list for extension extendee
-	0,  // [0:13] is the sub-list for field type_name
+	28, // 10: memoh.private.v1.GetBotGroupSettingsResponse.settings:type_name -> memoh.private.v1.BotSettings
+	28, // 11: memoh.private.v1.UpdateBotGroupSettingsRequest.settings:type_name -> memoh.private.v1.BotSettings
+	28, // 12: memoh.private.v1.UpdateBotGroupSettingsResponse.settings:type_name -> memoh.private.v1.BotSettings
+	25, // 13: memoh.private.v1.BotGroupPrincipalRole.audit:type_name -> memoh.private.v1.AuditFields
+	26, // 14: memoh.private.v1.ListBotGroupPrincipalRolesRequest.page:type_name -> memoh.private.v1.PageRequest
+	17, // 15: memoh.private.v1.ListBotGroupPrincipalRolesResponse.roles:type_name -> memoh.private.v1.BotGroupPrincipalRole
+	27, // 16: memoh.private.v1.ListBotGroupPrincipalRolesResponse.page:type_name -> memoh.private.v1.PageResponse
+	17, // 17: memoh.private.v1.AssignBotGroupPrincipalRoleResponse.role:type_name -> memoh.private.v1.BotGroupPrincipalRole
+	1,  // 18: memoh.private.v1.BotGroupService.CreateBotGroup:input_type -> memoh.private.v1.CreateBotGroupRequest
+	3,  // 19: memoh.private.v1.BotGroupService.GetBotGroup:input_type -> memoh.private.v1.GetBotGroupRequest
+	5,  // 20: memoh.private.v1.BotGroupService.ListBotGroups:input_type -> memoh.private.v1.ListBotGroupsRequest
+	7,  // 21: memoh.private.v1.BotGroupService.UpdateBotGroup:input_type -> memoh.private.v1.UpdateBotGroupRequest
+	9,  // 22: memoh.private.v1.BotGroupService.DeleteBotGroup:input_type -> memoh.private.v1.DeleteBotGroupRequest
+	11, // 23: memoh.private.v1.BotGroupService.GetBotGroupSettings:input_type -> memoh.private.v1.GetBotGroupSettingsRequest
+	13, // 24: memoh.private.v1.BotGroupService.UpdateBotGroupSettings:input_type -> memoh.private.v1.UpdateBotGroupSettingsRequest
+	15, // 25: memoh.private.v1.BotGroupService.DeleteBotGroupSettings:input_type -> memoh.private.v1.DeleteBotGroupSettingsRequest
+	18, // 26: memoh.private.v1.BotGroupService.ListBotGroupPrincipalRoles:input_type -> memoh.private.v1.ListBotGroupPrincipalRolesRequest
+	20, // 27: memoh.private.v1.BotGroupService.AssignBotGroupPrincipalRole:input_type -> memoh.private.v1.AssignBotGroupPrincipalRoleRequest
+	22, // 28: memoh.private.v1.BotGroupService.DeleteBotGroupPrincipalRole:input_type -> memoh.private.v1.DeleteBotGroupPrincipalRoleRequest
+	2,  // 29: memoh.private.v1.BotGroupService.CreateBotGroup:output_type -> memoh.private.v1.CreateBotGroupResponse
+	4,  // 30: memoh.private.v1.BotGroupService.GetBotGroup:output_type -> memoh.private.v1.GetBotGroupResponse
+	6,  // 31: memoh.private.v1.BotGroupService.ListBotGroups:output_type -> memoh.private.v1.ListBotGroupsResponse
+	8,  // 32: memoh.private.v1.BotGroupService.UpdateBotGroup:output_type -> memoh.private.v1.UpdateBotGroupResponse
+	10, // 33: memoh.private.v1.BotGroupService.DeleteBotGroup:output_type -> memoh.private.v1.DeleteBotGroupResponse
+	12, // 34: memoh.private.v1.BotGroupService.GetBotGroupSettings:output_type -> memoh.private.v1.GetBotGroupSettingsResponse
+	14, // 35: memoh.private.v1.BotGroupService.UpdateBotGroupSettings:output_type -> memoh.private.v1.UpdateBotGroupSettingsResponse
+	16, // 36: memoh.private.v1.BotGroupService.DeleteBotGroupSettings:output_type -> memoh.private.v1.DeleteBotGroupSettingsResponse
+	19, // 37: memoh.private.v1.BotGroupService.ListBotGroupPrincipalRoles:output_type -> memoh.private.v1.ListBotGroupPrincipalRolesResponse
+	21, // 38: memoh.private.v1.BotGroupService.AssignBotGroupPrincipalRole:output_type -> memoh.private.v1.AssignBotGroupPrincipalRoleResponse
+	23, // 39: memoh.private.v1.BotGroupService.DeleteBotGroupPrincipalRole:output_type -> memoh.private.v1.DeleteBotGroupPrincipalRoleResponse
+	29, // [29:40] is the sub-list for method output_type
+	18, // [18:29] is the sub-list for method input_type
+	18, // [18:18] is the sub-list for extension type_name
+	18, // [18:18] is the sub-list for extension extendee
+	0,  // [0:18] is the sub-list for field type_name
 }
 
 func init() { file_memoh_private_v1_bot_groups_proto_init() }
@@ -1004,7 +1471,7 @@ func file_memoh_private_v1_bot_groups_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_memoh_private_v1_bot_groups_proto_rawDesc), len(file_memoh_private_v1_bot_groups_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   17,
+			NumMessages:   24,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

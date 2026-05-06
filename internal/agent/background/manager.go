@@ -24,7 +24,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/memohai/memoh/internal/workspace/bridge"
+	"github.com/memohai/memoh/internal/workspace/executorclient"
 )
 
 const (
@@ -50,8 +50,8 @@ const (
 )
 
 // ExecFunc executes a command in a container and returns the result.
-// This is the signature that bridge.Client.Exec satisfies.
-type ExecFunc func(ctx context.Context, command, workDir string, timeout int32) (*bridge.ExecResult, error)
+// This is the signature that executorclient.Client.Exec satisfies.
+type ExecFunc func(ctx context.Context, command, workDir string, timeout int32) (*executorclient.ExecResult, error)
 
 // WriteFileFunc writes content to a file in the container.
 type WriteFileFunc func(ctx context.Context, path string, data []byte) error
@@ -109,8 +109,8 @@ func (m *Manager) enqueueNotification(n Notification) {
 // The command runs asynchronously; when it completes, a Notification is sent
 // to the Notifications channel.
 //
-// execFn should call bridge.Client.Exec (or equivalent).
-// writeFn should call bridge.Client.WriteFile to persist output logs.
+// execFn should call executorclient.Client.Exec (or equivalent).
+// writeFn should call executorclient.Client.WriteFile to persist output logs.
 func (m *Manager) Spawn(
 	parentCtx context.Context,
 	botID, sessionID, command, workDir, description string,
@@ -283,7 +283,7 @@ func (m *Manager) run(parentCtx context.Context, task *Task, execFn ExecFunc, wr
 					slog.Any("stream_error", err),
 				)
 			}
-			result = &bridge.ExecResult{ExitCode: ec}
+			result = &executorclient.ExecResult{ExitCode: ec}
 			err = nil
 		} else if err != nil {
 			m.logger.Warn("background task: sentinel recovery failed",

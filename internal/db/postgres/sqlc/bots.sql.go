@@ -229,6 +229,139 @@ func (q *Queries) GetBotHeartbeatConfig(ctx context.Context, id pgtype.UUID) (Ge
 	return i, err
 }
 
+const listAccessibleBots = `-- name: ListAccessibleBots :many
+SELECT bots.id, bots.owner_user_id, bots.group_id, bots.display_name, bots.avatar_url, bots.timezone, bots.is_active, bots.status, bots.language, bots.reasoning_enabled, bots.reasoning_effort, bots.chat_model_id, bots.search_provider_id, bots.memory_provider_id, bots.heartbeat_enabled, bots.heartbeat_interval, bots.heartbeat_prompt, bots.settings_override_mask, bots.metadata, bots.created_at, bots.updated_at
+FROM bots
+LEFT JOIN bot_groups ON bot_groups.id = bots.group_id
+WHERE bots.owner_user_id = $1
+  OR bot_groups.visibility IN ('organization', 'public')
+  OR EXISTS (
+    SELECT 1
+    FROM iam_principal_roles pr
+    JOIN iam_roles r ON r.id = pr.role_id
+    JOIN iam_role_permissions rp ON rp.role_id = r.id
+    JOIN iam_permissions p ON p.id = rp.permission_id
+    WHERE p.key = 'bot.read'
+      AND pr.resource_type = 'bot'
+      AND (pr.resource_id = bots.id OR pr.resource_id IS NULL)
+      AND (
+        (pr.principal_type = 'user' AND pr.principal_id = $1)
+        OR (
+          pr.principal_type = 'group'
+          AND pr.principal_id IN (
+            SELECT group_id FROM iam_group_members WHERE user_id = $1
+          )
+        )
+      )
+  )
+  OR EXISTS (
+    SELECT 1
+    FROM iam_principal_roles pr
+    JOIN iam_roles r ON r.id = pr.role_id
+    JOIN iam_role_permissions rp ON rp.role_id = r.id
+    JOIN iam_permissions p ON p.id = rp.permission_id
+    WHERE p.key = 'bot_group.read'
+      AND pr.resource_type = 'bot_group'
+      AND bots.group_id IS NOT NULL
+      AND (pr.resource_id = bots.group_id OR pr.resource_id IS NULL)
+      AND (
+        (pr.principal_type = 'user' AND pr.principal_id = $1)
+        OR (
+          pr.principal_type = 'group'
+          AND pr.principal_id IN (
+            SELECT group_id FROM iam_group_members WHERE user_id = $1
+          )
+        )
+      )
+  )
+  OR EXISTS (
+    SELECT 1
+    FROM iam_principal_roles pr
+    JOIN iam_roles r ON r.id = pr.role_id
+    JOIN iam_role_permissions rp ON rp.role_id = r.id
+    JOIN iam_permissions p ON p.id = rp.permission_id
+    WHERE p.key = 'system.admin'
+      AND pr.resource_type = 'system'
+      AND pr.resource_id IS NULL
+      AND (
+        (pr.principal_type = 'user' AND pr.principal_id = $1)
+        OR (
+          pr.principal_type = 'group'
+          AND pr.principal_id IN (
+            SELECT group_id FROM iam_group_members WHERE user_id = $1
+          )
+        )
+      )
+  )
+ORDER BY bots.created_at DESC
+`
+
+type ListAccessibleBotsRow struct {
+	ID                   pgtype.UUID        `json:"id"`
+	OwnerUserID          pgtype.UUID        `json:"owner_user_id"`
+	GroupID              pgtype.UUID        `json:"group_id"`
+	DisplayName          pgtype.Text        `json:"display_name"`
+	AvatarUrl            pgtype.Text        `json:"avatar_url"`
+	Timezone             pgtype.Text        `json:"timezone"`
+	IsActive             bool               `json:"is_active"`
+	Status               string             `json:"status"`
+	Language             string             `json:"language"`
+	ReasoningEnabled     bool               `json:"reasoning_enabled"`
+	ReasoningEffort      string             `json:"reasoning_effort"`
+	ChatModelID          pgtype.UUID        `json:"chat_model_id"`
+	SearchProviderID     pgtype.UUID        `json:"search_provider_id"`
+	MemoryProviderID     pgtype.UUID        `json:"memory_provider_id"`
+	HeartbeatEnabled     bool               `json:"heartbeat_enabled"`
+	HeartbeatInterval    int32              `json:"heartbeat_interval"`
+	HeartbeatPrompt      string             `json:"heartbeat_prompt"`
+	SettingsOverrideMask []byte             `json:"settings_override_mask"`
+	Metadata             []byte             `json:"metadata"`
+	CreatedAt            pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt            pgtype.Timestamptz `json:"updated_at"`
+}
+
+func (q *Queries) ListAccessibleBots(ctx context.Context, userID pgtype.UUID) ([]ListAccessibleBotsRow, error) {
+	rows, err := q.db.Query(ctx, listAccessibleBots, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListAccessibleBotsRow
+	for rows.Next() {
+		var i ListAccessibleBotsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.OwnerUserID,
+			&i.GroupID,
+			&i.DisplayName,
+			&i.AvatarUrl,
+			&i.Timezone,
+			&i.IsActive,
+			&i.Status,
+			&i.Language,
+			&i.ReasoningEnabled,
+			&i.ReasoningEffort,
+			&i.ChatModelID,
+			&i.SearchProviderID,
+			&i.MemoryProviderID,
+			&i.HeartbeatEnabled,
+			&i.HeartbeatInterval,
+			&i.HeartbeatPrompt,
+			&i.SettingsOverrideMask,
+			&i.Metadata,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listBotsByOwner = `-- name: ListBotsByOwner :many
 SELECT id, owner_user_id, group_id, display_name, avatar_url, timezone, is_active, status, language, reasoning_enabled, reasoning_effort, chat_model_id, search_provider_id, memory_provider_id, heartbeat_enabled, heartbeat_interval, heartbeat_prompt, settings_override_mask, metadata, created_at, updated_at
 FROM bots

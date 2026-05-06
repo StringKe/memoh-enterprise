@@ -3,7 +3,6 @@ package integrations
 import (
 	"context"
 	"net/http/httptest"
-	"net/url"
 	"testing"
 	"time"
 
@@ -11,7 +10,6 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/labstack/echo/v4"
 
 	integrationv1 "github.com/memohai/memoh/internal/connectapi/gen/memoh/integration/v1"
 	"github.com/memohai/memoh/internal/db/postgres/sqlc"
@@ -282,9 +280,7 @@ func TestWebSocketHeartbeatPingAndReadTimeoutClose(t *testing.T) {
 	service := NewService(nil, postgresstore.NewQueries(sqlc.New(db)))
 	handler := NewWebSocketHandler(nil, service)
 	handler.heartbeatTimeout = 50 * time.Millisecond
-	e := echo.New()
-	handler.Register(e)
-	server := httptest.NewServer(e)
+	server := httptest.NewServer(handler.HTTPHandler())
 	defer server.Close()
 
 	wsURL := "ws" + server.URL[len("http"):] + "/integration/v1/ws"
@@ -378,13 +374,8 @@ func TestValidateTokenRejectsExpiredToken(t *testing.T) {
 
 func startIntegrationWSTest(t *testing.T, handler *WebSocketHandler) (*websocket.Conn, *httptest.Server) {
 	t.Helper()
-	e := echo.New()
-	handler.Register(e)
-	server := httptest.NewServer(e)
+	server := httptest.NewServer(handler.HTTPHandler())
 	wsURL := "ws" + server.URL[len("http"):] + "/integration/v1/ws"
-	if _, err := url.Parse(wsURL); err != nil {
-		t.Fatalf("parse websocket url: %v", err)
-	}
 	conn, resp, err := websocket.DefaultDialer.Dial(wsURL, nil)
 	if resp != nil {
 		_ = resp.Body.Close()

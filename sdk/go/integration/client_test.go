@@ -91,6 +91,87 @@ func TestClientConnectSubscribeAckAndPing(t *testing.T) {
 	}
 }
 
+func TestClientSendsAuthHeadersAndClientCredentials(t *testing.T) {
+	server := newRequestTestServer(t, func(t *testing.T, r *http.Request, conn *websocket.Conn) {
+		if got := r.Header.Get("Authorization"); got != "Bearer memoh_it_test" {
+			t.Fatalf("authorization header = %q, want bearer token", got)
+		}
+		if got := r.Header.Get("X-Memoh-Client-ID"); got != "client-1" {
+			t.Fatalf("client id header = %q, want client-1", got)
+		}
+		if got := r.Header.Get("X-Memoh-Client-Secret"); got != "secret-1" {
+			t.Fatalf("client secret header = %q, want secret-1", got)
+		}
+		if got := r.Header.Get("X-Extra"); got != "value" {
+			t.Fatalf("extra header = %q, want value", got)
+		}
+		envelope := readTestEnvelope(t, conn)
+		if envelope.GetAuthRequest().GetToken() != "memoh_it_test" {
+			t.Fatalf("auth token = %q, want memoh_it_test", envelope.GetAuthRequest().GetToken())
+		}
+		writeTestEnvelope(t, conn, &integrationv1.Envelope{
+			Payload: &integrationv1.Envelope_AuthResponse{AuthResponse: &integrationv1.AuthResponse{}},
+		})
+	})
+	defer server.Close()
+
+	client := New(Options{
+		URL:              wsURL(server.URL),
+		Token:            "memoh_it_test",
+		ClientID:         "client-1",
+		ClientCredential: "secret-1",
+		Header:           http.Header{"X-Extra": []string{"value"}},
+	})
+	if _, err := client.Connect(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	if err := client.Close(); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestClientHeartbeatSendsPing(t *testing.T) {
+	heartbeat := make(chan string, 1)
+	server := newTestServer(t, func(t *testing.T, conn *websocket.Conn) {
+		_ = readTestEnvelope(t, conn)
+		writeTestEnvelope(t, conn, &integrationv1.Envelope{
+			Payload: &integrationv1.Envelope_AuthResponse{AuthResponse: &integrationv1.AuthResponse{}},
+		})
+		ping := readTestEnvelope(t, conn)
+		if ping.GetPing() == nil {
+			t.Fatalf("expected heartbeat ping, got %T", ping.GetPayload())
+		}
+		heartbeat <- ping.GetCorrelationId()
+		writeTestEnvelope(t, conn, &integrationv1.Envelope{
+			CorrelationId: ping.GetCorrelationId(),
+			Payload:       &integrationv1.Envelope_Pong{Pong: &integrationv1.Pong{}},
+		})
+	})
+	defer server.Close()
+
+	client := New(Options{
+		URL:               wsURL(server.URL),
+		Token:             "memoh_it_test",
+		RequestTimeout:    time.Second,
+		HeartbeatInterval: time.Millisecond,
+		IDFactory:         stableIDFactory(),
+	})
+	if _, err := client.Connect(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	select {
+	case correlationID := <-heartbeat:
+		if correlationID == "" {
+			t.Fatal("heartbeat ping correlation id is empty")
+		}
+	case <-time.After(time.Second):
+		t.Fatal("timed out waiting for heartbeat ping")
+	}
+	if err := client.Close(); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestClientRejectsProtocolError(t *testing.T) {
 	server := newTestServer(t, func(t *testing.T, conn *websocket.Conn) {
 		_ = readTestEnvelope(t, conn)
@@ -374,6 +455,13 @@ func TestClientReconnectRetriesAfterFailedHandshake(t *testing.T) {
 
 func newTestServer(t *testing.T, handler func(*testing.T, *websocket.Conn)) *httptest.Server {
 	t.Helper()
+	return newRequestTestServer(t, func(t *testing.T, _ *http.Request, conn *websocket.Conn) {
+		handler(t, conn)
+	})
+}
+
+func newRequestTestServer(t *testing.T, handler func(*testing.T, *http.Request, *websocket.Conn)) *httptest.Server {
+	t.Helper()
 	upgrader := websocket.Upgrader{CheckOrigin: func(*http.Request) bool { return true }}
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		conn, err := upgrader.Upgrade(w, r, nil)
@@ -382,7 +470,7 @@ func newTestServer(t *testing.T, handler func(*testing.T, *websocket.Conn)) *htt
 			return
 		}
 		defer func() { _ = conn.Close() }()
-		handler(t, conn)
+		handler(t, r, conn)
 	}))
 }
 

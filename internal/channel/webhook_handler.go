@@ -16,7 +16,7 @@ type webhookConfigStore interface {
 
 type webhookInboundManager interface {
 	HandleInbound(ctx context.Context, cfg ChannelConfig, msg InboundMessage) error
-	Registry() *Registry
+	Registry() AdapterRegistry
 }
 
 // WebhookHandler dispatches public webhook callbacks to channel adapters.
@@ -24,7 +24,7 @@ type WebhookHandler struct {
 	logger   *slog.Logger
 	store    webhookConfigStore
 	manager  webhookInboundManager
-	registry *Registry
+	registry AdapterRegistry
 }
 
 // NewWebhookServerHandler creates the generic channel webhook handler.
@@ -32,7 +32,7 @@ func NewWebhookServerHandler(log *slog.Logger, store *Store, manager *Manager) *
 	if log == nil {
 		log = slog.Default()
 	}
-	var registry *Registry
+	var registry AdapterRegistry
 	if manager != nil {
 		registry = manager.Registry()
 	}

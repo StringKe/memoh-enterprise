@@ -231,8 +231,8 @@ func (s *Service) StartContainer(ctx context.Context, id string, _ *containerapi
 		StorageRef: containerapi.StorageRef{Driver: runtimeName, Key: pvc.Name, Kind: "pvc"},
 		Labels:     cloneLabels(pvc.Labels),
 		Spec: containerapi.ContainerSpec{
-			Cmd: []string{"/opt/memoh/bridge"},
-			Env: []string{fmt.Sprintf("BRIDGE_TCP_ADDR=:%d", s.bridgePort())},
+			Cmd: []string{"/opt/memoh/workspace-executor"},
+			Env: []string{fmt.Sprintf("WORKSPACE_EXECUTOR_TCP_ADDR=:%d", s.workspaceExecutorPort())},
 			Mounts: []containerapi.MountSpec{
 				{
 					Destination: "/opt/memoh",
@@ -503,7 +503,7 @@ func (s *Service) PrepareSnapshot(ctx context.Context, req containerapi.PrepareS
 	return s.waitPVCBound(ctx, key)
 }
 
-func (s *Service) BridgeTarget(botID string) string {
+func (s *Service) WorkspaceExecutorTarget(botID string) string {
 	if strings.TrimSpace(botID) == "" {
 		return ""
 	}
@@ -517,7 +517,7 @@ func (s *Service) BridgeTarget(botID string) string {
 		return ""
 	}
 	if s.inCluster || s.restCfg == nil {
-		return netJoinHostPort(pod.Status.PodIP, s.bridgePort())
+		return netJoinHostPort(pod.Status.PodIP, s.workspaceExecutorPort())
 	}
 	return s.portForwardTarget(ctx, pod.Name)
 }
@@ -602,7 +602,7 @@ func (s *Service) portForwardTarget(ctx context.Context, podName string) string 
 	forwarder, err := portforward.NewOnAddresses(
 		dialer,
 		[]string{"127.0.0.1"},
-		[]string{fmt.Sprintf("0:%d", s.bridgePort())},
+		[]string{fmt.Sprintf("0:%d", s.workspaceExecutorPort())},
 		stopCh,
 		readyCh,
 		io.Discard,
@@ -660,7 +660,9 @@ func (s *Service) clearPortForward(podName string, stopCh chan struct{}) {
 
 func (s *Service) namespace() string { return s.cfg.Kubernetes.EffectiveNamespace() }
 
-func (s *Service) bridgePort() int { return s.cfg.Kubernetes.EffectiveBridgePort() }
+func (s *Service) workspaceExecutorPort() int {
+	return s.cfg.Kubernetes.EffectiveWorkspaceExecutorPort()
+}
 
 func (s *Service) ensurePVC(ctx context.Context, namespace, name string, req containerapi.CreateContainerRequest) error {
 	if existing, err := s.client.CoreV1().PersistentVolumeClaims(namespace).Get(ctx, name, metav1.GetOptions{}); err == nil {
@@ -721,7 +723,7 @@ func (s *Service) ensurePod(ctx context.Context, namespace, pvcName string, req 
 	labels := cloneLabels(req.Labels)
 	labels[containerapi.StorageKeyLabel] = pvcName
 	env := envVars(req.Spec.Env)
-	env = upsertEnv(env, "BRIDGE_TCP_ADDR", fmt.Sprintf(":%d", s.bridgePort()))
+	env = upsertEnv(env, "WORKSPACE_EXECUTOR_TCP_ADDR", fmt.Sprintf(":%d", s.workspaceExecutorPort()))
 	pod := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      req.ID,
@@ -734,7 +736,7 @@ func (s *Service) ensurePod(ctx context.Context, namespace, pvcName string, req 
 			ImagePullSecrets:              imagePullSecrets(s.cfg.Kubernetes.ImagePullSecret),
 			DNSPolicy:                     corev1.DNSClusterFirst,
 			Volumes:                       []corev1.Volume{{Name: dataVolumeName, VolumeSource: corev1.VolumeSource{PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{ClaimName: pvcName}}}},
-			Containers:                    []corev1.Container{{Name: workspaceContainer, Image: req.ImageRef, ImagePullPolicy: imagePullPolicy(req.ImagePullPolicy), Command: req.Spec.Cmd, Env: env, WorkingDir: req.Spec.WorkDir, TTY: req.Spec.TTY, VolumeMounts: []corev1.VolumeMount{{Name: dataVolumeName, MountPath: dataMountPath}}, Ports: []corev1.ContainerPort{{Name: "bridge", ContainerPort: int32(s.bridgePort())}}}}, //nolint:gosec // bridge_port is validated as an operator-controlled small TCP port.
+			Containers:                    []corev1.Container{{Name: workspaceContainer, Image: req.ImageRef, ImagePullPolicy: imagePullPolicy(req.ImagePullPolicy), Command: req.Spec.Cmd, Env: env, WorkingDir: req.Spec.WorkDir, TTY: req.Spec.TTY, VolumeMounts: []corev1.VolumeMount{{Name: dataVolumeName, MountPath: dataMountPath}}, Ports: []corev1.ContainerPort{{Name: "executor", ContainerPort: int32(s.workspaceExecutorPort())}}}}, //nolint:gosec // workspace_executor_port is validated as an operator-controlled small TCP port.
 			TerminationGracePeriodSeconds: int64Ptr(10),
 		},
 	}

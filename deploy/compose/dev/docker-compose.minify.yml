@@ -93,7 +93,7 @@ services:
       # Toolkit: run ./deploy/docker/toolkit/install.sh once before first use
       - ../../../.toolkit:/opt/memoh/runtime/toolkit
       - ../../../deploy/docker/toolkit/bin:/opt/memoh/runtime/toolkit/bin
-      - ../../../cmd/bridge/template:/opt/memoh/runtime/templates
+      - ../../../cmd/workspace-executor/template:/opt/memoh/runtime/templates
       - /etc/localtime:/etc/localtime:ro
     ports:
       - "${MEMOH_DEV_SERVER_PORT:-26810}:8080"

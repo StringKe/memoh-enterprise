@@ -10,6 +10,7 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	structpb "google.golang.org/protobuf/types/known/structpb"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -1070,11 +1071,539 @@ func (x *ClearBotGroupResponse) GetBot() *Bot {
 	return nil
 }
 
+type BotSession struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	BotId         string                 `protobuf:"bytes,2,opt,name=bot_id,json=botId,proto3" json:"bot_id,omitempty"`
+	Title         string                 `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
+	Status        string                 `protobuf:"bytes,4,opt,name=status,proto3" json:"status,omitempty"`
+	MessageCount  int32                  `protobuf:"varint,5,opt,name=message_count,json=messageCount,proto3" json:"message_count,omitempty"`
+	Metadata      *structpb.Struct       `protobuf:"bytes,6,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	Audit         *AuditFields           `protobuf:"bytes,7,opt,name=audit,proto3" json:"audit,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BotSession) Reset() {
+	*x = BotSession{}
+	mi := &file_memoh_private_v1_bots_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BotSession) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BotSession) ProtoMessage() {}
+
+func (x *BotSession) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_bots_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BotSession.ProtoReflect.Descriptor instead.
+func (*BotSession) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_bots_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *BotSession) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *BotSession) GetBotId() string {
+	if x != nil {
+		return x.BotId
+	}
+	return ""
+}
+
+func (x *BotSession) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *BotSession) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *BotSession) GetMessageCount() int32 {
+	if x != nil {
+		return x.MessageCount
+	}
+	return 0
+}
+
+func (x *BotSession) GetMetadata() *structpb.Struct {
+	if x != nil {
+		return x.Metadata
+	}
+	return nil
+}
+
+func (x *BotSession) GetAudit() *AuditFields {
+	if x != nil {
+		return x.Audit
+	}
+	return nil
+}
+
+type BotSessionMessage struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	SessionId     string                 `protobuf:"bytes,2,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	BotId         string                 `protobuf:"bytes,3,opt,name=bot_id,json=botId,proto3" json:"bot_id,omitempty"`
+	Role          string                 `protobuf:"bytes,4,opt,name=role,proto3" json:"role,omitempty"`
+	Text          string                 `protobuf:"bytes,5,opt,name=text,proto3" json:"text,omitempty"`
+	Payload       *structpb.Struct       `protobuf:"bytes,6,opt,name=payload,proto3" json:"payload,omitempty"`
+	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BotSessionMessage) Reset() {
+	*x = BotSessionMessage{}
+	mi := &file_memoh_private_v1_bots_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BotSessionMessage) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BotSessionMessage) ProtoMessage() {}
+
+func (x *BotSessionMessage) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_bots_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BotSessionMessage.ProtoReflect.Descriptor instead.
+func (*BotSessionMessage) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_bots_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *BotSessionMessage) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *BotSessionMessage) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
+}
+
+func (x *BotSessionMessage) GetBotId() string {
+	if x != nil {
+		return x.BotId
+	}
+	return ""
+}
+
+func (x *BotSessionMessage) GetRole() string {
+	if x != nil {
+		return x.Role
+	}
+	return ""
+}
+
+func (x *BotSessionMessage) GetText() string {
+	if x != nil {
+		return x.Text
+	}
+	return ""
+}
+
+func (x *BotSessionMessage) GetPayload() *structpb.Struct {
+	if x != nil {
+		return x.Payload
+	}
+	return nil
+}
+
+func (x *BotSessionMessage) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
+}
+
+type ReadBotSessionHistoryRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	BotId           string                 `protobuf:"bytes,1,opt,name=bot_id,json=botId,proto3" json:"bot_id,omitempty"`
+	SessionId       string                 `protobuf:"bytes,2,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	Limit           int32                  `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"`
+	BeforeMessageId string                 `protobuf:"bytes,4,opt,name=before_message_id,json=beforeMessageId,proto3" json:"before_message_id,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *ReadBotSessionHistoryRequest) Reset() {
+	*x = ReadBotSessionHistoryRequest{}
+	mi := &file_memoh_private_v1_bots_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReadBotSessionHistoryRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReadBotSessionHistoryRequest) ProtoMessage() {}
+
+func (x *ReadBotSessionHistoryRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_bots_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReadBotSessionHistoryRequest.ProtoReflect.Descriptor instead.
+func (*ReadBotSessionHistoryRequest) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_bots_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *ReadBotSessionHistoryRequest) GetBotId() string {
+	if x != nil {
+		return x.BotId
+	}
+	return ""
+}
+
+func (x *ReadBotSessionHistoryRequest) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
+}
+
+func (x *ReadBotSessionHistoryRequest) GetLimit() int32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+func (x *ReadBotSessionHistoryRequest) GetBeforeMessageId() string {
+	if x != nil {
+		return x.BeforeMessageId
+	}
+	return ""
+}
+
+type ReadBotSessionHistoryResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Messages      []*BotSessionMessage   `protobuf:"bytes,1,rep,name=messages,proto3" json:"messages,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReadBotSessionHistoryResponse) Reset() {
+	*x = ReadBotSessionHistoryResponse{}
+	mi := &file_memoh_private_v1_bots_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReadBotSessionHistoryResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReadBotSessionHistoryResponse) ProtoMessage() {}
+
+func (x *ReadBotSessionHistoryResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_bots_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReadBotSessionHistoryResponse.ProtoReflect.Descriptor instead.
+func (*ReadBotSessionHistoryResponse) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_bots_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *ReadBotSessionHistoryResponse) GetMessages() []*BotSessionMessage {
+	if x != nil {
+		return x.Messages
+	}
+	return nil
+}
+
+type CompactBotSessionRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	BotId         string                 `protobuf:"bytes,1,opt,name=bot_id,json=botId,proto3" json:"bot_id,omitempty"`
+	SessionId     string                 `protobuf:"bytes,2,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	Reason        string                 `protobuf:"bytes,3,opt,name=reason,proto3" json:"reason,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CompactBotSessionRequest) Reset() {
+	*x = CompactBotSessionRequest{}
+	mi := &file_memoh_private_v1_bots_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CompactBotSessionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CompactBotSessionRequest) ProtoMessage() {}
+
+func (x *CompactBotSessionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_bots_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CompactBotSessionRequest.ProtoReflect.Descriptor instead.
+func (*CompactBotSessionRequest) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_bots_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *CompactBotSessionRequest) GetBotId() string {
+	if x != nil {
+		return x.BotId
+	}
+	return ""
+}
+
+func (x *CompactBotSessionRequest) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
+}
+
+func (x *CompactBotSessionRequest) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+type CompactBotSessionResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SessionId     string                 `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	Summary       string                 `protobuf:"bytes,2,opt,name=summary,proto3" json:"summary,omitempty"`
+	CompactedAt   *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=compacted_at,json=compactedAt,proto3" json:"compacted_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CompactBotSessionResponse) Reset() {
+	*x = CompactBotSessionResponse{}
+	mi := &file_memoh_private_v1_bots_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CompactBotSessionResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CompactBotSessionResponse) ProtoMessage() {}
+
+func (x *CompactBotSessionResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_bots_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CompactBotSessionResponse.ProtoReflect.Descriptor instead.
+func (*CompactBotSessionResponse) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_bots_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *CompactBotSessionResponse) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
+}
+
+func (x *CompactBotSessionResponse) GetSummary() string {
+	if x != nil {
+		return x.Summary
+	}
+	return ""
+}
+
+func (x *CompactBotSessionResponse) GetCompactedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CompactedAt
+	}
+	return nil
+}
+
+type ListBotSessionMessagesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	BotId         string                 `protobuf:"bytes,1,opt,name=bot_id,json=botId,proto3" json:"bot_id,omitempty"`
+	SessionId     string                 `protobuf:"bytes,2,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	Page          *PageRequest           `protobuf:"bytes,3,opt,name=page,proto3" json:"page,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListBotSessionMessagesRequest) Reset() {
+	*x = ListBotSessionMessagesRequest{}
+	mi := &file_memoh_private_v1_bots_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListBotSessionMessagesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListBotSessionMessagesRequest) ProtoMessage() {}
+
+func (x *ListBotSessionMessagesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_bots_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListBotSessionMessagesRequest.ProtoReflect.Descriptor instead.
+func (*ListBotSessionMessagesRequest) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_bots_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *ListBotSessionMessagesRequest) GetBotId() string {
+	if x != nil {
+		return x.BotId
+	}
+	return ""
+}
+
+func (x *ListBotSessionMessagesRequest) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
+}
+
+func (x *ListBotSessionMessagesRequest) GetPage() *PageRequest {
+	if x != nil {
+		return x.Page
+	}
+	return nil
+}
+
+type ListBotSessionMessagesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Messages      []*BotSessionMessage   `protobuf:"bytes,1,rep,name=messages,proto3" json:"messages,omitempty"`
+	Page          *PageResponse          `protobuf:"bytes,2,opt,name=page,proto3" json:"page,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListBotSessionMessagesResponse) Reset() {
+	*x = ListBotSessionMessagesResponse{}
+	mi := &file_memoh_private_v1_bots_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListBotSessionMessagesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListBotSessionMessagesResponse) ProtoMessage() {}
+
+func (x *ListBotSessionMessagesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_bots_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListBotSessionMessagesResponse.ProtoReflect.Descriptor instead.
+func (*ListBotSessionMessagesResponse) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_bots_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *ListBotSessionMessagesResponse) GetMessages() []*BotSessionMessage {
+	if x != nil {
+		return x.Messages
+	}
+	return nil
+}
+
+func (x *ListBotSessionMessagesResponse) GetPage() *PageResponse {
+	if x != nil {
+		return x.Page
+	}
+	return nil
+}
+
 var File_memoh_private_v1_bots_proto protoreflect.FileDescriptor
 
 const file_memoh_private_v1_bots_proto_rawDesc = "" +
 	"\n" +
-	"\x1bmemoh/private/v1/bots.proto\x12\x10memoh.private.v1\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1dmemoh/private/v1/common.proto\"\xfc\x03\n" +
+	"\x1bmemoh/private/v1/bots.proto\x12\x10memoh.private.v1\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1dmemoh/private/v1/common.proto\"\xfc\x03\n" +
 	"\x03Bot\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\"\n" +
 	"\rowner_user_id\x18\x02 \x01(\tR\vownerUserId\x12\x19\n" +
@@ -1157,7 +1686,52 @@ const file_memoh_private_v1_bots_proto_rawDesc = "" +
 	"\x14ClearBotGroupRequest\x12\x15\n" +
 	"\x06bot_id\x18\x01 \x01(\tR\x05botId\"@\n" +
 	"\x15ClearBotGroupResponse\x12'\n" +
-	"\x03bot\x18\x01 \x01(\v2\x15.memoh.private.v1.BotR\x03bot2\xd7\x05\n" +
+	"\x03bot\x18\x01 \x01(\v2\x15.memoh.private.v1.BotR\x03bot\"\xf0\x01\n" +
+	"\n" +
+	"BotSession\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x15\n" +
+	"\x06bot_id\x18\x02 \x01(\tR\x05botId\x12\x14\n" +
+	"\x05title\x18\x03 \x01(\tR\x05title\x12\x16\n" +
+	"\x06status\x18\x04 \x01(\tR\x06status\x12#\n" +
+	"\rmessage_count\x18\x05 \x01(\x05R\fmessageCount\x123\n" +
+	"\bmetadata\x18\x06 \x01(\v2\x17.google.protobuf.StructR\bmetadata\x123\n" +
+	"\x05audit\x18\a \x01(\v2\x1d.memoh.private.v1.AuditFieldsR\x05audit\"\xef\x01\n" +
+	"\x11BotSessionMessage\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
+	"\n" +
+	"session_id\x18\x02 \x01(\tR\tsessionId\x12\x15\n" +
+	"\x06bot_id\x18\x03 \x01(\tR\x05botId\x12\x12\n" +
+	"\x04role\x18\x04 \x01(\tR\x04role\x12\x12\n" +
+	"\x04text\x18\x05 \x01(\tR\x04text\x121\n" +
+	"\apayload\x18\x06 \x01(\v2\x17.google.protobuf.StructR\apayload\x129\n" +
+	"\n" +
+	"created_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"\x96\x01\n" +
+	"\x1cReadBotSessionHistoryRequest\x12\x15\n" +
+	"\x06bot_id\x18\x01 \x01(\tR\x05botId\x12\x1d\n" +
+	"\n" +
+	"session_id\x18\x02 \x01(\tR\tsessionId\x12\x14\n" +
+	"\x05limit\x18\x03 \x01(\x05R\x05limit\x12*\n" +
+	"\x11before_message_id\x18\x04 \x01(\tR\x0fbeforeMessageId\"`\n" +
+	"\x1dReadBotSessionHistoryResponse\x12?\n" +
+	"\bmessages\x18\x01 \x03(\v2#.memoh.private.v1.BotSessionMessageR\bmessages\"h\n" +
+	"\x18CompactBotSessionRequest\x12\x15\n" +
+	"\x06bot_id\x18\x01 \x01(\tR\x05botId\x12\x1d\n" +
+	"\n" +
+	"session_id\x18\x02 \x01(\tR\tsessionId\x12\x16\n" +
+	"\x06reason\x18\x03 \x01(\tR\x06reason\"\x93\x01\n" +
+	"\x19CompactBotSessionResponse\x12\x1d\n" +
+	"\n" +
+	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x18\n" +
+	"\asummary\x18\x02 \x01(\tR\asummary\x12=\n" +
+	"\fcompacted_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\vcompactedAt\"\x88\x01\n" +
+	"\x1dListBotSessionMessagesRequest\x12\x15\n" +
+	"\x06bot_id\x18\x01 \x01(\tR\x05botId\x12\x1d\n" +
+	"\n" +
+	"session_id\x18\x02 \x01(\tR\tsessionId\x121\n" +
+	"\x04page\x18\x03 \x01(\v2\x1d.memoh.private.v1.PageRequestR\x04page\"\x95\x01\n" +
+	"\x1eListBotSessionMessagesResponse\x12?\n" +
+	"\bmessages\x18\x01 \x03(\v2#.memoh.private.v1.BotSessionMessageR\bmessages\x122\n" +
+	"\x04page\x18\x02 \x01(\v2\x1e.memoh.private.v1.PageResponseR\x04page2\xbc\b\n" +
 	"\n" +
 	"BotService\x12T\n" +
 	"\tCreateBot\x12\".memoh.private.v1.CreateBotRequest\x1a#.memoh.private.v1.CreateBotResponse\x12K\n" +
@@ -1167,7 +1741,10 @@ const file_memoh_private_v1_bots_proto_rawDesc = "" +
 	"\tDeleteBot\x12\".memoh.private.v1.DeleteBotRequest\x1a#.memoh.private.v1.DeleteBotResponse\x12`\n" +
 	"\rListBotChecks\x12&.memoh.private.v1.ListBotChecksRequest\x1a'.memoh.private.v1.ListBotChecksResponse\x12c\n" +
 	"\x0eAssignBotGroup\x12'.memoh.private.v1.AssignBotGroupRequest\x1a(.memoh.private.v1.AssignBotGroupResponse\x12`\n" +
-	"\rClearBotGroup\x12&.memoh.private.v1.ClearBotGroupRequest\x1a'.memoh.private.v1.ClearBotGroupResponseBMZKgithub.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1;privatev1b\x06proto3"
+	"\rClearBotGroup\x12&.memoh.private.v1.ClearBotGroupRequest\x1a'.memoh.private.v1.ClearBotGroupResponse\x12x\n" +
+	"\x15ReadBotSessionHistory\x12..memoh.private.v1.ReadBotSessionHistoryRequest\x1a/.memoh.private.v1.ReadBotSessionHistoryResponse\x12l\n" +
+	"\x11CompactBotSession\x12*.memoh.private.v1.CompactBotSessionRequest\x1a+.memoh.private.v1.CompactBotSessionResponse\x12{\n" +
+	"\x16ListBotSessionMessages\x12/.memoh.private.v1.ListBotSessionMessagesRequest\x1a0.memoh.private.v1.ListBotSessionMessagesResponseBMZKgithub.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1;privatev1b\x06proto3"
 
 var (
 	file_memoh_private_v1_bots_proto_rawDescOnce sync.Once
@@ -1181,69 +1758,93 @@ func file_memoh_private_v1_bots_proto_rawDescGZIP() []byte {
 	return file_memoh_private_v1_bots_proto_rawDescData
 }
 
-var file_memoh_private_v1_bots_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
+var file_memoh_private_v1_bots_proto_msgTypes = make([]protoimpl.MessageInfo, 26)
 var file_memoh_private_v1_bots_proto_goTypes = []any{
-	(*Bot)(nil),                    // 0: memoh.private.v1.Bot
-	(*CreateBotRequest)(nil),       // 1: memoh.private.v1.CreateBotRequest
-	(*CreateBotResponse)(nil),      // 2: memoh.private.v1.CreateBotResponse
-	(*GetBotRequest)(nil),          // 3: memoh.private.v1.GetBotRequest
-	(*GetBotResponse)(nil),         // 4: memoh.private.v1.GetBotResponse
-	(*ListBotsRequest)(nil),        // 5: memoh.private.v1.ListBotsRequest
-	(*ListBotsResponse)(nil),       // 6: memoh.private.v1.ListBotsResponse
-	(*UpdateBotRequest)(nil),       // 7: memoh.private.v1.UpdateBotRequest
-	(*UpdateBotResponse)(nil),      // 8: memoh.private.v1.UpdateBotResponse
-	(*DeleteBotRequest)(nil),       // 9: memoh.private.v1.DeleteBotRequest
-	(*DeleteBotResponse)(nil),      // 10: memoh.private.v1.DeleteBotResponse
-	(*BotCheck)(nil),               // 11: memoh.private.v1.BotCheck
-	(*ListBotChecksRequest)(nil),   // 12: memoh.private.v1.ListBotChecksRequest
-	(*ListBotChecksResponse)(nil),  // 13: memoh.private.v1.ListBotChecksResponse
-	(*AssignBotGroupRequest)(nil),  // 14: memoh.private.v1.AssignBotGroupRequest
-	(*AssignBotGroupResponse)(nil), // 15: memoh.private.v1.AssignBotGroupResponse
-	(*ClearBotGroupRequest)(nil),   // 16: memoh.private.v1.ClearBotGroupRequest
-	(*ClearBotGroupResponse)(nil),  // 17: memoh.private.v1.ClearBotGroupResponse
-	(*SettingsOverrideMask)(nil),   // 18: memoh.private.v1.SettingsOverrideMask
-	(*structpb.Struct)(nil),        // 19: google.protobuf.Struct
-	(*AuditFields)(nil),            // 20: memoh.private.v1.AuditFields
-	(*PageRequest)(nil),            // 21: memoh.private.v1.PageRequest
-	(*PageResponse)(nil),           // 22: memoh.private.v1.PageResponse
+	(*Bot)(nil),                            // 0: memoh.private.v1.Bot
+	(*CreateBotRequest)(nil),               // 1: memoh.private.v1.CreateBotRequest
+	(*CreateBotResponse)(nil),              // 2: memoh.private.v1.CreateBotResponse
+	(*GetBotRequest)(nil),                  // 3: memoh.private.v1.GetBotRequest
+	(*GetBotResponse)(nil),                 // 4: memoh.private.v1.GetBotResponse
+	(*ListBotsRequest)(nil),                // 5: memoh.private.v1.ListBotsRequest
+	(*ListBotsResponse)(nil),               // 6: memoh.private.v1.ListBotsResponse
+	(*UpdateBotRequest)(nil),               // 7: memoh.private.v1.UpdateBotRequest
+	(*UpdateBotResponse)(nil),              // 8: memoh.private.v1.UpdateBotResponse
+	(*DeleteBotRequest)(nil),               // 9: memoh.private.v1.DeleteBotRequest
+	(*DeleteBotResponse)(nil),              // 10: memoh.private.v1.DeleteBotResponse
+	(*BotCheck)(nil),                       // 11: memoh.private.v1.BotCheck
+	(*ListBotChecksRequest)(nil),           // 12: memoh.private.v1.ListBotChecksRequest
+	(*ListBotChecksResponse)(nil),          // 13: memoh.private.v1.ListBotChecksResponse
+	(*AssignBotGroupRequest)(nil),          // 14: memoh.private.v1.AssignBotGroupRequest
+	(*AssignBotGroupResponse)(nil),         // 15: memoh.private.v1.AssignBotGroupResponse
+	(*ClearBotGroupRequest)(nil),           // 16: memoh.private.v1.ClearBotGroupRequest
+	(*ClearBotGroupResponse)(nil),          // 17: memoh.private.v1.ClearBotGroupResponse
+	(*BotSession)(nil),                     // 18: memoh.private.v1.BotSession
+	(*BotSessionMessage)(nil),              // 19: memoh.private.v1.BotSessionMessage
+	(*ReadBotSessionHistoryRequest)(nil),   // 20: memoh.private.v1.ReadBotSessionHistoryRequest
+	(*ReadBotSessionHistoryResponse)(nil),  // 21: memoh.private.v1.ReadBotSessionHistoryResponse
+	(*CompactBotSessionRequest)(nil),       // 22: memoh.private.v1.CompactBotSessionRequest
+	(*CompactBotSessionResponse)(nil),      // 23: memoh.private.v1.CompactBotSessionResponse
+	(*ListBotSessionMessagesRequest)(nil),  // 24: memoh.private.v1.ListBotSessionMessagesRequest
+	(*ListBotSessionMessagesResponse)(nil), // 25: memoh.private.v1.ListBotSessionMessagesResponse
+	(*SettingsOverrideMask)(nil),           // 26: memoh.private.v1.SettingsOverrideMask
+	(*structpb.Struct)(nil),                // 27: google.protobuf.Struct
+	(*AuditFields)(nil),                    // 28: memoh.private.v1.AuditFields
+	(*PageRequest)(nil),                    // 29: memoh.private.v1.PageRequest
+	(*PageResponse)(nil),                   // 30: memoh.private.v1.PageResponse
+	(*timestamppb.Timestamp)(nil),          // 31: google.protobuf.Timestamp
 }
 var file_memoh_private_v1_bots_proto_depIdxs = []int32{
-	18, // 0: memoh.private.v1.Bot.settings_override_mask:type_name -> memoh.private.v1.SettingsOverrideMask
-	19, // 1: memoh.private.v1.Bot.metadata:type_name -> google.protobuf.Struct
-	20, // 2: memoh.private.v1.Bot.audit:type_name -> memoh.private.v1.AuditFields
-	19, // 3: memoh.private.v1.CreateBotRequest.metadata:type_name -> google.protobuf.Struct
+	26, // 0: memoh.private.v1.Bot.settings_override_mask:type_name -> memoh.private.v1.SettingsOverrideMask
+	27, // 1: memoh.private.v1.Bot.metadata:type_name -> google.protobuf.Struct
+	28, // 2: memoh.private.v1.Bot.audit:type_name -> memoh.private.v1.AuditFields
+	27, // 3: memoh.private.v1.CreateBotRequest.metadata:type_name -> google.protobuf.Struct
 	0,  // 4: memoh.private.v1.CreateBotResponse.bot:type_name -> memoh.private.v1.Bot
 	0,  // 5: memoh.private.v1.GetBotResponse.bot:type_name -> memoh.private.v1.Bot
-	21, // 6: memoh.private.v1.ListBotsRequest.page:type_name -> memoh.private.v1.PageRequest
+	29, // 6: memoh.private.v1.ListBotsRequest.page:type_name -> memoh.private.v1.PageRequest
 	0,  // 7: memoh.private.v1.ListBotsResponse.bots:type_name -> memoh.private.v1.Bot
-	22, // 8: memoh.private.v1.ListBotsResponse.page:type_name -> memoh.private.v1.PageResponse
-	19, // 9: memoh.private.v1.UpdateBotRequest.metadata:type_name -> google.protobuf.Struct
+	30, // 8: memoh.private.v1.ListBotsResponse.page:type_name -> memoh.private.v1.PageResponse
+	27, // 9: memoh.private.v1.UpdateBotRequest.metadata:type_name -> google.protobuf.Struct
 	0,  // 10: memoh.private.v1.UpdateBotResponse.bot:type_name -> memoh.private.v1.Bot
-	19, // 11: memoh.private.v1.BotCheck.metadata:type_name -> google.protobuf.Struct
+	27, // 11: memoh.private.v1.BotCheck.metadata:type_name -> google.protobuf.Struct
 	11, // 12: memoh.private.v1.ListBotChecksResponse.checks:type_name -> memoh.private.v1.BotCheck
 	0,  // 13: memoh.private.v1.AssignBotGroupResponse.bot:type_name -> memoh.private.v1.Bot
 	0,  // 14: memoh.private.v1.ClearBotGroupResponse.bot:type_name -> memoh.private.v1.Bot
-	1,  // 15: memoh.private.v1.BotService.CreateBot:input_type -> memoh.private.v1.CreateBotRequest
-	3,  // 16: memoh.private.v1.BotService.GetBot:input_type -> memoh.private.v1.GetBotRequest
-	5,  // 17: memoh.private.v1.BotService.ListBots:input_type -> memoh.private.v1.ListBotsRequest
-	7,  // 18: memoh.private.v1.BotService.UpdateBot:input_type -> memoh.private.v1.UpdateBotRequest
-	9,  // 19: memoh.private.v1.BotService.DeleteBot:input_type -> memoh.private.v1.DeleteBotRequest
-	12, // 20: memoh.private.v1.BotService.ListBotChecks:input_type -> memoh.private.v1.ListBotChecksRequest
-	14, // 21: memoh.private.v1.BotService.AssignBotGroup:input_type -> memoh.private.v1.AssignBotGroupRequest
-	16, // 22: memoh.private.v1.BotService.ClearBotGroup:input_type -> memoh.private.v1.ClearBotGroupRequest
-	2,  // 23: memoh.private.v1.BotService.CreateBot:output_type -> memoh.private.v1.CreateBotResponse
-	4,  // 24: memoh.private.v1.BotService.GetBot:output_type -> memoh.private.v1.GetBotResponse
-	6,  // 25: memoh.private.v1.BotService.ListBots:output_type -> memoh.private.v1.ListBotsResponse
-	8,  // 26: memoh.private.v1.BotService.UpdateBot:output_type -> memoh.private.v1.UpdateBotResponse
-	10, // 27: memoh.private.v1.BotService.DeleteBot:output_type -> memoh.private.v1.DeleteBotResponse
-	13, // 28: memoh.private.v1.BotService.ListBotChecks:output_type -> memoh.private.v1.ListBotChecksResponse
-	15, // 29: memoh.private.v1.BotService.AssignBotGroup:output_type -> memoh.private.v1.AssignBotGroupResponse
-	17, // 30: memoh.private.v1.BotService.ClearBotGroup:output_type -> memoh.private.v1.ClearBotGroupResponse
-	23, // [23:31] is the sub-list for method output_type
-	15, // [15:23] is the sub-list for method input_type
-	15, // [15:15] is the sub-list for extension type_name
-	15, // [15:15] is the sub-list for extension extendee
-	0,  // [0:15] is the sub-list for field type_name
+	27, // 15: memoh.private.v1.BotSession.metadata:type_name -> google.protobuf.Struct
+	28, // 16: memoh.private.v1.BotSession.audit:type_name -> memoh.private.v1.AuditFields
+	27, // 17: memoh.private.v1.BotSessionMessage.payload:type_name -> google.protobuf.Struct
+	31, // 18: memoh.private.v1.BotSessionMessage.created_at:type_name -> google.protobuf.Timestamp
+	19, // 19: memoh.private.v1.ReadBotSessionHistoryResponse.messages:type_name -> memoh.private.v1.BotSessionMessage
+	31, // 20: memoh.private.v1.CompactBotSessionResponse.compacted_at:type_name -> google.protobuf.Timestamp
+	29, // 21: memoh.private.v1.ListBotSessionMessagesRequest.page:type_name -> memoh.private.v1.PageRequest
+	19, // 22: memoh.private.v1.ListBotSessionMessagesResponse.messages:type_name -> memoh.private.v1.BotSessionMessage
+	30, // 23: memoh.private.v1.ListBotSessionMessagesResponse.page:type_name -> memoh.private.v1.PageResponse
+	1,  // 24: memoh.private.v1.BotService.CreateBot:input_type -> memoh.private.v1.CreateBotRequest
+	3,  // 25: memoh.private.v1.BotService.GetBot:input_type -> memoh.private.v1.GetBotRequest
+	5,  // 26: memoh.private.v1.BotService.ListBots:input_type -> memoh.private.v1.ListBotsRequest
+	7,  // 27: memoh.private.v1.BotService.UpdateBot:input_type -> memoh.private.v1.UpdateBotRequest
+	9,  // 28: memoh.private.v1.BotService.DeleteBot:input_type -> memoh.private.v1.DeleteBotRequest
+	12, // 29: memoh.private.v1.BotService.ListBotChecks:input_type -> memoh.private.v1.ListBotChecksRequest
+	14, // 30: memoh.private.v1.BotService.AssignBotGroup:input_type -> memoh.private.v1.AssignBotGroupRequest
+	16, // 31: memoh.private.v1.BotService.ClearBotGroup:input_type -> memoh.private.v1.ClearBotGroupRequest
+	20, // 32: memoh.private.v1.BotService.ReadBotSessionHistory:input_type -> memoh.private.v1.ReadBotSessionHistoryRequest
+	22, // 33: memoh.private.v1.BotService.CompactBotSession:input_type -> memoh.private.v1.CompactBotSessionRequest
+	24, // 34: memoh.private.v1.BotService.ListBotSessionMessages:input_type -> memoh.private.v1.ListBotSessionMessagesRequest
+	2,  // 35: memoh.private.v1.BotService.CreateBot:output_type -> memoh.private.v1.CreateBotResponse
+	4,  // 36: memoh.private.v1.BotService.GetBot:output_type -> memoh.private.v1.GetBotResponse
+	6,  // 37: memoh.private.v1.BotService.ListBots:output_type -> memoh.private.v1.ListBotsResponse
+	8,  // 38: memoh.private.v1.BotService.UpdateBot:output_type -> memoh.private.v1.UpdateBotResponse
+	10, // 39: memoh.private.v1.BotService.DeleteBot:output_type -> memoh.private.v1.DeleteBotResponse
+	13, // 40: memoh.private.v1.BotService.ListBotChecks:output_type -> memoh.private.v1.ListBotChecksResponse
+	15, // 41: memoh.private.v1.BotService.AssignBotGroup:output_type -> memoh.private.v1.AssignBotGroupResponse
+	17, // 42: memoh.private.v1.BotService.ClearBotGroup:output_type -> memoh.private.v1.ClearBotGroupResponse
+	21, // 43: memoh.private.v1.BotService.ReadBotSessionHistory:output_type -> memoh.private.v1.ReadBotSessionHistoryResponse
+	23, // 44: memoh.private.v1.BotService.CompactBotSession:output_type -> memoh.private.v1.CompactBotSessionResponse
+	25, // 45: memoh.private.v1.BotService.ListBotSessionMessages:output_type -> memoh.private.v1.ListBotSessionMessagesResponse
+	35, // [35:46] is the sub-list for method output_type
+	24, // [24:35] is the sub-list for method input_type
+	24, // [24:24] is the sub-list for extension type_name
+	24, // [24:24] is the sub-list for extension extendee
+	0,  // [0:24] is the sub-list for field type_name
 }
 
 func init() { file_memoh_private_v1_bots_proto_init() }
@@ -1260,7 +1861,7 @@ func file_memoh_private_v1_bots_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_memoh_private_v1_bots_proto_rawDesc), len(file_memoh_private_v1_bots_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   18,
+			NumMessages:   26,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

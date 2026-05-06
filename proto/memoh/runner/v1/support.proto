@@ -1,0 +1,216 @@
+syntax = "proto3";
+
+package memoh.runner.v1;
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+import "memoh/event/v1/events.proto";
+import "memoh/runner/v1/run.proto";
+
+option go_package = "github.com/memohai/memoh/internal/connectapi/gen/memoh/runner/v1;runnerv1";
+
+service RunnerSupportService {
+  rpc ResolveRunContext(ResolveRunContextRequest) returns (ResolveRunContextResponse);
+  rpc ValidateRunLease(ValidateRunLeaseRequest) returns (ValidateRunLeaseResponse);
+  rpc IssueWorkspaceToken(IssueWorkspaceTokenRequest) returns (IssueWorkspaceTokenResponse);
+  rpc ReadSessionHistory(ReadSessionHistoryRequest) returns (ReadSessionHistoryResponse);
+  rpc AppendRunEvent(AppendRunEventRequest) returns (AppendRunEventResponse);
+  rpc AppendSessionMessage(AppendSessionMessageRequest) returns (AppendSessionMessageResponse);
+  rpc ResolveOutboundTarget(ResolveOutboundTargetRequest) returns (ResolveOutboundTargetResponse);
+  rpc RequestOutboundDispatch(RequestOutboundDispatchRequest) returns (RequestOutboundDispatchResponse);
+  rpc ReadMemory(ReadMemoryRequest) returns (ReadMemoryResponse);
+  rpc WriteMemory(WriteMemoryRequest) returns (WriteMemoryResponse);
+  rpc ResolveScopedSecret(ResolveScopedSecretRequest) returns (ResolveScopedSecretResponse);
+  rpc ResolveProviderCredentials(ResolveProviderCredentialsRequest) returns (ResolveProviderCredentialsResponse);
+  rpc EvaluateToolApprovalPolicy(EvaluateToolApprovalPolicyRequest) returns (EvaluateToolApprovalPolicyResponse);
+  rpc RequestToolApproval(RequestToolApprovalRequest) returns (RequestToolApprovalResponse);
+}
+
+message RunSupportRef {
+  string run_id = 1;
+  string runner_instance_id = 2;
+  int64 lease_version = 3;
+}
+
+message ResolveRunContextRequest {
+  RunSupportRef ref = 1;
+}
+
+message ResolveRunContextResponse {
+  RunLease lease = 1;
+  google.protobuf.Struct bot = 2;
+  google.protobuf.Struct bot_group = 3;
+  google.protobuf.Struct model = 4;
+  repeated google.protobuf.Struct memory_providers = 5;
+  repeated google.protobuf.Struct mcp_connections = 6;
+  repeated google.protobuf.Struct browser_contexts = 7;
+  google.protobuf.Struct tool_approval_policy = 8;
+}
+
+message ValidateRunLeaseRequest {
+  RunSupportRef ref = 1;
+  string bot_id = 2;
+  string session_id = 3;
+  string workspace_executor_target = 4;
+}
+
+message ValidateRunLeaseResponse {
+  RunLease lease = 1;
+  bool valid = 2;
+}
+
+message IssueWorkspaceTokenRequest {
+  RunSupportRef ref = 1;
+  string workspace_id = 2;
+  string workspace_executor_target = 3;
+  repeated string scopes = 4;
+}
+
+message IssueWorkspaceTokenResponse {
+  string token = 1;
+  google.protobuf.Timestamp expires_at = 2;
+}
+
+message SessionMessage {
+  string message_id = 1;
+  string session_id = 2;
+  string bot_id = 3;
+  string role = 4;
+  string text = 5;
+  google.protobuf.Struct payload = 6;
+  google.protobuf.Timestamp created_at = 7;
+}
+
+message ReadSessionHistoryRequest {
+  RunSupportRef ref = 1;
+  string session_id = 2;
+  int32 limit = 3;
+  string before_message_id = 4;
+}
+
+message ReadSessionHistoryResponse {
+  repeated SessionMessage messages = 1;
+}
+
+message AppendRunEventRequest {
+  RunSupportRef ref = 1;
+  memoh.event.v1.AgentRunEvent event = 2;
+}
+
+message AppendRunEventResponse {
+  string event_id = 1;
+}
+
+message AppendSessionMessageRequest {
+  RunSupportRef ref = 1;
+  SessionMessage message = 2;
+}
+
+message AppendSessionMessageResponse {
+  string message_id = 1;
+}
+
+message ResolveOutboundTargetRequest {
+  RunSupportRef ref = 1;
+  string channel_type = 2;
+  string conversation_id = 3;
+}
+
+message ResolveOutboundTargetResponse {
+  string channel_config_id = 1;
+  string channel_type = 2;
+  string conversation_id = 3;
+  google.protobuf.Struct target = 4;
+}
+
+message RequestOutboundDispatchRequest {
+  RunSupportRef ref = 1;
+  string channel_config_id = 2;
+  string channel_type = 3;
+  string conversation_id = 4;
+  string text = 5;
+  google.protobuf.Struct payload = 6;
+}
+
+message RequestOutboundDispatchResponse {
+  string dispatch_id = 1;
+  string status = 2;
+}
+
+message MemoryRecord {
+  string memory_id = 1;
+  string scope = 2;
+  string content = 3;
+  float score = 4;
+  google.protobuf.Struct metadata = 5;
+}
+
+message ReadMemoryRequest {
+  RunSupportRef ref = 1;
+  string query = 2;
+  repeated string scopes = 3;
+  int32 limit = 4;
+}
+
+message ReadMemoryResponse {
+  repeated MemoryRecord memories = 1;
+}
+
+message WriteMemoryRequest {
+  RunSupportRef ref = 1;
+  MemoryRecord memory = 2;
+}
+
+message WriteMemoryResponse {
+  string memory_id = 1;
+}
+
+message ResolveScopedSecretRequest {
+  RunSupportRef ref = 1;
+  string secret_ref = 2;
+  string purpose = 3;
+}
+
+message ResolveScopedSecretResponse {
+  string secret_value = 1;
+  google.protobuf.Timestamp expires_at = 2;
+}
+
+message ResolveProviderCredentialsRequest {
+  RunSupportRef ref = 1;
+  string provider_id = 2;
+  string provider_name = 3;
+  repeated string scopes = 4;
+}
+
+message ResolveProviderCredentialsResponse {
+  string provider_id = 1;
+  string provider_name = 2;
+  google.protobuf.Struct credentials = 3;
+  google.protobuf.Timestamp expires_at = 4;
+}
+
+message EvaluateToolApprovalPolicyRequest {
+  RunSupportRef ref = 1;
+  string tool_name = 2;
+  string tool_scope = 3;
+  google.protobuf.Struct payload = 4;
+}
+
+message EvaluateToolApprovalPolicyResponse {
+  string decision = 1;
+  string reason = 2;
+  string approval_request_id = 3;
+}
+
+message RequestToolApprovalRequest {
+  RunSupportRef ref = 1;
+  string tool_name = 2;
+  string tool_scope = 3;
+  google.protobuf.Struct payload = 4;
+}
+
+message RequestToolApprovalResponse {
+  string approval_request_id = 1;
+  string status = 2;
+}

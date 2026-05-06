@@ -13,6 +13,9 @@ type inboundTask struct {
 
 // HandleInbound enqueues an inbound message for asynchronous processing by the worker pool.
 func (m *Manager) HandleInbound(ctx context.Context, cfg ChannelConfig, msg InboundMessage) error {
+	if m.inboundSink != nil {
+		return m.inboundSink.HandleInbound(ctx, cfg, msg)
+	}
 	if m.processor == nil {
 		return errors.New("inbound processor not configured")
 	}

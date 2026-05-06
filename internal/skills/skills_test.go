@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/memohai/memoh/internal/workspace/bridge"
-	pb "github.com/memohai/memoh/internal/workspace/bridgepb"
+	pb "github.com/memohai/memoh/internal/connectapi/gen/memoh/workspace/v1"
+	"github.com/memohai/memoh/internal/workspace/executorclient"
 )
 
 func TestParseFileFallbacks(t *testing.T) {
@@ -119,7 +119,7 @@ func TestApplyActionAdoptRejectsInvalidManagedName(t *testing.T) {
 		Action:     ActionAdopt,
 		TargetPath: externalPath,
 	})
-	if !errors.Is(err, bridge.ErrBadRequest) {
+	if !errors.Is(err, executorclient.ErrBadRequest) {
 		t.Fatalf("adopt err = %v, want ErrBadRequest", err)
 	}
 	if _, ok := client.files[pathJoin(ManagedDirPath, "..", "SKILL.md")]; ok {
@@ -151,7 +151,7 @@ func TestIsValidNameRejectsTraversalPatterns(t *testing.T) {
 
 func TestManagedSkillDirForNameRejectsEscapingNames(t *testing.T) {
 	for _, name := range []string{".", "..", ".alpha", "alpha..beta"} {
-		if _, err := ManagedSkillDirForName(name); !errors.Is(err, bridge.ErrBadRequest) {
+		if _, err := ManagedSkillDirForName(name); !errors.Is(err, executorclient.ErrBadRequest) {
 			t.Fatalf("ManagedSkillDirForName(%q) err = %v, want ErrBadRequest", name, err)
 		}
 	}

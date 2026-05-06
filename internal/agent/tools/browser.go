@@ -18,19 +18,19 @@ import (
 	"github.com/memohai/memoh/internal/browsercontexts"
 	"github.com/memohai/memoh/internal/config"
 	"github.com/memohai/memoh/internal/settings"
-	"github.com/memohai/memoh/internal/workspace/bridge"
+	"github.com/memohai/memoh/internal/workspace/executorclient"
 )
 
 type BrowserProvider struct {
 	logger          *slog.Logger
 	settings        *settings.Service
 	browserContexts *browsercontexts.Service
-	containers      bridge.Provider
+	containers      executorclient.Provider
 	gatewayBaseURL  string
 	httpClient      *http.Client
 }
 
-func NewBrowserProvider(log *slog.Logger, settingsSvc *settings.Service, browserSvc *browsercontexts.Service, containers bridge.Provider, gatewayCfg config.BrowserGatewayConfig) *BrowserProvider {
+func NewBrowserProvider(log *slog.Logger, settingsSvc *settings.Service, browserSvc *browsercontexts.Service, containers executorclient.Provider, gatewayCfg config.BrowserGatewayConfig) *BrowserProvider {
 	if log == nil {
 		log = slog.Default()
 	}
@@ -294,7 +294,7 @@ func (p *BrowserProvider) buildScreenshotResult(ctx context.Context, botID, base
 	p.emitScreenshotAttachment(session, base64Data, mimeType, int64(len(imgBytes)))
 
 	containerPath := fmt.Sprintf("%s/%d.png", browserScreenshotDir, time.Now().UnixMilli())
-	client, clientErr := p.containers.MCPClient(ctx, botID)
+	client, clientErr := p.containers.ExecutorClient(ctx, botID)
 	if clientErr != nil {
 		return map[string]any{
 			"content": []map[string]any{

@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	ctr "github.com/memohai/memoh/internal/container"
-	"github.com/memohai/memoh/internal/workspace/bridge"
+	"github.com/memohai/memoh/internal/workspace/executorclient"
 )
 
 type RuntimeRouter struct {
@@ -219,10 +219,10 @@ func (r *RuntimeRouter) SnapshotMounts(ctx context.Context, snapshotter, key str
 	return mounter.SnapshotMounts(ctx, snapshotter, key)
 }
 
-func (r *RuntimeRouter) MCPClient(ctx context.Context, botID string) (*bridge.Client, error) {
+func (r *RuntimeRouter) ExecutorClient(ctx context.Context, botID string) (*executorclient.Client, error) {
 	if r.localEnabled() {
 		if _, err := r.local.GetContainer(ctx, LocalContainerPrefix+strings.TrimSpace(botID)); err == nil {
-			return r.local.MCPClient(ctx, botID)
+			return r.local.ExecutorClient(ctx, botID)
 		} else if !ctr.IsNotFound(err) {
 			return nil, err
 		}
@@ -230,24 +230,28 @@ func (r *RuntimeRouter) MCPClient(ctx context.Context, botID string) (*bridge.Cl
 	return nil, ctr.ErrNotSupported
 }
 
-func (r *RuntimeRouter) WorkspaceInfo(ctx context.Context, botID string) (bridge.WorkspaceInfo, error) {
+func (r *RuntimeRouter) WorkspaceInfo(ctx context.Context, botID string) (executorclient.WorkspaceInfo, error) {
 	if r.localEnabled() {
 		if info, err := r.local.WorkspaceInfo(ctx, botID); err == nil {
 			return info, nil
 		} else if !ctr.IsNotFound(err) {
-			return bridge.WorkspaceInfo{}, err
+			return executorclient.WorkspaceInfo{}, err
 		}
 	}
-	return bridge.WorkspaceInfo{
-		Backend:        bridge.WorkspaceBackendContainer,
+	return executorclient.WorkspaceInfo{
+		Backend:        executorclient.WorkspaceBackendContainer,
 		DefaultWorkDir: "/data",
 	}, nil
 }
 
-func (r *RuntimeRouter) BridgeTarget(botID string) string {
-	targeter, ok := r.container.(interface{ BridgeTarget(string) string })
+func (r *RuntimeRouter) WorkspaceExecutorTarget(botID string) string {
+	targeter, ok := r.container.(interface{ WorkspaceExecutorTarget(string) string })
+	if ok {
+		return targeter.WorkspaceExecutorTarget(botID)
+	}
+	legacyTargeter, ok := r.container.(interface{ WorkspaceExecutorTarget(string) string })
 	if !ok {
 		return ""
 	}
-	return targeter.BridgeTarget(botID)
+	return legacyTargeter.WorkspaceExecutorTarget(botID)
 }

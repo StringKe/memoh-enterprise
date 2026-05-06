@@ -177,7 +177,7 @@ func (m *Manager) ensureConnection(ctx context.Context, cfg ChannelConfig) error
 			slog.String("config_id", cfg.ID),
 		)
 	}
-	handler := m.handleInbound
+	handler := m.HandleInbound
 	for i := len(m.middlewares) - 1; i >= 0; i-- {
 		handler = m.middlewares[i](handler)
 	}

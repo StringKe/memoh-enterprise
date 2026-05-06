@@ -125,18 +125,23 @@ func makeUpdateBotProfileRow(botID, ownerUserID, groupID pgtype.UUID) *fakeRow {
 }
 
 func makeBotGroupRow(groupID, ownerUserID pgtype.UUID) *fakeRow {
+	return makeBotGroupRowWithVisibility(groupID, ownerUserID, "private")
+}
+
+func makeBotGroupRowWithVisibility(groupID, ownerUserID pgtype.UUID, visibility string) *fakeRow {
 	return &fakeRow{
 		scanFunc: func(dest ...any) error {
-			if len(dest) < 7 {
+			if len(dest) < 8 {
 				return pgx.ErrNoRows
 			}
 			*dest[0].(*pgtype.UUID) = groupID
 			*dest[1].(*pgtype.UUID) = ownerUserID
 			*dest[2].(*string) = "test-group"
 			*dest[3].(*string) = ""
-			*dest[4].(*[]byte) = []byte(`{}`)
-			*dest[5].(*pgtype.Timestamptz) = pgtype.Timestamptz{}
+			*dest[4].(*string) = visibility
+			*dest[5].(*[]byte) = []byte(`{}`)
 			*dest[6].(*pgtype.Timestamptz) = pgtype.Timestamptz{}
+			*dest[7].(*pgtype.Timestamptz) = pgtype.Timestamptz{}
 			return nil
 		},
 	}
@@ -149,13 +154,19 @@ func mustParseUUID(s string) pgtype.UUID {
 }
 
 type fakePermissionService struct {
-	allowed bool
-	err     error
-	check   rbac.Check
+	allowed             bool
+	allowedByPermission map[rbac.PermissionKey]bool
+	err                 error
+	check               rbac.Check
+	checks              []rbac.Check
 }
 
 func (f *fakePermissionService) HasPermission(_ context.Context, check rbac.Check) (bool, error) {
 	f.check = check
+	f.checks = append(f.checks, check)
+	if f.allowedByPermission != nil {
+		return f.allowedByPermission[check.PermissionKey], f.err
+	}
 	return f.allowed, f.err
 }
 
@@ -305,8 +316,8 @@ func TestAssignGroupAssignsOwnBotToOwnGroup(t *testing.T) {
 			switch {
 			case strings.Contains(sql, "FROM bots") && strings.Contains(sql, "WHERE id = $1"):
 				return makeBotRow(botUUID, ownerUUID)
-			case strings.Contains(sql, "FROM bot_groups") && strings.Contains(sql, "owner_user_id = $1"):
-				if args[0] != ownerUUID || args[1] != groupUUID {
+			case strings.Contains(sql, "FROM bot_groups") && strings.Contains(sql, "WHERE id ="):
+				if args[0] != groupUUID {
 					t.Fatalf("unexpected group owner lookup args: %#v", args)
 				}
 				return makeBotGroupRow(groupUUID, ownerUUID)
@@ -353,8 +364,8 @@ func TestAssignGroupRejectsAnotherUsersGroup(t *testing.T) {
 			switch {
 			case strings.Contains(sql, "FROM bots") && strings.Contains(sql, "WHERE id = $1"):
 				return makeBotRow(botUUID, ownerUUID)
-			case strings.Contains(sql, "FROM bot_groups") && strings.Contains(sql, "owner_user_id = $1"):
-				return &fakeRow{scanFunc: func(_ ...any) error { return pgx.ErrNoRows }}
+			case strings.Contains(sql, "FROM bot_groups") && strings.Contains(sql, "WHERE id ="):
+				return makeBotGroupRow(groupUUID, mustParseUUID("00000000-0000-0000-0000-000000000004"))
 			case strings.Contains(sql, "UPDATE bots"):
 				updateCalled = true
 				return makeUpdateBotProfileRow(botUUID, ownerUUID, groupUUID)
@@ -365,7 +376,11 @@ func TestAssignGroupRejectsAnotherUsersGroup(t *testing.T) {
 	}
 
 	svc := NewService(nil, postgresstore.NewQueries(sqlc.New(db)))
-	svc.SetRBACService(&fakePermissionService{allowed: true})
+	svc.SetRBACService(&fakePermissionService{
+		allowedByPermission: map[rbac.PermissionKey]bool{
+			rbac.PermissionBotUpdate: true,
+		},
+	})
 
 	_, err := svc.AssignGroup(context.Background(), ownerUUID.String(), botUUID.String(), groupUUID.String())
 	if !errors.Is(err, ErrBotGroupNotAllowed) {
@@ -411,5 +426,109 @@ func TestClearGroupPreservesNoGroupBehavior(t *testing.T) {
 	}
 	if !updateCalled {
 		t.Fatal("expected bot profile update")
+	}
+}
+
+func TestHasBotPermissionInheritsBotGroupRead(t *testing.T) {
+	ownerUUID := mustParseUUID("00000000-0000-0000-0000-000000000001")
+	userUUID := mustParseUUID("00000000-0000-0000-0000-000000000004")
+	botUUID := mustParseUUID("00000000-0000-0000-0000-000000000002")
+	groupUUID := mustParseUUID("00000000-0000-0000-0000-000000000003")
+
+	db := &fakeDBTX{
+		queryRowFunc: func(_ context.Context, sql string, _ ...any) pgx.Row {
+			switch {
+			case strings.Contains(sql, "FROM bots") && strings.Contains(sql, "WHERE id = $1"):
+				return makeBotRowWithGroup(botUUID, ownerUUID, groupUUID)
+			case strings.Contains(sql, "FROM bot_groups") && strings.Contains(sql, "WHERE id ="):
+				return makeBotGroupRow(groupUUID, ownerUUID)
+			default:
+				return &fakeRow{scanFunc: func(_ ...any) error { return pgx.ErrNoRows }}
+			}
+		},
+	}
+	permission := &fakePermissionService{
+		allowedByPermission: map[rbac.PermissionKey]bool{
+			rbac.PermissionBotGroupRead: true,
+		},
+	}
+	svc := NewService(nil, postgresstore.NewQueries(sqlc.New(db)))
+	svc.SetRBACService(permission)
+
+	allowed, err := svc.HasBotPermission(context.Background(), userUUID.String(), botUUID.String(), rbac.PermissionBotRead)
+	if err != nil {
+		t.Fatalf("HasBotPermission returned error: %v", err)
+	}
+	if !allowed {
+		t.Fatal("bot read = false, want true inherited from bot group")
+	}
+	if len(permission.checks) != 2 {
+		t.Fatalf("permission checks = %d, want 2", len(permission.checks))
+	}
+	if permission.checks[0].ResourceType != rbac.ResourceBot || permission.checks[0].PermissionKey != rbac.PermissionBotRead {
+		t.Fatalf("first check = %+v, want direct bot read", permission.checks[0])
+	}
+	if permission.checks[1].ResourceType != rbac.ResourceBotGroup || permission.checks[1].PermissionKey != rbac.PermissionBotGroupRead {
+		t.Fatalf("second check = %+v, want inherited bot group read", permission.checks[1])
+	}
+}
+
+func TestHasBotPermissionAllowsOrganizationGroupReadWithoutRole(t *testing.T) {
+	ownerUUID := mustParseUUID("00000000-0000-0000-0000-000000000001")
+	userUUID := mustParseUUID("00000000-0000-0000-0000-000000000004")
+	botUUID := mustParseUUID("00000000-0000-0000-0000-000000000002")
+	groupUUID := mustParseUUID("00000000-0000-0000-0000-000000000003")
+
+	db := &fakeDBTX{
+		queryRowFunc: func(_ context.Context, sql string, _ ...any) pgx.Row {
+			switch {
+			case strings.Contains(sql, "FROM bots") && strings.Contains(sql, "WHERE id = $1"):
+				return makeBotRowWithGroup(botUUID, ownerUUID, groupUUID)
+			case strings.Contains(sql, "FROM bot_groups") && strings.Contains(sql, "WHERE id ="):
+				return makeBotGroupRowWithVisibility(groupUUID, ownerUUID, "organization")
+			default:
+				return &fakeRow{scanFunc: func(_ ...any) error { return pgx.ErrNoRows }}
+			}
+		},
+	}
+	svc := NewService(nil, postgresstore.NewQueries(sqlc.New(db)))
+	svc.SetRBACService(&fakePermissionService{})
+
+	allowed, err := svc.HasBotPermission(context.Background(), userUUID.String(), botUUID.String(), rbac.PermissionBotChat)
+	if err != nil {
+		t.Fatalf("HasBotPermission returned error: %v", err)
+	}
+	if !allowed {
+		t.Fatal("bot chat = false, want true from organization visibility")
+	}
+}
+
+func TestHasBotPermissionDeniesPrivateGroupWithoutRole(t *testing.T) {
+	ownerUUID := mustParseUUID("00000000-0000-0000-0000-000000000001")
+	userUUID := mustParseUUID("00000000-0000-0000-0000-000000000004")
+	botUUID := mustParseUUID("00000000-0000-0000-0000-000000000002")
+	groupUUID := mustParseUUID("00000000-0000-0000-0000-000000000003")
+
+	db := &fakeDBTX{
+		queryRowFunc: func(_ context.Context, sql string, _ ...any) pgx.Row {
+			switch {
+			case strings.Contains(sql, "FROM bots") && strings.Contains(sql, "WHERE id = $1"):
+				return makeBotRowWithGroup(botUUID, ownerUUID, groupUUID)
+			case strings.Contains(sql, "FROM bot_groups") && strings.Contains(sql, "WHERE id ="):
+				return makeBotGroupRow(groupUUID, ownerUUID)
+			default:
+				return &fakeRow{scanFunc: func(_ ...any) error { return pgx.ErrNoRows }}
+			}
+		},
+	}
+	svc := NewService(nil, postgresstore.NewQueries(sqlc.New(db)))
+	svc.SetRBACService(&fakePermissionService{})
+
+	allowed, err := svc.HasBotPermission(context.Background(), userUUID.String(), botUUID.String(), rbac.PermissionBotRead)
+	if err != nil {
+		t.Fatalf("HasBotPermission returned error: %v", err)
+	}
+	if allowed {
+		t.Fatal("private group bot read = true, want false without role")
 	}
 }

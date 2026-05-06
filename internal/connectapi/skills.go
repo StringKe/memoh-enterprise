@@ -22,10 +22,10 @@ import (
 	"github.com/memohai/memoh/internal/config"
 	privatev1 "github.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1"
 	"github.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1/privatev1connect"
+	pb "github.com/memohai/memoh/internal/connectapi/gen/memoh/workspace/v1"
 	"github.com/memohai/memoh/internal/iam/rbac"
 	skillset "github.com/memohai/memoh/internal/skills"
-	"github.com/memohai/memoh/internal/workspace/bridge"
-	pb "github.com/memohai/memoh/internal/workspace/bridgepb"
+	"github.com/memohai/memoh/internal/workspace/executorclient"
 )
 
 type skillFileClient interface {
@@ -46,15 +46,15 @@ type SkillRootResolver interface {
 	ResolveWorkspaceSkillDiscoveryRoots(ctx context.Context, botID string) ([]string, error)
 }
 
-type bridgeSkillClientProvider struct {
-	provider bridge.Provider
+type workspaceExecutorSkillClientProvider struct {
+	provider executorclient.Provider
 }
 
-func (p bridgeSkillClientProvider) SkillClient(ctx context.Context, botID string) (skillFileClient, error) {
+func (p workspaceExecutorSkillClientProvider) SkillClient(ctx context.Context, botID string) (skillFileClient, error) {
 	if p.provider == nil {
-		return nil, errors.New("workspace bridge provider not configured")
+		return nil, errors.New("workspace executor provider not configured")
 	}
-	return p.provider.MCPClient(ctx, botID)
+	return p.provider.ExecutorClient(ctx, botID)
 }
 
 type SkillService struct {
@@ -66,13 +66,13 @@ type SkillService struct {
 	logger     *slog.Logger
 }
 
-func NewSkillService(log *slog.Logger, cfg config.Config, containers bridge.Provider, roots SkillRootResolver, botService *bots.Service) *SkillService {
+func NewSkillService(log *slog.Logger, cfg config.Config, containers executorclient.Provider, roots SkillRootResolver, botService *bots.Service) *SkillService {
 	if log == nil {
 		log = slog.Default()
 	}
 	return &SkillService{
 		bots:       botService,
-		files:      bridgeSkillClientProvider{provider: containers},
+		files:      workspaceExecutorSkillClientProvider{provider: containers},
 		roots:      roots,
 		baseURL:    cfg.Supermarket.GetBaseURL(),
 		httpClient: &http.Client{Timeout: 30 * time.Second},
@@ -253,6 +253,84 @@ func (s *SkillService) InstallSkill(ctx context.Context, req *connect.Request[pr
 		return nil, skillConnectError(err)
 	}
 	return connect.NewResponse(&privatev1.InstallSkillResponse{Skill: findSkillByNameProto(items, skillID)}), nil
+}
+
+func (s *SkillService) ListBotContainerSkills(ctx context.Context, req *connect.Request[privatev1.ListBotContainerSkillsRequest]) (*connect.Response[privatev1.ListBotContainerSkillsResponse], error) {
+	botID, err := s.requireBotPermission(ctx, req.Msg.GetBotId(), rbac.PermissionBotRead)
+	if err != nil {
+		return nil, err
+	}
+	client, roots, err := s.containerClientAndRoots(ctx, botID)
+	if err != nil {
+		return nil, err
+	}
+	items, err := skillset.List(ctx, client, roots)
+	if err != nil {
+		return nil, skillConnectError(err)
+	}
+	out := make([]*privatev1.BotContainerSkill, 0, len(items))
+	for _, item := range items {
+		out = append(out, botContainerSkillFromSkill(botID, "", skillEntryToProto(item)))
+	}
+	return connect.NewResponse(&privatev1.ListBotContainerSkillsResponse{
+		Skills: out,
+		Page:   &privatev1.PageResponse{},
+	}), nil
+}
+
+func (s *SkillService) InstallBotContainerSkill(ctx context.Context, req *connect.Request[privatev1.InstallBotContainerSkillRequest]) (*connect.Response[privatev1.InstallBotContainerSkillResponse], error) {
+	botID, err := s.requireBotPermission(ctx, req.Msg.GetBotId(), rbac.PermissionBotUpdate)
+	if err != nil {
+		return nil, err
+	}
+	source, err := normalizeSkillCatalogSource(req.Msg.GetSource())
+	if err != nil {
+		return nil, err
+	}
+	skillID := strings.TrimSpace(req.Msg.GetSkillId())
+	if _, err := skillset.ManagedSkillDirForName(skillID); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("invalid skill_id"))
+	}
+	client, roots, err := s.containerClientAndRoots(ctx, botID)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.downloadCatalogSkill(ctx, client, source, skillID); err != nil {
+		return nil, err
+	}
+	items, err := skillset.List(ctx, client, roots)
+	if err != nil {
+		return nil, skillConnectError(err)
+	}
+	return connect.NewResponse(&privatev1.InstallBotContainerSkillResponse{
+		Skill: botContainerSkillFromSkill(botID, strings.TrimSpace(req.Msg.GetVersion()), findSkillByNameProto(items, skillID)),
+	}), nil
+}
+
+func (s *SkillService) RemoveBotContainerSkill(ctx context.Context, req *connect.Request[privatev1.RemoveBotContainerSkillRequest]) (*connect.Response[privatev1.RemoveBotContainerSkillResponse], error) {
+	botID, err := s.requireBotPermission(ctx, req.Msg.GetBotId(), rbac.PermissionBotUpdate)
+	if err != nil {
+		return nil, err
+	}
+	skillID := strings.TrimSpace(req.Msg.GetSkillId())
+	if skillID == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("skill_id is required"))
+	}
+	client, _, err := s.containerClientAndRoots(ctx, botID)
+	if err != nil {
+		return nil, err
+	}
+	dirPath, err := skillset.ManagedSkillDirForName(skillID)
+	if err != nil {
+		return nil, skillConnectError(err)
+	}
+	if _, err := client.Stat(ctx, dirPath); err != nil {
+		return nil, skillConnectError(err)
+	}
+	if err := client.DeleteFile(ctx, dirPath, true); err != nil {
+		return nil, skillConnectError(err)
+	}
+	return connect.NewResponse(&privatev1.RemoveBotContainerSkillResponse{}), nil
 }
 
 func (s *SkillService) containerClientAndRoots(ctx context.Context, botID string) (skillFileClient, []string, error) {
@@ -508,6 +586,25 @@ func findSkillByNameProto(items []skillset.Entry, name string) *privatev1.Skill 
 	}
 }
 
+func botContainerSkillFromSkill(botID, version string, skill *privatev1.Skill) *privatev1.BotContainerSkill {
+	if skill == nil {
+		return nil
+	}
+	metadata := structToMap(skill.GetMetadata())
+	if version == "" {
+		version, _ = metadata["version"].(string)
+	}
+	return &privatev1.BotContainerSkill{
+		Id:       skill.GetId(),
+		BotId:    botID,
+		Name:     skill.GetName(),
+		Source:   skill.GetSource(),
+		Version:  strings.TrimSpace(version),
+		Enabled:  skill.GetEnabled(),
+		Metadata: skill.GetMetadata(),
+	}
+}
+
 type supermarketSkillAuthor struct {
 	Name  string `json:"name"`
 	Email string `json:"email"`
@@ -590,13 +687,13 @@ func cleanCatalogSkillArchivePath(skillID, archiveName string) string {
 
 func skillConnectError(err error) error {
 	switch {
-	case errors.Is(err, bridge.ErrNotFound):
+	case errors.Is(err, executorclient.ErrNotFound):
 		return connect.NewError(connect.CodeNotFound, err)
-	case errors.Is(err, bridge.ErrBadRequest):
+	case errors.Is(err, executorclient.ErrBadRequest):
 		return connect.NewError(connect.CodeInvalidArgument, err)
-	case errors.Is(err, bridge.ErrForbidden):
+	case errors.Is(err, executorclient.ErrForbidden):
 		return connect.NewError(connect.CodePermissionDenied, err)
-	case errors.Is(err, bridge.ErrUnavailable):
+	case errors.Is(err, executorclient.ErrUnavailable):
 		return connect.NewError(connect.CodeUnavailable, err)
 	default:
 		return connect.NewError(connect.CodeInternal, err)

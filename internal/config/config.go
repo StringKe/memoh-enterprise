@@ -142,14 +142,14 @@ func (c LocalConfig) MetadataPath(dataRoot string) string {
 }
 
 type KubernetesConfig struct {
-	Namespace          string `toml:"namespace"`
-	Kubeconfig         string `toml:"kubeconfig"`
-	InCluster          bool   `toml:"in_cluster"`
-	ServiceAccountName string `toml:"service_account_name"`
-	ImagePullSecret    string `toml:"image_pull_secret"`
-	PVCStorageClass    string `toml:"pvc_storage_class"`
-	PVCSize            string `toml:"pvc_size"`
-	BridgePort         int    `toml:"bridge_port"`
+	Namespace             string `toml:"namespace"`
+	Kubeconfig            string `toml:"kubeconfig"`
+	InCluster             bool   `toml:"in_cluster"`
+	ServiceAccountName    string `toml:"service_account_name"`
+	ImagePullSecret       string `toml:"image_pull_secret"`
+	PVCStorageClass       string `toml:"pvc_storage_class"`
+	PVCSize               string `toml:"pvc_size"`
+	WorkspaceExecutorPort int    `toml:"workspace_executor_port"`
 }
 
 func (c KubernetesConfig) EffectiveNamespace() string {
@@ -166,9 +166,9 @@ func (c KubernetesConfig) EffectivePVCSize() string {
 	return "10Gi"
 }
 
-func (c KubernetesConfig) EffectiveBridgePort() int {
-	if c.BridgePort > 0 {
-		return c.BridgePort
+func (c KubernetesConfig) EffectiveWorkspaceExecutorPort() int {
+	if c.WorkspaceExecutorPort > 0 {
+		return c.WorkspaceExecutorPort
 	}
 	return 9090
 }
@@ -353,10 +353,10 @@ func Load(path string) (Config, error) {
 			Namespace:  DefaultNamespace,
 		},
 		Kubernetes: KubernetesConfig{
-			Namespace:  DefaultNamespace,
-			InCluster:  true,
-			PVCSize:    "10Gi",
-			BridgePort: 9090,
+			Namespace:             DefaultNamespace,
+			InCluster:             true,
+			PVCSize:               "10Gi",
+			WorkspaceExecutorPort: 9090,
 		},
 		Workspace: defaultWorkspace,
 		Postgres: PostgresConfig{

@@ -19,8 +19,8 @@ import (
 	sdkjsonrpc "github.com/modelcontextprotocol/go-sdk/jsonrpc"
 	sdkmcp "github.com/modelcontextprotocol/go-sdk/mcp"
 
+	pb "github.com/memohai/memoh/internal/connectapi/gen/memoh/workspace/v1"
 	mcptools "github.com/memohai/memoh/internal/mcp"
-	pb "github.com/memohai/memoh/internal/workspace/bridgepb"
 )
 
 // MCPStdioRequest represents a request to create an MCP stdio session.
@@ -687,8 +687,8 @@ func (h *ContainerdHandler) HandleMCPStdio(c echo.Context) error {
 }
 
 func (h *ContainerdHandler) startContainerdMCPCommandSession(ctx context.Context, botID, containerID string, req MCPStdioRequest) (*mcpSession, error) {
-	// Get gRPC client for the bot container via manager
-	client, err := h.manager.MCPClient(ctx, botID)
+	// Get workspace executor client for the bot container via manager.
+	client, err := h.manager.ExecutorClient(ctx, botID)
 	if err != nil {
 		return nil, fmt.Errorf("get container client: %w", err)
 	}
@@ -744,12 +744,12 @@ func (h *ContainerdHandler) startContainerdMCPCommandSession(ctx context.Context
 				_ = stderrW.Close()
 				break
 			}
-			switch output.GetStream() {
-			case pb.ExecOutput_STDOUT:
+			switch output.GetKind() {
+			case pb.ExecResponse_KIND_STDOUT:
 				_, _ = stdoutW.Write(output.GetData())
-			case pb.ExecOutput_STDERR:
+			case pb.ExecResponse_KIND_STDERR:
 				_, _ = stderrW.Write(output.GetData())
-			case pb.ExecOutput_EXIT:
+			case pb.ExecResponse_KIND_EXIT:
 				_ = stdoutW.Close()
 				_ = stderrW.Close()
 				return

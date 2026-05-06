@@ -3,6 +3,7 @@ syntax = "proto3";
 package memoh.private.v1;
 
 import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
 import "memoh/private/v1/common.proto";
 
 option go_package = "github.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1;privatev1";
@@ -110,6 +111,60 @@ message ClearBotGroupResponse {
   Bot bot = 1;
 }
 
+message BotSession {
+  string id = 1;
+  string bot_id = 2;
+  string title = 3;
+  string status = 4;
+  int32 message_count = 5;
+  google.protobuf.Struct metadata = 6;
+  AuditFields audit = 7;
+}
+
+message BotSessionMessage {
+  string id = 1;
+  string session_id = 2;
+  string bot_id = 3;
+  string role = 4;
+  string text = 5;
+  google.protobuf.Struct payload = 6;
+  google.protobuf.Timestamp created_at = 7;
+}
+
+message ReadBotSessionHistoryRequest {
+  string bot_id = 1;
+  string session_id = 2;
+  int32 limit = 3;
+  string before_message_id = 4;
+}
+
+message ReadBotSessionHistoryResponse {
+  repeated BotSessionMessage messages = 1;
+}
+
+message CompactBotSessionRequest {
+  string bot_id = 1;
+  string session_id = 2;
+  string reason = 3;
+}
+
+message CompactBotSessionResponse {
+  string session_id = 1;
+  string summary = 2;
+  google.protobuf.Timestamp compacted_at = 3;
+}
+
+message ListBotSessionMessagesRequest {
+  string bot_id = 1;
+  string session_id = 2;
+  PageRequest page = 3;
+}
+
+message ListBotSessionMessagesResponse {
+  repeated BotSessionMessage messages = 1;
+  PageResponse page = 2;
+}
+
 service BotService {
   rpc CreateBot(CreateBotRequest) returns (CreateBotResponse);
   rpc GetBot(GetBotRequest) returns (GetBotResponse);
@@ -119,4 +174,7 @@ service BotService {
   rpc ListBotChecks(ListBotChecksRequest) returns (ListBotChecksResponse);
   rpc AssignBotGroup(AssignBotGroupRequest) returns (AssignBotGroupResponse);
   rpc ClearBotGroup(ClearBotGroupRequest) returns (ClearBotGroupResponse);
+  rpc ReadBotSessionHistory(ReadBotSessionHistoryRequest) returns (ReadBotSessionHistoryResponse);
+  rpc CompactBotSession(CompactBotSessionRequest) returns (CompactBotSessionResponse);
+  rpc ListBotSessionMessages(ListBotSessionMessagesRequest) returns (ListBotSessionMessagesResponse);
 }

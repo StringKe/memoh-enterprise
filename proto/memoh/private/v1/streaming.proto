@@ -37,10 +37,340 @@ message StreamContainerProgressResponse {
   google.protobuf.Timestamp created_at = 5;
 }
 
+message TerminalSize {
+  uint32 cols = 1;
+  uint32 rows = 2;
+}
+
+message OpenTerminalRequest {
+  string bot_id = 1;
+  string session_id = 2;
+  string command = 3;
+  string work_dir = 4;
+  repeated string env = 5;
+  TerminalSize size = 6;
+}
+
+message OpenTerminalResponse {
+  string terminal_id = 1;
+  string process_id = 2;
+}
+
+message StreamTerminalRequest {
+  string bot_id = 1;
+  string terminal_id = 2;
+}
+
+message StreamTerminalResponse {
+  bytes data = 1;
+  bool exited = 2;
+  int32 exit_code = 3;
+  google.protobuf.Timestamp created_at = 4;
+}
+
+message WriteTerminalInputRequest {
+  string bot_id = 1;
+  string terminal_id = 2;
+  bytes data = 3;
+}
+
+message WriteTerminalInputResponse {}
+
+message ResizeTerminalRequest {
+  string bot_id = 1;
+  string terminal_id = 2;
+  TerminalSize size = 3;
+}
+
+message ResizeTerminalResponse {}
+
+message CloseTerminalRequest {
+  string bot_id = 1;
+  string terminal_id = 2;
+}
+
+message CloseTerminalResponse {}
+
+message WorkspaceOperation {
+  string operation_id = 1;
+  string bot_id = 2;
+  string operation_type = 3;
+  string status = 4;
+  string message = 5;
+  google.protobuf.Struct payload = 6;
+  google.protobuf.Timestamp created_at = 7;
+}
+
+message StreamWorkspaceOperationRequest {
+  string bot_id = 1;
+  string operation_id = 2;
+  string operation_type = 3;
+}
+
+message StreamWorkspaceOperationResponse {
+  WorkspaceOperation operation = 1;
+}
+
+message StartContainerRequest {
+  string bot_id = 1;
+  google.protobuf.Struct options = 2;
+}
+
+message StartContainerResponse {
+  WorkspaceOperation operation = 1;
+}
+
+message StopContainerRequest {
+  string bot_id = 1;
+  string reason = 2;
+}
+
+message StopContainerResponse {
+  WorkspaceOperation operation = 1;
+}
+
+message RestartContainerRequest {
+  string bot_id = 1;
+  google.protobuf.Struct options = 2;
+}
+
+message RestartContainerResponse {
+  WorkspaceOperation operation = 1;
+}
+
+message GetContainerLifecycleRequest {
+  string bot_id = 1;
+}
+
+message GetContainerLifecycleResponse {
+  string bot_id = 1;
+  string workspace_id = 2;
+  string backend = 3;
+  string status = 4;
+  string image = 5;
+  google.protobuf.Timestamp started_at = 6;
+  google.protobuf.Struct metadata = 7;
+}
+
+message StreamContainerLifecycleRequest {
+  string bot_id = 1;
+}
+
+message StreamContainerLifecycleResponse {
+  GetContainerLifecycleResponse lifecycle = 1;
+}
+
+message GetContainerMetricsRequest {
+  string bot_id = 1;
+}
+
+message GetContainerMetricsResponse {
+  string bot_id = 1;
+  double cpu_percent = 2;
+  uint64 memory_bytes = 3;
+  uint64 memory_limit_bytes = 4;
+  uint64 rx_bytes = 5;
+  uint64 tx_bytes = 6;
+  google.protobuf.Timestamp observed_at = 7;
+}
+
+message StreamContainerMetricsRequest {
+  string bot_id = 1;
+}
+
+message StreamContainerMetricsResponse {
+  GetContainerMetricsResponse metrics = 1;
+}
+
+message ContainerSnapshot {
+  string snapshot_id = 1;
+  string bot_id = 2;
+  string name = 3;
+  int64 size_bytes = 4;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Struct metadata = 6;
+}
+
+message CreateContainerSnapshotRequest {
+  string bot_id = 1;
+  string name = 2;
+  google.protobuf.Struct metadata = 3;
+}
+
+message CreateContainerSnapshotResponse {
+  ContainerSnapshot snapshot = 1;
+}
+
+message ListContainerSnapshotsRequest {
+  string bot_id = 1;
+}
+
+message ListContainerSnapshotsResponse {
+  repeated ContainerSnapshot snapshots = 1;
+}
+
+message RestoreContainerSnapshotRequest {
+  string bot_id = 1;
+  string snapshot_id = 2;
+}
+
+message RestoreContainerSnapshotResponse {
+  WorkspaceOperation operation = 1;
+}
+
+message DeleteContainerSnapshotRequest {
+  string bot_id = 1;
+  string snapshot_id = 2;
+}
+
+message DeleteContainerSnapshotResponse {}
+
+message ImportContainerDataRequest {
+  string bot_id = 1;
+  string source = 2;
+  bytes data = 3;
+  google.protobuf.Struct options = 4;
+}
+
+message ImportContainerDataResponse {
+  WorkspaceOperation operation = 1;
+}
+
+message ExportContainerDataRequest {
+  string bot_id = 1;
+  string path = 2;
+  google.protobuf.Struct options = 3;
+}
+
+message ExportContainerDataResponse {
+  bytes data = 1;
+  string mime_type = 2;
+  string filename = 3;
+}
+
+message ContainerFileEntry {
+  string path = 1;
+  bool is_dir = 2;
+  int64 size = 3;
+  string mode = 4;
+  google.protobuf.Timestamp modified_at = 5;
+}
+
+message ListContainerFilesRequest {
+  string bot_id = 1;
+  string path = 2;
+  bool recursive = 3;
+  int32 page_size = 4;
+  string page_token = 5;
+}
+
+message ListContainerFilesResponse {
+  repeated ContainerFileEntry entries = 1;
+  string next_page_token = 2;
+}
+
+message ReadContainerFileRequest {
+  string bot_id = 1;
+  string path = 2;
+  int64 offset = 3;
+  int64 max_bytes = 4;
+}
+
+message ReadContainerFileResponse {
+  bytes content = 1;
+  bool binary = 2;
+  bool eof = 3;
+}
+
+message WriteContainerFileRequest {
+  string bot_id = 1;
+  string path = 2;
+  bytes content = 3;
+  bool create_parent_dirs = 4;
+}
+
+message WriteContainerFileResponse {
+  int64 bytes_written = 1;
+}
+
+message UploadContainerFileRequest {
+  string bot_id = 1;
+  string path = 2;
+  bytes content = 3;
+  bool create_parent_dirs = 4;
+}
+
+message UploadContainerFileResponse {
+  int64 bytes_written = 1;
+}
+
+message DownloadContainerFileRequest {
+  string bot_id = 1;
+  string path = 2;
+}
+
+message DownloadContainerFileResponse {
+  bytes content = 1;
+  string mime_type = 2;
+  string filename = 3;
+}
+
+message MkdirContainerFileRequest {
+  string bot_id = 1;
+  string path = 2;
+  bool parents = 3;
+}
+
+message MkdirContainerFileResponse {}
+
+message RenameContainerFileRequest {
+  string bot_id = 1;
+  string old_path = 2;
+  string new_path = 3;
+  bool overwrite = 4;
+}
+
+message RenameContainerFileResponse {}
+
+message DeleteContainerFileRequest {
+  string bot_id = 1;
+  string path = 2;
+  bool recursive = 3;
+}
+
+message DeleteContainerFileResponse {}
+
 service ChatService {
   rpc StreamChat(StreamChatRequest) returns (stream StreamChatResponse);
 }
 
 service ContainerService {
   rpc StreamContainerProgress(StreamContainerProgressRequest) returns (stream StreamContainerProgressResponse);
+  rpc OpenTerminal(OpenTerminalRequest) returns (OpenTerminalResponse);
+  rpc StreamTerminal(StreamTerminalRequest) returns (stream StreamTerminalResponse);
+  rpc WriteTerminalInput(WriteTerminalInputRequest) returns (WriteTerminalInputResponse);
+  rpc ResizeTerminal(ResizeTerminalRequest) returns (ResizeTerminalResponse);
+  rpc CloseTerminal(CloseTerminalRequest) returns (CloseTerminalResponse);
+  rpc StreamWorkspaceOperation(StreamWorkspaceOperationRequest) returns (stream StreamWorkspaceOperationResponse);
+  rpc StartContainer(StartContainerRequest) returns (StartContainerResponse);
+  rpc StopContainer(StopContainerRequest) returns (StopContainerResponse);
+  rpc RestartContainer(RestartContainerRequest) returns (RestartContainerResponse);
+  rpc GetContainerLifecycle(GetContainerLifecycleRequest) returns (GetContainerLifecycleResponse);
+  rpc StreamContainerLifecycle(StreamContainerLifecycleRequest) returns (stream StreamContainerLifecycleResponse);
+  rpc GetContainerMetrics(GetContainerMetricsRequest) returns (GetContainerMetricsResponse);
+  rpc StreamContainerMetrics(StreamContainerMetricsRequest) returns (stream StreamContainerMetricsResponse);
+  rpc CreateContainerSnapshot(CreateContainerSnapshotRequest) returns (CreateContainerSnapshotResponse);
+  rpc ListContainerSnapshots(ListContainerSnapshotsRequest) returns (ListContainerSnapshotsResponse);
+  rpc RestoreContainerSnapshot(RestoreContainerSnapshotRequest) returns (RestoreContainerSnapshotResponse);
+  rpc DeleteContainerSnapshot(DeleteContainerSnapshotRequest) returns (DeleteContainerSnapshotResponse);
+  rpc ImportContainerData(ImportContainerDataRequest) returns (ImportContainerDataResponse);
+  rpc ExportContainerData(ExportContainerDataRequest) returns (ExportContainerDataResponse);
+  rpc ListContainerFiles(ListContainerFilesRequest) returns (ListContainerFilesResponse);
+  rpc ReadContainerFile(ReadContainerFileRequest) returns (ReadContainerFileResponse);
+  rpc WriteContainerFile(WriteContainerFileRequest) returns (WriteContainerFileResponse);
+  rpc UploadContainerFile(UploadContainerFileRequest) returns (UploadContainerFileResponse);
+  rpc DownloadContainerFile(DownloadContainerFileRequest) returns (DownloadContainerFileResponse);
+  rpc MkdirContainerFile(MkdirContainerFileRequest) returns (MkdirContainerFileResponse);
+  rpc RenameContainerFile(RenameContainerFileRequest) returns (RenameContainerFileResponse);
+  rpc DeleteContainerFile(DeleteContainerFileRequest) returns (DeleteContainerFileResponse);
 }

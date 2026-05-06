@@ -14,6 +14,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 
 	"github.com/memohai/memoh/internal/acl"
+	"github.com/memohai/memoh/internal/botgroups"
 	"github.com/memohai/memoh/internal/db"
 	"github.com/memohai/memoh/internal/db/postgres/sqlc"
 	dbstore "github.com/memohai/memoh/internal/db/store"
@@ -145,7 +146,9 @@ func (s *Service) Create(ctx context.Context, ownerUserID string, req CreateBotR
 		return Bot{}, fmt.Errorf("invalid group id: %w", err)
 	}
 	if err := s.ensureGroupBelongsToOwner(ctx, ownerUUID, groupID); err != nil {
-		return Bot{}, err
+		if err := s.ensureGroupCanAttach(ctx, ownerID, groupID); err != nil {
+			return Bot{}, err
+		}
 	}
 	settingsOverrideMask, err := createSettingsOverrideMask(groupID.Valid, timezoneValue.Valid)
 	if err != nil {
@@ -252,9 +255,31 @@ func (s *Service) ListByOwner(ctx context.Context, ownerUserID string) ([]Bot, e
 	return items, nil
 }
 
-// ListAccessible returns all bots owned by the user.
-func (s *Service) ListAccessible(ctx context.Context, channelIdentityID string) ([]Bot, error) {
-	return s.ListByOwner(ctx, channelIdentityID)
+// ListAccessible returns all bots readable by the user through ownership, bot RBAC, or bot-group RBAC.
+func (s *Service) ListAccessible(ctx context.Context, userID string) ([]Bot, error) {
+	if s.queries == nil {
+		return nil, errors.New("bot queries not configured")
+	}
+	userUUID, err := db.ParseUUID(userID)
+	if err != nil {
+		return nil, err
+	}
+	rows, err := s.queries.ListAccessibleBots(ctx, userUUID)
+	if err != nil {
+		return nil, err
+	}
+	items := make([]Bot, 0, len(rows))
+	for _, row := range rows {
+		item, err := toBot(asSQLCBot(row))
+		if err != nil {
+			return nil, err
+		}
+		if err := s.attachCheckSummary(ctx, &item, asSQLCBot(row)); err != nil {
+			return nil, err
+		}
+		items = append(items, item)
+	}
+	return items, nil
 }
 
 // Update updates bot profile fields.
@@ -364,11 +389,29 @@ func (s *Service) AssignGroup(ctx context.Context, userID, botID, groupID string
 	if !targetGroupID.Valid {
 		return Bot{}, errors.New("group id is required")
 	}
-	if err := s.ensureGroupBelongsToOwner(ctx, existing.OwnerUserID, targetGroupID); err != nil {
+	if err := s.ensureGroupCanAttach(ctx, userID, targetGroupID); err != nil {
 		return Bot{}, err
 	}
-	normalized := targetGroupID.String()
-	return s.Update(ctx, botID, UpdateBotRequest{GroupID: &normalized})
+	row, err := s.queries.UpdateBotProfile(ctx, sqlc.UpdateBotProfileParams{
+		ID:          botUUID,
+		DisplayName: existing.DisplayName,
+		AvatarUrl:   existing.AvatarUrl,
+		Timezone:    existing.Timezone,
+		IsActive:    existing.IsActive,
+		GroupID:     targetGroupID,
+		Metadata:    existing.Metadata,
+	})
+	if err != nil {
+		return Bot{}, err
+	}
+	bot, err := toBot(asSQLCBot(row))
+	if err != nil {
+		return Bot{}, err
+	}
+	if err := s.attachCheckSummary(ctx, &bot, asSQLCBot(row)); err != nil {
+		return Bot{}, err
+	}
+	return bot, nil
 }
 
 func (s *Service) ClearGroup(ctx context.Context, userID, botID string) (Bot, error) {
@@ -382,8 +425,37 @@ func (s *Service) ClearGroup(ctx context.Context, userID, botID string) (Bot, er
 	if !allowed {
 		return Bot{}, ErrBotAccessDenied
 	}
-	empty := ""
-	return s.Update(ctx, botID, UpdateBotRequest{GroupID: &empty})
+	botUUID, err := db.ParseUUID(botID)
+	if err != nil {
+		return Bot{}, err
+	}
+	existing, err := s.queries.GetBotByID(ctx, botUUID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return Bot{}, ErrBotNotFound
+		}
+		return Bot{}, err
+	}
+	row, err := s.queries.UpdateBotProfile(ctx, sqlc.UpdateBotProfileParams{
+		ID:          botUUID,
+		DisplayName: existing.DisplayName,
+		AvatarUrl:   existing.AvatarUrl,
+		Timezone:    existing.Timezone,
+		IsActive:    existing.IsActive,
+		GroupID:     pgtype.UUID{},
+		Metadata:    existing.Metadata,
+	})
+	if err != nil {
+		return Bot{}, err
+	}
+	bot, err := toBot(asSQLCBot(row))
+	if err != nil {
+		return Bot{}, err
+	}
+	if err := s.attachCheckSummary(ctx, &bot, asSQLCBot(row)); err != nil {
+		return Bot{}, err
+	}
+	return bot, nil
 }
 
 // TransferOwner transfers bot ownership to another user.
@@ -445,12 +517,102 @@ func (s *Service) hasBotPermission(ctx context.Context, userID, botID string, pe
 	if userID == "" || botID == "" {
 		return false, nil
 	}
-	return s.rbac.HasPermission(ctx, rbac.Check{
+	allowed, err := s.rbac.HasPermission(ctx, rbac.Check{
 		UserID:        userID,
 		PermissionKey: permission,
 		ResourceType:  rbac.ResourceBot,
 		ResourceID:    botID,
 	})
+	if err != nil || allowed {
+		return allowed, err
+	}
+	botUUID, err := db.ParseUUID(botID)
+	if err != nil {
+		return false, err
+	}
+	row, err := s.queries.GetBotByID(ctx, botUUID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return false, ErrBotNotFound
+		}
+		return false, err
+	}
+	if !row.GroupID.Valid {
+		return false, nil
+	}
+	group, err := s.queries.GetBotGroupByID(ctx, row.GroupID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return false, nil
+		}
+		return false, err
+	}
+	if permission == rbac.PermissionBotRead || permission == rbac.PermissionBotChat {
+		if group.Visibility == botgroups.VisibilityOrganization || group.Visibility == botgroups.VisibilityPublic {
+			return true, nil
+		}
+	}
+	groupPermission, ok := inheritedBotGroupPermission(permission)
+	if !ok {
+		return false, nil
+	}
+	return s.rbac.HasPermission(ctx, rbac.Check{
+		UserID:        userID,
+		PermissionKey: groupPermission,
+		ResourceType:  rbac.ResourceBotGroup,
+		ResourceID:    row.GroupID.String(),
+	})
+}
+
+func inheritedBotGroupPermission(permission rbac.PermissionKey) (rbac.PermissionKey, bool) {
+	switch permission {
+	case rbac.PermissionBotRead:
+		return rbac.PermissionBotGroupRead, true
+	case rbac.PermissionBotChat:
+		return rbac.PermissionBotGroupUse, true
+	case rbac.PermissionBotUpdate, rbac.PermissionBotDelete:
+		return rbac.PermissionBotGroupBotsManage, true
+	case rbac.PermissionBotPermissionsManage:
+		return rbac.PermissionBotGroupPermissionsManage, true
+	default:
+		return "", false
+	}
+}
+
+func (s *Service) ensureGroupCanAttach(ctx context.Context, userID string, groupID pgtype.UUID) error {
+	if !groupID.Valid {
+		return nil
+	}
+	group, err := s.queries.GetBotGroupByID(ctx, groupID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return ErrBotGroupNotFound
+		}
+		return err
+	}
+	userUUID, err := db.ParseUUID(strings.TrimSpace(userID))
+	if err != nil {
+		return err
+	}
+	if group.OwnerUserID == userUUID {
+		return nil
+	}
+	if s.rbac == nil {
+		return ErrBotGroupNotAllowed
+	}
+	allowed, err := s.rbac.HasPermission(ctx, rbac.Check{
+		UserID:        userID,
+		PermissionKey: rbac.PermissionBotGroupBotsManage,
+		ResourceType:  rbac.ResourceBotGroup,
+		ResourceID:    groupID.String(),
+	})
+	if err != nil {
+		return err
+	}
+	if allowed {
+		return nil
+	}
+	return ErrBotGroupNotAllowed
 }
 
 func (s *Service) assignBotOwnerRole(ctx context.Context, ownerID pgtype.UUID, botID pgtype.UUID) error {

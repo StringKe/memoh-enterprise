@@ -1,0 +1,256 @@
+syntax = "proto3";
+
+package memoh.workspace.v1;
+
+option go_package = "github.com/memohai/memoh/internal/connectapi/gen/memoh/workspace/v1;workspacev1";
+
+service WorkspaceExecutorService {
+  rpc GetWorkspaceInfo(GetWorkspaceInfoRequest) returns (GetWorkspaceInfoResponse);
+  rpc ReadFile(ReadFileRequest) returns (ReadFileResponse);
+  rpc WriteFile(WriteFileRequest) returns (WriteFileResponse);
+  rpc ListDir(ListDirRequest) returns (ListDirResponse);
+  rpc Stat(StatRequest) returns (StatResponse);
+  rpc Mkdir(MkdirRequest) returns (MkdirResponse);
+  rpc Rename(RenameRequest) returns (RenameResponse);
+  rpc DeleteFile(DeleteFileRequest) returns (DeleteFileResponse);
+  rpc ReadRaw(ReadRawRequest) returns (stream ReadRawResponse);
+  rpc WriteRaw(stream WriteRawRequest) returns (WriteRawResponse);
+  rpc Exec(stream ExecRequest) returns (stream ExecResponse);
+  rpc OpenPTY(OpenPTYRequest) returns (OpenPTYResponse);
+  rpc StreamPTY(StreamPTYRequest) returns (stream StreamPTYResponse);
+  rpc WritePTY(WritePTYRequest) returns (WritePTYResponse);
+  rpc ResizePTY(ResizePTYRequest) returns (ResizePTYResponse);
+  rpc KillProcess(KillProcessRequest) returns (KillProcessResponse);
+  rpc ListProcesses(ListProcessesRequest) returns (ListProcessesResponse);
+  rpc StartMCPServer(StartMCPServerRequest) returns (StartMCPServerResponse);
+  rpc StopMCPServer(StopMCPServerRequest) returns (StopMCPServerResponse);
+}
+
+message GetWorkspaceInfoRequest {}
+
+message GetWorkspaceInfoResponse {
+  string workspace_id = 1;
+  string backend = 2;
+  string default_work_dir = 3;
+  repeated string allowed_roots = 4;
+  map<string, string> runtime = 5;
+}
+
+message ReadFileRequest {
+  string path = 1;
+  int32 line_offset = 2;
+  int32 line_count = 3;
+}
+
+message ReadFileResponse {
+  string content = 1;
+  int32 total_lines = 2;
+  bool binary = 3;
+}
+
+message WriteFileRequest {
+  string path = 1;
+  bytes content = 2;
+  bool create_parent_dirs = 3;
+}
+
+message WriteFileResponse {
+  int64 bytes_written = 1;
+}
+
+message ListDirRequest {
+  string path = 1;
+  bool recursive = 2;
+  int32 page_size = 3;
+  string page_token = 4;
+  int32 collapse_threshold = 5;
+}
+
+message FileEntry {
+  string path = 1;
+  bool is_dir = 2;
+  int64 size = 3;
+  string mode = 4;
+  string mod_time = 5;
+  string summary = 6;
+}
+
+message ListDirResponse {
+  repeated FileEntry entries = 1;
+  string next_page_token = 2;
+  int32 total_count = 3;
+  bool truncated = 4;
+}
+
+message StatRequest {
+  string path = 1;
+}
+
+message StatResponse {
+  FileEntry entry = 1;
+}
+
+message MkdirRequest {
+  string path = 1;
+  bool parents = 2;
+}
+
+message MkdirResponse {}
+
+message RenameRequest {
+  string old_path = 1;
+  string new_path = 2;
+  bool overwrite = 3;
+}
+
+message RenameResponse {}
+
+message DeleteFileRequest {
+  string path = 1;
+  bool recursive = 2;
+}
+
+message DeleteFileResponse {}
+
+message ReadRawRequest {
+  string path = 1;
+  int64 offset = 2;
+  int64 max_bytes = 3;
+}
+
+message ReadRawResponse {
+  DataChunk chunk = 1;
+}
+
+message DataChunk {
+  bytes data = 1;
+  int64 offset = 2;
+  bool eof = 3;
+}
+
+message WriteRawRequest {
+  WriteRawChunk chunk = 1;
+}
+
+message WriteRawChunk {
+  string path = 1;
+  bytes data = 2;
+  int64 offset = 3;
+  bool truncate = 4;
+}
+
+message WriteRawResponse {
+  int64 bytes_written = 1;
+}
+
+message TerminalResize {
+  uint32 cols = 1;
+  uint32 rows = 2;
+}
+
+message ExecRequest {
+  oneof frame {
+    ExecStart start = 1;
+    bytes stdin_data = 2;
+    TerminalResize resize = 3;
+  }
+}
+
+message ExecStart {
+  string command = 1;
+  string work_dir = 2;
+  repeated string env = 3;
+  int32 timeout_seconds = 4;
+  bool pty = 5;
+}
+
+message ExecResponse {
+  enum Kind {
+    KIND_UNSPECIFIED = 0;
+    KIND_STDOUT = 1;
+    KIND_STDERR = 2;
+    KIND_EXIT = 3;
+    KIND_ERROR = 4;
+  }
+  Kind kind = 1;
+  bytes data = 2;
+  int32 exit_code = 3;
+  string error_code = 4;
+  string error_message = 5;
+}
+
+message OpenPTYRequest {
+  string command = 1;
+  string work_dir = 2;
+  repeated string env = 3;
+  TerminalResize size = 4;
+}
+
+message OpenPTYResponse {
+  string process_id = 1;
+}
+
+message StreamPTYRequest {
+  string process_id = 1;
+}
+
+message StreamPTYResponse {
+  PTYOutput output = 1;
+}
+
+message PTYOutput {
+  bytes data = 1;
+  bool exited = 2;
+  int32 exit_code = 3;
+}
+
+message WritePTYRequest {
+  string process_id = 1;
+  bytes data = 2;
+}
+
+message WritePTYResponse {}
+
+message ResizePTYRequest {
+  string process_id = 1;
+  TerminalResize size = 2;
+}
+
+message ResizePTYResponse {}
+
+message KillProcessRequest {
+  string process_id = 1;
+  string signal = 2;
+}
+
+message KillProcessResponse {}
+
+message ProcessInfo {
+  string process_id = 1;
+  string command = 2;
+  string status = 3;
+  int64 started_unix = 4;
+}
+
+message ListProcessesRequest {}
+
+message ListProcessesResponse {
+  repeated ProcessInfo processes = 1;
+}
+
+message StartMCPServerRequest {
+  string name = 1;
+  string command = 2;
+  string work_dir = 3;
+  repeated string env = 4;
+}
+
+message StartMCPServerResponse {
+  string process_id = 1;
+}
+
+message StopMCPServerRequest {
+  string process_id = 1;
+}
+
+message StopMCPServerResponse {}

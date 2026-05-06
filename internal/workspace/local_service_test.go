@@ -14,7 +14,7 @@ import (
 	ctr "github.com/memohai/memoh/internal/container"
 )
 
-func TestLocalServiceCRUDAndInProcessBridge(t *testing.T) {
+func TestLocalServiceCRUDAndInProcessExecutor(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -40,7 +40,7 @@ func TestLocalServiceCRUDAndInProcessBridge(t *testing.T) {
 		t.Fatalf("workspace path = %q, want %q", info.StorageRef.Key, workspaceRoot)
 	}
 	if _, err := os.Stat(filepath.Join(workspaceRoot, "IDENTITY.md")); err != nil {
-		t.Fatalf("expected seeded bridge template: %v", err)
+		t.Fatalf("expected seeded executor template: %v", err)
 	}
 
 	if err := svc.StartContainer(ctx, info.ID, nil); err != nil {
@@ -54,9 +54,9 @@ func TestLocalServiceCRUDAndInProcessBridge(t *testing.T) {
 		t.Fatalf("task status = %s, want running", task.Status)
 	}
 
-	client, err := svc.MCPClient(ctx, botID)
+	client, err := svc.ExecutorClient(ctx, botID)
 	if err != nil {
-		t.Fatalf("MCPClient failed: %v", err)
+		t.Fatalf("ExecutorClient failed: %v", err)
 	}
 	realPath := filepath.Join(workspaceRoot, "note.txt")
 	if err := client.WriteFile(ctx, realPath, []byte("hello")); err != nil {
@@ -77,7 +77,11 @@ func TestLocalServiceCRUDAndInProcessBridge(t *testing.T) {
 	if result.ExitCode != 0 {
 		t.Fatalf("exec exit = %d, stderr=%s", result.ExitCode, result.Stderr)
 	}
-	if got := filepath.Clean(strings.TrimSpace(result.Stdout)); got != workspaceRoot {
-		t.Fatalf("pwd = %q, want %q", got, workspaceRoot)
+	wantPWD, err := filepath.EvalSymlinks(workspaceRoot)
+	if err != nil {
+		t.Fatalf("EvalSymlinks workspace root: %v", err)
+	}
+	if got := filepath.Clean(strings.TrimSpace(result.Stdout)); got != wantPWD {
+		t.Fatalf("pwd = %q, want %q", got, wantPWD)
 	}
 }

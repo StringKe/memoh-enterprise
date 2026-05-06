@@ -16,7 +16,7 @@ import (
 	"github.com/memohai/memoh/internal/db"
 	dbsqlc "github.com/memohai/memoh/internal/db/postgres/sqlc"
 	netctl "github.com/memohai/memoh/internal/network"
-	"github.com/memohai/memoh/internal/workspace/bridge"
+	"github.com/memohai/memoh/internal/workspace/executorclient"
 )
 
 // ---------------------------------------------------------------------------
@@ -332,7 +332,7 @@ func (m *Manager) SetupBotContainer(ctx context.Context, botID string) error {
 			slog.Any("error", err))
 		return err
 	}
-	if workspaceCfg.Backend != bridge.WorkspaceBackendLocal {
+	if workspaceCfg.Backend != executorclient.WorkspaceBackendLocal {
 		if _, err := m.PrepareImageForCreate(ctx, image, &ctr.PullImageOptions{
 			Unpack:        true,
 			StorageDriver: m.cfg.Snapshotter,
@@ -357,7 +357,7 @@ func (m *Manager) SetupBotContainer(ctx context.Context, botID string) error {
 			slog.Any("error", err))
 		return err
 	}
-	if workspaceCfg.Backend != bridge.WorkspaceBackendLocal {
+	if workspaceCfg.Backend != executorclient.WorkspaceBackendLocal {
 		if err := m.RememberWorkspaceImage(ctx, botID, image); err != nil {
 			m.logger.Warn("setup bot container: remember workspace image failed",
 				slog.String("bot_id", botID),
@@ -365,9 +365,9 @@ func (m *Manager) SetupBotContainer(ctx context.Context, botID string) error {
 				slog.Any("error", err))
 		}
 	}
-	if workspaceCfg.Backend == bridge.WorkspaceBackendLocal && strings.TrimSpace(workspaceCfg.LocalWorkspacePath) == "" {
+	if workspaceCfg.Backend == executorclient.WorkspaceBackendLocal && strings.TrimSpace(workspaceCfg.LocalWorkspacePath) == "" {
 		// Persist the generated default so subsequent lifecycle runs are stable.
-		if err := m.rememberWorkspaceBackend(ctx, botID, bridge.WorkspaceBackendLocal, m.defaultLocalWorkspacePath(ctx, botID)); err != nil {
+		if err := m.rememberWorkspaceBackend(ctx, botID, executorclient.WorkspaceBackendLocal, m.defaultLocalWorkspacePath(ctx, botID)); err != nil {
 			m.logger.Warn("setup bot container: remember local workspace path failed",
 				slog.String("bot_id", botID),
 				slog.Any("error", err))
@@ -447,7 +447,7 @@ func (m *Manager) ReconcileContainers(ctx context.Context) {
 		// --- legacy container support (mcp- prefix, TCP gRPC) ---
 		// Remove when all deployments have migrated to workspace- containers.
 		if m.IsLegacyContainer(ctx, containerID) {
-			m.logger.Warn("reconcile: legacy container (pre-bridge), using TCP fallback",
+			m.logger.Warn("reconcile: legacy container, using TCP fallback",
 				slog.String("bot_id", botID), slog.String("container_id", containerID))
 
 			running := m.isTaskRunning(ctx, containerID)
@@ -555,7 +555,7 @@ func (m *Manager) containerRecordPath(ctx context.Context, containerID string) s
 func (m *Manager) containerRecordBackend(ctx context.Context, containerID string) string {
 	if info, err := m.service.GetContainer(ctx, containerID); err == nil {
 		if strings.TrimSpace(info.StorageRef.Driver) == localRuntimeName {
-			return bridge.WorkspaceBackendLocal
+			return executorclient.WorkspaceBackendLocal
 		}
 	}
 	return workspaceBackendFromRecord("", containerID)
@@ -563,15 +563,15 @@ func (m *Manager) containerRecordBackend(ctx context.Context, containerID string
 
 func workspaceBackendFromRecord(recordValue, containerID string) string {
 	switch strings.ToLower(strings.TrimSpace(recordValue)) {
-	case bridge.WorkspaceBackendLocal:
-		return bridge.WorkspaceBackendLocal
-	case bridge.WorkspaceBackendContainer:
-		return bridge.WorkspaceBackendContainer
+	case executorclient.WorkspaceBackendLocal:
+		return executorclient.WorkspaceBackendLocal
+	case executorclient.WorkspaceBackendContainer:
+		return executorclient.WorkspaceBackendContainer
 	}
 	if strings.HasPrefix(strings.TrimSpace(containerID), LocalContainerPrefix) {
-		return bridge.WorkspaceBackendLocal
+		return executorclient.WorkspaceBackendLocal
 	}
-	return bridge.WorkspaceBackendContainer
+	return executorclient.WorkspaceBackendContainer
 }
 
 func (m *Manager) deleteContainerRecord(ctx context.Context, botID string) {

@@ -3,11 +3,11 @@ package agent
 import (
 	"log/slog"
 
-	"github.com/memohai/memoh/internal/workspace/bridge"
+	"github.com/memohai/memoh/internal/workspace/executorclient"
 )
 
 // Deps holds all service dependencies for the Agent.
 type Deps struct {
-	BridgeProvider bridge.Provider
-	Logger         *slog.Logger
+	WorkspaceExecutorProvider executorclient.Provider
+	Logger                    *slog.Logger
 }

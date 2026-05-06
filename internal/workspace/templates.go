@@ -8,13 +8,13 @@ import (
 )
 
 //go:embed templates/*
-var bridgeTemplates embed.FS
+var executorTemplates embed.FS
 
-func seedBridgeTemplates(dstDir string) error {
+func seedExecutorTemplates(dstDir string) error {
 	if err := os.MkdirAll(dstDir, 0o750); err != nil {
 		return err
 	}
-	entries, err := fs.ReadDir(bridgeTemplates, "templates")
+	entries, err := fs.ReadDir(executorTemplates, "templates")
 	if err != nil {
 		return err
 	}
@@ -26,7 +26,7 @@ func seedBridgeTemplates(dstDir string) error {
 		if _, err := os.Stat(dst); err == nil {
 			continue
 		}
-		data, err := bridgeTemplates.ReadFile("templates/" + entry.Name())
+		data, err := executorTemplates.ReadFile("templates/" + entry.Name())
 		if err != nil {
 			return err
 		}

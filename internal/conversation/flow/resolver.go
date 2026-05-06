@@ -728,7 +728,7 @@ func (r *Resolver) prepareRunConfig(ctx context.Context, cfg agentpkg.RunConfig)
 		if cfg.Identity.TimezoneLocation != nil {
 			nowFn = func() time.Time { return time.Now().In(cfg.Identity.TimezoneLocation) }
 		}
-		fs := agentpkg.NewFSClient(r.agent.BridgeProvider(), cfg.Identity.BotID, nowFn)
+		fs := agentpkg.NewFSClient(r.agent.WorkspaceExecutorProvider(), cfg.Identity.BotID, nowFn)
 		files = fs.LoadSystemFiles(ctx)
 	}
 

@@ -22,7 +22,7 @@ import (
 	"github.com/memohai/memoh/internal/identity"
 	netctl "github.com/memohai/memoh/internal/network"
 	skillset "github.com/memohai/memoh/internal/skills"
-	"github.com/memohai/memoh/internal/workspace/bridge"
+	"github.com/memohai/memoh/internal/workspace/executorclient"
 )
 
 const (
@@ -85,9 +85,9 @@ type Manager struct {
 	logger            *slog.Logger
 	containerLockMu   sync.Mutex
 	containerLocks    map[string]*sync.Mutex
-	grpcPool          *bridge.Pool
+	grpcPool          *executorclient.Pool
 	legacyMu          sync.RWMutex
-	legacyIPs         map[string]string // botID → IP for pre-bridge containers
+	legacyIPs         map[string]string // botID -> IP for pre-executor containers
 }
 
 type WorkspaceStartConfig struct {
@@ -116,7 +116,7 @@ func NewManager(log *slog.Logger, service runtimeService, networkController netc
 		containerLocks:    make(map[string]*sync.Mutex),
 		legacyIPs:         make(map[string]string),
 	}
-	m.grpcPool = bridge.NewPool(m.dialTarget)
+	m.grpcPool = executorclient.NewPool(m.dialTarget)
 	return m
 }
 
@@ -153,14 +153,19 @@ func (m *Manager) socketDir(botID string) string {
 
 // socketPath returns the path to the UDS socket file for a bot's container.
 func (m *Manager) socketPath(botID string) string {
-	return filepath.Join(m.socketDir(botID), "bridge.sock")
+	return filepath.Join(m.socketDir(botID), "workspace-executor.sock")
 }
 
-// dialTarget returns the gRPC dial target for a bot. Legacy containers
-// (pre-bridge) are reached via TCP; bridge containers use UDS.
+// dialTarget returns the gRPC dial target for a bot. Legacy containers use TCP;
+// workspace executor containers use UDS.
 func (m *Manager) dialTarget(botID string) string {
-	if targeter, ok := m.service.(interface{ BridgeTarget(string) string }); ok {
-		if target := strings.TrimSpace(targeter.BridgeTarget(botID)); target != "" {
+	if targeter, ok := m.service.(interface{ WorkspaceExecutorTarget(string) string }); ok {
+		if target := strings.TrimSpace(targeter.WorkspaceExecutorTarget(botID)); target != "" {
+			return target
+		}
+	}
+	if targeter, ok := m.service.(interface{ WorkspaceExecutorTarget(string) string }); ok {
+		if target := strings.TrimSpace(targeter.WorkspaceExecutorTarget(botID)); target != "" {
 			return target
 		}
 	}
@@ -173,8 +178,7 @@ func (m *Manager) dialTarget(botID string) string {
 	return "unix://" + m.socketPath(botID)
 }
 
-// SetLegacyIP records the IP address of a legacy (pre-bridge) container
-// so the gRPC pool can reach it via TCP.
+// SetLegacyIP records the IP address of a legacy container so the gRPC pool can reach it via TCP.
 func (m *Manager) SetLegacyIP(botID, ip string) {
 	m.legacyMu.Lock()
 	m.legacyIPs[botID] = ip
@@ -189,17 +193,17 @@ func (m *Manager) ClearLegacyIP(botID string) {
 }
 
 // clearLegacyRoute evicts any stale TCP fallback state for a bot so future
-// gRPC dials use the bridge container's Unix socket.
+// ConnectRPC dials use the workspace executor Unix socket.
 func (m *Manager) clearLegacyRoute(botID string) {
 	m.ClearLegacyIP(botID)
 	m.grpcPool.Remove(botID)
 }
 
-// MCPClient returns a gRPC client for the given bot's container.
-// Implements bridge.Provider.
-func (m *Manager) MCPClient(ctx context.Context, botID string) (*bridge.Client, error) {
-	if provider, ok := m.service.(bridge.Provider); ok {
-		client, err := provider.MCPClient(ctx, botID)
+// ExecutorClient returns a ConnectRPC client for the given bot's workspace executor.
+// Implements executorclient.Provider.
+func (m *Manager) ExecutorClient(ctx context.Context, botID string) (*executorclient.Client, error) {
+	if provider, ok := m.service.(executorclient.Provider); ok {
+		client, err := provider.ExecutorClient(ctx, botID)
 		if err == nil {
 			return client, nil
 		}
@@ -210,18 +214,18 @@ func (m *Manager) MCPClient(ctx context.Context, botID string) (*bridge.Client, 
 	return m.grpcPool.Get(ctx, botID)
 }
 
-func (m *Manager) WorkspaceInfo(ctx context.Context, botID string) (bridge.WorkspaceInfo, error) {
-	if provider, ok := m.service.(bridge.WorkspaceInfoProvider); ok {
+func (m *Manager) WorkspaceInfo(ctx context.Context, botID string) (executorclient.WorkspaceInfo, error) {
+	if provider, ok := m.service.(executorclient.WorkspaceInfoProvider); ok {
 		info, err := provider.WorkspaceInfo(ctx, botID)
 		if err == nil {
 			return info, nil
 		}
 		if !errors.Is(err, ctr.ErrNotSupported) && !ctr.IsNotFound(err) {
-			return bridge.WorkspaceInfo{}, err
+			return executorclient.WorkspaceInfo{}, err
 		}
 	}
-	return bridge.WorkspaceInfo{
-		Backend:        bridge.WorkspaceBackendContainer,
+	return executorclient.WorkspaceInfo{
+		Backend:        executorclient.WorkspaceBackendContainer,
 		DefaultWorkDir: config.DefaultDataMount,
 	}, nil
 }
@@ -244,7 +248,7 @@ func (m *Manager) Init(ctx context.Context) error {
 
 // EnsureBot creates the workspace container for a bot if it does not exist.
 // Bot data lives in the container's writable layer (snapshot), not bind mounts.
-// The Memoh runtime (bridge binary + toolkit) is injected via read-only bind mount.
+// The Memoh runtime (workspace executor binary + toolkit) is injected via read-only bind mount.
 // If imageOverride is non-empty, it is used instead of the configured default.
 func (m *Manager) EnsureBot(ctx context.Context, botID, imageOverride string) error {
 	image := m.imageRef()
@@ -282,7 +286,7 @@ func (m *Manager) buildWorkspaceContainerSpec(ctx context.Context, botID string,
 
 	runtimeDir := m.cfg.RuntimePath()
 	sockDir := m.socketDir(botID)
-	if err := os.MkdirAll(sockDir, 0o750); err != nil {
+	if err := os.MkdirAll(sockDir, 0o700); err != nil {
 		return ctr.ContainerSpec{}, fmt.Errorf("create socket dir: %w", err)
 	}
 
@@ -316,11 +320,11 @@ func (m *Manager) buildWorkspaceContainerSpec(ctx context.Context, botID string,
 	skillEnv := skillset.ContainerEnv(skillRoots)
 	env := make([]string, 0, len(tzEnv)+1+len(skillEnv))
 	env = append(env, tzEnv...)
-	env = append(env, "BRIDGE_SOCKET_PATH=/run/memoh/bridge.sock")
+	env = append(env, "WORKSPACE_EXECUTOR_SOCKET_PATH=/run/memoh/workspace-executor.sock")
 	env = append(env, skillEnv...)
 
 	return ctr.ContainerSpec{
-		Cmd:        []string{"/opt/memoh/bridge"},
+		Cmd:        []string{"/opt/memoh/workspace-executor"},
 		Mounts:     mounts,
 		Env:        env,
 		CDIDevices: normalizeWorkspaceGPUDevices(gpu.Devices),
@@ -391,7 +395,7 @@ func (m *Manager) Start(ctx context.Context, botID string) error {
 	return m.startWithResolvedConfig(ctx, botID, image, gpu)
 }
 
-// StartWithImage creates and starts the MCP container for a bot.
+// StartWithImage creates and starts the workspace container for a bot.
 // If imageOverride is non-empty, it is used as the base image instead of the
 // configured default. The override only applies when creating a new container.
 func (m *Manager) StartWithImage(ctx context.Context, botID, imageOverride string) error {
@@ -430,9 +434,9 @@ func (m *Manager) StartWithResolvedConfig(ctx context.Context, botID, image stri
 
 func (m *Manager) StartWithWorkspaceConfig(ctx context.Context, botID, image string, gpu WorkspaceGPUConfig, workspaceCfg WorkspaceStartConfig) error {
 	switch strings.ToLower(strings.TrimSpace(workspaceCfg.Backend)) {
-	case "", bridge.WorkspaceBackendContainer:
+	case "", executorclient.WorkspaceBackendContainer:
 		return m.StartWithResolvedConfig(ctx, botID, image, gpu)
-	case bridge.WorkspaceBackendLocal:
+	case executorclient.WorkspaceBackendLocal:
 		return m.startWithLocalConfig(ctx, botID, image, workspaceCfg.LocalWorkspacePath)
 	default:
 		return fmt.Errorf("unsupported workspace backend %q", workspaceCfg.Backend)
@@ -493,7 +497,7 @@ func (m *Manager) startWithResolvedConfig(ctx context.Context, botID, image stri
 	// Restore preserved data (from orphaned snapshot recovery or a previous
 	// CleanupBotContainer with preserveData) into the fresh snapshot before
 	// starting the task when the backend exposes snapshot mounts. Backends
-	// without mount support restore through the bridge after the task starts.
+	// without mount support restore through the workspace executor after the task starts.
 	restoreAfterStart := false
 	if m.HasPreservedData(botID) {
 		if err := m.restorePreservedIntoSnapshot(ctx, botID); err != nil {
@@ -515,7 +519,7 @@ func (m *Manager) startWithResolvedConfig(ctx context.Context, botID, image stri
 	}
 	if restoreAfterStart {
 		if err := m.RestorePreservedData(ctx, botID); err != nil {
-			return fmt.Errorf("restore preserved data through bridge: %w", err)
+			return fmt.Errorf("restore preserved data through workspace executor: %w", err)
 		}
 	}
 	if !m.IsLegacyContainer(ctx, containerID) {
@@ -593,7 +597,7 @@ func (m *Manager) defaultLocalWorkspacePath(ctx context.Context, botID string) s
 }
 
 // IsLegacyContainer returns true if the container was created before the
-// bridge runtime injection architecture (uses the legacy "mcp-" prefix).
+// workspace runtime injection architecture (uses the legacy "mcp-" prefix).
 // Legacy containers are functional but unreachable from the server (they
 // use TCP gRPC instead of UDS). Users should delete and recreate them.
 func (*Manager) IsLegacyContainer(_ context.Context, containerID string) bool {

@@ -1,0 +1,71 @@
+syntax = "proto3";
+
+package memoh.connector.v1;
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+import "memoh/connector/v1/connector.proto";
+
+option go_package = "github.com/memohai/memoh/internal/connectapi/gen/memoh/connector/v1;connectorv1";
+
+service ConnectorEventService {
+  rpc StreamInboundEvents(stream StreamInboundEventsRequest) returns (StreamInboundEventsResponse);
+  rpc StreamOutboundCommands(StreamOutboundCommandsRequest) returns (stream StreamOutboundCommandsResponse);
+  rpc AckOutboundCommand(AckOutboundCommandRequest) returns (AckOutboundCommandResponse);
+}
+
+message InboundConnectorEvent {
+  string event_id = 1;
+  string channel_config_id = 2;
+  string channel_type = 3;
+  string owner_instance_id = 4;
+  int64 lease_version = 5;
+  string external_conversation_id = 6;
+  string external_sender_id = 7;
+  string event_type = 8;
+  string text = 9;
+  google.protobuf.Struct payload = 10;
+  google.protobuf.Timestamp occurred_at = 11;
+}
+
+message StreamInboundEventsRequest {
+  ConnectorLease lease = 1;
+  InboundConnectorEvent event = 2;
+}
+
+message StreamInboundEventsResponse {
+  int64 accepted_count = 1;
+}
+
+message OutboundConnectorCommand {
+  string command_id = 1;
+  string channel_config_id = 2;
+  string channel_type = 3;
+  string owner_instance_id = 4;
+  int64 lease_version = 5;
+  string external_conversation_id = 6;
+  string command_type = 7;
+  string text = 8;
+  google.protobuf.Struct payload = 9;
+}
+
+message StreamOutboundCommandsRequest {
+  ConnectorLease lease = 1;
+}
+
+message StreamOutboundCommandsResponse {
+  OutboundConnectorCommand command = 1;
+}
+
+message AckOutboundCommandRequest {
+  string command_id = 1;
+  string channel_config_id = 2;
+  string owner_instance_id = 3;
+  int64 lease_version = 4;
+  string status = 5;
+  string error_message = 6;
+}
+
+message AckOutboundCommandResponse {
+  bool accepted = 1;
+}

@@ -72,6 +72,15 @@ const (
 	// ProviderServiceRevokeProviderOauthProcedure is the fully-qualified name of the ProviderService's
 	// RevokeProviderOauth RPC.
 	ProviderServiceRevokeProviderOauthProcedure = "/memoh.private.v1.ProviderService/RevokeProviderOauth"
+	// ProviderServiceAuthorizeProviderOauthProcedure is the fully-qualified name of the
+	// ProviderService's AuthorizeProviderOauth RPC.
+	ProviderServiceAuthorizeProviderOauthProcedure = "/memoh.private.v1.ProviderService/AuthorizeProviderOauth"
+	// ProviderServiceExchangeProviderOauthTokenProcedure is the fully-qualified name of the
+	// ProviderService's ExchangeProviderOauthToken RPC.
+	ProviderServiceExchangeProviderOauthTokenProcedure = "/memoh.private.v1.ProviderService/ExchangeProviderOauthToken"
+	// ProviderServiceGetProviderOauthTokenProcedure is the fully-qualified name of the
+	// ProviderService's GetProviderOauthToken RPC.
+	ProviderServiceGetProviderOauthTokenProcedure = "/memoh.private.v1.ProviderService/GetProviderOauthToken"
 )
 
 // ProviderServiceClient is a client for the memoh.private.v1.ProviderService service.
@@ -89,6 +98,9 @@ type ProviderServiceClient interface {
 	StartProviderOauth(context.Context, *connect.Request[v1.StartProviderOauthRequest]) (*connect.Response[v1.StartProviderOauthResponse], error)
 	PollProviderOauth(context.Context, *connect.Request[v1.PollProviderOauthRequest]) (*connect.Response[v1.PollProviderOauthResponse], error)
 	RevokeProviderOauth(context.Context, *connect.Request[v1.RevokeProviderOauthRequest]) (*connect.Response[v1.RevokeProviderOauthResponse], error)
+	AuthorizeProviderOauth(context.Context, *connect.Request[v1.AuthorizeProviderOauthRequest]) (*connect.Response[v1.AuthorizeProviderOauthResponse], error)
+	ExchangeProviderOauthToken(context.Context, *connect.Request[v1.ExchangeProviderOauthTokenRequest]) (*connect.Response[v1.ExchangeProviderOauthTokenResponse], error)
+	GetProviderOauthToken(context.Context, *connect.Request[v1.GetProviderOauthTokenRequest]) (*connect.Response[v1.GetProviderOauthTokenResponse], error)
 }
 
 // NewProviderServiceClient constructs a client for the memoh.private.v1.ProviderService service. By
@@ -180,24 +192,45 @@ func NewProviderServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 			connect.WithSchema(providerServiceMethods.ByName("RevokeProviderOauth")),
 			connect.WithClientOptions(opts...),
 		),
+		authorizeProviderOauth: connect.NewClient[v1.AuthorizeProviderOauthRequest, v1.AuthorizeProviderOauthResponse](
+			httpClient,
+			baseURL+ProviderServiceAuthorizeProviderOauthProcedure,
+			connect.WithSchema(providerServiceMethods.ByName("AuthorizeProviderOauth")),
+			connect.WithClientOptions(opts...),
+		),
+		exchangeProviderOauthToken: connect.NewClient[v1.ExchangeProviderOauthTokenRequest, v1.ExchangeProviderOauthTokenResponse](
+			httpClient,
+			baseURL+ProviderServiceExchangeProviderOauthTokenProcedure,
+			connect.WithSchema(providerServiceMethods.ByName("ExchangeProviderOauthToken")),
+			connect.WithClientOptions(opts...),
+		),
+		getProviderOauthToken: connect.NewClient[v1.GetProviderOauthTokenRequest, v1.GetProviderOauthTokenResponse](
+			httpClient,
+			baseURL+ProviderServiceGetProviderOauthTokenProcedure,
+			connect.WithSchema(providerServiceMethods.ByName("GetProviderOauthToken")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // providerServiceClient implements ProviderServiceClient.
 type providerServiceClient struct {
-	createProvider         *connect.Client[v1.CreateProviderRequest, v1.CreateProviderResponse]
-	listProviders          *connect.Client[v1.ListProvidersRequest, v1.ListProvidersResponse]
-	getProvider            *connect.Client[v1.GetProviderRequest, v1.GetProviderResponse]
-	updateProvider         *connect.Client[v1.UpdateProviderRequest, v1.UpdateProviderResponse]
-	deleteProvider         *connect.Client[v1.DeleteProviderRequest, v1.DeleteProviderResponse]
-	countProviders         *connect.Client[v1.CountProvidersRequest, v1.CountProvidersResponse]
-	listProviderModels     *connect.Client[v1.ListProviderModelsRequest, v1.ListProviderModelsResponse]
-	testProvider           *connect.Client[v1.TestProviderRequest, v1.TestProviderResponse]
-	importProviderModels   *connect.Client[v1.ImportProviderModelsRequest, v1.ImportProviderModelsResponse]
-	getProviderOauthStatus *connect.Client[v1.GetProviderOauthStatusRequest, v1.GetProviderOauthStatusResponse]
-	startProviderOauth     *connect.Client[v1.StartProviderOauthRequest, v1.StartProviderOauthResponse]
-	pollProviderOauth      *connect.Client[v1.PollProviderOauthRequest, v1.PollProviderOauthResponse]
-	revokeProviderOauth    *connect.Client[v1.RevokeProviderOauthRequest, v1.RevokeProviderOauthResponse]
+	createProvider             *connect.Client[v1.CreateProviderRequest, v1.CreateProviderResponse]
+	listProviders              *connect.Client[v1.ListProvidersRequest, v1.ListProvidersResponse]
+	getProvider                *connect.Client[v1.GetProviderRequest, v1.GetProviderResponse]
+	updateProvider             *connect.Client[v1.UpdateProviderRequest, v1.UpdateProviderResponse]
+	deleteProvider             *connect.Client[v1.DeleteProviderRequest, v1.DeleteProviderResponse]
+	countProviders             *connect.Client[v1.CountProvidersRequest, v1.CountProvidersResponse]
+	listProviderModels         *connect.Client[v1.ListProviderModelsRequest, v1.ListProviderModelsResponse]
+	testProvider               *connect.Client[v1.TestProviderRequest, v1.TestProviderResponse]
+	importProviderModels       *connect.Client[v1.ImportProviderModelsRequest, v1.ImportProviderModelsResponse]
+	getProviderOauthStatus     *connect.Client[v1.GetProviderOauthStatusRequest, v1.GetProviderOauthStatusResponse]
+	startProviderOauth         *connect.Client[v1.StartProviderOauthRequest, v1.StartProviderOauthResponse]
+	pollProviderOauth          *connect.Client[v1.PollProviderOauthRequest, v1.PollProviderOauthResponse]
+	revokeProviderOauth        *connect.Client[v1.RevokeProviderOauthRequest, v1.RevokeProviderOauthResponse]
+	authorizeProviderOauth     *connect.Client[v1.AuthorizeProviderOauthRequest, v1.AuthorizeProviderOauthResponse]
+	exchangeProviderOauthToken *connect.Client[v1.ExchangeProviderOauthTokenRequest, v1.ExchangeProviderOauthTokenResponse]
+	getProviderOauthToken      *connect.Client[v1.GetProviderOauthTokenRequest, v1.GetProviderOauthTokenResponse]
 }
 
 // CreateProvider calls memoh.private.v1.ProviderService.CreateProvider.
@@ -265,6 +298,21 @@ func (c *providerServiceClient) RevokeProviderOauth(ctx context.Context, req *co
 	return c.revokeProviderOauth.CallUnary(ctx, req)
 }
 
+// AuthorizeProviderOauth calls memoh.private.v1.ProviderService.AuthorizeProviderOauth.
+func (c *providerServiceClient) AuthorizeProviderOauth(ctx context.Context, req *connect.Request[v1.AuthorizeProviderOauthRequest]) (*connect.Response[v1.AuthorizeProviderOauthResponse], error) {
+	return c.authorizeProviderOauth.CallUnary(ctx, req)
+}
+
+// ExchangeProviderOauthToken calls memoh.private.v1.ProviderService.ExchangeProviderOauthToken.
+func (c *providerServiceClient) ExchangeProviderOauthToken(ctx context.Context, req *connect.Request[v1.ExchangeProviderOauthTokenRequest]) (*connect.Response[v1.ExchangeProviderOauthTokenResponse], error) {
+	return c.exchangeProviderOauthToken.CallUnary(ctx, req)
+}
+
+// GetProviderOauthToken calls memoh.private.v1.ProviderService.GetProviderOauthToken.
+func (c *providerServiceClient) GetProviderOauthToken(ctx context.Context, req *connect.Request[v1.GetProviderOauthTokenRequest]) (*connect.Response[v1.GetProviderOauthTokenResponse], error) {
+	return c.getProviderOauthToken.CallUnary(ctx, req)
+}
+
 // ProviderServiceHandler is an implementation of the memoh.private.v1.ProviderService service.
 type ProviderServiceHandler interface {
 	CreateProvider(context.Context, *connect.Request[v1.CreateProviderRequest]) (*connect.Response[v1.CreateProviderResponse], error)
@@ -280,6 +328,9 @@ type ProviderServiceHandler interface {
 	StartProviderOauth(context.Context, *connect.Request[v1.StartProviderOauthRequest]) (*connect.Response[v1.StartProviderOauthResponse], error)
 	PollProviderOauth(context.Context, *connect.Request[v1.PollProviderOauthRequest]) (*connect.Response[v1.PollProviderOauthResponse], error)
 	RevokeProviderOauth(context.Context, *connect.Request[v1.RevokeProviderOauthRequest]) (*connect.Response[v1.RevokeProviderOauthResponse], error)
+	AuthorizeProviderOauth(context.Context, *connect.Request[v1.AuthorizeProviderOauthRequest]) (*connect.Response[v1.AuthorizeProviderOauthResponse], error)
+	ExchangeProviderOauthToken(context.Context, *connect.Request[v1.ExchangeProviderOauthTokenRequest]) (*connect.Response[v1.ExchangeProviderOauthTokenResponse], error)
+	GetProviderOauthToken(context.Context, *connect.Request[v1.GetProviderOauthTokenRequest]) (*connect.Response[v1.GetProviderOauthTokenResponse], error)
 }
 
 // NewProviderServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -367,6 +418,24 @@ func NewProviderServiceHandler(svc ProviderServiceHandler, opts ...connect.Handl
 		connect.WithSchema(providerServiceMethods.ByName("RevokeProviderOauth")),
 		connect.WithHandlerOptions(opts...),
 	)
+	providerServiceAuthorizeProviderOauthHandler := connect.NewUnaryHandler(
+		ProviderServiceAuthorizeProviderOauthProcedure,
+		svc.AuthorizeProviderOauth,
+		connect.WithSchema(providerServiceMethods.ByName("AuthorizeProviderOauth")),
+		connect.WithHandlerOptions(opts...),
+	)
+	providerServiceExchangeProviderOauthTokenHandler := connect.NewUnaryHandler(
+		ProviderServiceExchangeProviderOauthTokenProcedure,
+		svc.ExchangeProviderOauthToken,
+		connect.WithSchema(providerServiceMethods.ByName("ExchangeProviderOauthToken")),
+		connect.WithHandlerOptions(opts...),
+	)
+	providerServiceGetProviderOauthTokenHandler := connect.NewUnaryHandler(
+		ProviderServiceGetProviderOauthTokenProcedure,
+		svc.GetProviderOauthToken,
+		connect.WithSchema(providerServiceMethods.ByName("GetProviderOauthToken")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/memoh.private.v1.ProviderService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case ProviderServiceCreateProviderProcedure:
@@ -395,6 +464,12 @@ func NewProviderServiceHandler(svc ProviderServiceHandler, opts ...connect.Handl
 			providerServicePollProviderOauthHandler.ServeHTTP(w, r)
 		case ProviderServiceRevokeProviderOauthProcedure:
 			providerServiceRevokeProviderOauthHandler.ServeHTTP(w, r)
+		case ProviderServiceAuthorizeProviderOauthProcedure:
+			providerServiceAuthorizeProviderOauthHandler.ServeHTTP(w, r)
+		case ProviderServiceExchangeProviderOauthTokenProcedure:
+			providerServiceExchangeProviderOauthTokenHandler.ServeHTTP(w, r)
+		case ProviderServiceGetProviderOauthTokenProcedure:
+			providerServiceGetProviderOauthTokenHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -454,4 +529,16 @@ func (UnimplementedProviderServiceHandler) PollProviderOauth(context.Context, *c
 
 func (UnimplementedProviderServiceHandler) RevokeProviderOauth(context.Context, *connect.Request[v1.RevokeProviderOauthRequest]) (*connect.Response[v1.RevokeProviderOauthResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.ProviderService.RevokeProviderOauth is not implemented"))
+}
+
+func (UnimplementedProviderServiceHandler) AuthorizeProviderOauth(context.Context, *connect.Request[v1.AuthorizeProviderOauthRequest]) (*connect.Response[v1.AuthorizeProviderOauthResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.ProviderService.AuthorizeProviderOauth is not implemented"))
+}
+
+func (UnimplementedProviderServiceHandler) ExchangeProviderOauthToken(context.Context, *connect.Request[v1.ExchangeProviderOauthTokenRequest]) (*connect.Response[v1.ExchangeProviderOauthTokenResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.ProviderService.ExchangeProviderOauthToken is not implemented"))
+}
+
+func (UnimplementedProviderServiceHandler) GetProviderOauthToken(context.Context, *connect.Request[v1.GetProviderOauthTokenRequest]) (*connect.Response[v1.GetProviderOauthTokenResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.ProviderService.GetProviderOauthToken is not implemented"))
 }

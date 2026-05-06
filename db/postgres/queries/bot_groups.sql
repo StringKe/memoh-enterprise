@@ -1,33 +1,73 @@
 -- name: CreateBotGroup :one
-INSERT INTO bot_groups (owner_user_id, name, description, metadata)
-VALUES (sqlc.arg(owner_user_id), sqlc.arg(name), sqlc.arg(description), sqlc.arg(metadata))
-RETURNING id, owner_user_id, name, description, metadata, created_at, updated_at;
+INSERT INTO bot_groups (owner_user_id, name, description, visibility, metadata)
+VALUES (sqlc.arg(owner_user_id), sqlc.arg(name), sqlc.arg(description), sqlc.arg(visibility), sqlc.arg(metadata))
+RETURNING id, owner_user_id, name, description, visibility, metadata, created_at, updated_at;
 
 -- name: GetBotGroupByID :one
-SELECT id, owner_user_id, name, description, metadata, created_at, updated_at
+SELECT id, owner_user_id, name, description, visibility, metadata, created_at, updated_at
 FROM bot_groups
 WHERE id = sqlc.arg(id);
 
 -- name: GetBotGroupByOwnerAndID :one
-SELECT id, owner_user_id, name, description, metadata, created_at, updated_at
+SELECT id, owner_user_id, name, description, visibility, metadata, created_at, updated_at
 FROM bot_groups
 WHERE owner_user_id = sqlc.arg(owner_user_id)
   AND id = sqlc.arg(id);
 
--- name: ListBotGroupsByOwner :many
-SELECT id, owner_user_id, name, description, metadata, created_at, updated_at
+-- name: ListAccessibleBotGroups :many
+SELECT id, owner_user_id, name, description, visibility, metadata, created_at, updated_at
 FROM bot_groups
-WHERE owner_user_id = sqlc.arg(owner_user_id)
+WHERE owner_user_id = sqlc.arg(user_id)
+  OR visibility IN ('organization', 'public')
+  OR EXISTS (
+    SELECT 1
+    FROM iam_principal_roles pr
+    JOIN iam_roles r ON r.id = pr.role_id
+    JOIN iam_role_permissions rp ON rp.role_id = r.id
+    JOIN iam_permissions p ON p.id = rp.permission_id
+    WHERE p.key = 'bot_group.read'
+      AND pr.resource_type = 'bot_group'
+      AND (pr.resource_id = bot_groups.id OR pr.resource_id IS NULL)
+      AND (
+        (pr.principal_type = 'user' AND pr.principal_id = sqlc.arg(user_id))
+        OR (
+          pr.principal_type = 'group'
+          AND pr.principal_id IN (
+            SELECT group_id FROM iam_group_members WHERE user_id = sqlc.arg(user_id)
+          )
+        )
+      )
+  )
+  OR EXISTS (
+    SELECT 1
+    FROM iam_principal_roles pr
+    JOIN iam_roles r ON r.id = pr.role_id
+    JOIN iam_role_permissions rp ON rp.role_id = r.id
+    JOIN iam_permissions p ON p.id = rp.permission_id
+    WHERE p.key = 'system.admin'
+      AND pr.resource_type = 'system'
+      AND pr.resource_id IS NULL
+      AND (
+        (pr.principal_type = 'user' AND pr.principal_id = sqlc.arg(user_id))
+        OR (
+          pr.principal_type = 'group'
+          AND pr.principal_id IN (
+            SELECT group_id FROM iam_group_members WHERE user_id = sqlc.arg(user_id)
+          )
+        )
+      )
+  )
 ORDER BY name ASC, created_at DESC;
 
 -- name: UpdateBotGroup :one
 UPDATE bot_groups
 SET name = sqlc.arg(name),
     description = sqlc.arg(description),
+    visibility = sqlc.arg(visibility),
     metadata = sqlc.arg(metadata),
     updated_at = now()
 WHERE id = sqlc.arg(id)
-RETURNING id, owner_user_id, name, description, metadata, created_at, updated_at;
+RETURNING id, owner_user_id, name, description, visibility, metadata, created_at, updated_at;
 
 -- name: DeleteBotGroup :exec
 DELETE FROM bot_groups

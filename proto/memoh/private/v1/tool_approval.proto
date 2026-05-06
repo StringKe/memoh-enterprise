@@ -3,6 +3,8 @@ syntax = "proto3";
 package memoh.private.v1;
 
 import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+import "memoh/private/v1/common.proto";
 
 option go_package = "github.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1;privatev1";
 
@@ -24,7 +26,56 @@ message RejectToolRequest {
 
 message RejectToolResponse {}
 
+message ToolApprovalItem {
+  string id = 1;
+  string bot_id = 2;
+  string conversation_id = 3;
+  string request_id = 4;
+  string tool_name = 5;
+  string status = 6;
+  google.protobuf.Struct payload = 7;
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp decided_at = 9;
+}
+
+message ListToolApprovalRequestsRequest {
+  string bot_id = 1;
+  string conversation_id = 2;
+  string status = 3;
+  PageRequest page = 4;
+}
+
+message ListToolApprovalRequestsResponse {
+  repeated ToolApprovalItem requests = 1;
+  PageResponse page = 2;
+}
+
+message GetToolApprovalRequestRequest {
+  string bot_id = 1;
+  string request_id = 2;
+}
+
+message GetToolApprovalRequestResponse {
+  ToolApprovalItem request = 1;
+}
+
+message RespondToolApprovalRequest {
+  string bot_id = 1;
+  string conversation_id = 2;
+  string request_id = 3;
+  string decision = 4;
+  string reason = 5;
+  google.protobuf.Struct payload = 6;
+}
+
+message RespondToolApprovalResponse {
+  ToolApprovalItem request = 1;
+}
+
 service ToolApprovalService {
   rpc ApproveTool(ApproveToolRequest) returns (ApproveToolResponse);
   rpc RejectTool(RejectToolRequest) returns (RejectToolResponse);
+  rpc ListToolApprovalRequests(ListToolApprovalRequestsRequest) returns (ListToolApprovalRequestsResponse);
+  rpc GetToolApprovalRequest(GetToolApprovalRequestRequest) returns (GetToolApprovalRequestResponse);
+  rpc RespondToolApproval(RespondToolApprovalRequest) returns (RespondToolApprovalResponse);
 }

@@ -6,10 +6,11 @@ WEB_URL="${MEMOH_E2E_WEB_URL:-http://127.0.0.1:26811}"
 BROWSER_URL="${MEMOH_E2E_BROWSER_URL:-http://127.0.0.1:26812}"
 WAIT_SECONDS="${MEMOH_E2E_WAIT_SECONDS:-180}"
 CHECK_BROWSER=false
+CHECK_CONNECT_CHAT=false
 
 usage() {
   cat <<'EOF'
-Usage: scripts/e2e/smoke.sh [--browser]
+Usage: scripts/e2e/smoke.sh [--browser] [--connect-chat]
 
 Environment:
   MEMOH_E2E_SERVER_URL   Server URL. Default: http://127.0.0.1:26810
@@ -23,6 +24,10 @@ while [ "$#" -gt 0 ]; do
   case "$1" in
     --browser)
       CHECK_BROWSER=true
+      shift
+      ;;
+    --connect-chat)
+      CHECK_CONNECT_CHAT=true
       shift
       ;;
     -h|--help)
@@ -83,6 +88,20 @@ if [ "$CHECK_BROWSER" = true ]; then
     cat /tmp/memoh-e2e-response.json >&2
     exit 1
   fi
+fi
+
+if [ "$CHECK_CONNECT_CHAT" = true ]; then
+  curl -fsS \
+    -H "Content-Type: application/json" \
+    -H "Connect-Protocol-Version: 1" \
+    --data '{"botId":"e2e-bot","sessionId":"e2e-session","message":"ping"}' \
+    "$SERVER_URL/connect/memoh.private.v1.ChatService/StreamChat" \
+    >/tmp/memoh-e2e-connect-chat.json \
+    || {
+      echo "[e2e] connect chat stream failed" >&2
+      cat /tmp/memoh-e2e-connect-chat.json >&2 || true
+      exit 1
+    }
 fi
 
 echo "[e2e] smoke passed"

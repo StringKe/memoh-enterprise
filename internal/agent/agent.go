@@ -15,15 +15,15 @@ import (
 	"github.com/memohai/memoh/internal/agent/background"
 	"github.com/memohai/memoh/internal/agent/tools"
 	"github.com/memohai/memoh/internal/models"
-	"github.com/memohai/memoh/internal/workspace/bridge"
+	"github.com/memohai/memoh/internal/workspace/executorclient"
 )
 
 // Agent is the core agent that handles LLM interactions.
 type Agent struct {
-	client         *sdk.Client
-	toolProviders  []tools.ToolProvider
-	bridgeProvider bridge.Provider
-	logger         *slog.Logger
+	client                    *sdk.Client
+	toolProviders             []tools.ToolProvider
+	workspaceExecutorProvider executorclient.Provider
+	logger                    *slog.Logger
 }
 
 // New creates a new Agent with the given dependencies.
@@ -33,15 +33,15 @@ func New(deps Deps) *Agent {
 		logger = slog.Default()
 	}
 	return &Agent{
-		client:         sdk.NewClient(),
-		bridgeProvider: deps.BridgeProvider,
-		logger:         logger.With(slog.String("service", "agent")),
+		client:                    sdk.NewClient(),
+		workspaceExecutorProvider: deps.WorkspaceExecutorProvider,
+		logger:                    logger.With(slog.String("service", "agent")),
 	}
 }
 
-// BridgeProvider returns the underlying bridge provider (workspace manager).
-func (a *Agent) BridgeProvider() bridge.Provider {
-	return a.bridgeProvider
+// WorkspaceExecutorProvider returns the underlying workspace executor provider.
+func (a *Agent) WorkspaceExecutorProvider() executorclient.Provider {
+	return a.workspaceExecutorProvider
 }
 
 // SetToolProviders sets the tool providers after construction.

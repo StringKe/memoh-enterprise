@@ -52,6 +52,15 @@ const (
 	// BotServiceClearBotGroupProcedure is the fully-qualified name of the BotService's ClearBotGroup
 	// RPC.
 	BotServiceClearBotGroupProcedure = "/memoh.private.v1.BotService/ClearBotGroup"
+	// BotServiceReadBotSessionHistoryProcedure is the fully-qualified name of the BotService's
+	// ReadBotSessionHistory RPC.
+	BotServiceReadBotSessionHistoryProcedure = "/memoh.private.v1.BotService/ReadBotSessionHistory"
+	// BotServiceCompactBotSessionProcedure is the fully-qualified name of the BotService's
+	// CompactBotSession RPC.
+	BotServiceCompactBotSessionProcedure = "/memoh.private.v1.BotService/CompactBotSession"
+	// BotServiceListBotSessionMessagesProcedure is the fully-qualified name of the BotService's
+	// ListBotSessionMessages RPC.
+	BotServiceListBotSessionMessagesProcedure = "/memoh.private.v1.BotService/ListBotSessionMessages"
 )
 
 // BotServiceClient is a client for the memoh.private.v1.BotService service.
@@ -64,6 +73,9 @@ type BotServiceClient interface {
 	ListBotChecks(context.Context, *connect.Request[v1.ListBotChecksRequest]) (*connect.Response[v1.ListBotChecksResponse], error)
 	AssignBotGroup(context.Context, *connect.Request[v1.AssignBotGroupRequest]) (*connect.Response[v1.AssignBotGroupResponse], error)
 	ClearBotGroup(context.Context, *connect.Request[v1.ClearBotGroupRequest]) (*connect.Response[v1.ClearBotGroupResponse], error)
+	ReadBotSessionHistory(context.Context, *connect.Request[v1.ReadBotSessionHistoryRequest]) (*connect.Response[v1.ReadBotSessionHistoryResponse], error)
+	CompactBotSession(context.Context, *connect.Request[v1.CompactBotSessionRequest]) (*connect.Response[v1.CompactBotSessionResponse], error)
+	ListBotSessionMessages(context.Context, *connect.Request[v1.ListBotSessionMessagesRequest]) (*connect.Response[v1.ListBotSessionMessagesResponse], error)
 }
 
 // NewBotServiceClient constructs a client for the memoh.private.v1.BotService service. By default,
@@ -125,19 +137,40 @@ func NewBotServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...
 			connect.WithSchema(botServiceMethods.ByName("ClearBotGroup")),
 			connect.WithClientOptions(opts...),
 		),
+		readBotSessionHistory: connect.NewClient[v1.ReadBotSessionHistoryRequest, v1.ReadBotSessionHistoryResponse](
+			httpClient,
+			baseURL+BotServiceReadBotSessionHistoryProcedure,
+			connect.WithSchema(botServiceMethods.ByName("ReadBotSessionHistory")),
+			connect.WithClientOptions(opts...),
+		),
+		compactBotSession: connect.NewClient[v1.CompactBotSessionRequest, v1.CompactBotSessionResponse](
+			httpClient,
+			baseURL+BotServiceCompactBotSessionProcedure,
+			connect.WithSchema(botServiceMethods.ByName("CompactBotSession")),
+			connect.WithClientOptions(opts...),
+		),
+		listBotSessionMessages: connect.NewClient[v1.ListBotSessionMessagesRequest, v1.ListBotSessionMessagesResponse](
+			httpClient,
+			baseURL+BotServiceListBotSessionMessagesProcedure,
+			connect.WithSchema(botServiceMethods.ByName("ListBotSessionMessages")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // botServiceClient implements BotServiceClient.
 type botServiceClient struct {
-	createBot      *connect.Client[v1.CreateBotRequest, v1.CreateBotResponse]
-	getBot         *connect.Client[v1.GetBotRequest, v1.GetBotResponse]
-	listBots       *connect.Client[v1.ListBotsRequest, v1.ListBotsResponse]
-	updateBot      *connect.Client[v1.UpdateBotRequest, v1.UpdateBotResponse]
-	deleteBot      *connect.Client[v1.DeleteBotRequest, v1.DeleteBotResponse]
-	listBotChecks  *connect.Client[v1.ListBotChecksRequest, v1.ListBotChecksResponse]
-	assignBotGroup *connect.Client[v1.AssignBotGroupRequest, v1.AssignBotGroupResponse]
-	clearBotGroup  *connect.Client[v1.ClearBotGroupRequest, v1.ClearBotGroupResponse]
+	createBot              *connect.Client[v1.CreateBotRequest, v1.CreateBotResponse]
+	getBot                 *connect.Client[v1.GetBotRequest, v1.GetBotResponse]
+	listBots               *connect.Client[v1.ListBotsRequest, v1.ListBotsResponse]
+	updateBot              *connect.Client[v1.UpdateBotRequest, v1.UpdateBotResponse]
+	deleteBot              *connect.Client[v1.DeleteBotRequest, v1.DeleteBotResponse]
+	listBotChecks          *connect.Client[v1.ListBotChecksRequest, v1.ListBotChecksResponse]
+	assignBotGroup         *connect.Client[v1.AssignBotGroupRequest, v1.AssignBotGroupResponse]
+	clearBotGroup          *connect.Client[v1.ClearBotGroupRequest, v1.ClearBotGroupResponse]
+	readBotSessionHistory  *connect.Client[v1.ReadBotSessionHistoryRequest, v1.ReadBotSessionHistoryResponse]
+	compactBotSession      *connect.Client[v1.CompactBotSessionRequest, v1.CompactBotSessionResponse]
+	listBotSessionMessages *connect.Client[v1.ListBotSessionMessagesRequest, v1.ListBotSessionMessagesResponse]
 }
 
 // CreateBot calls memoh.private.v1.BotService.CreateBot.
@@ -180,6 +213,21 @@ func (c *botServiceClient) ClearBotGroup(ctx context.Context, req *connect.Reque
 	return c.clearBotGroup.CallUnary(ctx, req)
 }
 
+// ReadBotSessionHistory calls memoh.private.v1.BotService.ReadBotSessionHistory.
+func (c *botServiceClient) ReadBotSessionHistory(ctx context.Context, req *connect.Request[v1.ReadBotSessionHistoryRequest]) (*connect.Response[v1.ReadBotSessionHistoryResponse], error) {
+	return c.readBotSessionHistory.CallUnary(ctx, req)
+}
+
+// CompactBotSession calls memoh.private.v1.BotService.CompactBotSession.
+func (c *botServiceClient) CompactBotSession(ctx context.Context, req *connect.Request[v1.CompactBotSessionRequest]) (*connect.Response[v1.CompactBotSessionResponse], error) {
+	return c.compactBotSession.CallUnary(ctx, req)
+}
+
+// ListBotSessionMessages calls memoh.private.v1.BotService.ListBotSessionMessages.
+func (c *botServiceClient) ListBotSessionMessages(ctx context.Context, req *connect.Request[v1.ListBotSessionMessagesRequest]) (*connect.Response[v1.ListBotSessionMessagesResponse], error) {
+	return c.listBotSessionMessages.CallUnary(ctx, req)
+}
+
 // BotServiceHandler is an implementation of the memoh.private.v1.BotService service.
 type BotServiceHandler interface {
 	CreateBot(context.Context, *connect.Request[v1.CreateBotRequest]) (*connect.Response[v1.CreateBotResponse], error)
@@ -190,6 +238,9 @@ type BotServiceHandler interface {
 	ListBotChecks(context.Context, *connect.Request[v1.ListBotChecksRequest]) (*connect.Response[v1.ListBotChecksResponse], error)
 	AssignBotGroup(context.Context, *connect.Request[v1.AssignBotGroupRequest]) (*connect.Response[v1.AssignBotGroupResponse], error)
 	ClearBotGroup(context.Context, *connect.Request[v1.ClearBotGroupRequest]) (*connect.Response[v1.ClearBotGroupResponse], error)
+	ReadBotSessionHistory(context.Context, *connect.Request[v1.ReadBotSessionHistoryRequest]) (*connect.Response[v1.ReadBotSessionHistoryResponse], error)
+	CompactBotSession(context.Context, *connect.Request[v1.CompactBotSessionRequest]) (*connect.Response[v1.CompactBotSessionResponse], error)
+	ListBotSessionMessages(context.Context, *connect.Request[v1.ListBotSessionMessagesRequest]) (*connect.Response[v1.ListBotSessionMessagesResponse], error)
 }
 
 // NewBotServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -247,6 +298,24 @@ func NewBotServiceHandler(svc BotServiceHandler, opts ...connect.HandlerOption) 
 		connect.WithSchema(botServiceMethods.ByName("ClearBotGroup")),
 		connect.WithHandlerOptions(opts...),
 	)
+	botServiceReadBotSessionHistoryHandler := connect.NewUnaryHandler(
+		BotServiceReadBotSessionHistoryProcedure,
+		svc.ReadBotSessionHistory,
+		connect.WithSchema(botServiceMethods.ByName("ReadBotSessionHistory")),
+		connect.WithHandlerOptions(opts...),
+	)
+	botServiceCompactBotSessionHandler := connect.NewUnaryHandler(
+		BotServiceCompactBotSessionProcedure,
+		svc.CompactBotSession,
+		connect.WithSchema(botServiceMethods.ByName("CompactBotSession")),
+		connect.WithHandlerOptions(opts...),
+	)
+	botServiceListBotSessionMessagesHandler := connect.NewUnaryHandler(
+		BotServiceListBotSessionMessagesProcedure,
+		svc.ListBotSessionMessages,
+		connect.WithSchema(botServiceMethods.ByName("ListBotSessionMessages")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/memoh.private.v1.BotService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case BotServiceCreateBotProcedure:
@@ -265,6 +334,12 @@ func NewBotServiceHandler(svc BotServiceHandler, opts ...connect.HandlerOption) 
 			botServiceAssignBotGroupHandler.ServeHTTP(w, r)
 		case BotServiceClearBotGroupProcedure:
 			botServiceClearBotGroupHandler.ServeHTTP(w, r)
+		case BotServiceReadBotSessionHistoryProcedure:
+			botServiceReadBotSessionHistoryHandler.ServeHTTP(w, r)
+		case BotServiceCompactBotSessionProcedure:
+			botServiceCompactBotSessionHandler.ServeHTTP(w, r)
+		case BotServiceListBotSessionMessagesProcedure:
+			botServiceListBotSessionMessagesHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -304,4 +379,16 @@ func (UnimplementedBotServiceHandler) AssignBotGroup(context.Context, *connect.R
 
 func (UnimplementedBotServiceHandler) ClearBotGroup(context.Context, *connect.Request[v1.ClearBotGroupRequest]) (*connect.Response[v1.ClearBotGroupResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.BotService.ClearBotGroup is not implemented"))
+}
+
+func (UnimplementedBotServiceHandler) ReadBotSessionHistory(context.Context, *connect.Request[v1.ReadBotSessionHistoryRequest]) (*connect.Response[v1.ReadBotSessionHistoryResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.BotService.ReadBotSessionHistory is not implemented"))
+}
+
+func (UnimplementedBotServiceHandler) CompactBotSession(context.Context, *connect.Request[v1.CompactBotSessionRequest]) (*connect.Response[v1.CompactBotSessionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.BotService.CompactBotSession is not implemented"))
+}
+
+func (UnimplementedBotServiceHandler) ListBotSessionMessages(context.Context, *connect.Request[v1.ListBotSessionMessagesRequest]) (*connect.Response[v1.ListBotSessionMessagesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.BotService.ListBotSessionMessages is not implemented"))
 }

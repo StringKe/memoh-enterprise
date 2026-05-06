@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+package memoh.runner.v1;
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+import "memoh/event/v1/events.proto";
+
+option go_package = "github.com/memohai/memoh/internal/connectapi/gen/memoh/runner/v1;runnerv1";
+
+service RunnerService {
+  rpc StartRun(StartRunRequest) returns (StartRunResponse);
+  rpc CancelRun(CancelRunRequest) returns (CancelRunResponse);
+  rpc StreamRunEvents(StreamRunEventsRequest) returns (stream StreamRunEventsResponse);
+}
+
+message RunLease {
+  string run_id = 1;
+  string runner_instance_id = 2;
+  string bot_id = 3;
+  string bot_group_id = 4;
+  string session_id = 5;
+  string user_id = 6;
+  int64 permission_snapshot_version = 7;
+  repeated string allowed_tool_scopes = 8;
+  string workspace_executor_target = 9;
+  string workspace_id = 10;
+  google.protobuf.Timestamp expires_at = 11;
+  int64 lease_version = 12;
+}
+
+message StartRunRequest {
+  RunLease lease = 1;
+  string prompt = 2;
+  repeated string attachment_ids = 3;
+  google.protobuf.Struct options = 4;
+}
+
+message StartRunResponse {
+  string run_id = 1;
+  string status = 2;
+}
+
+message CancelRunRequest {
+  string run_id = 1;
+  string runner_instance_id = 2;
+  int64 lease_version = 3;
+  string reason = 4;
+}
+
+message CancelRunResponse {
+  string run_id = 1;
+  string status = 2;
+}
+
+message StreamRunEventsRequest {
+  string run_id = 1;
+  string runner_instance_id = 2;
+  int64 lease_version = 3;
+}
+
+message StreamRunEventsResponse {
+  memoh.event.v1.AgentRunEvent event = 1;
+}

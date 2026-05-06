@@ -26,7 +26,7 @@ import (
 	"github.com/memohai/memoh/internal/iam/rbac"
 	"github.com/memohai/memoh/internal/mcp"
 	skillset "github.com/memohai/memoh/internal/skills"
-	"github.com/memohai/memoh/internal/workspace/bridge"
+	"github.com/memohai/memoh/internal/workspace/executorclient"
 )
 
 type SupermarketService struct {
@@ -38,7 +38,7 @@ type SupermarketService struct {
 	logger     *slog.Logger
 }
 
-func NewSupermarketService(log *slog.Logger, cfg config.Config, connections *mcp.ConnectionService, containers bridge.Provider, botService *bots.Service) *SupermarketService {
+func NewSupermarketService(log *slog.Logger, cfg config.Config, connections *mcp.ConnectionService, containers executorclient.Provider, botService *bots.Service) *SupermarketService {
 	if log == nil {
 		log = slog.Default()
 	}
@@ -46,7 +46,7 @@ func NewSupermarketService(log *slog.Logger, cfg config.Config, connections *mcp
 		baseURL:    cfg.Supermarket.GetBaseURL(),
 		httpClient: &http.Client{Timeout: 30 * time.Second},
 		mcp:        connections,
-		files:      bridgeSkillClientProvider{provider: containers},
+		files:      workspaceExecutorSkillClientProvider{provider: containers},
 		bots:       botService,
 		logger:     log.With(slog.String("service", "connect_supermarket")),
 	}

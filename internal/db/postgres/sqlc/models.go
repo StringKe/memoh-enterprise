@@ -8,6 +8,25 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type AgentRunLease struct {
+	RunID                     pgtype.UUID        `json:"run_id"`
+	RunnerInstanceID          string             `json:"runner_instance_id"`
+	BotID                     pgtype.UUID        `json:"bot_id"`
+	BotGroupID                pgtype.UUID        `json:"bot_group_id"`
+	SessionID                 pgtype.UUID        `json:"session_id"`
+	UserID                    pgtype.UUID        `json:"user_id"`
+	PermissionSnapshotVersion int64              `json:"permission_snapshot_version"`
+	AllowedToolScopes         []string           `json:"allowed_tool_scopes"`
+	WorkspaceExecutorTarget   string             `json:"workspace_executor_target"`
+	WorkspaceID               string             `json:"workspace_id"`
+	ExpiresAt                 pgtype.Timestamptz `json:"expires_at"`
+	LeaseVersion              int64              `json:"lease_version"`
+	RevokedAt                 pgtype.Timestamptz `json:"revoked_at"`
+	CompletedAt               pgtype.Timestamptz `json:"completed_at"`
+	CreatedAt                 pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt                 pgtype.Timestamptz `json:"updated_at"`
+}
+
 type Bot struct {
 	ID                     pgtype.UUID        `json:"id"`
 	OwnerUserID            pgtype.UUID        `json:"owner_user_id"`
@@ -118,6 +137,7 @@ type BotGroup struct {
 	OwnerUserID pgtype.UUID        `json:"owner_user_id"`
 	Name        string             `json:"name"`
 	Description string             `json:"description"`
+	Visibility  string             `json:"visibility"`
 	Metadata    []byte             `json:"metadata"`
 	CreatedAt   pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
@@ -256,6 +276,17 @@ type BrowserContext struct {
 	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
 }
 
+type ChannelConnectorLease struct {
+	ChannelConfigID pgtype.UUID        `json:"channel_config_id"`
+	ChannelType     string             `json:"channel_type"`
+	OwnerID         string             `json:"owner_id"`
+	OwnerInstanceID string             `json:"owner_instance_id"`
+	LeaseVersion    int64              `json:"lease_version"`
+	ExpiresAt       pgtype.Timestamptz `json:"expires_at"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
+}
+
 type Container struct {
 	ID               pgtype.UUID        `json:"id"`
 	BotID            pgtype.UUID        `json:"bot_id"`
@@ -318,6 +349,36 @@ type EmailProvider struct {
 	Config    []byte             `json:"config"`
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+}
+
+type EventDelivery struct {
+	EventID        pgtype.UUID        `json:"event_id"`
+	ConsumerName   string             `json:"consumer_name"`
+	Topic          string             `json:"topic"`
+	PartitionKey   pgtype.Text        `json:"partition_key"`
+	AvailableAt    pgtype.Timestamptz `json:"available_at"`
+	LockedBy       pgtype.Text        `json:"locked_by"`
+	LockedUntil    pgtype.Timestamptz `json:"locked_until"`
+	Attempts       int32              `json:"attempts"`
+	MaxAttempts    int32              `json:"max_attempts"`
+	LastError      pgtype.Text        `json:"last_error"`
+	DeliveredAt    pgtype.Timestamptz `json:"delivered_at"`
+	DeadLetteredAt pgtype.Timestamptz `json:"dead_lettered_at"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
+}
+
+type EventOutbox struct {
+	ID             pgtype.UUID        `json:"id"`
+	Topic          string             `json:"topic"`
+	PayloadType    string             `json:"payload_type"`
+	Payload        []byte             `json:"payload"`
+	PayloadJson    []byte             `json:"payload_json"`
+	IdempotencyKey string             `json:"idempotency_key"`
+	AggregateType  pgtype.Text        `json:"aggregate_type"`
+	AggregateID    pgtype.UUID        `json:"aggregate_id"`
+	PartitionKey   pgtype.Text        `json:"partition_key"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
 }
 
 type IamChannelIdentity struct {

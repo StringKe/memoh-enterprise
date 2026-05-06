@@ -21,7 +21,7 @@ import (
 	memprovider "github.com/memohai/memoh/internal/memory/adapters"
 	storefs "github.com/memohai/memoh/internal/memory/storefs"
 	"github.com/memohai/memoh/internal/settings"
-	"github.com/memohai/memoh/internal/workspace/bridge"
+	"github.com/memohai/memoh/internal/workspace/executorclient"
 )
 
 // MemoryHandler handles memory CRUD operations scoped by bot.
@@ -119,8 +119,8 @@ func (h *MemoryHandler) resolveProvider(ctx context.Context, botID string) mempr
 	return p
 }
 
-// SetMCPClientProvider sets the gRPC client provider for filesystem persistence.
-func (h *MemoryHandler) SetMCPClientProvider(p bridge.Provider) {
+// SetWorkspaceExecutorProvider sets the workspace executor provider for filesystem persistence.
+func (h *MemoryHandler) SetWorkspaceExecutorProvider(p executorclient.Provider) {
 	if p == nil {
 		h.memoryStore = nil
 		return
@@ -671,7 +671,7 @@ func (h *MemoryHandler) requireBotAccess(c echo.Context) (string, error) {
 }
 
 // NewBuiltinMemoryRuntime keeps provider architecture while using file memory backend.
-func NewBuiltinMemoryRuntime(p bridge.Provider) any {
+func NewBuiltinMemoryRuntime(p executorclient.Provider) any {
 	if p == nil {
 		return nil
 	}

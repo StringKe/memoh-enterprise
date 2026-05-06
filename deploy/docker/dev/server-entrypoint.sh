@@ -49,10 +49,10 @@ if ! ctr version >/dev/null 2>&1; then
 fi
 echo "containerd is running (pid $CONTAINERD_PID)"
 
-# Build bridge binary into runtime directory (first boot)
-echo "Building bridge binary..."
-(cd /workspace && go build -o /opt/memoh/runtime/bridge ./cmd/bridge)
-echo "Bridge binary ready."
+# Build workspace executor binary into runtime directory (first boot)
+echo "Building workspace executor binary..."
+(cd /workspace && go build -o /opt/memoh/runtime/workspace-executor ./cmd/workspace-executor)
+echo "workspace executor binary ready."
 
 echo "Starting server..."
 

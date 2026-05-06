@@ -1274,6 +1274,398 @@ func (x *ListAclObservedConversationsByChannelTypeResponse) GetPage() *PageRespo
 	return nil
 }
 
+type ListAclChannelIdentitiesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	BotId         string                 `protobuf:"bytes,1,opt,name=bot_id,json=botId,proto3" json:"bot_id,omitempty"`
+	Channel       string                 `protobuf:"bytes,2,opt,name=channel,proto3" json:"channel,omitempty"`
+	Page          *PageRequest           `protobuf:"bytes,3,opt,name=page,proto3" json:"page,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListAclChannelIdentitiesRequest) Reset() {
+	*x = ListAclChannelIdentitiesRequest{}
+	mi := &file_memoh_private_v1_acl_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListAclChannelIdentitiesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListAclChannelIdentitiesRequest) ProtoMessage() {}
+
+func (x *ListAclChannelIdentitiesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_acl_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListAclChannelIdentitiesRequest.ProtoReflect.Descriptor instead.
+func (*ListAclChannelIdentitiesRequest) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_acl_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *ListAclChannelIdentitiesRequest) GetBotId() string {
+	if x != nil {
+		return x.BotId
+	}
+	return ""
+}
+
+func (x *ListAclChannelIdentitiesRequest) GetChannel() string {
+	if x != nil {
+		return x.Channel
+	}
+	return ""
+}
+
+func (x *ListAclChannelIdentitiesRequest) GetPage() *PageRequest {
+	if x != nil {
+		return x.Page
+	}
+	return nil
+}
+
+type ListAclChannelIdentitiesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Identities    []*AclChannelIdentity  `protobuf:"bytes,1,rep,name=identities,proto3" json:"identities,omitempty"`
+	Page          *PageResponse          `protobuf:"bytes,2,opt,name=page,proto3" json:"page,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListAclChannelIdentitiesResponse) Reset() {
+	*x = ListAclChannelIdentitiesResponse{}
+	mi := &file_memoh_private_v1_acl_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListAclChannelIdentitiesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListAclChannelIdentitiesResponse) ProtoMessage() {}
+
+func (x *ListAclChannelIdentitiesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_acl_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListAclChannelIdentitiesResponse.ProtoReflect.Descriptor instead.
+func (*ListAclChannelIdentitiesResponse) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_acl_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *ListAclChannelIdentitiesResponse) GetIdentities() []*AclChannelIdentity {
+	if x != nil {
+		return x.Identities
+	}
+	return nil
+}
+
+func (x *ListAclChannelIdentitiesResponse) GetPage() *PageResponse {
+	if x != nil {
+		return x.Page
+	}
+	return nil
+}
+
+type GetAclChannelIdentityRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetAclChannelIdentityRequest) Reset() {
+	*x = GetAclChannelIdentityRequest{}
+	mi := &file_memoh_private_v1_acl_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAclChannelIdentityRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAclChannelIdentityRequest) ProtoMessage() {}
+
+func (x *GetAclChannelIdentityRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_acl_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAclChannelIdentityRequest.ProtoReflect.Descriptor instead.
+func (*GetAclChannelIdentityRequest) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_acl_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *GetAclChannelIdentityRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type GetAclChannelIdentityResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Identity      *AclChannelIdentity    `protobuf:"bytes,1,opt,name=identity,proto3" json:"identity,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetAclChannelIdentityResponse) Reset() {
+	*x = GetAclChannelIdentityResponse{}
+	mi := &file_memoh_private_v1_acl_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAclChannelIdentityResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAclChannelIdentityResponse) ProtoMessage() {}
+
+func (x *GetAclChannelIdentityResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_acl_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAclChannelIdentityResponse.ProtoReflect.Descriptor instead.
+func (*GetAclChannelIdentityResponse) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_acl_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *GetAclChannelIdentityResponse) GetIdentity() *AclChannelIdentity {
+	if x != nil {
+		return x.Identity
+	}
+	return nil
+}
+
+type UpsertAclChannelIdentityRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Channel       string                 `protobuf:"bytes,1,opt,name=channel,proto3" json:"channel,omitempty"`
+	IdentityId    string                 `protobuf:"bytes,2,opt,name=identity_id,json=identityId,proto3" json:"identity_id,omitempty"`
+	DisplayName   string                 `protobuf:"bytes,3,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	Metadata      *structpb.Struct       `protobuf:"bytes,4,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpsertAclChannelIdentityRequest) Reset() {
+	*x = UpsertAclChannelIdentityRequest{}
+	mi := &file_memoh_private_v1_acl_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpsertAclChannelIdentityRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpsertAclChannelIdentityRequest) ProtoMessage() {}
+
+func (x *UpsertAclChannelIdentityRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_acl_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpsertAclChannelIdentityRequest.ProtoReflect.Descriptor instead.
+func (*UpsertAclChannelIdentityRequest) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_acl_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *UpsertAclChannelIdentityRequest) GetChannel() string {
+	if x != nil {
+		return x.Channel
+	}
+	return ""
+}
+
+func (x *UpsertAclChannelIdentityRequest) GetIdentityId() string {
+	if x != nil {
+		return x.IdentityId
+	}
+	return ""
+}
+
+func (x *UpsertAclChannelIdentityRequest) GetDisplayName() string {
+	if x != nil {
+		return x.DisplayName
+	}
+	return ""
+}
+
+func (x *UpsertAclChannelIdentityRequest) GetMetadata() *structpb.Struct {
+	if x != nil {
+		return x.Metadata
+	}
+	return nil
+}
+
+type UpsertAclChannelIdentityResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Identity      *AclChannelIdentity    `protobuf:"bytes,1,opt,name=identity,proto3" json:"identity,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpsertAclChannelIdentityResponse) Reset() {
+	*x = UpsertAclChannelIdentityResponse{}
+	mi := &file_memoh_private_v1_acl_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpsertAclChannelIdentityResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpsertAclChannelIdentityResponse) ProtoMessage() {}
+
+func (x *UpsertAclChannelIdentityResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_acl_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpsertAclChannelIdentityResponse.ProtoReflect.Descriptor instead.
+func (*UpsertAclChannelIdentityResponse) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_acl_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *UpsertAclChannelIdentityResponse) GetIdentity() *AclChannelIdentity {
+	if x != nil {
+		return x.Identity
+	}
+	return nil
+}
+
+type DeleteAclChannelIdentityRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteAclChannelIdentityRequest) Reset() {
+	*x = DeleteAclChannelIdentityRequest{}
+	mi := &file_memoh_private_v1_acl_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteAclChannelIdentityRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteAclChannelIdentityRequest) ProtoMessage() {}
+
+func (x *DeleteAclChannelIdentityRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_acl_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteAclChannelIdentityRequest.ProtoReflect.Descriptor instead.
+func (*DeleteAclChannelIdentityRequest) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_acl_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *DeleteAclChannelIdentityRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type DeleteAclChannelIdentityResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteAclChannelIdentityResponse) Reset() {
+	*x = DeleteAclChannelIdentityResponse{}
+	mi := &file_memoh_private_v1_acl_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteAclChannelIdentityResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteAclChannelIdentityResponse) ProtoMessage() {}
+
+func (x *DeleteAclChannelIdentityResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_acl_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteAclChannelIdentityResponse.ProtoReflect.Descriptor instead.
+func (*DeleteAclChannelIdentityResponse) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_acl_proto_rawDescGZIP(), []int{30}
+}
+
 var File_memoh_private_v1_acl_proto protoreflect.FileDescriptor
 
 const file_memoh_private_v1_acl_proto_rawDesc = "" +
@@ -1361,7 +1753,31 @@ const file_memoh_private_v1_acl_proto_rawDesc = "" +
 	"\x04page\x18\x03 \x01(\v2\x1d.memoh.private.v1.PageRequestR\x04page\"\xb8\x01\n" +
 	"1ListAclObservedConversationsByChannelTypeResponse\x12O\n" +
 	"\rconversations\x18\x01 \x03(\v2).memoh.private.v1.AclObservedConversationR\rconversations\x122\n" +
-	"\x04page\x18\x02 \x01(\v2\x1e.memoh.private.v1.PageResponseR\x04page2\xb2\t\n" +
+	"\x04page\x18\x02 \x01(\v2\x1e.memoh.private.v1.PageResponseR\x04page\"\x85\x01\n" +
+	"\x1fListAclChannelIdentitiesRequest\x12\x15\n" +
+	"\x06bot_id\x18\x01 \x01(\tR\x05botId\x12\x18\n" +
+	"\achannel\x18\x02 \x01(\tR\achannel\x121\n" +
+	"\x04page\x18\x03 \x01(\v2\x1d.memoh.private.v1.PageRequestR\x04page\"\x9c\x01\n" +
+	" ListAclChannelIdentitiesResponse\x12D\n" +
+	"\n" +
+	"identities\x18\x01 \x03(\v2$.memoh.private.v1.AclChannelIdentityR\n" +
+	"identities\x122\n" +
+	"\x04page\x18\x02 \x01(\v2\x1e.memoh.private.v1.PageResponseR\x04page\".\n" +
+	"\x1cGetAclChannelIdentityRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"a\n" +
+	"\x1dGetAclChannelIdentityResponse\x12@\n" +
+	"\bidentity\x18\x01 \x01(\v2$.memoh.private.v1.AclChannelIdentityR\bidentity\"\xb4\x01\n" +
+	"\x1fUpsertAclChannelIdentityRequest\x12\x18\n" +
+	"\achannel\x18\x01 \x01(\tR\achannel\x12\x1f\n" +
+	"\videntity_id\x18\x02 \x01(\tR\n" +
+	"identityId\x12!\n" +
+	"\fdisplay_name\x18\x03 \x01(\tR\vdisplayName\x123\n" +
+	"\bmetadata\x18\x04 \x01(\v2\x17.google.protobuf.StructR\bmetadata\"d\n" +
+	" UpsertAclChannelIdentityResponse\x12@\n" +
+	"\bidentity\x18\x01 \x01(\v2$.memoh.private.v1.AclChannelIdentityR\bidentity\"1\n" +
+	"\x1fDeleteAclChannelIdentityRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"\"\n" +
+	" DeleteAclChannelIdentityResponse2\xb8\r\n" +
 	"\n" +
 	"AclService\x12]\n" +
 	"\fListAclRules\x12%.memoh.private.v1.ListAclRulesRequest\x1a&.memoh.private.v1.ListAclRulesResponse\x12`\n" +
@@ -1373,7 +1789,11 @@ const file_memoh_private_v1_acl_proto_rawDesc = "" +
 	"\x13SetAclDefaultEffect\x12,.memoh.private.v1.SetAclDefaultEffectRequest\x1a-.memoh.private.v1.SetAclDefaultEffectResponse\x12\x87\x01\n" +
 	"\x1aSearchAclChannelIdentities\x123.memoh.private.v1.SearchAclChannelIdentitiesRequest\x1a4.memoh.private.v1.SearchAclChannelIdentitiesResponse\x12\x8d\x01\n" +
 	"\x1cListAclObservedConversations\x125.memoh.private.v1.ListAclObservedConversationsRequest\x1a6.memoh.private.v1.ListAclObservedConversationsResponse\x12\xb4\x01\n" +
-	")ListAclObservedConversationsByChannelType\x12B.memoh.private.v1.ListAclObservedConversationsByChannelTypeRequest\x1aC.memoh.private.v1.ListAclObservedConversationsByChannelTypeResponseBMZKgithub.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1;privatev1b\x06proto3"
+	")ListAclObservedConversationsByChannelType\x12B.memoh.private.v1.ListAclObservedConversationsByChannelTypeRequest\x1aC.memoh.private.v1.ListAclObservedConversationsByChannelTypeResponse\x12\x81\x01\n" +
+	"\x18ListAclChannelIdentities\x121.memoh.private.v1.ListAclChannelIdentitiesRequest\x1a2.memoh.private.v1.ListAclChannelIdentitiesResponse\x12x\n" +
+	"\x15GetAclChannelIdentity\x12..memoh.private.v1.GetAclChannelIdentityRequest\x1a/.memoh.private.v1.GetAclChannelIdentityResponse\x12\x81\x01\n" +
+	"\x18UpsertAclChannelIdentity\x121.memoh.private.v1.UpsertAclChannelIdentityRequest\x1a2.memoh.private.v1.UpsertAclChannelIdentityResponse\x12\x81\x01\n" +
+	"\x18DeleteAclChannelIdentity\x121.memoh.private.v1.DeleteAclChannelIdentityRequest\x1a2.memoh.private.v1.DeleteAclChannelIdentityResponseBMZKgithub.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1;privatev1b\x06proto3"
 
 var (
 	file_memoh_private_v1_acl_proto_rawDescOnce sync.Once
@@ -1387,7 +1807,7 @@ func file_memoh_private_v1_acl_proto_rawDescGZIP() []byte {
 	return file_memoh_private_v1_acl_proto_rawDescData
 }
 
-var file_memoh_private_v1_acl_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
+var file_memoh_private_v1_acl_proto_msgTypes = make([]protoimpl.MessageInfo, 31)
 var file_memoh_private_v1_acl_proto_goTypes = []any{
 	(*AclRule)(nil),                                           // 0: memoh.private.v1.AclRule
 	(*AclChannelIdentity)(nil),                                // 1: memoh.private.v1.AclChannelIdentity
@@ -1412,56 +1832,78 @@ var file_memoh_private_v1_acl_proto_goTypes = []any{
 	(*ListAclObservedConversationsResponse)(nil),              // 20: memoh.private.v1.ListAclObservedConversationsResponse
 	(*ListAclObservedConversationsByChannelTypeRequest)(nil),  // 21: memoh.private.v1.ListAclObservedConversationsByChannelTypeRequest
 	(*ListAclObservedConversationsByChannelTypeResponse)(nil), // 22: memoh.private.v1.ListAclObservedConversationsByChannelTypeResponse
-	(*structpb.Struct)(nil),                                   // 23: google.protobuf.Struct
-	(*AuditFields)(nil),                                       // 24: memoh.private.v1.AuditFields
-	(*PageRequest)(nil),                                       // 25: memoh.private.v1.PageRequest
-	(*PageResponse)(nil),                                      // 26: memoh.private.v1.PageResponse
+	(*ListAclChannelIdentitiesRequest)(nil),                   // 23: memoh.private.v1.ListAclChannelIdentitiesRequest
+	(*ListAclChannelIdentitiesResponse)(nil),                  // 24: memoh.private.v1.ListAclChannelIdentitiesResponse
+	(*GetAclChannelIdentityRequest)(nil),                      // 25: memoh.private.v1.GetAclChannelIdentityRequest
+	(*GetAclChannelIdentityResponse)(nil),                     // 26: memoh.private.v1.GetAclChannelIdentityResponse
+	(*UpsertAclChannelIdentityRequest)(nil),                   // 27: memoh.private.v1.UpsertAclChannelIdentityRequest
+	(*UpsertAclChannelIdentityResponse)(nil),                  // 28: memoh.private.v1.UpsertAclChannelIdentityResponse
+	(*DeleteAclChannelIdentityRequest)(nil),                   // 29: memoh.private.v1.DeleteAclChannelIdentityRequest
+	(*DeleteAclChannelIdentityResponse)(nil),                  // 30: memoh.private.v1.DeleteAclChannelIdentityResponse
+	(*structpb.Struct)(nil),                                   // 31: google.protobuf.Struct
+	(*AuditFields)(nil),                                       // 32: memoh.private.v1.AuditFields
+	(*PageRequest)(nil),                                       // 33: memoh.private.v1.PageRequest
+	(*PageResponse)(nil),                                      // 34: memoh.private.v1.PageResponse
 }
 var file_memoh_private_v1_acl_proto_depIdxs = []int32{
-	23, // 0: memoh.private.v1.AclRule.metadata:type_name -> google.protobuf.Struct
-	24, // 1: memoh.private.v1.AclRule.audit:type_name -> memoh.private.v1.AuditFields
-	23, // 2: memoh.private.v1.AclChannelIdentity.metadata:type_name -> google.protobuf.Struct
-	23, // 3: memoh.private.v1.AclObservedConversation.metadata:type_name -> google.protobuf.Struct
+	31, // 0: memoh.private.v1.AclRule.metadata:type_name -> google.protobuf.Struct
+	32, // 1: memoh.private.v1.AclRule.audit:type_name -> memoh.private.v1.AuditFields
+	31, // 2: memoh.private.v1.AclChannelIdentity.metadata:type_name -> google.protobuf.Struct
+	31, // 3: memoh.private.v1.AclObservedConversation.metadata:type_name -> google.protobuf.Struct
 	0,  // 4: memoh.private.v1.ListAclRulesResponse.rules:type_name -> memoh.private.v1.AclRule
-	23, // 5: memoh.private.v1.CreateAclRuleRequest.metadata:type_name -> google.protobuf.Struct
+	31, // 5: memoh.private.v1.CreateAclRuleRequest.metadata:type_name -> google.protobuf.Struct
 	0,  // 6: memoh.private.v1.CreateAclRuleResponse.rule:type_name -> memoh.private.v1.AclRule
-	23, // 7: memoh.private.v1.UpdateAclRuleRequest.metadata:type_name -> google.protobuf.Struct
+	31, // 7: memoh.private.v1.UpdateAclRuleRequest.metadata:type_name -> google.protobuf.Struct
 	0,  // 8: memoh.private.v1.UpdateAclRuleResponse.rule:type_name -> memoh.private.v1.AclRule
 	0,  // 9: memoh.private.v1.ReorderAclRulesResponse.rules:type_name -> memoh.private.v1.AclRule
-	25, // 10: memoh.private.v1.SearchAclChannelIdentitiesRequest.page:type_name -> memoh.private.v1.PageRequest
+	33, // 10: memoh.private.v1.SearchAclChannelIdentitiesRequest.page:type_name -> memoh.private.v1.PageRequest
 	1,  // 11: memoh.private.v1.SearchAclChannelIdentitiesResponse.identities:type_name -> memoh.private.v1.AclChannelIdentity
-	26, // 12: memoh.private.v1.SearchAclChannelIdentitiesResponse.page:type_name -> memoh.private.v1.PageResponse
-	25, // 13: memoh.private.v1.ListAclObservedConversationsRequest.page:type_name -> memoh.private.v1.PageRequest
+	34, // 12: memoh.private.v1.SearchAclChannelIdentitiesResponse.page:type_name -> memoh.private.v1.PageResponse
+	33, // 13: memoh.private.v1.ListAclObservedConversationsRequest.page:type_name -> memoh.private.v1.PageRequest
 	2,  // 14: memoh.private.v1.ListAclObservedConversationsResponse.conversations:type_name -> memoh.private.v1.AclObservedConversation
-	26, // 15: memoh.private.v1.ListAclObservedConversationsResponse.page:type_name -> memoh.private.v1.PageResponse
-	25, // 16: memoh.private.v1.ListAclObservedConversationsByChannelTypeRequest.page:type_name -> memoh.private.v1.PageRequest
+	34, // 15: memoh.private.v1.ListAclObservedConversationsResponse.page:type_name -> memoh.private.v1.PageResponse
+	33, // 16: memoh.private.v1.ListAclObservedConversationsByChannelTypeRequest.page:type_name -> memoh.private.v1.PageRequest
 	2,  // 17: memoh.private.v1.ListAclObservedConversationsByChannelTypeResponse.conversations:type_name -> memoh.private.v1.AclObservedConversation
-	26, // 18: memoh.private.v1.ListAclObservedConversationsByChannelTypeResponse.page:type_name -> memoh.private.v1.PageResponse
-	3,  // 19: memoh.private.v1.AclService.ListAclRules:input_type -> memoh.private.v1.ListAclRulesRequest
-	5,  // 20: memoh.private.v1.AclService.CreateAclRule:input_type -> memoh.private.v1.CreateAclRuleRequest
-	7,  // 21: memoh.private.v1.AclService.UpdateAclRule:input_type -> memoh.private.v1.UpdateAclRuleRequest
-	9,  // 22: memoh.private.v1.AclService.DeleteAclRule:input_type -> memoh.private.v1.DeleteAclRuleRequest
-	11, // 23: memoh.private.v1.AclService.ReorderAclRules:input_type -> memoh.private.v1.ReorderAclRulesRequest
-	13, // 24: memoh.private.v1.AclService.GetAclDefaultEffect:input_type -> memoh.private.v1.GetAclDefaultEffectRequest
-	15, // 25: memoh.private.v1.AclService.SetAclDefaultEffect:input_type -> memoh.private.v1.SetAclDefaultEffectRequest
-	17, // 26: memoh.private.v1.AclService.SearchAclChannelIdentities:input_type -> memoh.private.v1.SearchAclChannelIdentitiesRequest
-	19, // 27: memoh.private.v1.AclService.ListAclObservedConversations:input_type -> memoh.private.v1.ListAclObservedConversationsRequest
-	21, // 28: memoh.private.v1.AclService.ListAclObservedConversationsByChannelType:input_type -> memoh.private.v1.ListAclObservedConversationsByChannelTypeRequest
-	4,  // 29: memoh.private.v1.AclService.ListAclRules:output_type -> memoh.private.v1.ListAclRulesResponse
-	6,  // 30: memoh.private.v1.AclService.CreateAclRule:output_type -> memoh.private.v1.CreateAclRuleResponse
-	8,  // 31: memoh.private.v1.AclService.UpdateAclRule:output_type -> memoh.private.v1.UpdateAclRuleResponse
-	10, // 32: memoh.private.v1.AclService.DeleteAclRule:output_type -> memoh.private.v1.DeleteAclRuleResponse
-	12, // 33: memoh.private.v1.AclService.ReorderAclRules:output_type -> memoh.private.v1.ReorderAclRulesResponse
-	14, // 34: memoh.private.v1.AclService.GetAclDefaultEffect:output_type -> memoh.private.v1.GetAclDefaultEffectResponse
-	16, // 35: memoh.private.v1.AclService.SetAclDefaultEffect:output_type -> memoh.private.v1.SetAclDefaultEffectResponse
-	18, // 36: memoh.private.v1.AclService.SearchAclChannelIdentities:output_type -> memoh.private.v1.SearchAclChannelIdentitiesResponse
-	20, // 37: memoh.private.v1.AclService.ListAclObservedConversations:output_type -> memoh.private.v1.ListAclObservedConversationsResponse
-	22, // 38: memoh.private.v1.AclService.ListAclObservedConversationsByChannelType:output_type -> memoh.private.v1.ListAclObservedConversationsByChannelTypeResponse
-	29, // [29:39] is the sub-list for method output_type
-	19, // [19:29] is the sub-list for method input_type
-	19, // [19:19] is the sub-list for extension type_name
-	19, // [19:19] is the sub-list for extension extendee
-	0,  // [0:19] is the sub-list for field type_name
+	34, // 18: memoh.private.v1.ListAclObservedConversationsByChannelTypeResponse.page:type_name -> memoh.private.v1.PageResponse
+	33, // 19: memoh.private.v1.ListAclChannelIdentitiesRequest.page:type_name -> memoh.private.v1.PageRequest
+	1,  // 20: memoh.private.v1.ListAclChannelIdentitiesResponse.identities:type_name -> memoh.private.v1.AclChannelIdentity
+	34, // 21: memoh.private.v1.ListAclChannelIdentitiesResponse.page:type_name -> memoh.private.v1.PageResponse
+	1,  // 22: memoh.private.v1.GetAclChannelIdentityResponse.identity:type_name -> memoh.private.v1.AclChannelIdentity
+	31, // 23: memoh.private.v1.UpsertAclChannelIdentityRequest.metadata:type_name -> google.protobuf.Struct
+	1,  // 24: memoh.private.v1.UpsertAclChannelIdentityResponse.identity:type_name -> memoh.private.v1.AclChannelIdentity
+	3,  // 25: memoh.private.v1.AclService.ListAclRules:input_type -> memoh.private.v1.ListAclRulesRequest
+	5,  // 26: memoh.private.v1.AclService.CreateAclRule:input_type -> memoh.private.v1.CreateAclRuleRequest
+	7,  // 27: memoh.private.v1.AclService.UpdateAclRule:input_type -> memoh.private.v1.UpdateAclRuleRequest
+	9,  // 28: memoh.private.v1.AclService.DeleteAclRule:input_type -> memoh.private.v1.DeleteAclRuleRequest
+	11, // 29: memoh.private.v1.AclService.ReorderAclRules:input_type -> memoh.private.v1.ReorderAclRulesRequest
+	13, // 30: memoh.private.v1.AclService.GetAclDefaultEffect:input_type -> memoh.private.v1.GetAclDefaultEffectRequest
+	15, // 31: memoh.private.v1.AclService.SetAclDefaultEffect:input_type -> memoh.private.v1.SetAclDefaultEffectRequest
+	17, // 32: memoh.private.v1.AclService.SearchAclChannelIdentities:input_type -> memoh.private.v1.SearchAclChannelIdentitiesRequest
+	19, // 33: memoh.private.v1.AclService.ListAclObservedConversations:input_type -> memoh.private.v1.ListAclObservedConversationsRequest
+	21, // 34: memoh.private.v1.AclService.ListAclObservedConversationsByChannelType:input_type -> memoh.private.v1.ListAclObservedConversationsByChannelTypeRequest
+	23, // 35: memoh.private.v1.AclService.ListAclChannelIdentities:input_type -> memoh.private.v1.ListAclChannelIdentitiesRequest
+	25, // 36: memoh.private.v1.AclService.GetAclChannelIdentity:input_type -> memoh.private.v1.GetAclChannelIdentityRequest
+	27, // 37: memoh.private.v1.AclService.UpsertAclChannelIdentity:input_type -> memoh.private.v1.UpsertAclChannelIdentityRequest
+	29, // 38: memoh.private.v1.AclService.DeleteAclChannelIdentity:input_type -> memoh.private.v1.DeleteAclChannelIdentityRequest
+	4,  // 39: memoh.private.v1.AclService.ListAclRules:output_type -> memoh.private.v1.ListAclRulesResponse
+	6,  // 40: memoh.private.v1.AclService.CreateAclRule:output_type -> memoh.private.v1.CreateAclRuleResponse
+	8,  // 41: memoh.private.v1.AclService.UpdateAclRule:output_type -> memoh.private.v1.UpdateAclRuleResponse
+	10, // 42: memoh.private.v1.AclService.DeleteAclRule:output_type -> memoh.private.v1.DeleteAclRuleResponse
+	12, // 43: memoh.private.v1.AclService.ReorderAclRules:output_type -> memoh.private.v1.ReorderAclRulesResponse
+	14, // 44: memoh.private.v1.AclService.GetAclDefaultEffect:output_type -> memoh.private.v1.GetAclDefaultEffectResponse
+	16, // 45: memoh.private.v1.AclService.SetAclDefaultEffect:output_type -> memoh.private.v1.SetAclDefaultEffectResponse
+	18, // 46: memoh.private.v1.AclService.SearchAclChannelIdentities:output_type -> memoh.private.v1.SearchAclChannelIdentitiesResponse
+	20, // 47: memoh.private.v1.AclService.ListAclObservedConversations:output_type -> memoh.private.v1.ListAclObservedConversationsResponse
+	22, // 48: memoh.private.v1.AclService.ListAclObservedConversationsByChannelType:output_type -> memoh.private.v1.ListAclObservedConversationsByChannelTypeResponse
+	24, // 49: memoh.private.v1.AclService.ListAclChannelIdentities:output_type -> memoh.private.v1.ListAclChannelIdentitiesResponse
+	26, // 50: memoh.private.v1.AclService.GetAclChannelIdentity:output_type -> memoh.private.v1.GetAclChannelIdentityResponse
+	28, // 51: memoh.private.v1.AclService.UpsertAclChannelIdentity:output_type -> memoh.private.v1.UpsertAclChannelIdentityResponse
+	30, // 52: memoh.private.v1.AclService.DeleteAclChannelIdentity:output_type -> memoh.private.v1.DeleteAclChannelIdentityResponse
+	39, // [39:53] is the sub-list for method output_type
+	25, // [25:39] is the sub-list for method input_type
+	25, // [25:25] is the sub-list for extension type_name
+	25, // [25:25] is the sub-list for extension extendee
+	0,  // [0:25] is the sub-list for field type_name
 }
 
 func init() { file_memoh_private_v1_acl_proto_init() }
@@ -1477,7 +1919,7 @@ func file_memoh_private_v1_acl_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_memoh_private_v1_acl_proto_rawDesc), len(file_memoh_private_v1_acl_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   23,
+			NumMessages:   31,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

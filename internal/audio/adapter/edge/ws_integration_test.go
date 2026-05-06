@@ -47,7 +47,7 @@ func TestRealEdgeTTS_Stream(t *testing.T) {
 		total += len(b)
 	}
 	if err := <-errCh; err != nil {
-		t.Fatalf("Stream: %v", err)
+		t.Fatalf("Kind: %v", err)
 	}
 	if total == 0 {
 		t.Fatal("expected non-empty audio stream")

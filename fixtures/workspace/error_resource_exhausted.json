@@ -1,0 +1,5 @@
+{
+  "path": "large.bin",
+  "limit": 16777217,
+  "error_code": "resource_exhausted"
+}

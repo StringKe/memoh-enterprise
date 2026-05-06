@@ -1,0 +1,128 @@
+syntax = "proto3";
+
+package memoh.connector.v1;
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/memohai/memoh/internal/connectapi/gen/memoh/connector/v1;connectorv1";
+
+service ConnectorService {
+  rpc RegisterConnector(RegisterConnectorRequest) returns (RegisterConnectorResponse);
+  rpc AcquireConnectorLease(AcquireConnectorLeaseRequest) returns (AcquireConnectorLeaseResponse);
+  rpc RenewConnectorLease(RenewConnectorLeaseRequest) returns (RenewConnectorLeaseResponse);
+  rpc ReleaseConnectorLease(ReleaseConnectorLeaseRequest) returns (ReleaseConnectorLeaseResponse);
+  rpc ReportConnectorStatus(ReportConnectorStatusRequest) returns (ReportConnectorStatusResponse);
+  rpc StreamConnectorStatus(StreamConnectorStatusRequest) returns (stream StreamConnectorStatusResponse);
+  rpc WatchConnectorConfig(WatchConnectorConfigRequest) returns (stream WatchConnectorConfigResponse);
+}
+
+message ConnectorRegistration {
+  string connector_id = 1;
+  string owner_instance_id = 2;
+  string channel_type = 3;
+  string version = 4;
+  google.protobuf.Struct metadata = 5;
+}
+
+message ConnectorLease {
+  string channel_config_id = 1;
+  string channel_type = 2;
+  string owner_id = 3;
+  string owner_instance_id = 4;
+  int64 lease_version = 5;
+  google.protobuf.Timestamp expires_at = 6;
+}
+
+message ConnectorConfig {
+  string channel_config_id = 1;
+  string bot_id = 2;
+  string channel_type = 3;
+  google.protobuf.Struct credentials = 4;
+  google.protobuf.Struct routing = 5;
+  google.protobuf.Struct self_identity = 6;
+  bool disabled = 7;
+}
+
+message RegisterConnectorRequest {
+  ConnectorRegistration registration = 1;
+}
+
+message RegisterConnectorResponse {
+  string connector_id = 1;
+  string status = 2;
+}
+
+message AcquireConnectorLeaseRequest {
+  string channel_config_id = 1;
+  string channel_type = 2;
+  string owner_id = 3;
+  string owner_instance_id = 4;
+  int32 ttl_seconds = 5;
+}
+
+message AcquireConnectorLeaseResponse {
+  ConnectorLease lease = 1;
+  ConnectorConfig config = 2;
+  bool acquired = 3;
+}
+
+message RenewConnectorLeaseRequest {
+  string channel_config_id = 1;
+  string owner_instance_id = 2;
+  int64 lease_version = 3;
+  int32 ttl_seconds = 4;
+}
+
+message RenewConnectorLeaseResponse {
+  ConnectorLease lease = 1;
+  bool renewed = 2;
+}
+
+message ReleaseConnectorLeaseRequest {
+  string channel_config_id = 1;
+  string owner_instance_id = 2;
+  int64 lease_version = 3;
+}
+
+message ReleaseConnectorLeaseResponse {
+  bool released = 1;
+}
+
+message ConnectorStatus {
+  string channel_config_id = 1;
+  string channel_type = 2;
+  string owner_instance_id = 3;
+  int64 lease_version = 4;
+  string status = 5;
+  string message = 6;
+  google.protobuf.Struct metadata = 7;
+  google.protobuf.Timestamp observed_at = 8;
+}
+
+message ReportConnectorStatusRequest {
+  ConnectorStatus status = 1;
+}
+
+message ReportConnectorStatusResponse {
+  bool accepted = 1;
+}
+
+message StreamConnectorStatusRequest {
+  string channel_type = 1;
+  string channel_config_id = 2;
+}
+
+message StreamConnectorStatusResponse {
+  ConnectorStatus status = 1;
+}
+
+message WatchConnectorConfigRequest {
+  string connector_id = 1;
+  string channel_type = 2;
+}
+
+message WatchConnectorConfigResponse {
+  ConnectorConfig config = 1;
+  string change_type = 2;
+}

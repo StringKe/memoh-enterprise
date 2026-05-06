@@ -39,6 +39,31 @@ type ConfigStore interface {
 // Middleware wraps an InboundHandler to add cross-cutting behavior.
 type Middleware func(next InboundHandler) InboundHandler
 
+// AdapterRegistry is the behavior surface Manager needs from the adapter registry.
+type AdapterRegistry interface {
+	Register(adapter Adapter) error
+	Unregister(channelType ChannelType) bool
+	Types() []ChannelType
+	GetDescriptor(channelType ChannelType) (Descriptor, bool)
+	ListDescriptors() []Descriptor
+	ParseChannelType(raw string) (ChannelType, error)
+	GetCapabilities(channelType ChannelType) (ChannelCapabilities, bool)
+	GetOutboundPolicy(channelType ChannelType) (OutboundPolicy, bool)
+	GetSender(channelType ChannelType) (Sender, bool)
+	GetStreamSender(channelType ChannelType) (StreamSender, bool)
+	GetMessageEditor(channelType ChannelType) (MessageEditor, bool)
+	GetReactor(channelType ChannelType) (Reactor, bool)
+	GetReceiver(channelType ChannelType) (Receiver, bool)
+	GetWebhookReceiver(channelType ChannelType) (WebhookReceiver, bool)
+	ResolveTargetFromUserConfig(channelType ChannelType, config map[string]any) (string, error)
+	NormalizeTarget(channelType ChannelType, raw string) (string, bool)
+}
+
+// InboundSink receives platform inbound events outside the in-process processor.
+type InboundSink interface {
+	HandleInbound(ctx context.Context, cfg ChannelConfig, msg InboundMessage) error
+}
+
 // ManagerStore is the minimal persistence interface required by Manager.
 type ManagerStore interface {
 	ConfigLister
@@ -59,13 +84,14 @@ type ConnectionStatus struct {
 // Connection lifecycle lives in connection.go, inbound dispatch in inbound.go,
 // and outbound pipeline in outbound.go.
 type Manager struct {
-	registry        *Registry
+	registry        AdapterRegistry
 	service         ManagerStore
 	processor       InboundProcessor
 	attachmentStore OutboundAttachmentStore
 	refreshInterval time.Duration
 	logger          *slog.Logger
 	middlewares     []Middleware
+	inboundSink     InboundSink
 
 	inboundQueue   chan inboundTask
 	inboundWorkers int
@@ -111,8 +137,15 @@ func WithRefreshInterval(d time.Duration) ManagerOption {
 	}
 }
 
+// WithInboundSink routes adapter inbound events to an external sink.
+func WithInboundSink(sink InboundSink) ManagerOption {
+	return func(m *Manager) {
+		m.inboundSink = sink
+	}
+}
+
 // NewManager creates a Manager with the given logger, registry, config store, and inbound processor.
-func NewManager(log *slog.Logger, registry *Registry, service ManagerStore, processor InboundProcessor, opts ...ManagerOption) *Manager {
+func NewManager(log *slog.Logger, registry AdapterRegistry, service ManagerStore, processor InboundProcessor, opts ...ManagerOption) *Manager {
 	if log == nil {
 		log = slog.Default()
 	}
@@ -138,7 +171,7 @@ func NewManager(log *slog.Logger, registry *Registry, service ManagerStore, proc
 }
 
 // Registry returns the adapter registry used by this manager.
-func (m *Manager) Registry() *Registry {
+func (m *Manager) Registry() AdapterRegistry {
 	return m.registry
 }
 

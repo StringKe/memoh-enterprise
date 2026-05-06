@@ -12,8 +12,8 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
 
-	"github.com/memohai/memoh/internal/workspace/bridge"
-	pb "github.com/memohai/memoh/internal/workspace/bridgepb"
+	pb "github.com/memohai/memoh/internal/connectapi/gen/memoh/workspace/v1"
+	"github.com/memohai/memoh/internal/workspace/executorclient"
 )
 
 // terminalIdleTimeout closes inactive terminal WebSocket sessions to
@@ -53,7 +53,7 @@ func (h *ContainerdHandler) GetTerminalInfo(c echo.Context) error {
 		return c.JSON(http.StatusOK, terminalInfoResponse{Available: false})
 	}
 
-	client, clientErr := h.manager.MCPClient(ctx, botID)
+	client, clientErr := h.manager.ExecutorClient(ctx, botID)
 	if clientErr != nil || client == nil {
 		return c.JSON(http.StatusOK, terminalInfoResponse{Available: false})
 	}
@@ -87,7 +87,7 @@ func (h *ContainerdHandler) HandleTerminalWS(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "manager not configured")
 	}
 
-	client, err := h.manager.MCPClient(ctx, botID)
+	client, err := h.manager.ExecutorClient(ctx, botID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "container not reachable: "+err.Error())
 	}
@@ -136,14 +136,14 @@ func (h *ContainerdHandler) HandleTerminalWS(c echo.Context) error {
 			if recvErr != nil {
 				return
 			}
-			switch output.GetStream() {
-			case pb.ExecOutput_STDOUT, pb.ExecOutput_STDERR:
+			switch output.GetKind() {
+			case pb.ExecResponse_KIND_STDOUT, pb.ExecResponse_KIND_STDERR:
 				if data := output.GetData(); len(data) > 0 {
 					if writeErr := conn.WriteMessage(websocket.BinaryMessage, data); writeErr != nil {
 						return
 					}
 				}
-			case pb.ExecOutput_EXIT:
+			case pb.ExecResponse_KIND_EXIT:
 				return
 			}
 		}
@@ -183,7 +183,7 @@ func (h *ContainerdHandler) HandleTerminalWS(c echo.Context) error {
 
 // detectShell probes the container for an interactive shell with readline support.
 // Prefers bash > zsh > /bin/sh.
-func detectShell(ctx context.Context, client *bridge.Client) string {
+func detectShell(ctx context.Context, client *executorclient.Client) string {
 	for _, sh := range []string{"/bin/bash", "/usr/bin/bash", "/bin/zsh", "/usr/bin/zsh"} {
 		result, err := client.Exec(ctx, "test -x "+sh, "/", 5)
 		if err == nil && result.ExitCode == 0 {

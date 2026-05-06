@@ -12,6 +12,7 @@ import (
 
 	"github.com/memohai/memoh/internal/db/postgres/sqlc"
 	postgresstore "github.com/memohai/memoh/internal/db/postgres/store"
+	"github.com/memohai/memoh/internal/iam/rbac"
 )
 
 type fakeDBTX struct {
@@ -22,6 +23,7 @@ type fakeDBTX struct {
 	lastUpsertArgs  []any
 	settingsNoRows  bool
 	groupLookupHits int
+	visibility      string
 }
 
 func (db *fakeDBTX) Exec(_ context.Context, sql string, args ...interface{}) (pgconn.CommandTag, error) {
@@ -36,7 +38,7 @@ func (db *fakeDBTX) Query(_ context.Context, sql string, _ ...interface{}) (pgx.
 		return &fakeRows{
 			scans: []func(dest ...any) error{
 				func(dest ...any) error {
-					scanBotGroup(dest, db.groupID, db.ownerID, "group-a")
+					scanBotGroupWithVisibility(dest, db.groupID, db.ownerID, "group-a", db.visibility)
 					return nil
 				},
 			},
@@ -49,7 +51,7 @@ func (db *fakeDBTX) QueryRow(_ context.Context, sql string, args ...interface{})
 	switch {
 	case strings.Contains(sql, "INSERT INTO bot_groups"):
 		return fakeRow(func(dest ...any) error {
-			scanBotGroup(dest, db.groupID, db.ownerID, args[1].(string))
+			scanBotGroupWithVisibility(dest, db.groupID, db.ownerID, args[1].(string), db.visibility)
 			return nil
 		})
 	case strings.Contains(sql, "SELECT count(*)"):
@@ -63,13 +65,13 @@ func (db *fakeDBTX) QueryRow(_ context.Context, sql string, args ...interface{})
 			return fakeRow(func(_ ...any) error { return pgx.ErrNoRows })
 		}
 		return fakeRow(func(dest ...any) error {
-			scanBotGroup(dest, db.groupID, db.ownerID, "group-a")
+			scanBotGroupWithVisibility(dest, db.groupID, db.ownerID, "group-a", db.visibility)
 			return nil
 		})
 	case strings.Contains(sql, "WHERE id ="):
 		db.groupLookupHits++
 		return fakeRow(func(dest ...any) error {
-			scanBotGroup(dest, db.groupID, db.ownerID, "group-a")
+			scanBotGroupWithVisibility(dest, db.groupID, db.ownerID, "group-a", db.visibility)
 			return nil
 		})
 	case strings.Contains(sql, "FROM bot_group_settings"):
@@ -138,6 +140,56 @@ func TestServiceOwnerChecks(t *testing.T) {
 	}
 }
 
+func TestHasGroupPermissionAllowsOrganizationReadAndUse(t *testing.T) {
+	db := newFakeDB(t)
+	db.visibility = VisibilityOrganization
+	service := newTestService(db)
+	service.SetRBACService(&fakePermissionService{})
+
+	allowed, err := service.HasGroupPermission(context.Background(), db.otherID.String(), db.groupID.String(), rbac.PermissionBotGroupRead)
+	if err != nil {
+		t.Fatalf("HasGroupPermission read returned error: %v", err)
+	}
+	if !allowed {
+		t.Fatal("organization group read = false, want true")
+	}
+	allowed, err = service.HasGroupPermission(context.Background(), db.otherID.String(), db.groupID.String(), rbac.PermissionBotGroupUse)
+	if err != nil {
+		t.Fatalf("HasGroupPermission use returned error: %v", err)
+	}
+	if !allowed {
+		t.Fatal("organization group use = false, want true")
+	}
+	allowed, err = service.HasGroupPermission(context.Background(), db.otherID.String(), db.groupID.String(), rbac.PermissionBotGroupUpdate)
+	if err != nil {
+		t.Fatalf("HasGroupPermission update returned error: %v", err)
+	}
+	if allowed {
+		t.Fatal("organization group update = true, want false without RBAC")
+	}
+}
+
+func TestHasGroupPermissionUsesRBACForPrivateGroup(t *testing.T) {
+	db := newFakeDB(t)
+	permission := &fakePermissionService{allowed: true}
+	service := newTestService(db)
+	service.SetRBACService(permission)
+
+	allowed, err := service.HasGroupPermission(context.Background(), db.otherID.String(), db.groupID.String(), rbac.PermissionBotGroupUpdate)
+	if err != nil {
+		t.Fatalf("HasGroupPermission returned error: %v", err)
+	}
+	if !allowed {
+		t.Fatal("private group update = false, want true from RBAC")
+	}
+	if permission.check.PermissionKey != rbac.PermissionBotGroupUpdate {
+		t.Fatalf("permission = %q, want %q", permission.check.PermissionKey, rbac.PermissionBotGroupUpdate)
+	}
+	if permission.check.ResourceType != rbac.ResourceBotGroup || permission.check.ResourceID != db.groupID.String() {
+		t.Fatalf("unexpected RBAC check: %+v", permission.check)
+	}
+}
+
 func TestServiceGroupSettingsNullableDefaults(t *testing.T) {
 	db := newFakeDB(t)
 	service := newTestService(db)
@@ -184,9 +236,10 @@ func newTestService(fake *fakeDBTX) *Service {
 func newFakeDB(t *testing.T) *fakeDBTX {
 	t.Helper()
 	return &fakeDBTX{
-		ownerID: parseTestUUID(t, "00000000-0000-0000-0000-000000000001"),
-		groupID: parseTestUUID(t, "00000000-0000-0000-0000-000000000002"),
-		otherID: parseTestUUID(t, "00000000-0000-0000-0000-000000000003"),
+		ownerID:    parseTestUUID(t, "00000000-0000-0000-0000-000000000001"),
+		groupID:    parseTestUUID(t, "00000000-0000-0000-0000-000000000002"),
+		otherID:    parseTestUUID(t, "00000000-0000-0000-0000-000000000003"),
+		visibility: VisibilityPrivate,
 	}
 }
 
@@ -199,14 +252,25 @@ func parseTestUUID(t *testing.T, value string) pgtype.UUID {
 	return id
 }
 
-func scanBotGroup(dest []any, groupID, ownerID pgtype.UUID, name string) {
+func scanBotGroupWithVisibility(dest []any, groupID, ownerID pgtype.UUID, name string, visibility string) {
 	*dest[0].(*pgtype.UUID) = groupID
 	*dest[1].(*pgtype.UUID) = ownerID
 	*dest[2].(*string) = name
 	*dest[3].(*string) = "description"
-	*dest[4].(*[]byte) = []byte(`{"source":"test"}`)
-	*dest[5].(*pgtype.Timestamptz) = pgtype.Timestamptz{}
+	*dest[4].(*string) = visibility
+	*dest[5].(*[]byte) = []byte(`{"source":"test"}`)
 	*dest[6].(*pgtype.Timestamptz) = pgtype.Timestamptz{}
+	*dest[7].(*pgtype.Timestamptz) = pgtype.Timestamptz{}
+}
+
+type fakePermissionService struct {
+	allowed bool
+	check   rbac.Check
+}
+
+func (f *fakePermissionService) HasPermission(_ context.Context, check rbac.Check) (bool, error) {
+	f.check = check
+	return f.allowed, nil
 }
 
 func scanGroupSettings(dest []any, groupID pgtype.UUID) {

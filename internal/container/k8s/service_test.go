@@ -38,7 +38,7 @@ func TestCreateContainerCreatesPVCAndPod(t *testing.T) {
 			"memoh.bot_id":    "bot",
 		},
 		Spec: containerapi.ContainerSpec{
-			Cmd: []string{"/opt/memoh/bridge"},
+			Cmd: []string{"/opt/memoh/workspace-executor"},
 			Env: []string{"FOO=bar"},
 		},
 	})
@@ -64,8 +64,8 @@ func TestCreateContainerCreatesPVCAndPod(t *testing.T) {
 	if pod.Labels[containerapi.StorageKeyLabel] != "workspace-bot-data" {
 		t.Fatalf("pod storage label = %q", pod.Labels[containerapi.StorageKeyLabel])
 	}
-	if got := envValue(pod.Spec.Containers[0].Env, "BRIDGE_TCP_ADDR"); got != ":19090" {
-		t.Fatalf("BRIDGE_TCP_ADDR = %q, want :19090", got)
+	if got := envValue(pod.Spec.Containers[0].Env, "WORKSPACE_EXECUTOR_TCP_ADDR"); got != ":19090" {
+		t.Fatalf("WORKSPACE_EXECUTOR_TCP_ADDR = %q, want :19090", got)
 	}
 	if got := pod.Spec.Containers[0].ImagePullPolicy; got != corev1.PullIfNotPresent {
 		t.Fatalf("ImagePullPolicy = %q, want %q", got, corev1.PullIfNotPresent)
@@ -95,7 +95,7 @@ func TestCreateContainerMapsImagePullPolicy(t *testing.T) {
 				ImageRef:        "memoh/workspace:latest",
 				ImagePullPolicy: tt.policy,
 				Spec: containerapi.ContainerSpec{
-					Cmd: []string{"/opt/memoh/bridge"},
+					Cmd: []string{"/opt/memoh/workspace-executor"},
 				},
 			})
 			if err != nil {
@@ -112,14 +112,14 @@ func TestCreateContainerMapsImagePullPolicy(t *testing.T) {
 	}
 }
 
-func TestBridgeTargetReturnsPodIPAndBridgePort(t *testing.T) {
+func TestWorkspaceExecutorTargetReturnsPodIPAndWorkspaceExecutorPort(t *testing.T) {
 	client := k8sfake.NewSimpleClientset(&corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{Name: "workspace-bot", Namespace: "test"},
 		Status:     corev1.PodStatus{PodIP: "10.1.2.3"},
 	})
 	svc := testService(client, nil)
-	if got := svc.BridgeTarget("bot"); got != "10.1.2.3:19090" {
-		t.Fatalf("BridgeTarget = %q", got)
+	if got := svc.WorkspaceExecutorTarget("bot"); got != "10.1.2.3:19090" {
+		t.Fatalf("WorkspaceExecutorTarget = %q", got)
 	}
 }
 
@@ -247,9 +247,9 @@ func testService(client *k8sfake.Clientset, dyn *dynamicfake.FakeDynamicClient, 
 	}
 	return &Service{
 		cfg: config.Config{Kubernetes: config.KubernetesConfig{
-			Namespace:  "test",
-			PVCSize:    "1Gi",
-			BridgePort: 19090,
+			Namespace:             "test",
+			PVCSize:               "1Gi",
+			WorkspaceExecutorPort: 19090,
 		}},
 		client:  client,
 		dynamic: dyn,

@@ -110,6 +110,32 @@ message DeleteBotChannelConfigRequest {
 
 message DeleteBotChannelConfigResponse {}
 
+message StartChannelQrLoginRequest {
+  string bot_id = 1;
+  string channel = 2;
+  google.protobuf.Struct options = 3;
+}
+
+message StartChannelQrLoginResponse {
+  string login_id = 1;
+  string qr_url = 2;
+  bytes qr_image = 3;
+  string mime_type = 4;
+  google.protobuf.Timestamp expires_at = 5;
+}
+
+message PollChannelQrLoginRequest {
+  string bot_id = 1;
+  string channel = 2;
+  string login_id = 3;
+}
+
+message PollChannelQrLoginResponse {
+  string status = 1;
+  BotChannelConfig config = 2;
+  google.protobuf.Struct metadata = 3;
+}
+
 service ChannelService {
   rpc ListChannels(ListChannelsRequest) returns (ListChannelsResponse);
   rpc GetChannel(GetChannelRequest) returns (GetChannelResponse);
@@ -119,4 +145,6 @@ service ChannelService {
   rpc UpsertBotChannelConfig(UpsertBotChannelConfigRequest) returns (UpsertBotChannelConfigResponse);
   rpc UpdateBotChannelStatus(UpdateBotChannelStatusRequest) returns (UpdateBotChannelStatusResponse);
   rpc DeleteBotChannelConfig(DeleteBotChannelConfigRequest) returns (DeleteBotChannelConfigResponse);
+  rpc StartChannelQrLogin(StartChannelQrLoginRequest) returns (StartChannelQrLoginResponse);
+  rpc PollChannelQrLogin(PollChannelQrLoginRequest) returns (PollChannelQrLoginResponse);
 }

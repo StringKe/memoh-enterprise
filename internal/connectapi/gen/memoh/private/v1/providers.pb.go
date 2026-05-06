@@ -10,6 +10,7 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	structpb "google.golang.org/protobuf/types/known/structpb"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -1550,11 +1551,371 @@ func (*RevokeProviderOauthResponse) Descriptor() ([]byte, []int) {
 	return file_memoh_private_v1_providers_proto_rawDescGZIP(), []int{27}
 }
 
+type AuthorizeProviderOauthRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ProviderId    string                 `protobuf:"bytes,1,opt,name=provider_id,json=providerId,proto3" json:"provider_id,omitempty"`
+	RedirectUri   string                 `protobuf:"bytes,2,opt,name=redirect_uri,json=redirectUri,proto3" json:"redirect_uri,omitempty"`
+	Scopes        []string               `protobuf:"bytes,3,rep,name=scopes,proto3" json:"scopes,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AuthorizeProviderOauthRequest) Reset() {
+	*x = AuthorizeProviderOauthRequest{}
+	mi := &file_memoh_private_v1_providers_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AuthorizeProviderOauthRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AuthorizeProviderOauthRequest) ProtoMessage() {}
+
+func (x *AuthorizeProviderOauthRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_providers_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AuthorizeProviderOauthRequest.ProtoReflect.Descriptor instead.
+func (*AuthorizeProviderOauthRequest) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_providers_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *AuthorizeProviderOauthRequest) GetProviderId() string {
+	if x != nil {
+		return x.ProviderId
+	}
+	return ""
+}
+
+func (x *AuthorizeProviderOauthRequest) GetRedirectUri() string {
+	if x != nil {
+		return x.RedirectUri
+	}
+	return ""
+}
+
+func (x *AuthorizeProviderOauthRequest) GetScopes() []string {
+	if x != nil {
+		return x.Scopes
+	}
+	return nil
+}
+
+type AuthorizeProviderOauthResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AuthorizeUrl  string                 `protobuf:"bytes,1,opt,name=authorize_url,json=authorizeUrl,proto3" json:"authorize_url,omitempty"`
+	State         string                 `protobuf:"bytes,2,opt,name=state,proto3" json:"state,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AuthorizeProviderOauthResponse) Reset() {
+	*x = AuthorizeProviderOauthResponse{}
+	mi := &file_memoh_private_v1_providers_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AuthorizeProviderOauthResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AuthorizeProviderOauthResponse) ProtoMessage() {}
+
+func (x *AuthorizeProviderOauthResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_providers_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AuthorizeProviderOauthResponse.ProtoReflect.Descriptor instead.
+func (*AuthorizeProviderOauthResponse) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_providers_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *AuthorizeProviderOauthResponse) GetAuthorizeUrl() string {
+	if x != nil {
+		return x.AuthorizeUrl
+	}
+	return ""
+}
+
+func (x *AuthorizeProviderOauthResponse) GetState() string {
+	if x != nil {
+		return x.State
+	}
+	return ""
+}
+
+type ExchangeProviderOauthTokenRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ProviderId    string                 `protobuf:"bytes,1,opt,name=provider_id,json=providerId,proto3" json:"provider_id,omitempty"`
+	Code          string                 `protobuf:"bytes,2,opt,name=code,proto3" json:"code,omitempty"`
+	State         string                 `protobuf:"bytes,3,opt,name=state,proto3" json:"state,omitempty"`
+	RedirectUri   string                 `protobuf:"bytes,4,opt,name=redirect_uri,json=redirectUri,proto3" json:"redirect_uri,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ExchangeProviderOauthTokenRequest) Reset() {
+	*x = ExchangeProviderOauthTokenRequest{}
+	mi := &file_memoh_private_v1_providers_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ExchangeProviderOauthTokenRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ExchangeProviderOauthTokenRequest) ProtoMessage() {}
+
+func (x *ExchangeProviderOauthTokenRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_providers_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ExchangeProviderOauthTokenRequest.ProtoReflect.Descriptor instead.
+func (*ExchangeProviderOauthTokenRequest) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_providers_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *ExchangeProviderOauthTokenRequest) GetProviderId() string {
+	if x != nil {
+		return x.ProviderId
+	}
+	return ""
+}
+
+func (x *ExchangeProviderOauthTokenRequest) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+func (x *ExchangeProviderOauthTokenRequest) GetState() string {
+	if x != nil {
+		return x.State
+	}
+	return ""
+}
+
+func (x *ExchangeProviderOauthTokenRequest) GetRedirectUri() string {
+	if x != nil {
+		return x.RedirectUri
+	}
+	return ""
+}
+
+type ExchangeProviderOauthTokenResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Authorized    bool                   `protobuf:"varint,1,opt,name=authorized,proto3" json:"authorized,omitempty"`
+	Account       string                 `protobuf:"bytes,2,opt,name=account,proto3" json:"account,omitempty"`
+	ExpiresAt     *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	Metadata      *structpb.Struct       `protobuf:"bytes,4,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ExchangeProviderOauthTokenResponse) Reset() {
+	*x = ExchangeProviderOauthTokenResponse{}
+	mi := &file_memoh_private_v1_providers_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ExchangeProviderOauthTokenResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ExchangeProviderOauthTokenResponse) ProtoMessage() {}
+
+func (x *ExchangeProviderOauthTokenResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_providers_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ExchangeProviderOauthTokenResponse.ProtoReflect.Descriptor instead.
+func (*ExchangeProviderOauthTokenResponse) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_providers_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *ExchangeProviderOauthTokenResponse) GetAuthorized() bool {
+	if x != nil {
+		return x.Authorized
+	}
+	return false
+}
+
+func (x *ExchangeProviderOauthTokenResponse) GetAccount() string {
+	if x != nil {
+		return x.Account
+	}
+	return ""
+}
+
+func (x *ExchangeProviderOauthTokenResponse) GetExpiresAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.ExpiresAt
+	}
+	return nil
+}
+
+func (x *ExchangeProviderOauthTokenResponse) GetMetadata() *structpb.Struct {
+	if x != nil {
+		return x.Metadata
+	}
+	return nil
+}
+
+type GetProviderOauthTokenRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ProviderId    string                 `protobuf:"bytes,1,opt,name=provider_id,json=providerId,proto3" json:"provider_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetProviderOauthTokenRequest) Reset() {
+	*x = GetProviderOauthTokenRequest{}
+	mi := &file_memoh_private_v1_providers_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetProviderOauthTokenRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetProviderOauthTokenRequest) ProtoMessage() {}
+
+func (x *GetProviderOauthTokenRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_providers_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetProviderOauthTokenRequest.ProtoReflect.Descriptor instead.
+func (*GetProviderOauthTokenRequest) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_providers_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *GetProviderOauthTokenRequest) GetProviderId() string {
+	if x != nil {
+		return x.ProviderId
+	}
+	return ""
+}
+
+type GetProviderOauthTokenResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Available     bool                   `protobuf:"varint,1,opt,name=available,proto3" json:"available,omitempty"`
+	TokenType     string                 `protobuf:"bytes,2,opt,name=token_type,json=tokenType,proto3" json:"token_type,omitempty"`
+	ExpiresAt     *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	Scopes        []string               `protobuf:"bytes,4,rep,name=scopes,proto3" json:"scopes,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetProviderOauthTokenResponse) Reset() {
+	*x = GetProviderOauthTokenResponse{}
+	mi := &file_memoh_private_v1_providers_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetProviderOauthTokenResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetProviderOauthTokenResponse) ProtoMessage() {}
+
+func (x *GetProviderOauthTokenResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_providers_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetProviderOauthTokenResponse.ProtoReflect.Descriptor instead.
+func (*GetProviderOauthTokenResponse) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_providers_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *GetProviderOauthTokenResponse) GetAvailable() bool {
+	if x != nil {
+		return x.Available
+	}
+	return false
+}
+
+func (x *GetProviderOauthTokenResponse) GetTokenType() string {
+	if x != nil {
+		return x.TokenType
+	}
+	return ""
+}
+
+func (x *GetProviderOauthTokenResponse) GetExpiresAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.ExpiresAt
+	}
+	return nil
+}
+
+func (x *GetProviderOauthTokenResponse) GetScopes() []string {
+	if x != nil {
+		return x.Scopes
+	}
+	return nil
+}
+
 var File_memoh_private_v1_providers_proto protoreflect.FileDescriptor
 
 const file_memoh_private_v1_providers_proto_rawDesc = "" +
 	"\n" +
-	" memoh/private/v1/providers.proto\x12\x10memoh.private.v1\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1dmemoh/private/v1/common.proto\"\x8d\x02\n" +
+	" memoh/private/v1/providers.proto\x12\x10memoh.private.v1\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1dmemoh/private/v1/common.proto\"\x8d\x02\n" +
 	"\bProvider\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12!\n" +
@@ -1667,8 +2028,39 @@ const file_memoh_private_v1_providers_proto_rawDesc = "" +
 	"\x1aRevokeProviderOauthRequest\x12\x1f\n" +
 	"\vprovider_id\x18\x01 \x01(\tR\n" +
 	"providerId\"\x1d\n" +
-	"\x1bRevokeProviderOauthResponse2\xfa\n" +
+	"\x1bRevokeProviderOauthResponse\"{\n" +
+	"\x1dAuthorizeProviderOauthRequest\x12\x1f\n" +
+	"\vprovider_id\x18\x01 \x01(\tR\n" +
+	"providerId\x12!\n" +
+	"\fredirect_uri\x18\x02 \x01(\tR\vredirectUri\x12\x16\n" +
+	"\x06scopes\x18\x03 \x03(\tR\x06scopes\"[\n" +
+	"\x1eAuthorizeProviderOauthResponse\x12#\n" +
+	"\rauthorize_url\x18\x01 \x01(\tR\fauthorizeUrl\x12\x14\n" +
+	"\x05state\x18\x02 \x01(\tR\x05state\"\x91\x01\n" +
+	"!ExchangeProviderOauthTokenRequest\x12\x1f\n" +
+	"\vprovider_id\x18\x01 \x01(\tR\n" +
+	"providerId\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\tR\x04code\x12\x14\n" +
+	"\x05state\x18\x03 \x01(\tR\x05state\x12!\n" +
+	"\fredirect_uri\x18\x04 \x01(\tR\vredirectUri\"\xce\x01\n" +
+	"\"ExchangeProviderOauthTokenResponse\x12\x1e\n" +
 	"\n" +
+	"authorized\x18\x01 \x01(\bR\n" +
+	"authorized\x12\x18\n" +
+	"\aaccount\x18\x02 \x01(\tR\aaccount\x129\n" +
+	"\n" +
+	"expires_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt\x123\n" +
+	"\bmetadata\x18\x04 \x01(\v2\x17.google.protobuf.StructR\bmetadata\"?\n" +
+	"\x1cGetProviderOauthTokenRequest\x12\x1f\n" +
+	"\vprovider_id\x18\x01 \x01(\tR\n" +
+	"providerId\"\xaf\x01\n" +
+	"\x1dGetProviderOauthTokenResponse\x12\x1c\n" +
+	"\tavailable\x18\x01 \x01(\bR\tavailable\x12\x1d\n" +
+	"\n" +
+	"token_type\x18\x02 \x01(\tR\ttokenType\x129\n" +
+	"\n" +
+	"expires_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt\x12\x16\n" +
+	"\x06scopes\x18\x04 \x03(\tR\x06scopes2\xfb\r\n" +
 	"\x0fProviderService\x12c\n" +
 	"\x0eCreateProvider\x12'.memoh.private.v1.CreateProviderRequest\x1a(.memoh.private.v1.CreateProviderResponse\x12`\n" +
 	"\rListProviders\x12&.memoh.private.v1.ListProvidersRequest\x1a'.memoh.private.v1.ListProvidersResponse\x12Z\n" +
@@ -1682,7 +2074,10 @@ const file_memoh_private_v1_providers_proto_rawDesc = "" +
 	"\x16GetProviderOauthStatus\x12/.memoh.private.v1.GetProviderOauthStatusRequest\x1a0.memoh.private.v1.GetProviderOauthStatusResponse\x12o\n" +
 	"\x12StartProviderOauth\x12+.memoh.private.v1.StartProviderOauthRequest\x1a,.memoh.private.v1.StartProviderOauthResponse\x12l\n" +
 	"\x11PollProviderOauth\x12*.memoh.private.v1.PollProviderOauthRequest\x1a+.memoh.private.v1.PollProviderOauthResponse\x12r\n" +
-	"\x13RevokeProviderOauth\x12,.memoh.private.v1.RevokeProviderOauthRequest\x1a-.memoh.private.v1.RevokeProviderOauthResponseBMZKgithub.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1;privatev1b\x06proto3"
+	"\x13RevokeProviderOauth\x12,.memoh.private.v1.RevokeProviderOauthRequest\x1a-.memoh.private.v1.RevokeProviderOauthResponse\x12{\n" +
+	"\x16AuthorizeProviderOauth\x12/.memoh.private.v1.AuthorizeProviderOauthRequest\x1a0.memoh.private.v1.AuthorizeProviderOauthResponse\x12\x87\x01\n" +
+	"\x1aExchangeProviderOauthToken\x123.memoh.private.v1.ExchangeProviderOauthTokenRequest\x1a4.memoh.private.v1.ExchangeProviderOauthTokenResponse\x12x\n" +
+	"\x15GetProviderOauthToken\x12..memoh.private.v1.GetProviderOauthTokenRequest\x1a/.memoh.private.v1.GetProviderOauthTokenResponseBMZKgithub.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1;privatev1b\x06proto3"
 
 var (
 	file_memoh_private_v1_providers_proto_rawDescOnce sync.Once
@@ -1696,91 +2091,107 @@ func file_memoh_private_v1_providers_proto_rawDescGZIP() []byte {
 	return file_memoh_private_v1_providers_proto_rawDescData
 }
 
-var file_memoh_private_v1_providers_proto_msgTypes = make([]protoimpl.MessageInfo, 28)
+var file_memoh_private_v1_providers_proto_msgTypes = make([]protoimpl.MessageInfo, 34)
 var file_memoh_private_v1_providers_proto_goTypes = []any{
-	(*Provider)(nil),                       // 0: memoh.private.v1.Provider
-	(*ProviderModelSummary)(nil),           // 1: memoh.private.v1.ProviderModelSummary
-	(*CreateProviderRequest)(nil),          // 2: memoh.private.v1.CreateProviderRequest
-	(*CreateProviderResponse)(nil),         // 3: memoh.private.v1.CreateProviderResponse
-	(*ListProvidersRequest)(nil),           // 4: memoh.private.v1.ListProvidersRequest
-	(*ListProvidersResponse)(nil),          // 5: memoh.private.v1.ListProvidersResponse
-	(*GetProviderRequest)(nil),             // 6: memoh.private.v1.GetProviderRequest
-	(*GetProviderResponse)(nil),            // 7: memoh.private.v1.GetProviderResponse
-	(*UpdateProviderRequest)(nil),          // 8: memoh.private.v1.UpdateProviderRequest
-	(*UpdateProviderResponse)(nil),         // 9: memoh.private.v1.UpdateProviderResponse
-	(*DeleteProviderRequest)(nil),          // 10: memoh.private.v1.DeleteProviderRequest
-	(*DeleteProviderResponse)(nil),         // 11: memoh.private.v1.DeleteProviderResponse
-	(*CountProvidersRequest)(nil),          // 12: memoh.private.v1.CountProvidersRequest
-	(*CountProvidersResponse)(nil),         // 13: memoh.private.v1.CountProvidersResponse
-	(*ListProviderModelsRequest)(nil),      // 14: memoh.private.v1.ListProviderModelsRequest
-	(*ListProviderModelsResponse)(nil),     // 15: memoh.private.v1.ListProviderModelsResponse
-	(*TestProviderRequest)(nil),            // 16: memoh.private.v1.TestProviderRequest
-	(*TestProviderResponse)(nil),           // 17: memoh.private.v1.TestProviderResponse
-	(*ImportProviderModelsRequest)(nil),    // 18: memoh.private.v1.ImportProviderModelsRequest
-	(*ImportProviderModelsResponse)(nil),   // 19: memoh.private.v1.ImportProviderModelsResponse
-	(*GetProviderOauthStatusRequest)(nil),  // 20: memoh.private.v1.GetProviderOauthStatusRequest
-	(*GetProviderOauthStatusResponse)(nil), // 21: memoh.private.v1.GetProviderOauthStatusResponse
-	(*StartProviderOauthRequest)(nil),      // 22: memoh.private.v1.StartProviderOauthRequest
-	(*StartProviderOauthResponse)(nil),     // 23: memoh.private.v1.StartProviderOauthResponse
-	(*PollProviderOauthRequest)(nil),       // 24: memoh.private.v1.PollProviderOauthRequest
-	(*PollProviderOauthResponse)(nil),      // 25: memoh.private.v1.PollProviderOauthResponse
-	(*RevokeProviderOauthRequest)(nil),     // 26: memoh.private.v1.RevokeProviderOauthRequest
-	(*RevokeProviderOauthResponse)(nil),    // 27: memoh.private.v1.RevokeProviderOauthResponse
-	(*structpb.Struct)(nil),                // 28: google.protobuf.Struct
-	(*AuditFields)(nil),                    // 29: memoh.private.v1.AuditFields
-	(*PageRequest)(nil),                    // 30: memoh.private.v1.PageRequest
-	(*PageResponse)(nil),                   // 31: memoh.private.v1.PageResponse
+	(*Provider)(nil),                           // 0: memoh.private.v1.Provider
+	(*ProviderModelSummary)(nil),               // 1: memoh.private.v1.ProviderModelSummary
+	(*CreateProviderRequest)(nil),              // 2: memoh.private.v1.CreateProviderRequest
+	(*CreateProviderResponse)(nil),             // 3: memoh.private.v1.CreateProviderResponse
+	(*ListProvidersRequest)(nil),               // 4: memoh.private.v1.ListProvidersRequest
+	(*ListProvidersResponse)(nil),              // 5: memoh.private.v1.ListProvidersResponse
+	(*GetProviderRequest)(nil),                 // 6: memoh.private.v1.GetProviderRequest
+	(*GetProviderResponse)(nil),                // 7: memoh.private.v1.GetProviderResponse
+	(*UpdateProviderRequest)(nil),              // 8: memoh.private.v1.UpdateProviderRequest
+	(*UpdateProviderResponse)(nil),             // 9: memoh.private.v1.UpdateProviderResponse
+	(*DeleteProviderRequest)(nil),              // 10: memoh.private.v1.DeleteProviderRequest
+	(*DeleteProviderResponse)(nil),             // 11: memoh.private.v1.DeleteProviderResponse
+	(*CountProvidersRequest)(nil),              // 12: memoh.private.v1.CountProvidersRequest
+	(*CountProvidersResponse)(nil),             // 13: memoh.private.v1.CountProvidersResponse
+	(*ListProviderModelsRequest)(nil),          // 14: memoh.private.v1.ListProviderModelsRequest
+	(*ListProviderModelsResponse)(nil),         // 15: memoh.private.v1.ListProviderModelsResponse
+	(*TestProviderRequest)(nil),                // 16: memoh.private.v1.TestProviderRequest
+	(*TestProviderResponse)(nil),               // 17: memoh.private.v1.TestProviderResponse
+	(*ImportProviderModelsRequest)(nil),        // 18: memoh.private.v1.ImportProviderModelsRequest
+	(*ImportProviderModelsResponse)(nil),       // 19: memoh.private.v1.ImportProviderModelsResponse
+	(*GetProviderOauthStatusRequest)(nil),      // 20: memoh.private.v1.GetProviderOauthStatusRequest
+	(*GetProviderOauthStatusResponse)(nil),     // 21: memoh.private.v1.GetProviderOauthStatusResponse
+	(*StartProviderOauthRequest)(nil),          // 22: memoh.private.v1.StartProviderOauthRequest
+	(*StartProviderOauthResponse)(nil),         // 23: memoh.private.v1.StartProviderOauthResponse
+	(*PollProviderOauthRequest)(nil),           // 24: memoh.private.v1.PollProviderOauthRequest
+	(*PollProviderOauthResponse)(nil),          // 25: memoh.private.v1.PollProviderOauthResponse
+	(*RevokeProviderOauthRequest)(nil),         // 26: memoh.private.v1.RevokeProviderOauthRequest
+	(*RevokeProviderOauthResponse)(nil),        // 27: memoh.private.v1.RevokeProviderOauthResponse
+	(*AuthorizeProviderOauthRequest)(nil),      // 28: memoh.private.v1.AuthorizeProviderOauthRequest
+	(*AuthorizeProviderOauthResponse)(nil),     // 29: memoh.private.v1.AuthorizeProviderOauthResponse
+	(*ExchangeProviderOauthTokenRequest)(nil),  // 30: memoh.private.v1.ExchangeProviderOauthTokenRequest
+	(*ExchangeProviderOauthTokenResponse)(nil), // 31: memoh.private.v1.ExchangeProviderOauthTokenResponse
+	(*GetProviderOauthTokenRequest)(nil),       // 32: memoh.private.v1.GetProviderOauthTokenRequest
+	(*GetProviderOauthTokenResponse)(nil),      // 33: memoh.private.v1.GetProviderOauthTokenResponse
+	(*structpb.Struct)(nil),                    // 34: google.protobuf.Struct
+	(*AuditFields)(nil),                        // 35: memoh.private.v1.AuditFields
+	(*PageRequest)(nil),                        // 36: memoh.private.v1.PageRequest
+	(*PageResponse)(nil),                       // 37: memoh.private.v1.PageResponse
+	(*timestamppb.Timestamp)(nil),              // 38: google.protobuf.Timestamp
 }
 var file_memoh_private_v1_providers_proto_depIdxs = []int32{
-	28, // 0: memoh.private.v1.Provider.config:type_name -> google.protobuf.Struct
-	29, // 1: memoh.private.v1.Provider.audit:type_name -> memoh.private.v1.AuditFields
-	28, // 2: memoh.private.v1.ProviderModelSummary.metadata:type_name -> google.protobuf.Struct
-	28, // 3: memoh.private.v1.CreateProviderRequest.config:type_name -> google.protobuf.Struct
+	34, // 0: memoh.private.v1.Provider.config:type_name -> google.protobuf.Struct
+	35, // 1: memoh.private.v1.Provider.audit:type_name -> memoh.private.v1.AuditFields
+	34, // 2: memoh.private.v1.ProviderModelSummary.metadata:type_name -> google.protobuf.Struct
+	34, // 3: memoh.private.v1.CreateProviderRequest.config:type_name -> google.protobuf.Struct
 	0,  // 4: memoh.private.v1.CreateProviderResponse.provider:type_name -> memoh.private.v1.Provider
-	30, // 5: memoh.private.v1.ListProvidersRequest.page:type_name -> memoh.private.v1.PageRequest
+	36, // 5: memoh.private.v1.ListProvidersRequest.page:type_name -> memoh.private.v1.PageRequest
 	0,  // 6: memoh.private.v1.ListProvidersResponse.providers:type_name -> memoh.private.v1.Provider
-	31, // 7: memoh.private.v1.ListProvidersResponse.page:type_name -> memoh.private.v1.PageResponse
+	37, // 7: memoh.private.v1.ListProvidersResponse.page:type_name -> memoh.private.v1.PageResponse
 	0,  // 8: memoh.private.v1.GetProviderResponse.provider:type_name -> memoh.private.v1.Provider
-	28, // 9: memoh.private.v1.UpdateProviderRequest.config:type_name -> google.protobuf.Struct
+	34, // 9: memoh.private.v1.UpdateProviderRequest.config:type_name -> google.protobuf.Struct
 	0,  // 10: memoh.private.v1.UpdateProviderResponse.provider:type_name -> memoh.private.v1.Provider
-	30, // 11: memoh.private.v1.ListProviderModelsRequest.page:type_name -> memoh.private.v1.PageRequest
+	36, // 11: memoh.private.v1.ListProviderModelsRequest.page:type_name -> memoh.private.v1.PageRequest
 	1,  // 12: memoh.private.v1.ListProviderModelsResponse.models:type_name -> memoh.private.v1.ProviderModelSummary
-	31, // 13: memoh.private.v1.ListProviderModelsResponse.page:type_name -> memoh.private.v1.PageResponse
-	28, // 14: memoh.private.v1.TestProviderResponse.metadata:type_name -> google.protobuf.Struct
+	37, // 13: memoh.private.v1.ListProviderModelsResponse.page:type_name -> memoh.private.v1.PageResponse
+	34, // 14: memoh.private.v1.TestProviderResponse.metadata:type_name -> google.protobuf.Struct
 	1,  // 15: memoh.private.v1.ImportProviderModelsResponse.models:type_name -> memoh.private.v1.ProviderModelSummary
-	28, // 16: memoh.private.v1.GetProviderOauthStatusResponse.metadata:type_name -> google.protobuf.Struct
+	34, // 16: memoh.private.v1.GetProviderOauthStatusResponse.metadata:type_name -> google.protobuf.Struct
 	21, // 17: memoh.private.v1.PollProviderOauthResponse.status:type_name -> memoh.private.v1.GetProviderOauthStatusResponse
-	2,  // 18: memoh.private.v1.ProviderService.CreateProvider:input_type -> memoh.private.v1.CreateProviderRequest
-	4,  // 19: memoh.private.v1.ProviderService.ListProviders:input_type -> memoh.private.v1.ListProvidersRequest
-	6,  // 20: memoh.private.v1.ProviderService.GetProvider:input_type -> memoh.private.v1.GetProviderRequest
-	8,  // 21: memoh.private.v1.ProviderService.UpdateProvider:input_type -> memoh.private.v1.UpdateProviderRequest
-	10, // 22: memoh.private.v1.ProviderService.DeleteProvider:input_type -> memoh.private.v1.DeleteProviderRequest
-	12, // 23: memoh.private.v1.ProviderService.CountProviders:input_type -> memoh.private.v1.CountProvidersRequest
-	14, // 24: memoh.private.v1.ProviderService.ListProviderModels:input_type -> memoh.private.v1.ListProviderModelsRequest
-	16, // 25: memoh.private.v1.ProviderService.TestProvider:input_type -> memoh.private.v1.TestProviderRequest
-	18, // 26: memoh.private.v1.ProviderService.ImportProviderModels:input_type -> memoh.private.v1.ImportProviderModelsRequest
-	20, // 27: memoh.private.v1.ProviderService.GetProviderOauthStatus:input_type -> memoh.private.v1.GetProviderOauthStatusRequest
-	22, // 28: memoh.private.v1.ProviderService.StartProviderOauth:input_type -> memoh.private.v1.StartProviderOauthRequest
-	24, // 29: memoh.private.v1.ProviderService.PollProviderOauth:input_type -> memoh.private.v1.PollProviderOauthRequest
-	26, // 30: memoh.private.v1.ProviderService.RevokeProviderOauth:input_type -> memoh.private.v1.RevokeProviderOauthRequest
-	3,  // 31: memoh.private.v1.ProviderService.CreateProvider:output_type -> memoh.private.v1.CreateProviderResponse
-	5,  // 32: memoh.private.v1.ProviderService.ListProviders:output_type -> memoh.private.v1.ListProvidersResponse
-	7,  // 33: memoh.private.v1.ProviderService.GetProvider:output_type -> memoh.private.v1.GetProviderResponse
-	9,  // 34: memoh.private.v1.ProviderService.UpdateProvider:output_type -> memoh.private.v1.UpdateProviderResponse
-	11, // 35: memoh.private.v1.ProviderService.DeleteProvider:output_type -> memoh.private.v1.DeleteProviderResponse
-	13, // 36: memoh.private.v1.ProviderService.CountProviders:output_type -> memoh.private.v1.CountProvidersResponse
-	15, // 37: memoh.private.v1.ProviderService.ListProviderModels:output_type -> memoh.private.v1.ListProviderModelsResponse
-	17, // 38: memoh.private.v1.ProviderService.TestProvider:output_type -> memoh.private.v1.TestProviderResponse
-	19, // 39: memoh.private.v1.ProviderService.ImportProviderModels:output_type -> memoh.private.v1.ImportProviderModelsResponse
-	21, // 40: memoh.private.v1.ProviderService.GetProviderOauthStatus:output_type -> memoh.private.v1.GetProviderOauthStatusResponse
-	23, // 41: memoh.private.v1.ProviderService.StartProviderOauth:output_type -> memoh.private.v1.StartProviderOauthResponse
-	25, // 42: memoh.private.v1.ProviderService.PollProviderOauth:output_type -> memoh.private.v1.PollProviderOauthResponse
-	27, // 43: memoh.private.v1.ProviderService.RevokeProviderOauth:output_type -> memoh.private.v1.RevokeProviderOauthResponse
-	31, // [31:44] is the sub-list for method output_type
-	18, // [18:31] is the sub-list for method input_type
-	18, // [18:18] is the sub-list for extension type_name
-	18, // [18:18] is the sub-list for extension extendee
-	0,  // [0:18] is the sub-list for field type_name
+	38, // 18: memoh.private.v1.ExchangeProviderOauthTokenResponse.expires_at:type_name -> google.protobuf.Timestamp
+	34, // 19: memoh.private.v1.ExchangeProviderOauthTokenResponse.metadata:type_name -> google.protobuf.Struct
+	38, // 20: memoh.private.v1.GetProviderOauthTokenResponse.expires_at:type_name -> google.protobuf.Timestamp
+	2,  // 21: memoh.private.v1.ProviderService.CreateProvider:input_type -> memoh.private.v1.CreateProviderRequest
+	4,  // 22: memoh.private.v1.ProviderService.ListProviders:input_type -> memoh.private.v1.ListProvidersRequest
+	6,  // 23: memoh.private.v1.ProviderService.GetProvider:input_type -> memoh.private.v1.GetProviderRequest
+	8,  // 24: memoh.private.v1.ProviderService.UpdateProvider:input_type -> memoh.private.v1.UpdateProviderRequest
+	10, // 25: memoh.private.v1.ProviderService.DeleteProvider:input_type -> memoh.private.v1.DeleteProviderRequest
+	12, // 26: memoh.private.v1.ProviderService.CountProviders:input_type -> memoh.private.v1.CountProvidersRequest
+	14, // 27: memoh.private.v1.ProviderService.ListProviderModels:input_type -> memoh.private.v1.ListProviderModelsRequest
+	16, // 28: memoh.private.v1.ProviderService.TestProvider:input_type -> memoh.private.v1.TestProviderRequest
+	18, // 29: memoh.private.v1.ProviderService.ImportProviderModels:input_type -> memoh.private.v1.ImportProviderModelsRequest
+	20, // 30: memoh.private.v1.ProviderService.GetProviderOauthStatus:input_type -> memoh.private.v1.GetProviderOauthStatusRequest
+	22, // 31: memoh.private.v1.ProviderService.StartProviderOauth:input_type -> memoh.private.v1.StartProviderOauthRequest
+	24, // 32: memoh.private.v1.ProviderService.PollProviderOauth:input_type -> memoh.private.v1.PollProviderOauthRequest
+	26, // 33: memoh.private.v1.ProviderService.RevokeProviderOauth:input_type -> memoh.private.v1.RevokeProviderOauthRequest
+	28, // 34: memoh.private.v1.ProviderService.AuthorizeProviderOauth:input_type -> memoh.private.v1.AuthorizeProviderOauthRequest
+	30, // 35: memoh.private.v1.ProviderService.ExchangeProviderOauthToken:input_type -> memoh.private.v1.ExchangeProviderOauthTokenRequest
+	32, // 36: memoh.private.v1.ProviderService.GetProviderOauthToken:input_type -> memoh.private.v1.GetProviderOauthTokenRequest
+	3,  // 37: memoh.private.v1.ProviderService.CreateProvider:output_type -> memoh.private.v1.CreateProviderResponse
+	5,  // 38: memoh.private.v1.ProviderService.ListProviders:output_type -> memoh.private.v1.ListProvidersResponse
+	7,  // 39: memoh.private.v1.ProviderService.GetProvider:output_type -> memoh.private.v1.GetProviderResponse
+	9,  // 40: memoh.private.v1.ProviderService.UpdateProvider:output_type -> memoh.private.v1.UpdateProviderResponse
+	11, // 41: memoh.private.v1.ProviderService.DeleteProvider:output_type -> memoh.private.v1.DeleteProviderResponse
+	13, // 42: memoh.private.v1.ProviderService.CountProviders:output_type -> memoh.private.v1.CountProvidersResponse
+	15, // 43: memoh.private.v1.ProviderService.ListProviderModels:output_type -> memoh.private.v1.ListProviderModelsResponse
+	17, // 44: memoh.private.v1.ProviderService.TestProvider:output_type -> memoh.private.v1.TestProviderResponse
+	19, // 45: memoh.private.v1.ProviderService.ImportProviderModels:output_type -> memoh.private.v1.ImportProviderModelsResponse
+	21, // 46: memoh.private.v1.ProviderService.GetProviderOauthStatus:output_type -> memoh.private.v1.GetProviderOauthStatusResponse
+	23, // 47: memoh.private.v1.ProviderService.StartProviderOauth:output_type -> memoh.private.v1.StartProviderOauthResponse
+	25, // 48: memoh.private.v1.ProviderService.PollProviderOauth:output_type -> memoh.private.v1.PollProviderOauthResponse
+	27, // 49: memoh.private.v1.ProviderService.RevokeProviderOauth:output_type -> memoh.private.v1.RevokeProviderOauthResponse
+	29, // 50: memoh.private.v1.ProviderService.AuthorizeProviderOauth:output_type -> memoh.private.v1.AuthorizeProviderOauthResponse
+	31, // 51: memoh.private.v1.ProviderService.ExchangeProviderOauthToken:output_type -> memoh.private.v1.ExchangeProviderOauthTokenResponse
+	33, // 52: memoh.private.v1.ProviderService.GetProviderOauthToken:output_type -> memoh.private.v1.GetProviderOauthTokenResponse
+	37, // [37:53] is the sub-list for method output_type
+	21, // [21:37] is the sub-list for method input_type
+	21, // [21:21] is the sub-list for extension type_name
+	21, // [21:21] is the sub-list for extension extendee
+	0,  // [0:21] is the sub-list for field type_name
 }
 
 func init() { file_memoh_private_v1_providers_proto_init() }
@@ -1796,7 +2207,7 @@ func file_memoh_private_v1_providers_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_memoh_private_v1_providers_proto_rawDesc), len(file_memoh_private_v1_providers_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   28,
+			NumMessages:   34,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

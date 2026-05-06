@@ -3,22 +3,25 @@ package agent
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"net"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"sync"
 	"testing"
 	"time"
 
+	"connectrpc.com/connect"
 	sdk "github.com/memohai/twilight-ai/sdk"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
-	"google.golang.org/grpc/test/bufconn"
+	"golang.org/x/net/http2"
+	"golang.org/x/net/http2/h2c"
 
 	"github.com/memohai/memoh/internal/agent/background"
 	agenttools "github.com/memohai/memoh/internal/agent/tools"
-	"github.com/memohai/memoh/internal/workspace/bridge"
-	pb "github.com/memohai/memoh/internal/workspace/bridgepb"
+	workspacev1 "github.com/memohai/memoh/internal/connectapi/gen/memoh/workspace/v1"
+	"github.com/memohai/memoh/internal/connectapi/gen/memoh/workspace/v1/workspacev1connect"
+	"github.com/memohai/memoh/internal/workspace/executorclient"
 )
 
 // ---------------------------------------------------------------------------
@@ -33,7 +36,7 @@ type execBehavior struct {
 }
 
 type mockExecContainerService struct {
-	pb.UnimplementedContainerServiceServer
+	workspacev1connect.UnimplementedWorkspaceExecutorServiceHandler
 
 	mu        sync.Mutex
 	behaviors map[string]execBehavior // command prefix -> behavior
@@ -64,93 +67,81 @@ func (s *mockExecContainerService) findBehavior(cmd string) (execBehavior, bool)
 	return execBehavior{}, false
 }
 
-func (s *mockExecContainerService) Exec(stream pb.ContainerService_ExecServer) error {
-	// Read config message.
-	input, err := stream.Recv()
+func (s *mockExecContainerService) Exec(ctx context.Context, stream *connect.BidiStream[workspacev1.ExecRequest, workspacev1.ExecResponse]) error {
+	input, err := stream.Receive()
 	if err != nil {
 		return err
 	}
-	cmd := input.GetCommand()
+	start := input.GetStart()
+	if start == nil {
+		return connect.NewError(connect.CodeInvalidArgument, errors.New("missing exec start"))
+	}
+	cmd := start.GetCommand()
 
 	b, ok := s.findBehavior(cmd)
 	if !ok {
-		// Default: instant success with echoed command.
 		b = execBehavior{stdout: fmt.Sprintf("[executed] %s\n", cmd), exitCode: 0}
 	}
 
 	if b.delay > 0 {
 		select {
 		case <-time.After(b.delay):
-		case <-stream.Context().Done():
-			return stream.Context().Err()
+		case <-ctx.Done():
+			return ctx.Err()
 		}
 	}
 
 	if b.stdout != "" {
-		if err := stream.Send(&pb.ExecOutput{
-			Stream: pb.ExecOutput_STDOUT,
-			Data:   []byte(b.stdout),
+		if err := stream.Send(&workspacev1.ExecResponse{
+			Kind: workspacev1.ExecResponse_KIND_STDOUT,
+			Data: []byte(b.stdout),
 		}); err != nil {
 			return err
 		}
 	}
 	if b.stderr != "" {
-		if err := stream.Send(&pb.ExecOutput{
-			Stream: pb.ExecOutput_STDERR,
-			Data:   []byte(b.stderr),
+		if err := stream.Send(&workspacev1.ExecResponse{
+			Kind: workspacev1.ExecResponse_KIND_STDERR,
+			Data: []byte(b.stderr),
 		}); err != nil {
 			return err
 		}
 	}
-	return stream.Send(&pb.ExecOutput{
-		Stream:   pb.ExecOutput_EXIT,
+	return stream.Send(&workspacev1.ExecResponse{
+		Kind:     workspacev1.ExecResponse_KIND_EXIT,
 		ExitCode: b.exitCode,
 	})
 }
 
-func (s *mockExecContainerService) WriteFile(_ context.Context, req *pb.WriteFileRequest) (*pb.WriteFileResponse, error) {
+func (s *mockExecContainerService) WriteFile(_ context.Context, req *connect.Request[workspacev1.WriteFileRequest]) (*connect.Response[workspacev1.WriteFileResponse], error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.written[req.GetPath()] = req.GetContent()
-	return &pb.WriteFileResponse{}, nil
+	s.written[req.Msg.GetPath()] = req.Msg.GetContent()
+	return connect.NewResponse(&workspacev1.WriteFileResponse{BytesWritten: int64(len(req.Msg.GetContent()))}), nil
 }
 
 // ---------------------------------------------------------------------------
 // Test helpers
 // ---------------------------------------------------------------------------
 
-func setupExecTestInfra(t *testing.T, svc *mockExecContainerService) (bridge.Provider, func()) {
+func setupExecTestInfra(t *testing.T, svc *mockExecContainerService) (executorclient.Provider, func()) {
 	t.Helper()
 
-	lis := bufconn.Listen(1 << 20)
-	srv := grpc.NewServer()
-	pb.RegisterContainerServiceServer(srv, svc)
+	mux := http.NewServeMux()
+	path, handler := workspacev1connect.NewWorkspaceExecutorServiceHandler(svc)
+	mux.Handle(path, handler)
+	server := httptest.NewServer(h2c.NewHandler(mux, &http2.Server{}))
 
-	done := make(chan struct{})
-	go func() {
-		defer close(done)
-		_ = srv.Serve(lis)
-	}()
-
-	dialer := func(ctx context.Context, _ string) (net.Conn, error) {
-		return lis.DialContext(ctx)
-	}
-	conn, err := grpc.NewClient(
-		"passthrough://bufnet",
-		grpc.WithContextDialer(dialer),
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
+	client, err := executorclient.Dial(context.Background(), server.URL)
 	if err != nil {
-		t.Fatalf("grpc.NewClient: %v", err)
+		t.Fatalf("executorclient.Dial: %v", err)
 	}
-
 	cleanup := func() {
-		_ = conn.Close()
-		srv.Stop()
-		<-done
+		_ = client.Close()
+		server.Close()
 	}
 
-	bp := &agentReadMediaBridgeProvider{client: bridge.NewClientFromConn(conn)}
+	bp := &agentReadMediaWorkspaceExecutorProvider{client: client}
 	return bp, cleanup
 }
 

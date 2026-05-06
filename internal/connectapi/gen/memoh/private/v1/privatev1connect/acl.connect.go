@@ -62,6 +62,18 @@ const (
 	// AclServiceListAclObservedConversationsByChannelTypeProcedure is the fully-qualified name of the
 	// AclService's ListAclObservedConversationsByChannelType RPC.
 	AclServiceListAclObservedConversationsByChannelTypeProcedure = "/memoh.private.v1.AclService/ListAclObservedConversationsByChannelType"
+	// AclServiceListAclChannelIdentitiesProcedure is the fully-qualified name of the AclService's
+	// ListAclChannelIdentities RPC.
+	AclServiceListAclChannelIdentitiesProcedure = "/memoh.private.v1.AclService/ListAclChannelIdentities"
+	// AclServiceGetAclChannelIdentityProcedure is the fully-qualified name of the AclService's
+	// GetAclChannelIdentity RPC.
+	AclServiceGetAclChannelIdentityProcedure = "/memoh.private.v1.AclService/GetAclChannelIdentity"
+	// AclServiceUpsertAclChannelIdentityProcedure is the fully-qualified name of the AclService's
+	// UpsertAclChannelIdentity RPC.
+	AclServiceUpsertAclChannelIdentityProcedure = "/memoh.private.v1.AclService/UpsertAclChannelIdentity"
+	// AclServiceDeleteAclChannelIdentityProcedure is the fully-qualified name of the AclService's
+	// DeleteAclChannelIdentity RPC.
+	AclServiceDeleteAclChannelIdentityProcedure = "/memoh.private.v1.AclService/DeleteAclChannelIdentity"
 )
 
 // AclServiceClient is a client for the memoh.private.v1.AclService service.
@@ -76,6 +88,10 @@ type AclServiceClient interface {
 	SearchAclChannelIdentities(context.Context, *connect.Request[v1.SearchAclChannelIdentitiesRequest]) (*connect.Response[v1.SearchAclChannelIdentitiesResponse], error)
 	ListAclObservedConversations(context.Context, *connect.Request[v1.ListAclObservedConversationsRequest]) (*connect.Response[v1.ListAclObservedConversationsResponse], error)
 	ListAclObservedConversationsByChannelType(context.Context, *connect.Request[v1.ListAclObservedConversationsByChannelTypeRequest]) (*connect.Response[v1.ListAclObservedConversationsByChannelTypeResponse], error)
+	ListAclChannelIdentities(context.Context, *connect.Request[v1.ListAclChannelIdentitiesRequest]) (*connect.Response[v1.ListAclChannelIdentitiesResponse], error)
+	GetAclChannelIdentity(context.Context, *connect.Request[v1.GetAclChannelIdentityRequest]) (*connect.Response[v1.GetAclChannelIdentityResponse], error)
+	UpsertAclChannelIdentity(context.Context, *connect.Request[v1.UpsertAclChannelIdentityRequest]) (*connect.Response[v1.UpsertAclChannelIdentityResponse], error)
+	DeleteAclChannelIdentity(context.Context, *connect.Request[v1.DeleteAclChannelIdentityRequest]) (*connect.Response[v1.DeleteAclChannelIdentityResponse], error)
 }
 
 // NewAclServiceClient constructs a client for the memoh.private.v1.AclService service. By default,
@@ -149,6 +165,30 @@ func NewAclServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...
 			connect.WithSchema(aclServiceMethods.ByName("ListAclObservedConversationsByChannelType")),
 			connect.WithClientOptions(opts...),
 		),
+		listAclChannelIdentities: connect.NewClient[v1.ListAclChannelIdentitiesRequest, v1.ListAclChannelIdentitiesResponse](
+			httpClient,
+			baseURL+AclServiceListAclChannelIdentitiesProcedure,
+			connect.WithSchema(aclServiceMethods.ByName("ListAclChannelIdentities")),
+			connect.WithClientOptions(opts...),
+		),
+		getAclChannelIdentity: connect.NewClient[v1.GetAclChannelIdentityRequest, v1.GetAclChannelIdentityResponse](
+			httpClient,
+			baseURL+AclServiceGetAclChannelIdentityProcedure,
+			connect.WithSchema(aclServiceMethods.ByName("GetAclChannelIdentity")),
+			connect.WithClientOptions(opts...),
+		),
+		upsertAclChannelIdentity: connect.NewClient[v1.UpsertAclChannelIdentityRequest, v1.UpsertAclChannelIdentityResponse](
+			httpClient,
+			baseURL+AclServiceUpsertAclChannelIdentityProcedure,
+			connect.WithSchema(aclServiceMethods.ByName("UpsertAclChannelIdentity")),
+			connect.WithClientOptions(opts...),
+		),
+		deleteAclChannelIdentity: connect.NewClient[v1.DeleteAclChannelIdentityRequest, v1.DeleteAclChannelIdentityResponse](
+			httpClient,
+			baseURL+AclServiceDeleteAclChannelIdentityProcedure,
+			connect.WithSchema(aclServiceMethods.ByName("DeleteAclChannelIdentity")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -164,6 +204,10 @@ type aclServiceClient struct {
 	searchAclChannelIdentities                *connect.Client[v1.SearchAclChannelIdentitiesRequest, v1.SearchAclChannelIdentitiesResponse]
 	listAclObservedConversations              *connect.Client[v1.ListAclObservedConversationsRequest, v1.ListAclObservedConversationsResponse]
 	listAclObservedConversationsByChannelType *connect.Client[v1.ListAclObservedConversationsByChannelTypeRequest, v1.ListAclObservedConversationsByChannelTypeResponse]
+	listAclChannelIdentities                  *connect.Client[v1.ListAclChannelIdentitiesRequest, v1.ListAclChannelIdentitiesResponse]
+	getAclChannelIdentity                     *connect.Client[v1.GetAclChannelIdentityRequest, v1.GetAclChannelIdentityResponse]
+	upsertAclChannelIdentity                  *connect.Client[v1.UpsertAclChannelIdentityRequest, v1.UpsertAclChannelIdentityResponse]
+	deleteAclChannelIdentity                  *connect.Client[v1.DeleteAclChannelIdentityRequest, v1.DeleteAclChannelIdentityResponse]
 }
 
 // ListAclRules calls memoh.private.v1.AclService.ListAclRules.
@@ -217,6 +261,26 @@ func (c *aclServiceClient) ListAclObservedConversationsByChannelType(ctx context
 	return c.listAclObservedConversationsByChannelType.CallUnary(ctx, req)
 }
 
+// ListAclChannelIdentities calls memoh.private.v1.AclService.ListAclChannelIdentities.
+func (c *aclServiceClient) ListAclChannelIdentities(ctx context.Context, req *connect.Request[v1.ListAclChannelIdentitiesRequest]) (*connect.Response[v1.ListAclChannelIdentitiesResponse], error) {
+	return c.listAclChannelIdentities.CallUnary(ctx, req)
+}
+
+// GetAclChannelIdentity calls memoh.private.v1.AclService.GetAclChannelIdentity.
+func (c *aclServiceClient) GetAclChannelIdentity(ctx context.Context, req *connect.Request[v1.GetAclChannelIdentityRequest]) (*connect.Response[v1.GetAclChannelIdentityResponse], error) {
+	return c.getAclChannelIdentity.CallUnary(ctx, req)
+}
+
+// UpsertAclChannelIdentity calls memoh.private.v1.AclService.UpsertAclChannelIdentity.
+func (c *aclServiceClient) UpsertAclChannelIdentity(ctx context.Context, req *connect.Request[v1.UpsertAclChannelIdentityRequest]) (*connect.Response[v1.UpsertAclChannelIdentityResponse], error) {
+	return c.upsertAclChannelIdentity.CallUnary(ctx, req)
+}
+
+// DeleteAclChannelIdentity calls memoh.private.v1.AclService.DeleteAclChannelIdentity.
+func (c *aclServiceClient) DeleteAclChannelIdentity(ctx context.Context, req *connect.Request[v1.DeleteAclChannelIdentityRequest]) (*connect.Response[v1.DeleteAclChannelIdentityResponse], error) {
+	return c.deleteAclChannelIdentity.CallUnary(ctx, req)
+}
+
 // AclServiceHandler is an implementation of the memoh.private.v1.AclService service.
 type AclServiceHandler interface {
 	ListAclRules(context.Context, *connect.Request[v1.ListAclRulesRequest]) (*connect.Response[v1.ListAclRulesResponse], error)
@@ -229,6 +293,10 @@ type AclServiceHandler interface {
 	SearchAclChannelIdentities(context.Context, *connect.Request[v1.SearchAclChannelIdentitiesRequest]) (*connect.Response[v1.SearchAclChannelIdentitiesResponse], error)
 	ListAclObservedConversations(context.Context, *connect.Request[v1.ListAclObservedConversationsRequest]) (*connect.Response[v1.ListAclObservedConversationsResponse], error)
 	ListAclObservedConversationsByChannelType(context.Context, *connect.Request[v1.ListAclObservedConversationsByChannelTypeRequest]) (*connect.Response[v1.ListAclObservedConversationsByChannelTypeResponse], error)
+	ListAclChannelIdentities(context.Context, *connect.Request[v1.ListAclChannelIdentitiesRequest]) (*connect.Response[v1.ListAclChannelIdentitiesResponse], error)
+	GetAclChannelIdentity(context.Context, *connect.Request[v1.GetAclChannelIdentityRequest]) (*connect.Response[v1.GetAclChannelIdentityResponse], error)
+	UpsertAclChannelIdentity(context.Context, *connect.Request[v1.UpsertAclChannelIdentityRequest]) (*connect.Response[v1.UpsertAclChannelIdentityResponse], error)
+	DeleteAclChannelIdentity(context.Context, *connect.Request[v1.DeleteAclChannelIdentityRequest]) (*connect.Response[v1.DeleteAclChannelIdentityResponse], error)
 }
 
 // NewAclServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -298,6 +366,30 @@ func NewAclServiceHandler(svc AclServiceHandler, opts ...connect.HandlerOption) 
 		connect.WithSchema(aclServiceMethods.ByName("ListAclObservedConversationsByChannelType")),
 		connect.WithHandlerOptions(opts...),
 	)
+	aclServiceListAclChannelIdentitiesHandler := connect.NewUnaryHandler(
+		AclServiceListAclChannelIdentitiesProcedure,
+		svc.ListAclChannelIdentities,
+		connect.WithSchema(aclServiceMethods.ByName("ListAclChannelIdentities")),
+		connect.WithHandlerOptions(opts...),
+	)
+	aclServiceGetAclChannelIdentityHandler := connect.NewUnaryHandler(
+		AclServiceGetAclChannelIdentityProcedure,
+		svc.GetAclChannelIdentity,
+		connect.WithSchema(aclServiceMethods.ByName("GetAclChannelIdentity")),
+		connect.WithHandlerOptions(opts...),
+	)
+	aclServiceUpsertAclChannelIdentityHandler := connect.NewUnaryHandler(
+		AclServiceUpsertAclChannelIdentityProcedure,
+		svc.UpsertAclChannelIdentity,
+		connect.WithSchema(aclServiceMethods.ByName("UpsertAclChannelIdentity")),
+		connect.WithHandlerOptions(opts...),
+	)
+	aclServiceDeleteAclChannelIdentityHandler := connect.NewUnaryHandler(
+		AclServiceDeleteAclChannelIdentityProcedure,
+		svc.DeleteAclChannelIdentity,
+		connect.WithSchema(aclServiceMethods.ByName("DeleteAclChannelIdentity")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/memoh.private.v1.AclService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case AclServiceListAclRulesProcedure:
@@ -320,6 +412,14 @@ func NewAclServiceHandler(svc AclServiceHandler, opts ...connect.HandlerOption) 
 			aclServiceListAclObservedConversationsHandler.ServeHTTP(w, r)
 		case AclServiceListAclObservedConversationsByChannelTypeProcedure:
 			aclServiceListAclObservedConversationsByChannelTypeHandler.ServeHTTP(w, r)
+		case AclServiceListAclChannelIdentitiesProcedure:
+			aclServiceListAclChannelIdentitiesHandler.ServeHTTP(w, r)
+		case AclServiceGetAclChannelIdentityProcedure:
+			aclServiceGetAclChannelIdentityHandler.ServeHTTP(w, r)
+		case AclServiceUpsertAclChannelIdentityProcedure:
+			aclServiceUpsertAclChannelIdentityHandler.ServeHTTP(w, r)
+		case AclServiceDeleteAclChannelIdentityProcedure:
+			aclServiceDeleteAclChannelIdentityHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -367,4 +467,20 @@ func (UnimplementedAclServiceHandler) ListAclObservedConversations(context.Conte
 
 func (UnimplementedAclServiceHandler) ListAclObservedConversationsByChannelType(context.Context, *connect.Request[v1.ListAclObservedConversationsByChannelTypeRequest]) (*connect.Response[v1.ListAclObservedConversationsByChannelTypeResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.AclService.ListAclObservedConversationsByChannelType is not implemented"))
+}
+
+func (UnimplementedAclServiceHandler) ListAclChannelIdentities(context.Context, *connect.Request[v1.ListAclChannelIdentitiesRequest]) (*connect.Response[v1.ListAclChannelIdentitiesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.AclService.ListAclChannelIdentities is not implemented"))
+}
+
+func (UnimplementedAclServiceHandler) GetAclChannelIdentity(context.Context, *connect.Request[v1.GetAclChannelIdentityRequest]) (*connect.Response[v1.GetAclChannelIdentityResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.AclService.GetAclChannelIdentity is not implemented"))
+}
+
+func (UnimplementedAclServiceHandler) UpsertAclChannelIdentity(context.Context, *connect.Request[v1.UpsertAclChannelIdentityRequest]) (*connect.Response[v1.UpsertAclChannelIdentityResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.AclService.UpsertAclChannelIdentity is not implemented"))
+}
+
+func (UnimplementedAclServiceHandler) DeleteAclChannelIdentity(context.Context, *connect.Request[v1.DeleteAclChannelIdentityRequest]) (*connect.Response[v1.DeleteAclChannelIdentityResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.AclService.DeleteAclChannelIdentity is not implemented"))
 }

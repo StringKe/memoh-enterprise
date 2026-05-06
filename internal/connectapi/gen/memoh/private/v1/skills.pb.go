@@ -706,6 +706,410 @@ func (x *InstallSkillResponse) GetSkill() *Skill {
 	return nil
 }
 
+type BotContainerSkill struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	BotId         string                 `protobuf:"bytes,2,opt,name=bot_id,json=botId,proto3" json:"bot_id,omitempty"`
+	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	Source        string                 `protobuf:"bytes,4,opt,name=source,proto3" json:"source,omitempty"`
+	Version       string                 `protobuf:"bytes,5,opt,name=version,proto3" json:"version,omitempty"`
+	Enabled       bool                   `protobuf:"varint,6,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	Metadata      *structpb.Struct       `protobuf:"bytes,7,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BotContainerSkill) Reset() {
+	*x = BotContainerSkill{}
+	mi := &file_memoh_private_v1_skills_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BotContainerSkill) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BotContainerSkill) ProtoMessage() {}
+
+func (x *BotContainerSkill) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_skills_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BotContainerSkill.ProtoReflect.Descriptor instead.
+func (*BotContainerSkill) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_skills_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *BotContainerSkill) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *BotContainerSkill) GetBotId() string {
+	if x != nil {
+		return x.BotId
+	}
+	return ""
+}
+
+func (x *BotContainerSkill) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *BotContainerSkill) GetSource() string {
+	if x != nil {
+		return x.Source
+	}
+	return ""
+}
+
+func (x *BotContainerSkill) GetVersion() string {
+	if x != nil {
+		return x.Version
+	}
+	return ""
+}
+
+func (x *BotContainerSkill) GetEnabled() bool {
+	if x != nil {
+		return x.Enabled
+	}
+	return false
+}
+
+func (x *BotContainerSkill) GetMetadata() *structpb.Struct {
+	if x != nil {
+		return x.Metadata
+	}
+	return nil
+}
+
+type ListBotContainerSkillsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	BotId         string                 `protobuf:"bytes,1,opt,name=bot_id,json=botId,proto3" json:"bot_id,omitempty"`
+	Page          *PageRequest           `protobuf:"bytes,2,opt,name=page,proto3" json:"page,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListBotContainerSkillsRequest) Reset() {
+	*x = ListBotContainerSkillsRequest{}
+	mi := &file_memoh_private_v1_skills_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListBotContainerSkillsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListBotContainerSkillsRequest) ProtoMessage() {}
+
+func (x *ListBotContainerSkillsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_skills_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListBotContainerSkillsRequest.ProtoReflect.Descriptor instead.
+func (*ListBotContainerSkillsRequest) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_skills_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *ListBotContainerSkillsRequest) GetBotId() string {
+	if x != nil {
+		return x.BotId
+	}
+	return ""
+}
+
+func (x *ListBotContainerSkillsRequest) GetPage() *PageRequest {
+	if x != nil {
+		return x.Page
+	}
+	return nil
+}
+
+type ListBotContainerSkillsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Skills        []*BotContainerSkill   `protobuf:"bytes,1,rep,name=skills,proto3" json:"skills,omitempty"`
+	Page          *PageResponse          `protobuf:"bytes,2,opt,name=page,proto3" json:"page,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListBotContainerSkillsResponse) Reset() {
+	*x = ListBotContainerSkillsResponse{}
+	mi := &file_memoh_private_v1_skills_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListBotContainerSkillsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListBotContainerSkillsResponse) ProtoMessage() {}
+
+func (x *ListBotContainerSkillsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_skills_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListBotContainerSkillsResponse.ProtoReflect.Descriptor instead.
+func (*ListBotContainerSkillsResponse) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_skills_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *ListBotContainerSkillsResponse) GetSkills() []*BotContainerSkill {
+	if x != nil {
+		return x.Skills
+	}
+	return nil
+}
+
+func (x *ListBotContainerSkillsResponse) GetPage() *PageResponse {
+	if x != nil {
+		return x.Page
+	}
+	return nil
+}
+
+type InstallBotContainerSkillRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	BotId         string                 `protobuf:"bytes,1,opt,name=bot_id,json=botId,proto3" json:"bot_id,omitempty"`
+	Source        string                 `protobuf:"bytes,2,opt,name=source,proto3" json:"source,omitempty"`
+	SkillId       string                 `protobuf:"bytes,3,opt,name=skill_id,json=skillId,proto3" json:"skill_id,omitempty"`
+	Version       string                 `protobuf:"bytes,4,opt,name=version,proto3" json:"version,omitempty"`
+	Options       *structpb.Struct       `protobuf:"bytes,5,opt,name=options,proto3" json:"options,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InstallBotContainerSkillRequest) Reset() {
+	*x = InstallBotContainerSkillRequest{}
+	mi := &file_memoh_private_v1_skills_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InstallBotContainerSkillRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InstallBotContainerSkillRequest) ProtoMessage() {}
+
+func (x *InstallBotContainerSkillRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_skills_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InstallBotContainerSkillRequest.ProtoReflect.Descriptor instead.
+func (*InstallBotContainerSkillRequest) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_skills_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *InstallBotContainerSkillRequest) GetBotId() string {
+	if x != nil {
+		return x.BotId
+	}
+	return ""
+}
+
+func (x *InstallBotContainerSkillRequest) GetSource() string {
+	if x != nil {
+		return x.Source
+	}
+	return ""
+}
+
+func (x *InstallBotContainerSkillRequest) GetSkillId() string {
+	if x != nil {
+		return x.SkillId
+	}
+	return ""
+}
+
+func (x *InstallBotContainerSkillRequest) GetVersion() string {
+	if x != nil {
+		return x.Version
+	}
+	return ""
+}
+
+func (x *InstallBotContainerSkillRequest) GetOptions() *structpb.Struct {
+	if x != nil {
+		return x.Options
+	}
+	return nil
+}
+
+type InstallBotContainerSkillResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Skill         *BotContainerSkill     `protobuf:"bytes,1,opt,name=skill,proto3" json:"skill,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InstallBotContainerSkillResponse) Reset() {
+	*x = InstallBotContainerSkillResponse{}
+	mi := &file_memoh_private_v1_skills_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InstallBotContainerSkillResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InstallBotContainerSkillResponse) ProtoMessage() {}
+
+func (x *InstallBotContainerSkillResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_skills_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InstallBotContainerSkillResponse.ProtoReflect.Descriptor instead.
+func (*InstallBotContainerSkillResponse) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_skills_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *InstallBotContainerSkillResponse) GetSkill() *BotContainerSkill {
+	if x != nil {
+		return x.Skill
+	}
+	return nil
+}
+
+type RemoveBotContainerSkillRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	BotId         string                 `protobuf:"bytes,1,opt,name=bot_id,json=botId,proto3" json:"bot_id,omitempty"`
+	SkillId       string                 `protobuf:"bytes,2,opt,name=skill_id,json=skillId,proto3" json:"skill_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RemoveBotContainerSkillRequest) Reset() {
+	*x = RemoveBotContainerSkillRequest{}
+	mi := &file_memoh_private_v1_skills_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RemoveBotContainerSkillRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RemoveBotContainerSkillRequest) ProtoMessage() {}
+
+func (x *RemoveBotContainerSkillRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_skills_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RemoveBotContainerSkillRequest.ProtoReflect.Descriptor instead.
+func (*RemoveBotContainerSkillRequest) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_skills_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *RemoveBotContainerSkillRequest) GetBotId() string {
+	if x != nil {
+		return x.BotId
+	}
+	return ""
+}
+
+func (x *RemoveBotContainerSkillRequest) GetSkillId() string {
+	if x != nil {
+		return x.SkillId
+	}
+	return ""
+}
+
+type RemoveBotContainerSkillResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RemoveBotContainerSkillResponse) Reset() {
+	*x = RemoveBotContainerSkillResponse{}
+	mi := &file_memoh_private_v1_skills_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RemoveBotContainerSkillResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RemoveBotContainerSkillResponse) ProtoMessage() {}
+
+func (x *RemoveBotContainerSkillResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_skills_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RemoveBotContainerSkillResponse.ProtoReflect.Descriptor instead.
+func (*RemoveBotContainerSkillResponse) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_skills_proto_rawDescGZIP(), []int{19}
+}
+
 var File_memoh_private_v1_skills_proto protoreflect.FileDescriptor
 
 const file_memoh_private_v1_skills_proto_rawDesc = "" +
@@ -750,7 +1154,33 @@ const file_memoh_private_v1_skills_proto_rawDesc = "" +
 	"\x06source\x18\x02 \x01(\tR\x06source\x12\x19\n" +
 	"\bskill_id\x18\x03 \x01(\tR\askillId\"E\n" +
 	"\x14InstallSkillResponse\x12-\n" +
-	"\x05skill\x18\x01 \x01(\v2\x17.memoh.private.v1.SkillR\x05skill2\xda\x04\n" +
+	"\x05skill\x18\x01 \x01(\v2\x17.memoh.private.v1.SkillR\x05skill\"\xcf\x01\n" +
+	"\x11BotContainerSkill\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x15\n" +
+	"\x06bot_id\x18\x02 \x01(\tR\x05botId\x12\x12\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\x12\x16\n" +
+	"\x06source\x18\x04 \x01(\tR\x06source\x12\x18\n" +
+	"\aversion\x18\x05 \x01(\tR\aversion\x12\x18\n" +
+	"\aenabled\x18\x06 \x01(\bR\aenabled\x123\n" +
+	"\bmetadata\x18\a \x01(\v2\x17.google.protobuf.StructR\bmetadata\"i\n" +
+	"\x1dListBotContainerSkillsRequest\x12\x15\n" +
+	"\x06bot_id\x18\x01 \x01(\tR\x05botId\x121\n" +
+	"\x04page\x18\x02 \x01(\v2\x1d.memoh.private.v1.PageRequestR\x04page\"\x91\x01\n" +
+	"\x1eListBotContainerSkillsResponse\x12;\n" +
+	"\x06skills\x18\x01 \x03(\v2#.memoh.private.v1.BotContainerSkillR\x06skills\x122\n" +
+	"\x04page\x18\x02 \x01(\v2\x1e.memoh.private.v1.PageResponseR\x04page\"\xb8\x01\n" +
+	"\x1fInstallBotContainerSkillRequest\x12\x15\n" +
+	"\x06bot_id\x18\x01 \x01(\tR\x05botId\x12\x16\n" +
+	"\x06source\x18\x02 \x01(\tR\x06source\x12\x19\n" +
+	"\bskill_id\x18\x03 \x01(\tR\askillId\x12\x18\n" +
+	"\aversion\x18\x04 \x01(\tR\aversion\x121\n" +
+	"\aoptions\x18\x05 \x01(\v2\x17.google.protobuf.StructR\aoptions\"]\n" +
+	" InstallBotContainerSkillResponse\x129\n" +
+	"\x05skill\x18\x01 \x01(\v2#.memoh.private.v1.BotContainerSkillR\x05skill\"R\n" +
+	"\x1eRemoveBotContainerSkillRequest\x12\x15\n" +
+	"\x06bot_id\x18\x01 \x01(\tR\x05botId\x12\x19\n" +
+	"\bskill_id\x18\x02 \x01(\tR\askillId\"!\n" +
+	"\x1fRemoveBotContainerSkillResponse2\xdb\a\n" +
 	"\fSkillService\x12W\n" +
 	"\n" +
 	"ListSkills\x12#.memoh.private.v1.ListSkillsRequest\x1a$.memoh.private.v1.ListSkillsResponse\x12]\n" +
@@ -758,7 +1188,10 @@ const file_memoh_private_v1_skills_proto_rawDesc = "" +
 	"\fDeleteSkills\x12%.memoh.private.v1.DeleteSkillsRequest\x1a&.memoh.private.v1.DeleteSkillsResponse\x12i\n" +
 	"\x10ApplySkillAction\x12).memoh.private.v1.ApplySkillActionRequest\x1a*.memoh.private.v1.ApplySkillActionResponse\x12i\n" +
 	"\x10ListSkillCatalog\x12).memoh.private.v1.ListSkillCatalogRequest\x1a*.memoh.private.v1.ListSkillCatalogResponse\x12]\n" +
-	"\fInstallSkill\x12%.memoh.private.v1.InstallSkillRequest\x1a&.memoh.private.v1.InstallSkillResponseBMZKgithub.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1;privatev1b\x06proto3"
+	"\fInstallSkill\x12%.memoh.private.v1.InstallSkillRequest\x1a&.memoh.private.v1.InstallSkillResponse\x12{\n" +
+	"\x16ListBotContainerSkills\x12/.memoh.private.v1.ListBotContainerSkillsRequest\x1a0.memoh.private.v1.ListBotContainerSkillsResponse\x12\x81\x01\n" +
+	"\x18InstallBotContainerSkill\x121.memoh.private.v1.InstallBotContainerSkillRequest\x1a2.memoh.private.v1.InstallBotContainerSkillResponse\x12~\n" +
+	"\x17RemoveBotContainerSkill\x120.memoh.private.v1.RemoveBotContainerSkillRequest\x1a1.memoh.private.v1.RemoveBotContainerSkillResponseBMZKgithub.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1;privatev1b\x06proto3"
 
 var (
 	file_memoh_private_v1_skills_proto_rawDescOnce sync.Once
@@ -772,54 +1205,73 @@ func file_memoh_private_v1_skills_proto_rawDescGZIP() []byte {
 	return file_memoh_private_v1_skills_proto_rawDescData
 }
 
-var file_memoh_private_v1_skills_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_memoh_private_v1_skills_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
 var file_memoh_private_v1_skills_proto_goTypes = []any{
-	(*Skill)(nil),                    // 0: memoh.private.v1.Skill
-	(*ListSkillsRequest)(nil),        // 1: memoh.private.v1.ListSkillsRequest
-	(*ListSkillsResponse)(nil),       // 2: memoh.private.v1.ListSkillsResponse
-	(*UpsertSkillsRequest)(nil),      // 3: memoh.private.v1.UpsertSkillsRequest
-	(*UpsertSkillsResponse)(nil),     // 4: memoh.private.v1.UpsertSkillsResponse
-	(*DeleteSkillsRequest)(nil),      // 5: memoh.private.v1.DeleteSkillsRequest
-	(*DeleteSkillsResponse)(nil),     // 6: memoh.private.v1.DeleteSkillsResponse
-	(*ApplySkillActionRequest)(nil),  // 7: memoh.private.v1.ApplySkillActionRequest
-	(*ApplySkillActionResponse)(nil), // 8: memoh.private.v1.ApplySkillActionResponse
-	(*ListSkillCatalogRequest)(nil),  // 9: memoh.private.v1.ListSkillCatalogRequest
-	(*ListSkillCatalogResponse)(nil), // 10: memoh.private.v1.ListSkillCatalogResponse
-	(*InstallSkillRequest)(nil),      // 11: memoh.private.v1.InstallSkillRequest
-	(*InstallSkillResponse)(nil),     // 12: memoh.private.v1.InstallSkillResponse
-	(*structpb.Struct)(nil),          // 13: google.protobuf.Struct
-	(*PageRequest)(nil),              // 14: memoh.private.v1.PageRequest
-	(*PageResponse)(nil),             // 15: memoh.private.v1.PageResponse
+	(*Skill)(nil),                            // 0: memoh.private.v1.Skill
+	(*ListSkillsRequest)(nil),                // 1: memoh.private.v1.ListSkillsRequest
+	(*ListSkillsResponse)(nil),               // 2: memoh.private.v1.ListSkillsResponse
+	(*UpsertSkillsRequest)(nil),              // 3: memoh.private.v1.UpsertSkillsRequest
+	(*UpsertSkillsResponse)(nil),             // 4: memoh.private.v1.UpsertSkillsResponse
+	(*DeleteSkillsRequest)(nil),              // 5: memoh.private.v1.DeleteSkillsRequest
+	(*DeleteSkillsResponse)(nil),             // 6: memoh.private.v1.DeleteSkillsResponse
+	(*ApplySkillActionRequest)(nil),          // 7: memoh.private.v1.ApplySkillActionRequest
+	(*ApplySkillActionResponse)(nil),         // 8: memoh.private.v1.ApplySkillActionResponse
+	(*ListSkillCatalogRequest)(nil),          // 9: memoh.private.v1.ListSkillCatalogRequest
+	(*ListSkillCatalogResponse)(nil),         // 10: memoh.private.v1.ListSkillCatalogResponse
+	(*InstallSkillRequest)(nil),              // 11: memoh.private.v1.InstallSkillRequest
+	(*InstallSkillResponse)(nil),             // 12: memoh.private.v1.InstallSkillResponse
+	(*BotContainerSkill)(nil),                // 13: memoh.private.v1.BotContainerSkill
+	(*ListBotContainerSkillsRequest)(nil),    // 14: memoh.private.v1.ListBotContainerSkillsRequest
+	(*ListBotContainerSkillsResponse)(nil),   // 15: memoh.private.v1.ListBotContainerSkillsResponse
+	(*InstallBotContainerSkillRequest)(nil),  // 16: memoh.private.v1.InstallBotContainerSkillRequest
+	(*InstallBotContainerSkillResponse)(nil), // 17: memoh.private.v1.InstallBotContainerSkillResponse
+	(*RemoveBotContainerSkillRequest)(nil),   // 18: memoh.private.v1.RemoveBotContainerSkillRequest
+	(*RemoveBotContainerSkillResponse)(nil),  // 19: memoh.private.v1.RemoveBotContainerSkillResponse
+	(*structpb.Struct)(nil),                  // 20: google.protobuf.Struct
+	(*PageRequest)(nil),                      // 21: memoh.private.v1.PageRequest
+	(*PageResponse)(nil),                     // 22: memoh.private.v1.PageResponse
 }
 var file_memoh_private_v1_skills_proto_depIdxs = []int32{
-	13, // 0: memoh.private.v1.Skill.metadata:type_name -> google.protobuf.Struct
+	20, // 0: memoh.private.v1.Skill.metadata:type_name -> google.protobuf.Struct
 	0,  // 1: memoh.private.v1.ListSkillsResponse.skills:type_name -> memoh.private.v1.Skill
 	0,  // 2: memoh.private.v1.UpsertSkillsRequest.skills:type_name -> memoh.private.v1.Skill
 	0,  // 3: memoh.private.v1.UpsertSkillsResponse.skills:type_name -> memoh.private.v1.Skill
-	13, // 4: memoh.private.v1.ApplySkillActionRequest.payload:type_name -> google.protobuf.Struct
+	20, // 4: memoh.private.v1.ApplySkillActionRequest.payload:type_name -> google.protobuf.Struct
 	0,  // 5: memoh.private.v1.ApplySkillActionResponse.skill:type_name -> memoh.private.v1.Skill
-	13, // 6: memoh.private.v1.ApplySkillActionResponse.result:type_name -> google.protobuf.Struct
-	14, // 7: memoh.private.v1.ListSkillCatalogRequest.page:type_name -> memoh.private.v1.PageRequest
+	20, // 6: memoh.private.v1.ApplySkillActionResponse.result:type_name -> google.protobuf.Struct
+	21, // 7: memoh.private.v1.ListSkillCatalogRequest.page:type_name -> memoh.private.v1.PageRequest
 	0,  // 8: memoh.private.v1.ListSkillCatalogResponse.skills:type_name -> memoh.private.v1.Skill
-	15, // 9: memoh.private.v1.ListSkillCatalogResponse.page:type_name -> memoh.private.v1.PageResponse
+	22, // 9: memoh.private.v1.ListSkillCatalogResponse.page:type_name -> memoh.private.v1.PageResponse
 	0,  // 10: memoh.private.v1.InstallSkillResponse.skill:type_name -> memoh.private.v1.Skill
-	1,  // 11: memoh.private.v1.SkillService.ListSkills:input_type -> memoh.private.v1.ListSkillsRequest
-	3,  // 12: memoh.private.v1.SkillService.UpsertSkills:input_type -> memoh.private.v1.UpsertSkillsRequest
-	5,  // 13: memoh.private.v1.SkillService.DeleteSkills:input_type -> memoh.private.v1.DeleteSkillsRequest
-	7,  // 14: memoh.private.v1.SkillService.ApplySkillAction:input_type -> memoh.private.v1.ApplySkillActionRequest
-	9,  // 15: memoh.private.v1.SkillService.ListSkillCatalog:input_type -> memoh.private.v1.ListSkillCatalogRequest
-	11, // 16: memoh.private.v1.SkillService.InstallSkill:input_type -> memoh.private.v1.InstallSkillRequest
-	2,  // 17: memoh.private.v1.SkillService.ListSkills:output_type -> memoh.private.v1.ListSkillsResponse
-	4,  // 18: memoh.private.v1.SkillService.UpsertSkills:output_type -> memoh.private.v1.UpsertSkillsResponse
-	6,  // 19: memoh.private.v1.SkillService.DeleteSkills:output_type -> memoh.private.v1.DeleteSkillsResponse
-	8,  // 20: memoh.private.v1.SkillService.ApplySkillAction:output_type -> memoh.private.v1.ApplySkillActionResponse
-	10, // 21: memoh.private.v1.SkillService.ListSkillCatalog:output_type -> memoh.private.v1.ListSkillCatalogResponse
-	12, // 22: memoh.private.v1.SkillService.InstallSkill:output_type -> memoh.private.v1.InstallSkillResponse
-	17, // [17:23] is the sub-list for method output_type
-	11, // [11:17] is the sub-list for method input_type
-	11, // [11:11] is the sub-list for extension type_name
-	11, // [11:11] is the sub-list for extension extendee
-	0,  // [0:11] is the sub-list for field type_name
+	20, // 11: memoh.private.v1.BotContainerSkill.metadata:type_name -> google.protobuf.Struct
+	21, // 12: memoh.private.v1.ListBotContainerSkillsRequest.page:type_name -> memoh.private.v1.PageRequest
+	13, // 13: memoh.private.v1.ListBotContainerSkillsResponse.skills:type_name -> memoh.private.v1.BotContainerSkill
+	22, // 14: memoh.private.v1.ListBotContainerSkillsResponse.page:type_name -> memoh.private.v1.PageResponse
+	20, // 15: memoh.private.v1.InstallBotContainerSkillRequest.options:type_name -> google.protobuf.Struct
+	13, // 16: memoh.private.v1.InstallBotContainerSkillResponse.skill:type_name -> memoh.private.v1.BotContainerSkill
+	1,  // 17: memoh.private.v1.SkillService.ListSkills:input_type -> memoh.private.v1.ListSkillsRequest
+	3,  // 18: memoh.private.v1.SkillService.UpsertSkills:input_type -> memoh.private.v1.UpsertSkillsRequest
+	5,  // 19: memoh.private.v1.SkillService.DeleteSkills:input_type -> memoh.private.v1.DeleteSkillsRequest
+	7,  // 20: memoh.private.v1.SkillService.ApplySkillAction:input_type -> memoh.private.v1.ApplySkillActionRequest
+	9,  // 21: memoh.private.v1.SkillService.ListSkillCatalog:input_type -> memoh.private.v1.ListSkillCatalogRequest
+	11, // 22: memoh.private.v1.SkillService.InstallSkill:input_type -> memoh.private.v1.InstallSkillRequest
+	14, // 23: memoh.private.v1.SkillService.ListBotContainerSkills:input_type -> memoh.private.v1.ListBotContainerSkillsRequest
+	16, // 24: memoh.private.v1.SkillService.InstallBotContainerSkill:input_type -> memoh.private.v1.InstallBotContainerSkillRequest
+	18, // 25: memoh.private.v1.SkillService.RemoveBotContainerSkill:input_type -> memoh.private.v1.RemoveBotContainerSkillRequest
+	2,  // 26: memoh.private.v1.SkillService.ListSkills:output_type -> memoh.private.v1.ListSkillsResponse
+	4,  // 27: memoh.private.v1.SkillService.UpsertSkills:output_type -> memoh.private.v1.UpsertSkillsResponse
+	6,  // 28: memoh.private.v1.SkillService.DeleteSkills:output_type -> memoh.private.v1.DeleteSkillsResponse
+	8,  // 29: memoh.private.v1.SkillService.ApplySkillAction:output_type -> memoh.private.v1.ApplySkillActionResponse
+	10, // 30: memoh.private.v1.SkillService.ListSkillCatalog:output_type -> memoh.private.v1.ListSkillCatalogResponse
+	12, // 31: memoh.private.v1.SkillService.InstallSkill:output_type -> memoh.private.v1.InstallSkillResponse
+	15, // 32: memoh.private.v1.SkillService.ListBotContainerSkills:output_type -> memoh.private.v1.ListBotContainerSkillsResponse
+	17, // 33: memoh.private.v1.SkillService.InstallBotContainerSkill:output_type -> memoh.private.v1.InstallBotContainerSkillResponse
+	19, // 34: memoh.private.v1.SkillService.RemoveBotContainerSkill:output_type -> memoh.private.v1.RemoveBotContainerSkillResponse
+	26, // [26:35] is the sub-list for method output_type
+	17, // [17:26] is the sub-list for method input_type
+	17, // [17:17] is the sub-list for extension type_name
+	17, // [17:17] is the sub-list for extension extendee
+	0,  // [0:17] is the sub-list for field type_name
 }
 
 func init() { file_memoh_private_v1_skills_proto_init() }
@@ -834,7 +1286,7 @@ func file_memoh_private_v1_skills_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_memoh_private_v1_skills_proto_rawDesc), len(file_memoh_private_v1_skills_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   13,
+			NumMessages:   20,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -1,0 +1,4 @@
+{"open":{"command":["/bin/sh"],"cwd":"/workspace","cols":120,"rows":40}}
+{"resize":{"cols":100,"rows":30}}
+{"input":"exit\n"}
+{"exit_code":0}

@@ -72,6 +72,45 @@ message InstallSkillResponse {
   Skill skill = 1;
 }
 
+message BotContainerSkill {
+  string id = 1;
+  string bot_id = 2;
+  string name = 3;
+  string source = 4;
+  string version = 5;
+  bool enabled = 6;
+  google.protobuf.Struct metadata = 7;
+}
+
+message ListBotContainerSkillsRequest {
+  string bot_id = 1;
+  PageRequest page = 2;
+}
+
+message ListBotContainerSkillsResponse {
+  repeated BotContainerSkill skills = 1;
+  PageResponse page = 2;
+}
+
+message InstallBotContainerSkillRequest {
+  string bot_id = 1;
+  string source = 2;
+  string skill_id = 3;
+  string version = 4;
+  google.protobuf.Struct options = 5;
+}
+
+message InstallBotContainerSkillResponse {
+  BotContainerSkill skill = 1;
+}
+
+message RemoveBotContainerSkillRequest {
+  string bot_id = 1;
+  string skill_id = 2;
+}
+
+message RemoveBotContainerSkillResponse {}
+
 service SkillService {
   rpc ListSkills(ListSkillsRequest) returns (ListSkillsResponse);
   rpc UpsertSkills(UpsertSkillsRequest) returns (UpsertSkillsResponse);
@@ -79,4 +118,7 @@ service SkillService {
   rpc ApplySkillAction(ApplySkillActionRequest) returns (ApplySkillActionResponse);
   rpc ListSkillCatalog(ListSkillCatalogRequest) returns (ListSkillCatalogResponse);
   rpc InstallSkill(InstallSkillRequest) returns (InstallSkillResponse);
+  rpc ListBotContainerSkills(ListBotContainerSkillsRequest) returns (ListBotContainerSkillsResponse);
+  rpc InstallBotContainerSkill(InstallBotContainerSkillRequest) returns (InstallBotContainerSkillResponse);
+  rpc RemoveBotContainerSkill(RemoveBotContainerSkillRequest) returns (RemoveBotContainerSkillResponse);
 }

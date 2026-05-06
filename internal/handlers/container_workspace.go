@@ -6,14 +6,14 @@ import (
 
 	ctr "github.com/memohai/memoh/internal/container"
 	"github.com/memohai/memoh/internal/workspace"
-	"github.com/memohai/memoh/internal/workspace/bridge"
+	"github.com/memohai/memoh/internal/workspace/executorclient"
 )
 
 // containerWorkspace captures the subset of workspace capabilities required by
 // container-related HTTP handlers. Keeping this private prevents handlers from
 // depending on the full concrete workspace manager surface.
 type containerWorkspace interface {
-	bridge.Provider
+	executorclient.Provider
 	EnsureRunning(ctx context.Context, botID string) error
 	ContainerID(ctx context.Context, botID string) (string, error)
 	ResolveWorkspaceImage(ctx context.Context, botID string) (string, error)

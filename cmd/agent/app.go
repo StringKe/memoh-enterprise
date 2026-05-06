@@ -25,6 +25,7 @@ import (
 	audiopkg "github.com/memohai/memoh/internal/audio"
 	"github.com/memohai/memoh/internal/bind"
 	"github.com/memohai/memoh/internal/boot"
+	"github.com/memohai/memoh/internal/botgroups"
 	"github.com/memohai/memoh/internal/bots"
 	"github.com/memohai/memoh/internal/browsercontexts"
 	"github.com/memohai/memoh/internal/channel"
@@ -98,7 +99,7 @@ import (
 	"github.com/memohai/memoh/internal/toolapproval"
 	"github.com/memohai/memoh/internal/version"
 	"github.com/memohai/memoh/internal/workspace"
-	"github.com/memohai/memoh/internal/workspace/bridge"
+	"github.com/memohai/memoh/internal/workspace/executorclient"
 )
 
 func provideServerHandler(fn any) any {
@@ -192,7 +193,7 @@ func provideAccountStore(postgresStore *postgresstore.Store) (dbstore.AccountSto
 	return postgresStore, nil
 }
 
-func provideBridgeProvider(manage *workspace.Manager) bridge.Provider {
+func provideWorkspaceExecutorProvider(manage *workspace.Manager) executorclient.Provider {
 	return manage
 }
 
@@ -218,7 +219,7 @@ func provideMemoryLLM(modelsService *models.Service, settingsService *settings.S
 	}
 }
 
-func provideMemoryProviderRegistry(log *slog.Logger, llm memprovider.LLM, chatService *conversation.Service, rbacService *rbac.Service, provider bridge.Provider, queries dbstore.Queries, cfg config.Config) *memprovider.Registry {
+func provideMemoryProviderRegistry(log *slog.Logger, llm memprovider.LLM, chatService *conversation.Service, rbacService *rbac.Service, provider executorclient.Provider, queries dbstore.Queries, cfg config.Config) *memprovider.Registry {
 	registry := memprovider.NewRegistry(log)
 	fileRuntime := handlers.NewBuiltinMemoryRuntime(provider)
 	fileStore := storefs.New(log, provider)
@@ -305,10 +306,10 @@ func provideScheduleSessionCreator(sessionService *sessionpkg.Service) schedule.
 	return &sessionCreatorAdapter{svc: sessionService}
 }
 
-func provideAgent(log *slog.Logger, provider bridge.Provider) *agentpkg.Agent {
+func provideAgent(log *slog.Logger, provider executorclient.Provider) *agentpkg.Agent {
 	return agentpkg.New(agentpkg.Deps{
-		BridgeProvider: provider,
-		Logger:         log,
+		WorkspaceExecutorProvider: provider,
+		Logger:                    log,
 	})
 }
 
@@ -414,7 +415,7 @@ func provideChannelRouter(
 	compactionService *compaction.Service,
 	queries dbstore.Queries,
 	containerdHandler *handlers.ContainerdHandler,
-	provider bridge.Provider,
+	provider executorclient.Provider,
 	pipeline *pipelinepkg.Pipeline,
 	eventStore *pipelinepkg.EventStore,
 	discussDriver *pipelinepkg.DiscussDriver,
@@ -545,11 +546,11 @@ func provideToolProviders(log *slog.Logger, cfg config.Config, channelManager *c
 	}
 }
 
-func provideMemoryHandler(log *slog.Logger, botService *bots.Service, accountService *accounts.Service, _ config.Config, provider bridge.Provider, memoryRegistry *memprovider.Registry, settingsService *settings.Service, _ *handlers.ContainerdHandler) *handlers.MemoryHandler {
+func provideMemoryHandler(log *slog.Logger, botService *bots.Service, accountService *accounts.Service, _ config.Config, provider executorclient.Provider, memoryRegistry *memprovider.Registry, settingsService *settings.Service, _ *handlers.ContainerdHandler) *handlers.MemoryHandler {
 	h := handlers.NewMemoryHandler(log, botService, accountService)
 	h.SetMemoryRegistry(memoryRegistry)
 	h.SetSettingsService(settingsService)
-	h.SetMCPClientProvider(provider)
+	h.SetWorkspaceExecutorProvider(provider)
 	return h
 }
 
@@ -576,7 +577,7 @@ func provideSessionHandler(log *slog.Logger, sessionService *sessionpkg.Service,
 	return handlers.NewSessionHandler(log, sessionService, botService, accountService)
 }
 
-func provideMediaService(log *slog.Logger, provider bridge.Provider, cfg config.Config) *media.Service {
+func provideMediaService(log *slog.Logger, provider executorclient.Provider, cfg config.Config) *media.Service {
 	primary := containerfs.New(provider)
 	dataRoot := cfg.Workspace.DataRoot
 	if dataRoot == "" {
@@ -895,7 +896,7 @@ func startContainerReconciliation(lc fx.Lifecycle, manager *workspace.Manager, _
 	})
 }
 
-func startServer(lc fx.Lifecycle, logger *slog.Logger, srv *server.Server, shutdowner fx.Shutdowner, cfg config.Config, queries dbstore.Queries, accountStore dbstore.AccountStore, botService *bots.Service, rbacService *rbac.Service, _ *handlers.ContainerdHandler, manager *workspace.Manager, mcpConnService *mcp.ConnectionService, toolGateway *mcp.ToolGatewayService, channelManager *channel.Manager, modelsService *models.Service) {
+func startServer(lc fx.Lifecycle, logger *slog.Logger, srv *server.Server, shutdowner fx.Shutdowner, cfg config.Config, queries dbstore.Queries, accountStore dbstore.AccountStore, botService *bots.Service, botGroupService *botgroups.Service, rbacService *rbac.Service, _ *handlers.ContainerdHandler, manager *workspace.Manager, mcpConnService *mcp.ConnectionService, toolGateway *mcp.ToolGatewayService, channelManager *channel.Manager, modelsService *models.Service) {
 	fmt.Printf("Starting Memoh Agent %s\n", version.GetInfo())
 
 	lc.Append(fx.Hook{
@@ -904,9 +905,10 @@ func startServer(lc fx.Lifecycle, logger *slog.Logger, srv *server.Server, shutd
 				return err
 			}
 			botService.SetRBACService(rbacService)
+			botGroupService.SetRBACService(rbacService)
 			botService.SetContainerLifecycle(manager)
 			botService.SetContainerReachability(func(ctx context.Context, botID string) error {
-				_, err := manager.MCPClient(ctx, botID)
+				_, err := manager.ExecutorClient(ctx, botID)
 				return err
 			})
 			botService.AddRuntimeChecker(healthcheck.NewRuntimeCheckerAdapter(
@@ -1180,11 +1182,11 @@ func (a *commandSkillLoaderAdapter) LoadSkills(ctx context.Context, botID string
 }
 
 type commandContainerFSAdapter struct {
-	provider bridge.Provider
+	provider executorclient.Provider
 }
 
 func (a *commandContainerFSAdapter) ListDir(ctx context.Context, botID, dirPath string) ([]command.FSEntry, error) {
-	client, err := a.provider.MCPClient(ctx, botID)
+	client, err := a.provider.ExecutorClient(ctx, botID)
 	if err != nil {
 		return nil, err
 	}
@@ -1201,7 +1203,7 @@ func (a *commandContainerFSAdapter) ListDir(ctx context.Context, botID, dirPath 
 }
 
 func (a *commandContainerFSAdapter) ReadFile(ctx context.Context, botID, filePath string) (string, error) {
-	client, err := a.provider.MCPClient(ctx, botID)
+	client, err := a.provider.ExecutorClient(ctx, botID)
 	if err != nil {
 		return "", err
 	}

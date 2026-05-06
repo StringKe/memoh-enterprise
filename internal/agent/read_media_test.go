@@ -5,92 +5,74 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"net"
+	"errors"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 
+	"connectrpc.com/connect"
 	sdk "github.com/memohai/twilight-ai/sdk"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/credentials/insecure"
-	"google.golang.org/grpc/status"
-	"google.golang.org/grpc/test/bufconn"
+	"golang.org/x/net/http2"
+	"golang.org/x/net/http2/h2c"
 
 	agenttools "github.com/memohai/memoh/internal/agent/tools"
-	"github.com/memohai/memoh/internal/workspace/bridge"
-	pb "github.com/memohai/memoh/internal/workspace/bridgepb"
+	workspacev1 "github.com/memohai/memoh/internal/connectapi/gen/memoh/workspace/v1"
+	"github.com/memohai/memoh/internal/connectapi/gen/memoh/workspace/v1/workspacev1connect"
+	"github.com/memohai/memoh/internal/workspace/executorclient"
 )
-
-const agentReadMediaTestBufSize = 1 << 20
 
 // agentReadMediaContainerService implements both ReadFile and ReadRaw so
 // that the merged read tool (ContainerProvider) can detect binary files
 // and then delegate to ReadImageFromContainer.
 type agentReadMediaContainerService struct {
-	pb.UnimplementedContainerServiceServer
+	workspacev1connect.UnimplementedWorkspaceExecutorServiceHandler
 	files map[string][]byte
 }
 
-func (s *agentReadMediaContainerService) ReadFile(_ context.Context, req *pb.ReadFileRequest) (*pb.ReadFileResponse, error) {
-	data, ok := s.files[req.GetPath()]
+func (s *agentReadMediaContainerService) ReadFile(_ context.Context, req *connect.Request[workspacev1.ReadFileRequest]) (*connect.Response[workspacev1.ReadFileResponse], error) {
+	data, ok := s.files[req.Msg.GetPath()]
 	if !ok {
-		return nil, status.Error(codes.NotFound, "not found")
+		return nil, connect.NewError(connect.CodeNotFound, errors.New("not found"))
 	}
 	_ = data
-	// All files in this test fixture are images → binary.
-	return &pb.ReadFileResponse{Binary: true}, nil
+	return connect.NewResponse(&workspacev1.ReadFileResponse{Binary: true}), nil
 }
 
-func (s *agentReadMediaContainerService) ReadRaw(req *pb.ReadRawRequest, stream pb.ContainerService_ReadRawServer) error {
-	data, ok := s.files[req.GetPath()]
+func (s *agentReadMediaContainerService) ReadRaw(_ context.Context, req *connect.Request[workspacev1.ReadRawRequest], stream *connect.ServerStream[workspacev1.ReadRawResponse]) error {
+	data, ok := s.files[req.Msg.GetPath()]
 	if !ok {
-		return status.Error(codes.NotFound, "not found")
+		return connect.NewError(connect.CodeNotFound, errors.New("not found"))
 	}
 	if len(data) == 0 {
 		return nil
 	}
-	return stream.Send(&pb.DataChunk{Data: data})
+	return stream.Send(&workspacev1.ReadRawResponse{Chunk: &workspacev1.DataChunk{Data: data}})
 }
 
-type agentReadMediaBridgeProvider struct {
-	client *bridge.Client
+type agentReadMediaWorkspaceExecutorProvider struct {
+	client *executorclient.Client
 }
 
-func (p *agentReadMediaBridgeProvider) MCPClient(_ context.Context, _ string) (*bridge.Client, error) {
+func (p *agentReadMediaWorkspaceExecutorProvider) ExecutorClient(_ context.Context, _ string) (*executorclient.Client, error) {
 	return p.client, nil
 }
 
-func newAgentReadMediaBridgeProvider(t *testing.T, files map[string][]byte) bridge.Provider {
+func newAgentReadMediaWorkspaceExecutorProvider(t *testing.T, files map[string][]byte) executorclient.Provider {
 	t.Helper()
 
-	lis := bufconn.Listen(agentReadMediaTestBufSize)
-	srv := grpc.NewServer()
-	pb.RegisterContainerServiceServer(srv, &agentReadMediaContainerService{files: files})
-
-	done := make(chan struct{})
-	go func() {
-		defer close(done)
-		_ = srv.Serve(lis)
-	}()
-	t.Cleanup(func() {
-		srv.Stop()
-		<-done
-	})
-
-	dialer := func(ctx context.Context, _ string) (net.Conn, error) {
-		return lis.DialContext(ctx)
-	}
-	conn, err := grpc.NewClient(
-		"passthrough://bufnet",
-		grpc.WithContextDialer(dialer),
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
+	mux := http.NewServeMux()
+	path, handler := workspacev1connect.NewWorkspaceExecutorServiceHandler(&agentReadMediaContainerService{files: files})
+	mux.Handle(path, handler)
+	server := httptest.NewServer(h2c.NewHandler(mux, &http2.Server{}))
+	t.Cleanup(server.Close)
+	client, err := executorclient.Dial(context.Background(), server.URL)
 	if err != nil {
-		t.Fatalf("grpc.NewClient: %v", err)
+		t.Fatalf("executorclient.Dial: %v", err)
 	}
-	t.Cleanup(func() { _ = conn.Close() })
+	t.Cleanup(func() { _ = client.Close() })
 
-	return &agentReadMediaBridgeProvider{client: bridge.NewClientFromConn(conn)}
+	return &agentReadMediaWorkspaceExecutorProvider{client: client}
 }
 
 type agentReadMediaMockProvider struct {
@@ -254,7 +236,7 @@ func TestAgentGenerateReadMediaInjectsImageIntoNextStep(t *testing.T) {
 
 	// ContainerProvider normalizes paths by stripping the workdir prefix,
 	// so the mock files map must use the normalized (relative) path.
-	bp := newAgentReadMediaBridgeProvider(t, map[string][]byte{
+	bp := newAgentReadMediaWorkspaceExecutorProvider(t, map[string][]byte{
 		"images/demo.png": pngBytes,
 	})
 
@@ -334,7 +316,7 @@ func TestAgentGenerateReadMediaInjectsAnthropicSafeImageIntoNextStep(t *testing.
 
 	// ContainerProvider normalizes paths by stripping the workdir prefix,
 	// so the mock files map must use the normalized (relative) path.
-	bp := newAgentReadMediaBridgeProvider(t, map[string][]byte{
+	bp := newAgentReadMediaWorkspaceExecutorProvider(t, map[string][]byte{
 		"images/demo.png": pngBytes,
 	})
 
@@ -384,7 +366,7 @@ func TestAgentStreamReadMediaPersistsInjectedImageInTerminalMessages(t *testing.
 
 	// ContainerProvider normalizes paths by stripping the workdir prefix,
 	// so the mock files map must use the normalized (relative) path.
-	bp := newAgentReadMediaBridgeProvider(t, map[string][]byte{
+	bp := newAgentReadMediaWorkspaceExecutorProvider(t, map[string][]byte{
 		"images/demo.png": pngBytes,
 	})
 

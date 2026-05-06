@@ -18,8 +18,8 @@ import (
 	"connectrpc.com/connect"
 
 	privatev1 "github.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1"
+	pb "github.com/memohai/memoh/internal/connectapi/gen/memoh/workspace/v1"
 	skillset "github.com/memohai/memoh/internal/skills"
-	pb "github.com/memohai/memoh/internal/workspace/bridgepb"
 )
 
 func TestSkillServiceUpsertListActionAndDelete(t *testing.T) {

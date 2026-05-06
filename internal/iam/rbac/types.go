@@ -17,6 +17,13 @@ const (
 	PermissionBotUpdate            PermissionKey = "bot.update"
 	PermissionBotDelete            PermissionKey = "bot.delete"
 	PermissionBotPermissionsManage PermissionKey = "bot.permissions.manage"
+
+	PermissionBotGroupRead              PermissionKey = "bot_group.read"
+	PermissionBotGroupUse               PermissionKey = "bot_group.use"
+	PermissionBotGroupUpdate            PermissionKey = "bot_group.update"
+	PermissionBotGroupDelete            PermissionKey = "bot_group.delete"
+	PermissionBotGroupPermissionsManage PermissionKey = "bot_group.permissions.manage"
+	PermissionBotGroupBotsManage        PermissionKey = "bot_group.bots.manage"
 )
 
 const (
@@ -25,11 +32,17 @@ const (
 	RoleBotViewer   RoleKey = "bot_viewer"
 	RoleBotOperator RoleKey = "bot_operator"
 	RoleBotOwner    RoleKey = "bot_owner"
+
+	RoleBotGroupViewer   RoleKey = "bot_group_viewer"
+	RoleBotGroupOperator RoleKey = "bot_group_operator"
+	RoleBotGroupEditor   RoleKey = "bot_group_editor"
+	RoleBotGroupOwner    RoleKey = "bot_group_owner"
 )
 
 const (
-	ResourceSystem ResourceType = "system"
-	ResourceBot    ResourceType = "bot"
+	ResourceSystem   ResourceType = "system"
+	ResourceBot      ResourceType = "bot"
+	ResourceBotGroup ResourceType = "bot_group"
 )
 
 const (

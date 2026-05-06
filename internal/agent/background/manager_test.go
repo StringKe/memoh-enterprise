@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/memohai/memoh/internal/workspace/bridge"
+	"github.com/memohai/memoh/internal/workspace/executorclient"
 )
 
 // waitDrain polls DrainNotifications until the expected count is reached or timeout.
@@ -31,9 +31,9 @@ func TestSpawnAndNotify(t *testing.T) {
 	mgr := New(nil)
 
 	called := make(chan struct{})
-	execFn := func(_ context.Context, _, _ string, _ int32) (*bridge.ExecResult, error) {
+	execFn := func(_ context.Context, _, _ string, _ int32) (*executorclient.ExecResult, error) {
 		close(called)
-		return &bridge.ExecResult{Stdout: "hello world\n", ExitCode: 0}, nil
+		return &executorclient.ExecResult{Stdout: "hello world\n", ExitCode: 0}, nil
 	}
 
 	taskID, outputFile := mgr.Spawn(context.Background(), "bot1", "sess1", "echo hello", "/data", "test echo", execFn, nil, nil)
@@ -80,8 +80,8 @@ func TestSpawnAndNotify(t *testing.T) {
 func TestSpawnFailedCommand(t *testing.T) {
 	mgr := New(nil)
 
-	execFn := func(_ context.Context, _, _ string, _ int32) (*bridge.ExecResult, error) {
-		return &bridge.ExecResult{
+	execFn := func(_ context.Context, _, _ string, _ int32) (*executorclient.ExecResult, error) {
+		return &executorclient.ExecResult{
 			Stdout:   "some output\n",
 			Stderr:   "error: not found\n",
 			ExitCode: 1,
@@ -107,10 +107,10 @@ func TestKillTask(t *testing.T) {
 	mgr := New(nil)
 
 	started := make(chan struct{})
-	execFn := func(ctx context.Context, _, _ string, _ int32) (*bridge.ExecResult, error) {
+	execFn := func(ctx context.Context, _, _ string, _ int32) (*executorclient.ExecResult, error) {
 		close(started)
 		<-ctx.Done()
-		return &bridge.ExecResult{ExitCode: -1}, ctx.Err()
+		return &executorclient.ExecResult{ExitCode: -1}, ctx.Err()
 	}
 
 	taskID, _ := mgr.Spawn(context.Background(), "bot1", "sess1", "sleep 300", "/data", "long task", execFn, nil, nil)
@@ -144,8 +144,8 @@ func TestKillTask(t *testing.T) {
 func TestGetForSession(t *testing.T) {
 	mgr := New(nil)
 
-	taskID, _ := mgr.Spawn(context.Background(), "bot1", "sess1", "echo hello", "/data", "", func(_ context.Context, _, _ string, _ int32) (*bridge.ExecResult, error) {
-		return &bridge.ExecResult{Stdout: "hello\n", ExitCode: 0}, nil
+	taskID, _ := mgr.Spawn(context.Background(), "bot1", "sess1", "echo hello", "/data", "", func(_ context.Context, _, _ string, _ int32) (*executorclient.ExecResult, error) {
+		return &executorclient.ExecResult{Stdout: "hello\n", ExitCode: 0}, nil
 	}, nil, nil)
 
 	if task := mgr.GetForSession("bot1", "sess1", taskID); task == nil {
@@ -160,10 +160,10 @@ func TestKillForSession(t *testing.T) {
 	mgr := New(nil)
 
 	started := make(chan struct{})
-	execFn := func(ctx context.Context, _, _ string, _ int32) (*bridge.ExecResult, error) {
+	execFn := func(ctx context.Context, _, _ string, _ int32) (*executorclient.ExecResult, error) {
 		close(started)
 		<-ctx.Done()
-		return &bridge.ExecResult{ExitCode: -1}, ctx.Err()
+		return &executorclient.ExecResult{ExitCode: -1}, ctx.Err()
 	}
 
 	taskID, _ := mgr.Spawn(context.Background(), "bot1", "sess1", "sleep 300", "/data", "long task", execFn, nil, nil)
@@ -185,10 +185,10 @@ func TestListForSession(t *testing.T) {
 	mgr := New(nil)
 
 	started := make(chan struct{}, 2)
-	execFn := func(ctx context.Context, _, _ string, _ int32) (*bridge.ExecResult, error) {
+	execFn := func(ctx context.Context, _, _ string, _ int32) (*executorclient.ExecResult, error) {
 		started <- struct{}{}
 		<-ctx.Done()
-		return &bridge.ExecResult{ExitCode: -1}, ctx.Err()
+		return &executorclient.ExecResult{ExitCode: -1}, ctx.Err()
 	}
 
 	mgr.Spawn(context.Background(), "bot1", "sess1", "cmd1", "/data", "d1", execFn, nil, nil)
@@ -215,9 +215,9 @@ func TestDrainNotifications(t *testing.T) {
 	mgr := New(nil)
 
 	done := make(chan struct{}, 3)
-	execFn := func(_ context.Context, _, _ string, _ int32) (*bridge.ExecResult, error) {
+	execFn := func(_ context.Context, _, _ string, _ int32) (*executorclient.ExecResult, error) {
 		defer func() { done <- struct{}{} }()
-		return &bridge.ExecResult{Stdout: "ok\n", ExitCode: 0}, nil
+		return &executorclient.ExecResult{Stdout: "ok\n", ExitCode: 0}, nil
 	}
 
 	mgr.Spawn(context.Background(), "bot1", "sess1", "echo 1", "/data", "", execFn, nil, nil)
@@ -250,8 +250,8 @@ func TestMarkNotifiedPreventsDoubleNotification(t *testing.T) {
 	mgr := New(nil)
 
 	// Simulate two goroutines racing to complete/notify.
-	execFn := func(_ context.Context, _, _ string, _ int32) (*bridge.ExecResult, error) {
-		return &bridge.ExecResult{Stdout: "ok\n", ExitCode: 0}, nil
+	execFn := func(_ context.Context, _, _ string, _ int32) (*executorclient.ExecResult, error) {
+		return &executorclient.ExecResult{Stdout: "ok\n", ExitCode: 0}, nil
 	}
 
 	taskID, _ := mgr.Spawn(context.Background(), "bot1", "sess1", "echo hi", "/data", "", execFn, nil, nil)
@@ -307,10 +307,10 @@ func TestRunningTasksSummary(t *testing.T) {
 	mgr := New(nil)
 
 	started := make(chan struct{})
-	execFn := func(ctx context.Context, _, _ string, _ int32) (*bridge.ExecResult, error) {
+	execFn := func(ctx context.Context, _, _ string, _ int32) (*executorclient.ExecResult, error) {
 		close(started)
 		<-ctx.Done()
-		return &bridge.ExecResult{ExitCode: -1}, ctx.Err()
+		return &executorclient.ExecResult{ExitCode: -1}, ctx.Err()
 	}
 
 	mgr.Spawn(context.Background(), "bot1", "sess1", "npm test", "/data", "Run tests", execFn, nil, nil)
@@ -373,8 +373,8 @@ func TestSpawnUsesRestartSafeTaskIDs(t *testing.T) {
 	mgr1 := New(nil)
 	mgr2 := New(nil)
 
-	execFn := func(_ context.Context, _, _ string, _ int32) (*bridge.ExecResult, error) {
-		return &bridge.ExecResult{Stdout: "ok\n", ExitCode: 0}, nil
+	execFn := func(_ context.Context, _, _ string, _ int32) (*executorclient.ExecResult, error) {
+		return &executorclient.ExecResult{Stdout: "ok\n", ExitCode: 0}, nil
 	}
 
 	taskID1, outputFile1 := mgr1.Spawn(context.Background(), "bot123456789", "sess1", "echo one", "/data", "", execFn, nil, nil)

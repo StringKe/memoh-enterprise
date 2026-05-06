@@ -20,14 +20,14 @@ import (
 	"github.com/memohai/memoh/internal/config"
 	"github.com/memohai/memoh/internal/mcp"
 	skillset "github.com/memohai/memoh/internal/skills"
-	"github.com/memohai/memoh/internal/workspace/bridge"
+	"github.com/memohai/memoh/internal/workspace/executorclient"
 )
 
 type SupermarketHandler struct {
 	baseURL        string
 	httpClient     *http.Client
 	mcpService     *mcp.ConnectionService
-	containers     bridge.Provider
+	containers     executorclient.Provider
 	botService     *bots.Service
 	accountService *accounts.Service
 	logger         *slog.Logger
@@ -37,7 +37,7 @@ func NewSupermarketHandler(
 	log *slog.Logger,
 	cfg config.Config,
 	mcpService *mcp.ConnectionService,
-	containers bridge.Provider,
+	containers executorclient.Provider,
 	botService *bots.Service,
 	accountService *accounts.Service,
 ) *SupermarketHandler {
@@ -247,7 +247,7 @@ func (h *SupermarketHandler) InstallSkill(c echo.Context) error {
 	}
 
 	ctx := c.Request().Context()
-	client, err := h.containers.MCPClient(ctx, botID)
+	client, err := h.containers.ExecutorClient(ctx, botID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("container not reachable: %v", err))
 	}

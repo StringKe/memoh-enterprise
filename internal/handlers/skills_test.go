@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log/slog"
 	"net"
@@ -17,25 +18,26 @@ import (
 	"testing"
 	"time"
 
+	"connectrpc.com/connect"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/labstack/echo/v4"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
+	"golang.org/x/net/http2"
+	"golang.org/x/net/http2/h2c"
 
 	"github.com/memohai/memoh/internal/accounts"
 	"github.com/memohai/memoh/internal/agent"
 	"github.com/memohai/memoh/internal/bots"
 	"github.com/memohai/memoh/internal/config"
+	workspacev1 "github.com/memohai/memoh/internal/connectapi/gen/memoh/workspace/v1"
+	"github.com/memohai/memoh/internal/connectapi/gen/memoh/workspace/v1/workspacev1connect"
 	"github.com/memohai/memoh/internal/db/postgres/sqlc"
 	postgresstore "github.com/memohai/memoh/internal/db/postgres/store"
 	"github.com/memohai/memoh/internal/iam/rbac"
 	skillset "github.com/memohai/memoh/internal/skills"
 	"github.com/memohai/memoh/internal/workspace"
-	pb "github.com/memohai/memoh/internal/workspace/bridgepb"
 )
 
 func TestListSkillsAPIReportsEffectiveShadowedAndSourceMetadata(t *testing.T) {
@@ -251,9 +253,9 @@ func TestLoadSkillsUsesEffectiveSetAndPromptReflectsOverrideFallback(t *testing.
 		t.Fatalf("prompt should not include shadowed compat alpha:\n%s", promptBefore)
 	}
 
-	client, err := env.handler.manager.MCPClient(context.Background(), env.botID)
+	client, err := env.handler.manager.ExecutorClient(context.Background(), env.botID)
 	if err != nil {
-		t.Fatalf("get bridge client: %v", err)
+		t.Fatalf("get workspace executor client: %v", err)
 	}
 	roots, err := env.handler.skillDiscoveryRoots(context.Background(), env.botID)
 	if err != nil {
@@ -328,7 +330,7 @@ func newSkillsTestEnvWithMetadata(t *testing.T, metadata map[string]any) *skills
 	t.Cleanup(func() { _ = os.RemoveAll(dataRoot) })
 	userID := "00000000-0000-0000-0000-000000000001"
 	botID := "00000000-0000-0000-0000-000000000010"
-	startSkillsTestBridgeServer(t, dataRoot, botID)
+	startSkillsTestWorkspaceExecutorServer(t, dataRoot, botID)
 
 	cfg := config.WorkspaceConfig{DataRoot: dataRoot}
 	var metadataJSON []byte
@@ -550,15 +552,10 @@ func mustParseUUID(s string) pgtype.UUID {
 	return u
 }
 
-type skillsTestBridgeServer struct {
-	pb.UnimplementedContainerServiceServer
-	root string
-}
-
-func startSkillsTestBridgeServer(t *testing.T, dataRoot, botID string) {
+func startSkillsTestWorkspaceExecutorServer(t *testing.T, dataRoot, botID string) {
 	t.Helper()
 
-	socketPath := filepath.Join(dataRoot, "run", botID, "bridge.sock")
+	socketPath := filepath.Join(dataRoot, "run", botID, "workspace-executor.sock")
 	if err := os.MkdirAll(filepath.Dir(socketPath), 0o750); err != nil {
 		t.Fatalf("mkdir socket dir: %v", err)
 	}
@@ -568,41 +565,53 @@ func startSkillsTestBridgeServer(t *testing.T, dataRoot, botID string) {
 		t.Fatalf("listen unix socket: %v", err)
 	}
 
-	srv := grpc.NewServer()
-	pb.RegisterContainerServiceServer(srv, &skillsTestBridgeServer{root: dataRoot})
+	mux := http.NewServeMux()
+	handlerPath, handler := workspacev1connect.NewWorkspaceExecutorServiceHandler(&skillsTestWorkspaceExecutor{root: dataRoot})
+	mux.Handle(handlerPath, handler)
+	srv := &http.Server{
+		Handler:           h2c.NewHandler(mux, &http2.Server{}),
+		ReadHeaderTimeout: 10 * time.Second,
+	}
 
 	done := make(chan struct{})
 	go func() {
 		defer close(done)
-		_ = srv.Serve(lis)
+		if err := srv.Serve(lis); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			t.Errorf("workspace executor test server: %v", err)
+		}
 	}()
 
 	t.Cleanup(func() {
-		srv.Stop()
+		_ = srv.Close()
 		_ = lis.Close()
 		<-done
 	})
 }
 
-func (s *skillsTestBridgeServer) ListDir(_ context.Context, req *pb.ListDirRequest) (*pb.ListDirResponse, error) {
-	containerPath, localPath := s.resolvePath(req.GetPath())
+type skillsTestWorkspaceExecutor struct {
+	workspacev1connect.UnimplementedWorkspaceExecutorServiceHandler
+	root string
+}
+
+func (s *skillsTestWorkspaceExecutor) ListDir(_ context.Context, req *connect.Request[workspacev1.ListDirRequest]) (*connect.Response[workspacev1.ListDirResponse], error) {
+	containerPath, localPath := s.resolvePath(req.Msg.GetPath())
 	entries, err := os.ReadDir(localPath)
 	if err != nil {
-		return nil, toStatusError(err, req.GetPath())
+		return nil, toConnectError(err, req.Msg.GetPath())
 	}
 
 	sort.Slice(entries, func(i, j int) bool { return entries[i].Name() < entries[j].Name() })
-	resp := make([]*pb.FileEntry, 0, len(entries))
+	resp := make([]*workspacev1.FileEntry, 0, len(entries))
 	for _, entry := range entries {
 		info, err := entry.Info()
 		if err != nil {
-			return nil, status.Errorf(codes.Internal, "stat %s: %v", entry.Name(), err)
+			return nil, connect.NewError(connect.CodeInternal, err)
 		}
 		entryPath := path.Join(containerPath, entry.Name())
 		if containerPath == "/" {
 			entryPath = "/" + entry.Name()
 		}
-		resp = append(resp, &pb.FileEntry{
+		resp = append(resp, &workspacev1.FileEntry{
 			Path:    entryPath,
 			IsDir:   entry.IsDir(),
 			Size:    info.Size(),
@@ -611,112 +620,107 @@ func (s *skillsTestBridgeServer) ListDir(_ context.Context, req *pb.ListDirReque
 		})
 	}
 	if len(resp) > 1<<31-1 {
-		return nil, status.Error(codes.Internal, "too many entries")
+		return nil, connect.NewError(connect.CodeInternal, errors.New("too many entries"))
 	}
-	//nolint:gosec // len(resp) is bounds-checked just above
-	totalCount := int32(len(resp))
-	return &pb.ListDirResponse{
+	return connect.NewResponse(&workspacev1.ListDirResponse{
 		Entries:    resp,
-		TotalCount: totalCount,
-	}, nil
+		TotalCount: int32(len(resp)), //nolint:gosec // len(resp) is bounds-checked just above.
+	}), nil
 }
 
-func (s *skillsTestBridgeServer) ReadRaw(req *pb.ReadRawRequest, stream pb.ContainerService_ReadRawServer) error {
-	_, localPath := s.resolvePath(req.GetPath())
-	//nolint:gosec // test-only temp workspace path
-	data, err := os.ReadFile(localPath)
+func (s *skillsTestWorkspaceExecutor) ReadRaw(_ context.Context, req *connect.Request[workspacev1.ReadRawRequest], stream *connect.ServerStream[workspacev1.ReadRawResponse]) error {
+	_, localPath := s.resolvePath(req.Msg.GetPath())
+	data, err := os.ReadFile(localPath) //nolint:gosec // test-only temp workspace path
 	if err != nil {
-		return toStatusError(err, req.GetPath())
+		return toConnectError(err, req.Msg.GetPath())
 	}
 	if len(data) == 0 {
 		return nil
 	}
-	return stream.Send(&pb.DataChunk{Data: data})
+	return stream.Send(&workspacev1.ReadRawResponse{Chunk: &workspacev1.DataChunk{Data: data}})
 }
 
-func (s *skillsTestBridgeServer) WriteRaw(stream pb.ContainerService_WriteRawServer) error {
+func (s *skillsTestWorkspaceExecutor) WriteRaw(_ context.Context, stream *connect.ClientStream[workspacev1.WriteRawRequest]) (*connect.Response[workspacev1.WriteRawResponse], error) {
 	var containerPath string
 	var data []byte
-	for {
-		chunk, err := stream.Recv()
-		if errors.Is(err, io.EOF) {
-			break
-		}
-		if err != nil {
-			return err
+	for stream.Receive() {
+		chunk := stream.Msg().GetChunk()
+		if chunk == nil {
+			continue
 		}
 		if containerPath == "" {
 			containerPath = chunk.GetPath()
 		}
 		data = append(data, chunk.GetData()...)
 	}
+	if err := stream.Err(); err != nil {
+		return nil, err
+	}
 	if strings.TrimSpace(containerPath) == "" {
-		return status.Error(codes.InvalidArgument, "path is required")
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("path is required"))
 	}
 	_, localPath := s.resolvePath(containerPath)
 	if err := os.MkdirAll(filepath.Dir(localPath), 0o750); err != nil {
-		return status.Errorf(codes.Internal, "mkdir parent for %s: %v", containerPath, err)
+		return nil, connect.NewError(connect.CodeInternal, err)
 	}
-	//nolint:gosec // test-only temp workspace path
-	if err := os.WriteFile(localPath, data, 0o600); err != nil {
-		return status.Errorf(codes.Internal, "write %s: %v", containerPath, err)
+	if err := os.WriteFile(localPath, data, 0o600); err != nil { //nolint:gosec // test-only temp workspace path
+		return nil, connect.NewError(connect.CodeInternal, err)
 	}
-	return stream.SendAndClose(&pb.WriteRawResponse{BytesWritten: int64(len(data))})
+	return connect.NewResponse(&workspacev1.WriteRawResponse{BytesWritten: int64(len(data))}), nil
 }
 
-func (s *skillsTestBridgeServer) WriteFile(_ context.Context, req *pb.WriteFileRequest) (*pb.WriteFileResponse, error) {
-	_, localPath := s.resolvePath(req.GetPath())
+func (s *skillsTestWorkspaceExecutor) WriteFile(_ context.Context, req *connect.Request[workspacev1.WriteFileRequest]) (*connect.Response[workspacev1.WriteFileResponse], error) {
+	_, localPath := s.resolvePath(req.Msg.GetPath())
 	if err := os.MkdirAll(filepath.Dir(localPath), 0o750); err != nil {
-		return nil, status.Errorf(codes.Internal, "mkdir parent for %s: %v", req.GetPath(), err)
+		return nil, connect.NewError(connect.CodeInternal, err)
 	}
-	//nolint:gosec // test-only temp workspace path
-	if err := os.WriteFile(localPath, req.GetContent(), 0o600); err != nil {
-		return nil, status.Errorf(codes.Internal, "write %s: %v", req.GetPath(), err)
+	if err := os.WriteFile(localPath, req.Msg.GetContent(), 0o600); err != nil { //nolint:gosec // test-only temp workspace path
+		return nil, connect.NewError(connect.CodeInternal, err)
 	}
-	return &pb.WriteFileResponse{}, nil
+	return connect.NewResponse(&workspacev1.WriteFileResponse{BytesWritten: int64(len(req.Msg.GetContent()))}), nil
 }
 
-func (s *skillsTestBridgeServer) Stat(_ context.Context, req *pb.StatRequest) (*pb.StatResponse, error) {
-	containerPath, localPath := s.resolvePath(req.GetPath())
+func (s *skillsTestWorkspaceExecutor) Stat(_ context.Context, req *connect.Request[workspacev1.StatRequest]) (*connect.Response[workspacev1.StatResponse], error) {
+	containerPath, localPath := s.resolvePath(req.Msg.GetPath())
 	info, err := os.Stat(localPath)
 	if err != nil {
-		return nil, toStatusError(err, req.GetPath())
+		return nil, toConnectError(err, req.Msg.GetPath())
 	}
-	return &pb.StatResponse{Entry: &pb.FileEntry{
+	return connect.NewResponse(&workspacev1.StatResponse{Entry: &workspacev1.FileEntry{
 		Path:    containerPath,
 		IsDir:   info.IsDir(),
 		Size:    info.Size(),
 		Mode:    info.Mode().String(),
 		ModTime: info.ModTime().UTC().Format(time.RFC3339),
-	}}, nil
+	}}), nil
 }
 
-func (s *skillsTestBridgeServer) Mkdir(_ context.Context, req *pb.MkdirRequest) (*pb.MkdirResponse, error) {
-	_, localPath := s.resolvePath(req.GetPath())
+func (s *skillsTestWorkspaceExecutor) Mkdir(_ context.Context, req *connect.Request[workspacev1.MkdirRequest]) (*connect.Response[workspacev1.MkdirResponse], error) {
+	_, localPath := s.resolvePath(req.Msg.GetPath())
 	if err := os.MkdirAll(localPath, 0o750); err != nil {
-		return nil, status.Errorf(codes.Internal, "mkdir %s: %v", req.GetPath(), err)
+		return nil, connect.NewError(connect.CodeInternal, err)
 	}
-	return &pb.MkdirResponse{}, nil
+	return connect.NewResponse(&workspacev1.MkdirResponse{}), nil
 }
 
-func (s *skillsTestBridgeServer) DeleteFile(_ context.Context, req *pb.DeleteFileRequest) (*pb.DeleteFileResponse, error) {
-	_, localPath := s.resolvePath(req.GetPath())
+func (s *skillsTestWorkspaceExecutor) DeleteFile(_ context.Context, req *connect.Request[workspacev1.DeleteFileRequest]) (*connect.Response[workspacev1.DeleteFileResponse], error) {
+	_, localPath := s.resolvePath(req.Msg.GetPath())
 	if _, err := os.Stat(localPath); err != nil {
-		return nil, toStatusError(err, req.GetPath())
+		return nil, toConnectError(err, req.Msg.GetPath())
 	}
 	var err error
-	if req.GetRecursive() {
+	if req.Msg.GetRecursive() {
 		err = os.RemoveAll(localPath)
 	} else {
 		err = os.Remove(localPath)
 	}
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "delete %s: %v", req.GetPath(), err)
+		return nil, connect.NewError(connect.CodeInternal, err)
 	}
-	return &pb.DeleteFileResponse{}, nil
+	return connect.NewResponse(&workspacev1.DeleteFileResponse{}), nil
 }
 
-func (s *skillsTestBridgeServer) resolvePath(containerPath string) (string, string) {
+func (s *skillsTestWorkspaceExecutor) resolvePath(containerPath string) (string, string) {
 	clean := path.Clean("/" + strings.TrimSpace(containerPath))
 	if clean == "/" {
 		return clean, s.root
@@ -724,14 +728,14 @@ func (s *skillsTestBridgeServer) resolvePath(containerPath string) (string, stri
 	return clean, filepath.Join(s.root, filepath.FromSlash(strings.TrimPrefix(clean, "/")))
 }
 
-func toStatusError(err error, containerPath string) error {
+func toConnectError(err error, containerPath string) error {
 	if os.IsNotExist(err) {
-		return status.Errorf(codes.NotFound, "path not found: %s", containerPath)
+		return connect.NewError(connect.CodeNotFound, fmt.Errorf("path not found: %s", containerPath))
 	}
 	if os.IsPermission(err) {
-		return status.Errorf(codes.PermissionDenied, "permission denied: %s", containerPath)
+		return connect.NewError(connect.CodePermissionDenied, fmt.Errorf("permission denied: %s", containerPath))
 	}
-	return status.Errorf(codes.Internal, "%v", err)
+	return connect.NewError(connect.CodeInternal, err)
 }
 
 func mustFindSkillByPath(t *testing.T, items []SkillItem, sourcePath string) SkillItem {

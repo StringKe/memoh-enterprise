@@ -40,6 +40,87 @@ const (
 	// ContainerServiceStreamContainerProgressProcedure is the fully-qualified name of the
 	// ContainerService's StreamContainerProgress RPC.
 	ContainerServiceStreamContainerProgressProcedure = "/memoh.private.v1.ContainerService/StreamContainerProgress"
+	// ContainerServiceOpenTerminalProcedure is the fully-qualified name of the ContainerService's
+	// OpenTerminal RPC.
+	ContainerServiceOpenTerminalProcedure = "/memoh.private.v1.ContainerService/OpenTerminal"
+	// ContainerServiceStreamTerminalProcedure is the fully-qualified name of the ContainerService's
+	// StreamTerminal RPC.
+	ContainerServiceStreamTerminalProcedure = "/memoh.private.v1.ContainerService/StreamTerminal"
+	// ContainerServiceWriteTerminalInputProcedure is the fully-qualified name of the ContainerService's
+	// WriteTerminalInput RPC.
+	ContainerServiceWriteTerminalInputProcedure = "/memoh.private.v1.ContainerService/WriteTerminalInput"
+	// ContainerServiceResizeTerminalProcedure is the fully-qualified name of the ContainerService's
+	// ResizeTerminal RPC.
+	ContainerServiceResizeTerminalProcedure = "/memoh.private.v1.ContainerService/ResizeTerminal"
+	// ContainerServiceCloseTerminalProcedure is the fully-qualified name of the ContainerService's
+	// CloseTerminal RPC.
+	ContainerServiceCloseTerminalProcedure = "/memoh.private.v1.ContainerService/CloseTerminal"
+	// ContainerServiceStreamWorkspaceOperationProcedure is the fully-qualified name of the
+	// ContainerService's StreamWorkspaceOperation RPC.
+	ContainerServiceStreamWorkspaceOperationProcedure = "/memoh.private.v1.ContainerService/StreamWorkspaceOperation"
+	// ContainerServiceStartContainerProcedure is the fully-qualified name of the ContainerService's
+	// StartContainer RPC.
+	ContainerServiceStartContainerProcedure = "/memoh.private.v1.ContainerService/StartContainer"
+	// ContainerServiceStopContainerProcedure is the fully-qualified name of the ContainerService's
+	// StopContainer RPC.
+	ContainerServiceStopContainerProcedure = "/memoh.private.v1.ContainerService/StopContainer"
+	// ContainerServiceRestartContainerProcedure is the fully-qualified name of the ContainerService's
+	// RestartContainer RPC.
+	ContainerServiceRestartContainerProcedure = "/memoh.private.v1.ContainerService/RestartContainer"
+	// ContainerServiceGetContainerLifecycleProcedure is the fully-qualified name of the
+	// ContainerService's GetContainerLifecycle RPC.
+	ContainerServiceGetContainerLifecycleProcedure = "/memoh.private.v1.ContainerService/GetContainerLifecycle"
+	// ContainerServiceStreamContainerLifecycleProcedure is the fully-qualified name of the
+	// ContainerService's StreamContainerLifecycle RPC.
+	ContainerServiceStreamContainerLifecycleProcedure = "/memoh.private.v1.ContainerService/StreamContainerLifecycle"
+	// ContainerServiceGetContainerMetricsProcedure is the fully-qualified name of the
+	// ContainerService's GetContainerMetrics RPC.
+	ContainerServiceGetContainerMetricsProcedure = "/memoh.private.v1.ContainerService/GetContainerMetrics"
+	// ContainerServiceStreamContainerMetricsProcedure is the fully-qualified name of the
+	// ContainerService's StreamContainerMetrics RPC.
+	ContainerServiceStreamContainerMetricsProcedure = "/memoh.private.v1.ContainerService/StreamContainerMetrics"
+	// ContainerServiceCreateContainerSnapshotProcedure is the fully-qualified name of the
+	// ContainerService's CreateContainerSnapshot RPC.
+	ContainerServiceCreateContainerSnapshotProcedure = "/memoh.private.v1.ContainerService/CreateContainerSnapshot"
+	// ContainerServiceListContainerSnapshotsProcedure is the fully-qualified name of the
+	// ContainerService's ListContainerSnapshots RPC.
+	ContainerServiceListContainerSnapshotsProcedure = "/memoh.private.v1.ContainerService/ListContainerSnapshots"
+	// ContainerServiceRestoreContainerSnapshotProcedure is the fully-qualified name of the
+	// ContainerService's RestoreContainerSnapshot RPC.
+	ContainerServiceRestoreContainerSnapshotProcedure = "/memoh.private.v1.ContainerService/RestoreContainerSnapshot"
+	// ContainerServiceDeleteContainerSnapshotProcedure is the fully-qualified name of the
+	// ContainerService's DeleteContainerSnapshot RPC.
+	ContainerServiceDeleteContainerSnapshotProcedure = "/memoh.private.v1.ContainerService/DeleteContainerSnapshot"
+	// ContainerServiceImportContainerDataProcedure is the fully-qualified name of the
+	// ContainerService's ImportContainerData RPC.
+	ContainerServiceImportContainerDataProcedure = "/memoh.private.v1.ContainerService/ImportContainerData"
+	// ContainerServiceExportContainerDataProcedure is the fully-qualified name of the
+	// ContainerService's ExportContainerData RPC.
+	ContainerServiceExportContainerDataProcedure = "/memoh.private.v1.ContainerService/ExportContainerData"
+	// ContainerServiceListContainerFilesProcedure is the fully-qualified name of the ContainerService's
+	// ListContainerFiles RPC.
+	ContainerServiceListContainerFilesProcedure = "/memoh.private.v1.ContainerService/ListContainerFiles"
+	// ContainerServiceReadContainerFileProcedure is the fully-qualified name of the ContainerService's
+	// ReadContainerFile RPC.
+	ContainerServiceReadContainerFileProcedure = "/memoh.private.v1.ContainerService/ReadContainerFile"
+	// ContainerServiceWriteContainerFileProcedure is the fully-qualified name of the ContainerService's
+	// WriteContainerFile RPC.
+	ContainerServiceWriteContainerFileProcedure = "/memoh.private.v1.ContainerService/WriteContainerFile"
+	// ContainerServiceUploadContainerFileProcedure is the fully-qualified name of the
+	// ContainerService's UploadContainerFile RPC.
+	ContainerServiceUploadContainerFileProcedure = "/memoh.private.v1.ContainerService/UploadContainerFile"
+	// ContainerServiceDownloadContainerFileProcedure is the fully-qualified name of the
+	// ContainerService's DownloadContainerFile RPC.
+	ContainerServiceDownloadContainerFileProcedure = "/memoh.private.v1.ContainerService/DownloadContainerFile"
+	// ContainerServiceMkdirContainerFileProcedure is the fully-qualified name of the ContainerService's
+	// MkdirContainerFile RPC.
+	ContainerServiceMkdirContainerFileProcedure = "/memoh.private.v1.ContainerService/MkdirContainerFile"
+	// ContainerServiceRenameContainerFileProcedure is the fully-qualified name of the
+	// ContainerService's RenameContainerFile RPC.
+	ContainerServiceRenameContainerFileProcedure = "/memoh.private.v1.ContainerService/RenameContainerFile"
+	// ContainerServiceDeleteContainerFileProcedure is the fully-qualified name of the
+	// ContainerService's DeleteContainerFile RPC.
+	ContainerServiceDeleteContainerFileProcedure = "/memoh.private.v1.ContainerService/DeleteContainerFile"
 )
 
 // ChatServiceClient is a client for the memoh.private.v1.ChatService service.
@@ -115,6 +196,33 @@ func (UnimplementedChatServiceHandler) StreamChat(context.Context, *connect.Requ
 // ContainerServiceClient is a client for the memoh.private.v1.ContainerService service.
 type ContainerServiceClient interface {
 	StreamContainerProgress(context.Context, *connect.Request[v1.StreamContainerProgressRequest]) (*connect.ServerStreamForClient[v1.StreamContainerProgressResponse], error)
+	OpenTerminal(context.Context, *connect.Request[v1.OpenTerminalRequest]) (*connect.Response[v1.OpenTerminalResponse], error)
+	StreamTerminal(context.Context, *connect.Request[v1.StreamTerminalRequest]) (*connect.ServerStreamForClient[v1.StreamTerminalResponse], error)
+	WriteTerminalInput(context.Context, *connect.Request[v1.WriteTerminalInputRequest]) (*connect.Response[v1.WriteTerminalInputResponse], error)
+	ResizeTerminal(context.Context, *connect.Request[v1.ResizeTerminalRequest]) (*connect.Response[v1.ResizeTerminalResponse], error)
+	CloseTerminal(context.Context, *connect.Request[v1.CloseTerminalRequest]) (*connect.Response[v1.CloseTerminalResponse], error)
+	StreamWorkspaceOperation(context.Context, *connect.Request[v1.StreamWorkspaceOperationRequest]) (*connect.ServerStreamForClient[v1.StreamWorkspaceOperationResponse], error)
+	StartContainer(context.Context, *connect.Request[v1.StartContainerRequest]) (*connect.Response[v1.StartContainerResponse], error)
+	StopContainer(context.Context, *connect.Request[v1.StopContainerRequest]) (*connect.Response[v1.StopContainerResponse], error)
+	RestartContainer(context.Context, *connect.Request[v1.RestartContainerRequest]) (*connect.Response[v1.RestartContainerResponse], error)
+	GetContainerLifecycle(context.Context, *connect.Request[v1.GetContainerLifecycleRequest]) (*connect.Response[v1.GetContainerLifecycleResponse], error)
+	StreamContainerLifecycle(context.Context, *connect.Request[v1.StreamContainerLifecycleRequest]) (*connect.ServerStreamForClient[v1.StreamContainerLifecycleResponse], error)
+	GetContainerMetrics(context.Context, *connect.Request[v1.GetContainerMetricsRequest]) (*connect.Response[v1.GetContainerMetricsResponse], error)
+	StreamContainerMetrics(context.Context, *connect.Request[v1.StreamContainerMetricsRequest]) (*connect.ServerStreamForClient[v1.StreamContainerMetricsResponse], error)
+	CreateContainerSnapshot(context.Context, *connect.Request[v1.CreateContainerSnapshotRequest]) (*connect.Response[v1.CreateContainerSnapshotResponse], error)
+	ListContainerSnapshots(context.Context, *connect.Request[v1.ListContainerSnapshotsRequest]) (*connect.Response[v1.ListContainerSnapshotsResponse], error)
+	RestoreContainerSnapshot(context.Context, *connect.Request[v1.RestoreContainerSnapshotRequest]) (*connect.Response[v1.RestoreContainerSnapshotResponse], error)
+	DeleteContainerSnapshot(context.Context, *connect.Request[v1.DeleteContainerSnapshotRequest]) (*connect.Response[v1.DeleteContainerSnapshotResponse], error)
+	ImportContainerData(context.Context, *connect.Request[v1.ImportContainerDataRequest]) (*connect.Response[v1.ImportContainerDataResponse], error)
+	ExportContainerData(context.Context, *connect.Request[v1.ExportContainerDataRequest]) (*connect.Response[v1.ExportContainerDataResponse], error)
+	ListContainerFiles(context.Context, *connect.Request[v1.ListContainerFilesRequest]) (*connect.Response[v1.ListContainerFilesResponse], error)
+	ReadContainerFile(context.Context, *connect.Request[v1.ReadContainerFileRequest]) (*connect.Response[v1.ReadContainerFileResponse], error)
+	WriteContainerFile(context.Context, *connect.Request[v1.WriteContainerFileRequest]) (*connect.Response[v1.WriteContainerFileResponse], error)
+	UploadContainerFile(context.Context, *connect.Request[v1.UploadContainerFileRequest]) (*connect.Response[v1.UploadContainerFileResponse], error)
+	DownloadContainerFile(context.Context, *connect.Request[v1.DownloadContainerFileRequest]) (*connect.Response[v1.DownloadContainerFileResponse], error)
+	MkdirContainerFile(context.Context, *connect.Request[v1.MkdirContainerFileRequest]) (*connect.Response[v1.MkdirContainerFileResponse], error)
+	RenameContainerFile(context.Context, *connect.Request[v1.RenameContainerFileRequest]) (*connect.Response[v1.RenameContainerFileResponse], error)
+	DeleteContainerFile(context.Context, *connect.Request[v1.DeleteContainerFileRequest]) (*connect.Response[v1.DeleteContainerFileResponse], error)
 }
 
 // NewContainerServiceClient constructs a client for the memoh.private.v1.ContainerService service.
@@ -134,12 +242,201 @@ func NewContainerServiceClient(httpClient connect.HTTPClient, baseURL string, op
 			connect.WithSchema(containerServiceMethods.ByName("StreamContainerProgress")),
 			connect.WithClientOptions(opts...),
 		),
+		openTerminal: connect.NewClient[v1.OpenTerminalRequest, v1.OpenTerminalResponse](
+			httpClient,
+			baseURL+ContainerServiceOpenTerminalProcedure,
+			connect.WithSchema(containerServiceMethods.ByName("OpenTerminal")),
+			connect.WithClientOptions(opts...),
+		),
+		streamTerminal: connect.NewClient[v1.StreamTerminalRequest, v1.StreamTerminalResponse](
+			httpClient,
+			baseURL+ContainerServiceStreamTerminalProcedure,
+			connect.WithSchema(containerServiceMethods.ByName("StreamTerminal")),
+			connect.WithClientOptions(opts...),
+		),
+		writeTerminalInput: connect.NewClient[v1.WriteTerminalInputRequest, v1.WriteTerminalInputResponse](
+			httpClient,
+			baseURL+ContainerServiceWriteTerminalInputProcedure,
+			connect.WithSchema(containerServiceMethods.ByName("WriteTerminalInput")),
+			connect.WithClientOptions(opts...),
+		),
+		resizeTerminal: connect.NewClient[v1.ResizeTerminalRequest, v1.ResizeTerminalResponse](
+			httpClient,
+			baseURL+ContainerServiceResizeTerminalProcedure,
+			connect.WithSchema(containerServiceMethods.ByName("ResizeTerminal")),
+			connect.WithClientOptions(opts...),
+		),
+		closeTerminal: connect.NewClient[v1.CloseTerminalRequest, v1.CloseTerminalResponse](
+			httpClient,
+			baseURL+ContainerServiceCloseTerminalProcedure,
+			connect.WithSchema(containerServiceMethods.ByName("CloseTerminal")),
+			connect.WithClientOptions(opts...),
+		),
+		streamWorkspaceOperation: connect.NewClient[v1.StreamWorkspaceOperationRequest, v1.StreamWorkspaceOperationResponse](
+			httpClient,
+			baseURL+ContainerServiceStreamWorkspaceOperationProcedure,
+			connect.WithSchema(containerServiceMethods.ByName("StreamWorkspaceOperation")),
+			connect.WithClientOptions(opts...),
+		),
+		startContainer: connect.NewClient[v1.StartContainerRequest, v1.StartContainerResponse](
+			httpClient,
+			baseURL+ContainerServiceStartContainerProcedure,
+			connect.WithSchema(containerServiceMethods.ByName("StartContainer")),
+			connect.WithClientOptions(opts...),
+		),
+		stopContainer: connect.NewClient[v1.StopContainerRequest, v1.StopContainerResponse](
+			httpClient,
+			baseURL+ContainerServiceStopContainerProcedure,
+			connect.WithSchema(containerServiceMethods.ByName("StopContainer")),
+			connect.WithClientOptions(opts...),
+		),
+		restartContainer: connect.NewClient[v1.RestartContainerRequest, v1.RestartContainerResponse](
+			httpClient,
+			baseURL+ContainerServiceRestartContainerProcedure,
+			connect.WithSchema(containerServiceMethods.ByName("RestartContainer")),
+			connect.WithClientOptions(opts...),
+		),
+		getContainerLifecycle: connect.NewClient[v1.GetContainerLifecycleRequest, v1.GetContainerLifecycleResponse](
+			httpClient,
+			baseURL+ContainerServiceGetContainerLifecycleProcedure,
+			connect.WithSchema(containerServiceMethods.ByName("GetContainerLifecycle")),
+			connect.WithClientOptions(opts...),
+		),
+		streamContainerLifecycle: connect.NewClient[v1.StreamContainerLifecycleRequest, v1.StreamContainerLifecycleResponse](
+			httpClient,
+			baseURL+ContainerServiceStreamContainerLifecycleProcedure,
+			connect.WithSchema(containerServiceMethods.ByName("StreamContainerLifecycle")),
+			connect.WithClientOptions(opts...),
+		),
+		getContainerMetrics: connect.NewClient[v1.GetContainerMetricsRequest, v1.GetContainerMetricsResponse](
+			httpClient,
+			baseURL+ContainerServiceGetContainerMetricsProcedure,
+			connect.WithSchema(containerServiceMethods.ByName("GetContainerMetrics")),
+			connect.WithClientOptions(opts...),
+		),
+		streamContainerMetrics: connect.NewClient[v1.StreamContainerMetricsRequest, v1.StreamContainerMetricsResponse](
+			httpClient,
+			baseURL+ContainerServiceStreamContainerMetricsProcedure,
+			connect.WithSchema(containerServiceMethods.ByName("StreamContainerMetrics")),
+			connect.WithClientOptions(opts...),
+		),
+		createContainerSnapshot: connect.NewClient[v1.CreateContainerSnapshotRequest, v1.CreateContainerSnapshotResponse](
+			httpClient,
+			baseURL+ContainerServiceCreateContainerSnapshotProcedure,
+			connect.WithSchema(containerServiceMethods.ByName("CreateContainerSnapshot")),
+			connect.WithClientOptions(opts...),
+		),
+		listContainerSnapshots: connect.NewClient[v1.ListContainerSnapshotsRequest, v1.ListContainerSnapshotsResponse](
+			httpClient,
+			baseURL+ContainerServiceListContainerSnapshotsProcedure,
+			connect.WithSchema(containerServiceMethods.ByName("ListContainerSnapshots")),
+			connect.WithClientOptions(opts...),
+		),
+		restoreContainerSnapshot: connect.NewClient[v1.RestoreContainerSnapshotRequest, v1.RestoreContainerSnapshotResponse](
+			httpClient,
+			baseURL+ContainerServiceRestoreContainerSnapshotProcedure,
+			connect.WithSchema(containerServiceMethods.ByName("RestoreContainerSnapshot")),
+			connect.WithClientOptions(opts...),
+		),
+		deleteContainerSnapshot: connect.NewClient[v1.DeleteContainerSnapshotRequest, v1.DeleteContainerSnapshotResponse](
+			httpClient,
+			baseURL+ContainerServiceDeleteContainerSnapshotProcedure,
+			connect.WithSchema(containerServiceMethods.ByName("DeleteContainerSnapshot")),
+			connect.WithClientOptions(opts...),
+		),
+		importContainerData: connect.NewClient[v1.ImportContainerDataRequest, v1.ImportContainerDataResponse](
+			httpClient,
+			baseURL+ContainerServiceImportContainerDataProcedure,
+			connect.WithSchema(containerServiceMethods.ByName("ImportContainerData")),
+			connect.WithClientOptions(opts...),
+		),
+		exportContainerData: connect.NewClient[v1.ExportContainerDataRequest, v1.ExportContainerDataResponse](
+			httpClient,
+			baseURL+ContainerServiceExportContainerDataProcedure,
+			connect.WithSchema(containerServiceMethods.ByName("ExportContainerData")),
+			connect.WithClientOptions(opts...),
+		),
+		listContainerFiles: connect.NewClient[v1.ListContainerFilesRequest, v1.ListContainerFilesResponse](
+			httpClient,
+			baseURL+ContainerServiceListContainerFilesProcedure,
+			connect.WithSchema(containerServiceMethods.ByName("ListContainerFiles")),
+			connect.WithClientOptions(opts...),
+		),
+		readContainerFile: connect.NewClient[v1.ReadContainerFileRequest, v1.ReadContainerFileResponse](
+			httpClient,
+			baseURL+ContainerServiceReadContainerFileProcedure,
+			connect.WithSchema(containerServiceMethods.ByName("ReadContainerFile")),
+			connect.WithClientOptions(opts...),
+		),
+		writeContainerFile: connect.NewClient[v1.WriteContainerFileRequest, v1.WriteContainerFileResponse](
+			httpClient,
+			baseURL+ContainerServiceWriteContainerFileProcedure,
+			connect.WithSchema(containerServiceMethods.ByName("WriteContainerFile")),
+			connect.WithClientOptions(opts...),
+		),
+		uploadContainerFile: connect.NewClient[v1.UploadContainerFileRequest, v1.UploadContainerFileResponse](
+			httpClient,
+			baseURL+ContainerServiceUploadContainerFileProcedure,
+			connect.WithSchema(containerServiceMethods.ByName("UploadContainerFile")),
+			connect.WithClientOptions(opts...),
+		),
+		downloadContainerFile: connect.NewClient[v1.DownloadContainerFileRequest, v1.DownloadContainerFileResponse](
+			httpClient,
+			baseURL+ContainerServiceDownloadContainerFileProcedure,
+			connect.WithSchema(containerServiceMethods.ByName("DownloadContainerFile")),
+			connect.WithClientOptions(opts...),
+		),
+		mkdirContainerFile: connect.NewClient[v1.MkdirContainerFileRequest, v1.MkdirContainerFileResponse](
+			httpClient,
+			baseURL+ContainerServiceMkdirContainerFileProcedure,
+			connect.WithSchema(containerServiceMethods.ByName("MkdirContainerFile")),
+			connect.WithClientOptions(opts...),
+		),
+		renameContainerFile: connect.NewClient[v1.RenameContainerFileRequest, v1.RenameContainerFileResponse](
+			httpClient,
+			baseURL+ContainerServiceRenameContainerFileProcedure,
+			connect.WithSchema(containerServiceMethods.ByName("RenameContainerFile")),
+			connect.WithClientOptions(opts...),
+		),
+		deleteContainerFile: connect.NewClient[v1.DeleteContainerFileRequest, v1.DeleteContainerFileResponse](
+			httpClient,
+			baseURL+ContainerServiceDeleteContainerFileProcedure,
+			connect.WithSchema(containerServiceMethods.ByName("DeleteContainerFile")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // containerServiceClient implements ContainerServiceClient.
 type containerServiceClient struct {
-	streamContainerProgress *connect.Client[v1.StreamContainerProgressRequest, v1.StreamContainerProgressResponse]
+	streamContainerProgress  *connect.Client[v1.StreamContainerProgressRequest, v1.StreamContainerProgressResponse]
+	openTerminal             *connect.Client[v1.OpenTerminalRequest, v1.OpenTerminalResponse]
+	streamTerminal           *connect.Client[v1.StreamTerminalRequest, v1.StreamTerminalResponse]
+	writeTerminalInput       *connect.Client[v1.WriteTerminalInputRequest, v1.WriteTerminalInputResponse]
+	resizeTerminal           *connect.Client[v1.ResizeTerminalRequest, v1.ResizeTerminalResponse]
+	closeTerminal            *connect.Client[v1.CloseTerminalRequest, v1.CloseTerminalResponse]
+	streamWorkspaceOperation *connect.Client[v1.StreamWorkspaceOperationRequest, v1.StreamWorkspaceOperationResponse]
+	startContainer           *connect.Client[v1.StartContainerRequest, v1.StartContainerResponse]
+	stopContainer            *connect.Client[v1.StopContainerRequest, v1.StopContainerResponse]
+	restartContainer         *connect.Client[v1.RestartContainerRequest, v1.RestartContainerResponse]
+	getContainerLifecycle    *connect.Client[v1.GetContainerLifecycleRequest, v1.GetContainerLifecycleResponse]
+	streamContainerLifecycle *connect.Client[v1.StreamContainerLifecycleRequest, v1.StreamContainerLifecycleResponse]
+	getContainerMetrics      *connect.Client[v1.GetContainerMetricsRequest, v1.GetContainerMetricsResponse]
+	streamContainerMetrics   *connect.Client[v1.StreamContainerMetricsRequest, v1.StreamContainerMetricsResponse]
+	createContainerSnapshot  *connect.Client[v1.CreateContainerSnapshotRequest, v1.CreateContainerSnapshotResponse]
+	listContainerSnapshots   *connect.Client[v1.ListContainerSnapshotsRequest, v1.ListContainerSnapshotsResponse]
+	restoreContainerSnapshot *connect.Client[v1.RestoreContainerSnapshotRequest, v1.RestoreContainerSnapshotResponse]
+	deleteContainerSnapshot  *connect.Client[v1.DeleteContainerSnapshotRequest, v1.DeleteContainerSnapshotResponse]
+	importContainerData      *connect.Client[v1.ImportContainerDataRequest, v1.ImportContainerDataResponse]
+	exportContainerData      *connect.Client[v1.ExportContainerDataRequest, v1.ExportContainerDataResponse]
+	listContainerFiles       *connect.Client[v1.ListContainerFilesRequest, v1.ListContainerFilesResponse]
+	readContainerFile        *connect.Client[v1.ReadContainerFileRequest, v1.ReadContainerFileResponse]
+	writeContainerFile       *connect.Client[v1.WriteContainerFileRequest, v1.WriteContainerFileResponse]
+	uploadContainerFile      *connect.Client[v1.UploadContainerFileRequest, v1.UploadContainerFileResponse]
+	downloadContainerFile    *connect.Client[v1.DownloadContainerFileRequest, v1.DownloadContainerFileResponse]
+	mkdirContainerFile       *connect.Client[v1.MkdirContainerFileRequest, v1.MkdirContainerFileResponse]
+	renameContainerFile      *connect.Client[v1.RenameContainerFileRequest, v1.RenameContainerFileResponse]
+	deleteContainerFile      *connect.Client[v1.DeleteContainerFileRequest, v1.DeleteContainerFileResponse]
 }
 
 // StreamContainerProgress calls memoh.private.v1.ContainerService.StreamContainerProgress.
@@ -147,9 +444,171 @@ func (c *containerServiceClient) StreamContainerProgress(ctx context.Context, re
 	return c.streamContainerProgress.CallServerStream(ctx, req)
 }
 
+// OpenTerminal calls memoh.private.v1.ContainerService.OpenTerminal.
+func (c *containerServiceClient) OpenTerminal(ctx context.Context, req *connect.Request[v1.OpenTerminalRequest]) (*connect.Response[v1.OpenTerminalResponse], error) {
+	return c.openTerminal.CallUnary(ctx, req)
+}
+
+// StreamTerminal calls memoh.private.v1.ContainerService.StreamTerminal.
+func (c *containerServiceClient) StreamTerminal(ctx context.Context, req *connect.Request[v1.StreamTerminalRequest]) (*connect.ServerStreamForClient[v1.StreamTerminalResponse], error) {
+	return c.streamTerminal.CallServerStream(ctx, req)
+}
+
+// WriteTerminalInput calls memoh.private.v1.ContainerService.WriteTerminalInput.
+func (c *containerServiceClient) WriteTerminalInput(ctx context.Context, req *connect.Request[v1.WriteTerminalInputRequest]) (*connect.Response[v1.WriteTerminalInputResponse], error) {
+	return c.writeTerminalInput.CallUnary(ctx, req)
+}
+
+// ResizeTerminal calls memoh.private.v1.ContainerService.ResizeTerminal.
+func (c *containerServiceClient) ResizeTerminal(ctx context.Context, req *connect.Request[v1.ResizeTerminalRequest]) (*connect.Response[v1.ResizeTerminalResponse], error) {
+	return c.resizeTerminal.CallUnary(ctx, req)
+}
+
+// CloseTerminal calls memoh.private.v1.ContainerService.CloseTerminal.
+func (c *containerServiceClient) CloseTerminal(ctx context.Context, req *connect.Request[v1.CloseTerminalRequest]) (*connect.Response[v1.CloseTerminalResponse], error) {
+	return c.closeTerminal.CallUnary(ctx, req)
+}
+
+// StreamWorkspaceOperation calls memoh.private.v1.ContainerService.StreamWorkspaceOperation.
+func (c *containerServiceClient) StreamWorkspaceOperation(ctx context.Context, req *connect.Request[v1.StreamWorkspaceOperationRequest]) (*connect.ServerStreamForClient[v1.StreamWorkspaceOperationResponse], error) {
+	return c.streamWorkspaceOperation.CallServerStream(ctx, req)
+}
+
+// StartContainer calls memoh.private.v1.ContainerService.StartContainer.
+func (c *containerServiceClient) StartContainer(ctx context.Context, req *connect.Request[v1.StartContainerRequest]) (*connect.Response[v1.StartContainerResponse], error) {
+	return c.startContainer.CallUnary(ctx, req)
+}
+
+// StopContainer calls memoh.private.v1.ContainerService.StopContainer.
+func (c *containerServiceClient) StopContainer(ctx context.Context, req *connect.Request[v1.StopContainerRequest]) (*connect.Response[v1.StopContainerResponse], error) {
+	return c.stopContainer.CallUnary(ctx, req)
+}
+
+// RestartContainer calls memoh.private.v1.ContainerService.RestartContainer.
+func (c *containerServiceClient) RestartContainer(ctx context.Context, req *connect.Request[v1.RestartContainerRequest]) (*connect.Response[v1.RestartContainerResponse], error) {
+	return c.restartContainer.CallUnary(ctx, req)
+}
+
+// GetContainerLifecycle calls memoh.private.v1.ContainerService.GetContainerLifecycle.
+func (c *containerServiceClient) GetContainerLifecycle(ctx context.Context, req *connect.Request[v1.GetContainerLifecycleRequest]) (*connect.Response[v1.GetContainerLifecycleResponse], error) {
+	return c.getContainerLifecycle.CallUnary(ctx, req)
+}
+
+// StreamContainerLifecycle calls memoh.private.v1.ContainerService.StreamContainerLifecycle.
+func (c *containerServiceClient) StreamContainerLifecycle(ctx context.Context, req *connect.Request[v1.StreamContainerLifecycleRequest]) (*connect.ServerStreamForClient[v1.StreamContainerLifecycleResponse], error) {
+	return c.streamContainerLifecycle.CallServerStream(ctx, req)
+}
+
+// GetContainerMetrics calls memoh.private.v1.ContainerService.GetContainerMetrics.
+func (c *containerServiceClient) GetContainerMetrics(ctx context.Context, req *connect.Request[v1.GetContainerMetricsRequest]) (*connect.Response[v1.GetContainerMetricsResponse], error) {
+	return c.getContainerMetrics.CallUnary(ctx, req)
+}
+
+// StreamContainerMetrics calls memoh.private.v1.ContainerService.StreamContainerMetrics.
+func (c *containerServiceClient) StreamContainerMetrics(ctx context.Context, req *connect.Request[v1.StreamContainerMetricsRequest]) (*connect.ServerStreamForClient[v1.StreamContainerMetricsResponse], error) {
+	return c.streamContainerMetrics.CallServerStream(ctx, req)
+}
+
+// CreateContainerSnapshot calls memoh.private.v1.ContainerService.CreateContainerSnapshot.
+func (c *containerServiceClient) CreateContainerSnapshot(ctx context.Context, req *connect.Request[v1.CreateContainerSnapshotRequest]) (*connect.Response[v1.CreateContainerSnapshotResponse], error) {
+	return c.createContainerSnapshot.CallUnary(ctx, req)
+}
+
+// ListContainerSnapshots calls memoh.private.v1.ContainerService.ListContainerSnapshots.
+func (c *containerServiceClient) ListContainerSnapshots(ctx context.Context, req *connect.Request[v1.ListContainerSnapshotsRequest]) (*connect.Response[v1.ListContainerSnapshotsResponse], error) {
+	return c.listContainerSnapshots.CallUnary(ctx, req)
+}
+
+// RestoreContainerSnapshot calls memoh.private.v1.ContainerService.RestoreContainerSnapshot.
+func (c *containerServiceClient) RestoreContainerSnapshot(ctx context.Context, req *connect.Request[v1.RestoreContainerSnapshotRequest]) (*connect.Response[v1.RestoreContainerSnapshotResponse], error) {
+	return c.restoreContainerSnapshot.CallUnary(ctx, req)
+}
+
+// DeleteContainerSnapshot calls memoh.private.v1.ContainerService.DeleteContainerSnapshot.
+func (c *containerServiceClient) DeleteContainerSnapshot(ctx context.Context, req *connect.Request[v1.DeleteContainerSnapshotRequest]) (*connect.Response[v1.DeleteContainerSnapshotResponse], error) {
+	return c.deleteContainerSnapshot.CallUnary(ctx, req)
+}
+
+// ImportContainerData calls memoh.private.v1.ContainerService.ImportContainerData.
+func (c *containerServiceClient) ImportContainerData(ctx context.Context, req *connect.Request[v1.ImportContainerDataRequest]) (*connect.Response[v1.ImportContainerDataResponse], error) {
+	return c.importContainerData.CallUnary(ctx, req)
+}
+
+// ExportContainerData calls memoh.private.v1.ContainerService.ExportContainerData.
+func (c *containerServiceClient) ExportContainerData(ctx context.Context, req *connect.Request[v1.ExportContainerDataRequest]) (*connect.Response[v1.ExportContainerDataResponse], error) {
+	return c.exportContainerData.CallUnary(ctx, req)
+}
+
+// ListContainerFiles calls memoh.private.v1.ContainerService.ListContainerFiles.
+func (c *containerServiceClient) ListContainerFiles(ctx context.Context, req *connect.Request[v1.ListContainerFilesRequest]) (*connect.Response[v1.ListContainerFilesResponse], error) {
+	return c.listContainerFiles.CallUnary(ctx, req)
+}
+
+// ReadContainerFile calls memoh.private.v1.ContainerService.ReadContainerFile.
+func (c *containerServiceClient) ReadContainerFile(ctx context.Context, req *connect.Request[v1.ReadContainerFileRequest]) (*connect.Response[v1.ReadContainerFileResponse], error) {
+	return c.readContainerFile.CallUnary(ctx, req)
+}
+
+// WriteContainerFile calls memoh.private.v1.ContainerService.WriteContainerFile.
+func (c *containerServiceClient) WriteContainerFile(ctx context.Context, req *connect.Request[v1.WriteContainerFileRequest]) (*connect.Response[v1.WriteContainerFileResponse], error) {
+	return c.writeContainerFile.CallUnary(ctx, req)
+}
+
+// UploadContainerFile calls memoh.private.v1.ContainerService.UploadContainerFile.
+func (c *containerServiceClient) UploadContainerFile(ctx context.Context, req *connect.Request[v1.UploadContainerFileRequest]) (*connect.Response[v1.UploadContainerFileResponse], error) {
+	return c.uploadContainerFile.CallUnary(ctx, req)
+}
+
+// DownloadContainerFile calls memoh.private.v1.ContainerService.DownloadContainerFile.
+func (c *containerServiceClient) DownloadContainerFile(ctx context.Context, req *connect.Request[v1.DownloadContainerFileRequest]) (*connect.Response[v1.DownloadContainerFileResponse], error) {
+	return c.downloadContainerFile.CallUnary(ctx, req)
+}
+
+// MkdirContainerFile calls memoh.private.v1.ContainerService.MkdirContainerFile.
+func (c *containerServiceClient) MkdirContainerFile(ctx context.Context, req *connect.Request[v1.MkdirContainerFileRequest]) (*connect.Response[v1.MkdirContainerFileResponse], error) {
+	return c.mkdirContainerFile.CallUnary(ctx, req)
+}
+
+// RenameContainerFile calls memoh.private.v1.ContainerService.RenameContainerFile.
+func (c *containerServiceClient) RenameContainerFile(ctx context.Context, req *connect.Request[v1.RenameContainerFileRequest]) (*connect.Response[v1.RenameContainerFileResponse], error) {
+	return c.renameContainerFile.CallUnary(ctx, req)
+}
+
+// DeleteContainerFile calls memoh.private.v1.ContainerService.DeleteContainerFile.
+func (c *containerServiceClient) DeleteContainerFile(ctx context.Context, req *connect.Request[v1.DeleteContainerFileRequest]) (*connect.Response[v1.DeleteContainerFileResponse], error) {
+	return c.deleteContainerFile.CallUnary(ctx, req)
+}
+
 // ContainerServiceHandler is an implementation of the memoh.private.v1.ContainerService service.
 type ContainerServiceHandler interface {
 	StreamContainerProgress(context.Context, *connect.Request[v1.StreamContainerProgressRequest], *connect.ServerStream[v1.StreamContainerProgressResponse]) error
+	OpenTerminal(context.Context, *connect.Request[v1.OpenTerminalRequest]) (*connect.Response[v1.OpenTerminalResponse], error)
+	StreamTerminal(context.Context, *connect.Request[v1.StreamTerminalRequest], *connect.ServerStream[v1.StreamTerminalResponse]) error
+	WriteTerminalInput(context.Context, *connect.Request[v1.WriteTerminalInputRequest]) (*connect.Response[v1.WriteTerminalInputResponse], error)
+	ResizeTerminal(context.Context, *connect.Request[v1.ResizeTerminalRequest]) (*connect.Response[v1.ResizeTerminalResponse], error)
+	CloseTerminal(context.Context, *connect.Request[v1.CloseTerminalRequest]) (*connect.Response[v1.CloseTerminalResponse], error)
+	StreamWorkspaceOperation(context.Context, *connect.Request[v1.StreamWorkspaceOperationRequest], *connect.ServerStream[v1.StreamWorkspaceOperationResponse]) error
+	StartContainer(context.Context, *connect.Request[v1.StartContainerRequest]) (*connect.Response[v1.StartContainerResponse], error)
+	StopContainer(context.Context, *connect.Request[v1.StopContainerRequest]) (*connect.Response[v1.StopContainerResponse], error)
+	RestartContainer(context.Context, *connect.Request[v1.RestartContainerRequest]) (*connect.Response[v1.RestartContainerResponse], error)
+	GetContainerLifecycle(context.Context, *connect.Request[v1.GetContainerLifecycleRequest]) (*connect.Response[v1.GetContainerLifecycleResponse], error)
+	StreamContainerLifecycle(context.Context, *connect.Request[v1.StreamContainerLifecycleRequest], *connect.ServerStream[v1.StreamContainerLifecycleResponse]) error
+	GetContainerMetrics(context.Context, *connect.Request[v1.GetContainerMetricsRequest]) (*connect.Response[v1.GetContainerMetricsResponse], error)
+	StreamContainerMetrics(context.Context, *connect.Request[v1.StreamContainerMetricsRequest], *connect.ServerStream[v1.StreamContainerMetricsResponse]) error
+	CreateContainerSnapshot(context.Context, *connect.Request[v1.CreateContainerSnapshotRequest]) (*connect.Response[v1.CreateContainerSnapshotResponse], error)
+	ListContainerSnapshots(context.Context, *connect.Request[v1.ListContainerSnapshotsRequest]) (*connect.Response[v1.ListContainerSnapshotsResponse], error)
+	RestoreContainerSnapshot(context.Context, *connect.Request[v1.RestoreContainerSnapshotRequest]) (*connect.Response[v1.RestoreContainerSnapshotResponse], error)
+	DeleteContainerSnapshot(context.Context, *connect.Request[v1.DeleteContainerSnapshotRequest]) (*connect.Response[v1.DeleteContainerSnapshotResponse], error)
+	ImportContainerData(context.Context, *connect.Request[v1.ImportContainerDataRequest]) (*connect.Response[v1.ImportContainerDataResponse], error)
+	ExportContainerData(context.Context, *connect.Request[v1.ExportContainerDataRequest]) (*connect.Response[v1.ExportContainerDataResponse], error)
+	ListContainerFiles(context.Context, *connect.Request[v1.ListContainerFilesRequest]) (*connect.Response[v1.ListContainerFilesResponse], error)
+	ReadContainerFile(context.Context, *connect.Request[v1.ReadContainerFileRequest]) (*connect.Response[v1.ReadContainerFileResponse], error)
+	WriteContainerFile(context.Context, *connect.Request[v1.WriteContainerFileRequest]) (*connect.Response[v1.WriteContainerFileResponse], error)
+	UploadContainerFile(context.Context, *connect.Request[v1.UploadContainerFileRequest]) (*connect.Response[v1.UploadContainerFileResponse], error)
+	DownloadContainerFile(context.Context, *connect.Request[v1.DownloadContainerFileRequest]) (*connect.Response[v1.DownloadContainerFileResponse], error)
+	MkdirContainerFile(context.Context, *connect.Request[v1.MkdirContainerFileRequest]) (*connect.Response[v1.MkdirContainerFileResponse], error)
+	RenameContainerFile(context.Context, *connect.Request[v1.RenameContainerFileRequest]) (*connect.Response[v1.RenameContainerFileResponse], error)
+	DeleteContainerFile(context.Context, *connect.Request[v1.DeleteContainerFileRequest]) (*connect.Response[v1.DeleteContainerFileResponse], error)
 }
 
 // NewContainerServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -165,10 +624,226 @@ func NewContainerServiceHandler(svc ContainerServiceHandler, opts ...connect.Han
 		connect.WithSchema(containerServiceMethods.ByName("StreamContainerProgress")),
 		connect.WithHandlerOptions(opts...),
 	)
+	containerServiceOpenTerminalHandler := connect.NewUnaryHandler(
+		ContainerServiceOpenTerminalProcedure,
+		svc.OpenTerminal,
+		connect.WithSchema(containerServiceMethods.ByName("OpenTerminal")),
+		connect.WithHandlerOptions(opts...),
+	)
+	containerServiceStreamTerminalHandler := connect.NewServerStreamHandler(
+		ContainerServiceStreamTerminalProcedure,
+		svc.StreamTerminal,
+		connect.WithSchema(containerServiceMethods.ByName("StreamTerminal")),
+		connect.WithHandlerOptions(opts...),
+	)
+	containerServiceWriteTerminalInputHandler := connect.NewUnaryHandler(
+		ContainerServiceWriteTerminalInputProcedure,
+		svc.WriteTerminalInput,
+		connect.WithSchema(containerServiceMethods.ByName("WriteTerminalInput")),
+		connect.WithHandlerOptions(opts...),
+	)
+	containerServiceResizeTerminalHandler := connect.NewUnaryHandler(
+		ContainerServiceResizeTerminalProcedure,
+		svc.ResizeTerminal,
+		connect.WithSchema(containerServiceMethods.ByName("ResizeTerminal")),
+		connect.WithHandlerOptions(opts...),
+	)
+	containerServiceCloseTerminalHandler := connect.NewUnaryHandler(
+		ContainerServiceCloseTerminalProcedure,
+		svc.CloseTerminal,
+		connect.WithSchema(containerServiceMethods.ByName("CloseTerminal")),
+		connect.WithHandlerOptions(opts...),
+	)
+	containerServiceStreamWorkspaceOperationHandler := connect.NewServerStreamHandler(
+		ContainerServiceStreamWorkspaceOperationProcedure,
+		svc.StreamWorkspaceOperation,
+		connect.WithSchema(containerServiceMethods.ByName("StreamWorkspaceOperation")),
+		connect.WithHandlerOptions(opts...),
+	)
+	containerServiceStartContainerHandler := connect.NewUnaryHandler(
+		ContainerServiceStartContainerProcedure,
+		svc.StartContainer,
+		connect.WithSchema(containerServiceMethods.ByName("StartContainer")),
+		connect.WithHandlerOptions(opts...),
+	)
+	containerServiceStopContainerHandler := connect.NewUnaryHandler(
+		ContainerServiceStopContainerProcedure,
+		svc.StopContainer,
+		connect.WithSchema(containerServiceMethods.ByName("StopContainer")),
+		connect.WithHandlerOptions(opts...),
+	)
+	containerServiceRestartContainerHandler := connect.NewUnaryHandler(
+		ContainerServiceRestartContainerProcedure,
+		svc.RestartContainer,
+		connect.WithSchema(containerServiceMethods.ByName("RestartContainer")),
+		connect.WithHandlerOptions(opts...),
+	)
+	containerServiceGetContainerLifecycleHandler := connect.NewUnaryHandler(
+		ContainerServiceGetContainerLifecycleProcedure,
+		svc.GetContainerLifecycle,
+		connect.WithSchema(containerServiceMethods.ByName("GetContainerLifecycle")),
+		connect.WithHandlerOptions(opts...),
+	)
+	containerServiceStreamContainerLifecycleHandler := connect.NewServerStreamHandler(
+		ContainerServiceStreamContainerLifecycleProcedure,
+		svc.StreamContainerLifecycle,
+		connect.WithSchema(containerServiceMethods.ByName("StreamContainerLifecycle")),
+		connect.WithHandlerOptions(opts...),
+	)
+	containerServiceGetContainerMetricsHandler := connect.NewUnaryHandler(
+		ContainerServiceGetContainerMetricsProcedure,
+		svc.GetContainerMetrics,
+		connect.WithSchema(containerServiceMethods.ByName("GetContainerMetrics")),
+		connect.WithHandlerOptions(opts...),
+	)
+	containerServiceStreamContainerMetricsHandler := connect.NewServerStreamHandler(
+		ContainerServiceStreamContainerMetricsProcedure,
+		svc.StreamContainerMetrics,
+		connect.WithSchema(containerServiceMethods.ByName("StreamContainerMetrics")),
+		connect.WithHandlerOptions(opts...),
+	)
+	containerServiceCreateContainerSnapshotHandler := connect.NewUnaryHandler(
+		ContainerServiceCreateContainerSnapshotProcedure,
+		svc.CreateContainerSnapshot,
+		connect.WithSchema(containerServiceMethods.ByName("CreateContainerSnapshot")),
+		connect.WithHandlerOptions(opts...),
+	)
+	containerServiceListContainerSnapshotsHandler := connect.NewUnaryHandler(
+		ContainerServiceListContainerSnapshotsProcedure,
+		svc.ListContainerSnapshots,
+		connect.WithSchema(containerServiceMethods.ByName("ListContainerSnapshots")),
+		connect.WithHandlerOptions(opts...),
+	)
+	containerServiceRestoreContainerSnapshotHandler := connect.NewUnaryHandler(
+		ContainerServiceRestoreContainerSnapshotProcedure,
+		svc.RestoreContainerSnapshot,
+		connect.WithSchema(containerServiceMethods.ByName("RestoreContainerSnapshot")),
+		connect.WithHandlerOptions(opts...),
+	)
+	containerServiceDeleteContainerSnapshotHandler := connect.NewUnaryHandler(
+		ContainerServiceDeleteContainerSnapshotProcedure,
+		svc.DeleteContainerSnapshot,
+		connect.WithSchema(containerServiceMethods.ByName("DeleteContainerSnapshot")),
+		connect.WithHandlerOptions(opts...),
+	)
+	containerServiceImportContainerDataHandler := connect.NewUnaryHandler(
+		ContainerServiceImportContainerDataProcedure,
+		svc.ImportContainerData,
+		connect.WithSchema(containerServiceMethods.ByName("ImportContainerData")),
+		connect.WithHandlerOptions(opts...),
+	)
+	containerServiceExportContainerDataHandler := connect.NewUnaryHandler(
+		ContainerServiceExportContainerDataProcedure,
+		svc.ExportContainerData,
+		connect.WithSchema(containerServiceMethods.ByName("ExportContainerData")),
+		connect.WithHandlerOptions(opts...),
+	)
+	containerServiceListContainerFilesHandler := connect.NewUnaryHandler(
+		ContainerServiceListContainerFilesProcedure,
+		svc.ListContainerFiles,
+		connect.WithSchema(containerServiceMethods.ByName("ListContainerFiles")),
+		connect.WithHandlerOptions(opts...),
+	)
+	containerServiceReadContainerFileHandler := connect.NewUnaryHandler(
+		ContainerServiceReadContainerFileProcedure,
+		svc.ReadContainerFile,
+		connect.WithSchema(containerServiceMethods.ByName("ReadContainerFile")),
+		connect.WithHandlerOptions(opts...),
+	)
+	containerServiceWriteContainerFileHandler := connect.NewUnaryHandler(
+		ContainerServiceWriteContainerFileProcedure,
+		svc.WriteContainerFile,
+		connect.WithSchema(containerServiceMethods.ByName("WriteContainerFile")),
+		connect.WithHandlerOptions(opts...),
+	)
+	containerServiceUploadContainerFileHandler := connect.NewUnaryHandler(
+		ContainerServiceUploadContainerFileProcedure,
+		svc.UploadContainerFile,
+		connect.WithSchema(containerServiceMethods.ByName("UploadContainerFile")),
+		connect.WithHandlerOptions(opts...),
+	)
+	containerServiceDownloadContainerFileHandler := connect.NewUnaryHandler(
+		ContainerServiceDownloadContainerFileProcedure,
+		svc.DownloadContainerFile,
+		connect.WithSchema(containerServiceMethods.ByName("DownloadContainerFile")),
+		connect.WithHandlerOptions(opts...),
+	)
+	containerServiceMkdirContainerFileHandler := connect.NewUnaryHandler(
+		ContainerServiceMkdirContainerFileProcedure,
+		svc.MkdirContainerFile,
+		connect.WithSchema(containerServiceMethods.ByName("MkdirContainerFile")),
+		connect.WithHandlerOptions(opts...),
+	)
+	containerServiceRenameContainerFileHandler := connect.NewUnaryHandler(
+		ContainerServiceRenameContainerFileProcedure,
+		svc.RenameContainerFile,
+		connect.WithSchema(containerServiceMethods.ByName("RenameContainerFile")),
+		connect.WithHandlerOptions(opts...),
+	)
+	containerServiceDeleteContainerFileHandler := connect.NewUnaryHandler(
+		ContainerServiceDeleteContainerFileProcedure,
+		svc.DeleteContainerFile,
+		connect.WithSchema(containerServiceMethods.ByName("DeleteContainerFile")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/memoh.private.v1.ContainerService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case ContainerServiceStreamContainerProgressProcedure:
 			containerServiceStreamContainerProgressHandler.ServeHTTP(w, r)
+		case ContainerServiceOpenTerminalProcedure:
+			containerServiceOpenTerminalHandler.ServeHTTP(w, r)
+		case ContainerServiceStreamTerminalProcedure:
+			containerServiceStreamTerminalHandler.ServeHTTP(w, r)
+		case ContainerServiceWriteTerminalInputProcedure:
+			containerServiceWriteTerminalInputHandler.ServeHTTP(w, r)
+		case ContainerServiceResizeTerminalProcedure:
+			containerServiceResizeTerminalHandler.ServeHTTP(w, r)
+		case ContainerServiceCloseTerminalProcedure:
+			containerServiceCloseTerminalHandler.ServeHTTP(w, r)
+		case ContainerServiceStreamWorkspaceOperationProcedure:
+			containerServiceStreamWorkspaceOperationHandler.ServeHTTP(w, r)
+		case ContainerServiceStartContainerProcedure:
+			containerServiceStartContainerHandler.ServeHTTP(w, r)
+		case ContainerServiceStopContainerProcedure:
+			containerServiceStopContainerHandler.ServeHTTP(w, r)
+		case ContainerServiceRestartContainerProcedure:
+			containerServiceRestartContainerHandler.ServeHTTP(w, r)
+		case ContainerServiceGetContainerLifecycleProcedure:
+			containerServiceGetContainerLifecycleHandler.ServeHTTP(w, r)
+		case ContainerServiceStreamContainerLifecycleProcedure:
+			containerServiceStreamContainerLifecycleHandler.ServeHTTP(w, r)
+		case ContainerServiceGetContainerMetricsProcedure:
+			containerServiceGetContainerMetricsHandler.ServeHTTP(w, r)
+		case ContainerServiceStreamContainerMetricsProcedure:
+			containerServiceStreamContainerMetricsHandler.ServeHTTP(w, r)
+		case ContainerServiceCreateContainerSnapshotProcedure:
+			containerServiceCreateContainerSnapshotHandler.ServeHTTP(w, r)
+		case ContainerServiceListContainerSnapshotsProcedure:
+			containerServiceListContainerSnapshotsHandler.ServeHTTP(w, r)
+		case ContainerServiceRestoreContainerSnapshotProcedure:
+			containerServiceRestoreContainerSnapshotHandler.ServeHTTP(w, r)
+		case ContainerServiceDeleteContainerSnapshotProcedure:
+			containerServiceDeleteContainerSnapshotHandler.ServeHTTP(w, r)
+		case ContainerServiceImportContainerDataProcedure:
+			containerServiceImportContainerDataHandler.ServeHTTP(w, r)
+		case ContainerServiceExportContainerDataProcedure:
+			containerServiceExportContainerDataHandler.ServeHTTP(w, r)
+		case ContainerServiceListContainerFilesProcedure:
+			containerServiceListContainerFilesHandler.ServeHTTP(w, r)
+		case ContainerServiceReadContainerFileProcedure:
+			containerServiceReadContainerFileHandler.ServeHTTP(w, r)
+		case ContainerServiceWriteContainerFileProcedure:
+			containerServiceWriteContainerFileHandler.ServeHTTP(w, r)
+		case ContainerServiceUploadContainerFileProcedure:
+			containerServiceUploadContainerFileHandler.ServeHTTP(w, r)
+		case ContainerServiceDownloadContainerFileProcedure:
+			containerServiceDownloadContainerFileHandler.ServeHTTP(w, r)
+		case ContainerServiceMkdirContainerFileProcedure:
+			containerServiceMkdirContainerFileHandler.ServeHTTP(w, r)
+		case ContainerServiceRenameContainerFileProcedure:
+			containerServiceRenameContainerFileHandler.ServeHTTP(w, r)
+		case ContainerServiceDeleteContainerFileProcedure:
+			containerServiceDeleteContainerFileHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -180,4 +855,112 @@ type UnimplementedContainerServiceHandler struct{}
 
 func (UnimplementedContainerServiceHandler) StreamContainerProgress(context.Context, *connect.Request[v1.StreamContainerProgressRequest], *connect.ServerStream[v1.StreamContainerProgressResponse]) error {
 	return connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.ContainerService.StreamContainerProgress is not implemented"))
+}
+
+func (UnimplementedContainerServiceHandler) OpenTerminal(context.Context, *connect.Request[v1.OpenTerminalRequest]) (*connect.Response[v1.OpenTerminalResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.ContainerService.OpenTerminal is not implemented"))
+}
+
+func (UnimplementedContainerServiceHandler) StreamTerminal(context.Context, *connect.Request[v1.StreamTerminalRequest], *connect.ServerStream[v1.StreamTerminalResponse]) error {
+	return connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.ContainerService.StreamTerminal is not implemented"))
+}
+
+func (UnimplementedContainerServiceHandler) WriteTerminalInput(context.Context, *connect.Request[v1.WriteTerminalInputRequest]) (*connect.Response[v1.WriteTerminalInputResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.ContainerService.WriteTerminalInput is not implemented"))
+}
+
+func (UnimplementedContainerServiceHandler) ResizeTerminal(context.Context, *connect.Request[v1.ResizeTerminalRequest]) (*connect.Response[v1.ResizeTerminalResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.ContainerService.ResizeTerminal is not implemented"))
+}
+
+func (UnimplementedContainerServiceHandler) CloseTerminal(context.Context, *connect.Request[v1.CloseTerminalRequest]) (*connect.Response[v1.CloseTerminalResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.ContainerService.CloseTerminal is not implemented"))
+}
+
+func (UnimplementedContainerServiceHandler) StreamWorkspaceOperation(context.Context, *connect.Request[v1.StreamWorkspaceOperationRequest], *connect.ServerStream[v1.StreamWorkspaceOperationResponse]) error {
+	return connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.ContainerService.StreamWorkspaceOperation is not implemented"))
+}
+
+func (UnimplementedContainerServiceHandler) StartContainer(context.Context, *connect.Request[v1.StartContainerRequest]) (*connect.Response[v1.StartContainerResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.ContainerService.StartContainer is not implemented"))
+}
+
+func (UnimplementedContainerServiceHandler) StopContainer(context.Context, *connect.Request[v1.StopContainerRequest]) (*connect.Response[v1.StopContainerResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.ContainerService.StopContainer is not implemented"))
+}
+
+func (UnimplementedContainerServiceHandler) RestartContainer(context.Context, *connect.Request[v1.RestartContainerRequest]) (*connect.Response[v1.RestartContainerResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.ContainerService.RestartContainer is not implemented"))
+}
+
+func (UnimplementedContainerServiceHandler) GetContainerLifecycle(context.Context, *connect.Request[v1.GetContainerLifecycleRequest]) (*connect.Response[v1.GetContainerLifecycleResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.ContainerService.GetContainerLifecycle is not implemented"))
+}
+
+func (UnimplementedContainerServiceHandler) StreamContainerLifecycle(context.Context, *connect.Request[v1.StreamContainerLifecycleRequest], *connect.ServerStream[v1.StreamContainerLifecycleResponse]) error {
+	return connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.ContainerService.StreamContainerLifecycle is not implemented"))
+}
+
+func (UnimplementedContainerServiceHandler) GetContainerMetrics(context.Context, *connect.Request[v1.GetContainerMetricsRequest]) (*connect.Response[v1.GetContainerMetricsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.ContainerService.GetContainerMetrics is not implemented"))
+}
+
+func (UnimplementedContainerServiceHandler) StreamContainerMetrics(context.Context, *connect.Request[v1.StreamContainerMetricsRequest], *connect.ServerStream[v1.StreamContainerMetricsResponse]) error {
+	return connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.ContainerService.StreamContainerMetrics is not implemented"))
+}
+
+func (UnimplementedContainerServiceHandler) CreateContainerSnapshot(context.Context, *connect.Request[v1.CreateContainerSnapshotRequest]) (*connect.Response[v1.CreateContainerSnapshotResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.ContainerService.CreateContainerSnapshot is not implemented"))
+}
+
+func (UnimplementedContainerServiceHandler) ListContainerSnapshots(context.Context, *connect.Request[v1.ListContainerSnapshotsRequest]) (*connect.Response[v1.ListContainerSnapshotsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.ContainerService.ListContainerSnapshots is not implemented"))
+}
+
+func (UnimplementedContainerServiceHandler) RestoreContainerSnapshot(context.Context, *connect.Request[v1.RestoreContainerSnapshotRequest]) (*connect.Response[v1.RestoreContainerSnapshotResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.ContainerService.RestoreContainerSnapshot is not implemented"))
+}
+
+func (UnimplementedContainerServiceHandler) DeleteContainerSnapshot(context.Context, *connect.Request[v1.DeleteContainerSnapshotRequest]) (*connect.Response[v1.DeleteContainerSnapshotResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.ContainerService.DeleteContainerSnapshot is not implemented"))
+}
+
+func (UnimplementedContainerServiceHandler) ImportContainerData(context.Context, *connect.Request[v1.ImportContainerDataRequest]) (*connect.Response[v1.ImportContainerDataResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.ContainerService.ImportContainerData is not implemented"))
+}
+
+func (UnimplementedContainerServiceHandler) ExportContainerData(context.Context, *connect.Request[v1.ExportContainerDataRequest]) (*connect.Response[v1.ExportContainerDataResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.ContainerService.ExportContainerData is not implemented"))
+}
+
+func (UnimplementedContainerServiceHandler) ListContainerFiles(context.Context, *connect.Request[v1.ListContainerFilesRequest]) (*connect.Response[v1.ListContainerFilesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.ContainerService.ListContainerFiles is not implemented"))
+}
+
+func (UnimplementedContainerServiceHandler) ReadContainerFile(context.Context, *connect.Request[v1.ReadContainerFileRequest]) (*connect.Response[v1.ReadContainerFileResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.ContainerService.ReadContainerFile is not implemented"))
+}
+
+func (UnimplementedContainerServiceHandler) WriteContainerFile(context.Context, *connect.Request[v1.WriteContainerFileRequest]) (*connect.Response[v1.WriteContainerFileResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.ContainerService.WriteContainerFile is not implemented"))
+}
+
+func (UnimplementedContainerServiceHandler) UploadContainerFile(context.Context, *connect.Request[v1.UploadContainerFileRequest]) (*connect.Response[v1.UploadContainerFileResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.ContainerService.UploadContainerFile is not implemented"))
+}
+
+func (UnimplementedContainerServiceHandler) DownloadContainerFile(context.Context, *connect.Request[v1.DownloadContainerFileRequest]) (*connect.Response[v1.DownloadContainerFileResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.ContainerService.DownloadContainerFile is not implemented"))
+}
+
+func (UnimplementedContainerServiceHandler) MkdirContainerFile(context.Context, *connect.Request[v1.MkdirContainerFileRequest]) (*connect.Response[v1.MkdirContainerFileResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.ContainerService.MkdirContainerFile is not implemented"))
+}
+
+func (UnimplementedContainerServiceHandler) RenameContainerFile(context.Context, *connect.Request[v1.RenameContainerFileRequest]) (*connect.Response[v1.RenameContainerFileResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.ContainerService.RenameContainerFile is not implemented"))
+}
+
+func (UnimplementedContainerServiceHandler) DeleteContainerFile(context.Context, *connect.Request[v1.DeleteContainerFileRequest]) (*connect.Response[v1.DeleteContainerFileResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.ContainerService.DeleteContainerFile is not implemented"))
 }

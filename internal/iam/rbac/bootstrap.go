@@ -26,6 +26,12 @@ var BuiltinPermissions = []PermissionSeed{
 	{Key: PermissionBotUpdate, IsSystem: true},
 	{Key: PermissionBotDelete, IsSystem: true},
 	{Key: PermissionBotPermissionsManage, IsSystem: true},
+	{Key: PermissionBotGroupRead, IsSystem: true},
+	{Key: PermissionBotGroupUse, IsSystem: true},
+	{Key: PermissionBotGroupUpdate, IsSystem: true},
+	{Key: PermissionBotGroupDelete, IsSystem: true},
+	{Key: PermissionBotGroupPermissionsManage, IsSystem: true},
+	{Key: PermissionBotGroupBotsManage, IsSystem: true},
 }
 
 var BuiltinRoles = []RoleSeed{
@@ -34,6 +40,10 @@ var BuiltinRoles = []RoleSeed{
 	{Key: RoleBotViewer, Scope: ResourceBot, IsSystem: true},
 	{Key: RoleBotOperator, Scope: ResourceBot, IsSystem: true},
 	{Key: RoleBotOwner, Scope: ResourceBot, IsSystem: true},
+	{Key: RoleBotGroupViewer, Scope: ResourceBotGroup, IsSystem: true},
+	{Key: RoleBotGroupOperator, Scope: ResourceBotGroup, IsSystem: true},
+	{Key: RoleBotGroupEditor, Scope: ResourceBotGroup, IsSystem: true},
+	{Key: RoleBotGroupOwner, Scope: ResourceBotGroup, IsSystem: true},
 }
 
 var BuiltinRolePermissions = []RolePermissionSeed{
@@ -50,6 +60,19 @@ var BuiltinRolePermissions = []RolePermissionSeed{
 	{RoleKey: RoleBotOwner, PermissionKey: PermissionBotUpdate},
 	{RoleKey: RoleBotOwner, PermissionKey: PermissionBotDelete},
 	{RoleKey: RoleBotOwner, PermissionKey: PermissionBotPermissionsManage},
+	{RoleKey: RoleBotGroupViewer, PermissionKey: PermissionBotGroupRead},
+	{RoleKey: RoleBotGroupOperator, PermissionKey: PermissionBotGroupRead},
+	{RoleKey: RoleBotGroupOperator, PermissionKey: PermissionBotGroupUse},
+	{RoleKey: RoleBotGroupEditor, PermissionKey: PermissionBotGroupRead},
+	{RoleKey: RoleBotGroupEditor, PermissionKey: PermissionBotGroupUse},
+	{RoleKey: RoleBotGroupEditor, PermissionKey: PermissionBotGroupUpdate},
+	{RoleKey: RoleBotGroupEditor, PermissionKey: PermissionBotGroupBotsManage},
+	{RoleKey: RoleBotGroupOwner, PermissionKey: PermissionBotGroupRead},
+	{RoleKey: RoleBotGroupOwner, PermissionKey: PermissionBotGroupUse},
+	{RoleKey: RoleBotGroupOwner, PermissionKey: PermissionBotGroupUpdate},
+	{RoleKey: RoleBotGroupOwner, PermissionKey: PermissionBotGroupDelete},
+	{RoleKey: RoleBotGroupOwner, PermissionKey: PermissionBotGroupPermissionsManage},
+	{RoleKey: RoleBotGroupOwner, PermissionKey: PermissionBotGroupBotsManage},
 }
 
 type BootstrapStore interface {

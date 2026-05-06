@@ -220,6 +220,37 @@ func (s *ChannelService) DeleteBotChannelConfig(ctx context.Context, req *connec
 	return connect.NewResponse(&privatev1.DeleteBotChannelConfigResponse{}), nil
 }
 
+func (s *ChannelService) StartChannelQrLogin(ctx context.Context, req *connect.Request[privatev1.StartChannelQrLoginRequest]) (*connect.Response[privatev1.StartChannelQrLoginResponse], error) {
+	userID, err := UserIDFromContext(ctx)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeUnauthenticated, err)
+	}
+	if err := s.requireBotPermission(ctx, userID, req.Msg.GetBotId(), rbac.PermissionBotUpdate); err != nil {
+		return nil, botConnectError(err)
+	}
+	if _, err := s.parseChannelType(req.Msg.GetChannel()); err != nil {
+		return nil, err
+	}
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("channel QR login is not implemented"))
+}
+
+func (s *ChannelService) PollChannelQrLogin(ctx context.Context, req *connect.Request[privatev1.PollChannelQrLoginRequest]) (*connect.Response[privatev1.PollChannelQrLoginResponse], error) {
+	userID, err := UserIDFromContext(ctx)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeUnauthenticated, err)
+	}
+	if err := s.requireBotPermission(ctx, userID, req.Msg.GetBotId(), rbac.PermissionBotUpdate); err != nil {
+		return nil, botConnectError(err)
+	}
+	if _, err := s.parseChannelType(req.Msg.GetChannel()); err != nil {
+		return nil, err
+	}
+	if strings.TrimSpace(req.Msg.GetLoginId()) == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("login_id is required"))
+	}
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("channel QR login polling is not implemented"))
+}
+
 func (s *ChannelService) parseChannelType(raw string) (channel.ChannelType, error) {
 	if s.registry == nil {
 		return "", connect.NewError(connect.CodeInternal, errors.New("channel registry not configured"))

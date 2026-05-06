@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/memohai/memoh/internal/workspace/bridge"
+	"github.com/memohai/memoh/internal/workspace/executorclient"
 )
 
 const (
@@ -47,13 +47,13 @@ type ReadMediaToolOutput struct {
 // mimeSniffSize is the number of bytes http.DetectContentType needs.
 const mimeSniffSize = 512
 
-// ReadImageFromContainer reads a binary file through the bridge client,
+// ReadImageFromContainer reads a binary file through the workspace executor client,
 // validates that it is a supported image format, and returns a
 // ReadMediaToolOutput ready for the agent decoration pipeline.
 //
 // It reads only a small header first to sniff the MIME type, avoiding
 // buffering large non-image binaries just to reject them.
-func ReadImageFromContainer(ctx context.Context, client *bridge.Client, path string, maxBytes int64) ReadMediaToolOutput {
+func ReadImageFromContainer(ctx context.Context, client *executorclient.Client, path string, maxBytes int64) ReadMediaToolOutput {
 	if maxBytes <= 0 {
 		maxBytes = defaultReadMediaMaxBytes
 	}

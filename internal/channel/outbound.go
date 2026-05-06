@@ -196,6 +196,12 @@ func (m *Manager) resolveOutboundPolicy(channelType ChannelType) OutboundPolicy 
 
 // buildOutboundMessages splits an outbound message into multiple messages based on the policy.
 func buildOutboundMessages(msg OutboundMessage, policy OutboundPolicy) ([]OutboundMessage, error) {
+	return BuildOutboundMessages(msg, policy)
+}
+
+// BuildOutboundMessages splits an outbound message into multiple messages based on the policy.
+func BuildOutboundMessages(msg OutboundMessage, policy OutboundPolicy) ([]OutboundMessage, error) {
+	policy = NormalizeOutboundPolicy(policy)
 	if msg.Message.IsEmpty() {
 		return nil, errors.New("message is required")
 	}
@@ -303,7 +309,12 @@ func normalizeOutboundMessage(msg Message) Message {
 	return msg
 }
 
-func validateMessageCapabilities(registry *Registry, channelType ChannelType, msg Message) error {
+func validateMessageCapabilities(registry AdapterRegistry, channelType ChannelType, msg Message) error {
+	return ValidateMessageCapabilities(registry, channelType, msg)
+}
+
+// ValidateMessageCapabilities verifies that a channel message fits adapter capabilities.
+func ValidateMessageCapabilities(registry AdapterRegistry, channelType ChannelType, msg Message) error {
 	caps, ok := registry.GetCapabilities(channelType)
 	if !ok {
 		return nil
@@ -347,6 +358,12 @@ func validateMessageCapabilities(registry *Registry, channelType ChannelType, ms
 }
 
 func (m *Manager) sendWithConfig(ctx context.Context, sender Sender, cfg ChannelConfig, msg OutboundMessage, policy OutboundPolicy) error {
+	return SendOutboundWithConfig(ctx, m.registry, m.attachmentStore, m.logger, sender, cfg, msg, policy)
+}
+
+// SendOutboundWithConfig prepares and sends an outbound message through an adapter sender.
+func SendOutboundWithConfig(ctx context.Context, registry AdapterRegistry, attachmentStore OutboundAttachmentStore, logger *slog.Logger, sender Sender, cfg ChannelConfig, msg OutboundMessage, policy OutboundPolicy) error {
+	policy = NormalizeOutboundPolicy(policy)
 	if sender == nil {
 		return fmt.Errorf("unsupported channel type: %s", cfg.ChannelType)
 	}
@@ -363,17 +380,17 @@ func (m *Manager) sendWithConfig(ctx context.Context, sender Sender, cfg Channel
 		return err
 	}
 	normalized.Message.Attachments = attachments
-	if err := validateMessageCapabilities(m.registry, cfg.ChannelType, normalized.Message); err != nil {
+	if err := ValidateMessageCapabilities(registry, cfg.ChannelType, normalized.Message); err != nil {
 		return err
 	}
-	prepared, err := PrepareOutboundMessage(ctx, m.attachmentStore, cfg, OutboundMessage{
+	prepared, err := PrepareOutboundMessage(ctx, attachmentStore, cfg, OutboundMessage{
 		Target:  target,
 		Message: normalized.Message,
 	})
 	if err != nil {
 		return err
 	}
-	editor, _ := m.registry.GetMessageEditor(cfg.ChannelType)
+	editor, _ := registry.GetMessageEditor(cfg.ChannelType)
 	if strings.TrimSpace(normalized.Message.ID) != "" {
 		if editor == nil {
 			return errors.New("channel does not support edit")
@@ -382,8 +399,8 @@ func (m *Manager) sendWithConfig(ctx context.Context, sender Sender, cfg Channel
 		for i := 0; i < policy.RetryMax; i++ {
 			err := editor.Update(ctx, cfg, target, strings.TrimSpace(normalized.Message.ID), prepared.Message)
 			if err == nil {
-				if m.logger != nil {
-					m.logger.Debug("edit outbound success",
+				if logger != nil {
+					logger.Debug("edit outbound success",
 						slog.String("channel", cfg.ChannelType.String()),
 						slog.String("bot_id", cfg.BotID),
 						slog.String("target", target),
@@ -392,8 +409,8 @@ func (m *Manager) sendWithConfig(ctx context.Context, sender Sender, cfg Channel
 				return nil
 			}
 			lastErr = err
-			if m.logger != nil {
-				m.logger.Warn("edit outbound retry",
+			if logger != nil {
+				logger.Warn("edit outbound retry",
 					slog.String("channel", cfg.ChannelType.String()),
 					slog.Int("attempt", i+1),
 					slog.Any("error", err))
@@ -408,8 +425,8 @@ func (m *Manager) sendWithConfig(ctx context.Context, sender Sender, cfg Channel
 	for i := 0; i < policy.RetryMax; i++ {
 		err := sender.Send(ctx, cfg, prepared)
 		if err == nil {
-			if m.logger != nil {
-				m.logger.Debug("send outbound success",
+			if logger != nil {
+				logger.Debug("send outbound success",
 					slog.String("channel", cfg.ChannelType.String()),
 					slog.String("bot_id", cfg.BotID),
 					slog.String("target", target),
@@ -418,8 +435,8 @@ func (m *Manager) sendWithConfig(ctx context.Context, sender Sender, cfg Channel
 			return nil
 		}
 		lastErr = err
-		if m.logger != nil {
-			m.logger.Warn("send outbound retry",
+		if logger != nil {
+			logger.Warn("send outbound retry",
 				slog.String("channel", cfg.ChannelType.String()),
 				slog.Int("attempt", i+1),
 				slog.Any("error", err))
@@ -467,7 +484,7 @@ func requiresMedia(attachments []Attachment) bool {
 	return false
 }
 
-func validateStreamEvent(registry *Registry, channelType ChannelType, event StreamEvent) error {
+func validateStreamEvent(registry AdapterRegistry, channelType ChannelType, event StreamEvent) error {
 	caps, _ := registry.GetCapabilities(channelType)
 	switch event.Type {
 	case StreamEventStatus:

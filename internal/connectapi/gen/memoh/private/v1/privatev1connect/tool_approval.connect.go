@@ -39,12 +39,24 @@ const (
 	// ToolApprovalServiceRejectToolProcedure is the fully-qualified name of the ToolApprovalService's
 	// RejectTool RPC.
 	ToolApprovalServiceRejectToolProcedure = "/memoh.private.v1.ToolApprovalService/RejectTool"
+	// ToolApprovalServiceListToolApprovalRequestsProcedure is the fully-qualified name of the
+	// ToolApprovalService's ListToolApprovalRequests RPC.
+	ToolApprovalServiceListToolApprovalRequestsProcedure = "/memoh.private.v1.ToolApprovalService/ListToolApprovalRequests"
+	// ToolApprovalServiceGetToolApprovalRequestProcedure is the fully-qualified name of the
+	// ToolApprovalService's GetToolApprovalRequest RPC.
+	ToolApprovalServiceGetToolApprovalRequestProcedure = "/memoh.private.v1.ToolApprovalService/GetToolApprovalRequest"
+	// ToolApprovalServiceRespondToolApprovalProcedure is the fully-qualified name of the
+	// ToolApprovalService's RespondToolApproval RPC.
+	ToolApprovalServiceRespondToolApprovalProcedure = "/memoh.private.v1.ToolApprovalService/RespondToolApproval"
 )
 
 // ToolApprovalServiceClient is a client for the memoh.private.v1.ToolApprovalService service.
 type ToolApprovalServiceClient interface {
 	ApproveTool(context.Context, *connect.Request[v1.ApproveToolRequest]) (*connect.Response[v1.ApproveToolResponse], error)
 	RejectTool(context.Context, *connect.Request[v1.RejectToolRequest]) (*connect.Response[v1.RejectToolResponse], error)
+	ListToolApprovalRequests(context.Context, *connect.Request[v1.ListToolApprovalRequestsRequest]) (*connect.Response[v1.ListToolApprovalRequestsResponse], error)
+	GetToolApprovalRequest(context.Context, *connect.Request[v1.GetToolApprovalRequestRequest]) (*connect.Response[v1.GetToolApprovalRequestResponse], error)
+	RespondToolApproval(context.Context, *connect.Request[v1.RespondToolApprovalRequest]) (*connect.Response[v1.RespondToolApprovalResponse], error)
 }
 
 // NewToolApprovalServiceClient constructs a client for the memoh.private.v1.ToolApprovalService
@@ -70,13 +82,34 @@ func NewToolApprovalServiceClient(httpClient connect.HTTPClient, baseURL string,
 			connect.WithSchema(toolApprovalServiceMethods.ByName("RejectTool")),
 			connect.WithClientOptions(opts...),
 		),
+		listToolApprovalRequests: connect.NewClient[v1.ListToolApprovalRequestsRequest, v1.ListToolApprovalRequestsResponse](
+			httpClient,
+			baseURL+ToolApprovalServiceListToolApprovalRequestsProcedure,
+			connect.WithSchema(toolApprovalServiceMethods.ByName("ListToolApprovalRequests")),
+			connect.WithClientOptions(opts...),
+		),
+		getToolApprovalRequest: connect.NewClient[v1.GetToolApprovalRequestRequest, v1.GetToolApprovalRequestResponse](
+			httpClient,
+			baseURL+ToolApprovalServiceGetToolApprovalRequestProcedure,
+			connect.WithSchema(toolApprovalServiceMethods.ByName("GetToolApprovalRequest")),
+			connect.WithClientOptions(opts...),
+		),
+		respondToolApproval: connect.NewClient[v1.RespondToolApprovalRequest, v1.RespondToolApprovalResponse](
+			httpClient,
+			baseURL+ToolApprovalServiceRespondToolApprovalProcedure,
+			connect.WithSchema(toolApprovalServiceMethods.ByName("RespondToolApproval")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // toolApprovalServiceClient implements ToolApprovalServiceClient.
 type toolApprovalServiceClient struct {
-	approveTool *connect.Client[v1.ApproveToolRequest, v1.ApproveToolResponse]
-	rejectTool  *connect.Client[v1.RejectToolRequest, v1.RejectToolResponse]
+	approveTool              *connect.Client[v1.ApproveToolRequest, v1.ApproveToolResponse]
+	rejectTool               *connect.Client[v1.RejectToolRequest, v1.RejectToolResponse]
+	listToolApprovalRequests *connect.Client[v1.ListToolApprovalRequestsRequest, v1.ListToolApprovalRequestsResponse]
+	getToolApprovalRequest   *connect.Client[v1.GetToolApprovalRequestRequest, v1.GetToolApprovalRequestResponse]
+	respondToolApproval      *connect.Client[v1.RespondToolApprovalRequest, v1.RespondToolApprovalResponse]
 }
 
 // ApproveTool calls memoh.private.v1.ToolApprovalService.ApproveTool.
@@ -89,11 +122,29 @@ func (c *toolApprovalServiceClient) RejectTool(ctx context.Context, req *connect
 	return c.rejectTool.CallUnary(ctx, req)
 }
 
+// ListToolApprovalRequests calls memoh.private.v1.ToolApprovalService.ListToolApprovalRequests.
+func (c *toolApprovalServiceClient) ListToolApprovalRequests(ctx context.Context, req *connect.Request[v1.ListToolApprovalRequestsRequest]) (*connect.Response[v1.ListToolApprovalRequestsResponse], error) {
+	return c.listToolApprovalRequests.CallUnary(ctx, req)
+}
+
+// GetToolApprovalRequest calls memoh.private.v1.ToolApprovalService.GetToolApprovalRequest.
+func (c *toolApprovalServiceClient) GetToolApprovalRequest(ctx context.Context, req *connect.Request[v1.GetToolApprovalRequestRequest]) (*connect.Response[v1.GetToolApprovalRequestResponse], error) {
+	return c.getToolApprovalRequest.CallUnary(ctx, req)
+}
+
+// RespondToolApproval calls memoh.private.v1.ToolApprovalService.RespondToolApproval.
+func (c *toolApprovalServiceClient) RespondToolApproval(ctx context.Context, req *connect.Request[v1.RespondToolApprovalRequest]) (*connect.Response[v1.RespondToolApprovalResponse], error) {
+	return c.respondToolApproval.CallUnary(ctx, req)
+}
+
 // ToolApprovalServiceHandler is an implementation of the memoh.private.v1.ToolApprovalService
 // service.
 type ToolApprovalServiceHandler interface {
 	ApproveTool(context.Context, *connect.Request[v1.ApproveToolRequest]) (*connect.Response[v1.ApproveToolResponse], error)
 	RejectTool(context.Context, *connect.Request[v1.RejectToolRequest]) (*connect.Response[v1.RejectToolResponse], error)
+	ListToolApprovalRequests(context.Context, *connect.Request[v1.ListToolApprovalRequestsRequest]) (*connect.Response[v1.ListToolApprovalRequestsResponse], error)
+	GetToolApprovalRequest(context.Context, *connect.Request[v1.GetToolApprovalRequestRequest]) (*connect.Response[v1.GetToolApprovalRequestResponse], error)
+	RespondToolApproval(context.Context, *connect.Request[v1.RespondToolApprovalRequest]) (*connect.Response[v1.RespondToolApprovalResponse], error)
 }
 
 // NewToolApprovalServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -115,12 +166,36 @@ func NewToolApprovalServiceHandler(svc ToolApprovalServiceHandler, opts ...conne
 		connect.WithSchema(toolApprovalServiceMethods.ByName("RejectTool")),
 		connect.WithHandlerOptions(opts...),
 	)
+	toolApprovalServiceListToolApprovalRequestsHandler := connect.NewUnaryHandler(
+		ToolApprovalServiceListToolApprovalRequestsProcedure,
+		svc.ListToolApprovalRequests,
+		connect.WithSchema(toolApprovalServiceMethods.ByName("ListToolApprovalRequests")),
+		connect.WithHandlerOptions(opts...),
+	)
+	toolApprovalServiceGetToolApprovalRequestHandler := connect.NewUnaryHandler(
+		ToolApprovalServiceGetToolApprovalRequestProcedure,
+		svc.GetToolApprovalRequest,
+		connect.WithSchema(toolApprovalServiceMethods.ByName("GetToolApprovalRequest")),
+		connect.WithHandlerOptions(opts...),
+	)
+	toolApprovalServiceRespondToolApprovalHandler := connect.NewUnaryHandler(
+		ToolApprovalServiceRespondToolApprovalProcedure,
+		svc.RespondToolApproval,
+		connect.WithSchema(toolApprovalServiceMethods.ByName("RespondToolApproval")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/memoh.private.v1.ToolApprovalService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case ToolApprovalServiceApproveToolProcedure:
 			toolApprovalServiceApproveToolHandler.ServeHTTP(w, r)
 		case ToolApprovalServiceRejectToolProcedure:
 			toolApprovalServiceRejectToolHandler.ServeHTTP(w, r)
+		case ToolApprovalServiceListToolApprovalRequestsProcedure:
+			toolApprovalServiceListToolApprovalRequestsHandler.ServeHTTP(w, r)
+		case ToolApprovalServiceGetToolApprovalRequestProcedure:
+			toolApprovalServiceGetToolApprovalRequestHandler.ServeHTTP(w, r)
+		case ToolApprovalServiceRespondToolApprovalProcedure:
+			toolApprovalServiceRespondToolApprovalHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -136,4 +211,16 @@ func (UnimplementedToolApprovalServiceHandler) ApproveTool(context.Context, *con
 
 func (UnimplementedToolApprovalServiceHandler) RejectTool(context.Context, *connect.Request[v1.RejectToolRequest]) (*connect.Response[v1.RejectToolResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.ToolApprovalService.RejectTool is not implemented"))
+}
+
+func (UnimplementedToolApprovalServiceHandler) ListToolApprovalRequests(context.Context, *connect.Request[v1.ListToolApprovalRequestsRequest]) (*connect.Response[v1.ListToolApprovalRequestsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.ToolApprovalService.ListToolApprovalRequests is not implemented"))
+}
+
+func (UnimplementedToolApprovalServiceHandler) GetToolApprovalRequest(context.Context, *connect.Request[v1.GetToolApprovalRequestRequest]) (*connect.Response[v1.GetToolApprovalRequestResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.ToolApprovalService.GetToolApprovalRequest is not implemented"))
+}
+
+func (UnimplementedToolApprovalServiceHandler) RespondToolApproval(context.Context, *connect.Request[v1.RespondToolApprovalRequest]) (*connect.Response[v1.RespondToolApprovalResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.ToolApprovalService.RespondToolApproval is not implemented"))
 }

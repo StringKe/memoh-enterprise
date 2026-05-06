@@ -1,5 +1,5 @@
 // Package containerfs implements storage.Provider for bot containers
-// backed by gRPC calls to the in-container MCP service. Files are stored
+// backed by ConnectRPC calls to the workspace executor. Files are stored
 // inside the container's writable layer at /data/media/<subpath>.
 package containerfs
 
@@ -12,28 +12,28 @@ import (
 	"strings"
 
 	attachmentpkg "github.com/memohai/memoh/internal/attachment"
-	"github.com/memohai/memoh/internal/workspace/bridge"
+	"github.com/memohai/memoh/internal/workspace/executorclient"
 )
 
 const containerMediaRoot = "media"
 
-// Provider stores media assets inside bot containers via gRPC.
+// Provider stores media assets inside bot containers via ConnectRPC.
 type Provider struct {
-	clients bridge.Provider
+	clients executorclient.Provider
 }
 
 // New creates a container-based storage provider.
-func New(clients bridge.Provider) *Provider {
+func New(clients executorclient.Provider) *Provider {
 	return &Provider{clients: clients}
 }
 
-// Put writes data to the bot container via gRPC streaming.
+// Put writes data to the bot container via ConnectRPC streaming.
 func (p *Provider) Put(ctx context.Context, key string, reader io.Reader) error {
 	botID, sub, err := parseRoutingKey(key)
 	if err != nil {
 		return err
 	}
-	client, err := p.clients.MCPClient(ctx, botID)
+	client, err := p.clients.ExecutorClient(ctx, botID)
 	if err != nil {
 		return fmt.Errorf("get client: %w", err)
 	}
@@ -44,13 +44,13 @@ func (p *Provider) Put(ctx context.Context, key string, reader io.Reader) error 
 	return nil
 }
 
-// Open reads a file from the bot container via gRPC streaming.
+// Open reads a file from the bot container via ConnectRPC streaming.
 func (p *Provider) Open(ctx context.Context, key string) (io.ReadCloser, error) {
 	botID, sub, err := parseRoutingKey(key)
 	if err != nil {
 		return nil, err
 	}
-	client, err := p.clients.MCPClient(ctx, botID)
+	client, err := p.clients.ExecutorClient(ctx, botID)
 	if err != nil {
 		return nil, fmt.Errorf("get client: %w", err)
 	}
@@ -64,7 +64,7 @@ func (p *Provider) Delete(ctx context.Context, key string) error {
 	if err != nil {
 		return err
 	}
-	client, err := p.clients.MCPClient(ctx, botID)
+	client, err := p.clients.ExecutorClient(ctx, botID)
 	if err != nil {
 		return fmt.Errorf("get client: %w", err)
 	}
@@ -85,7 +85,7 @@ func (p *Provider) OpenContainerFile(ctx context.Context, botID, containerPath s
 		if !filepath.IsAbs(strings.TrimSpace(containerPath)) {
 			return nil, fmt.Errorf("path must start with %s/ or be an absolute local workspace path", attachmentpkg.DataMountPath(""))
 		}
-		client, err := p.clients.MCPClient(ctx, botID)
+		client, err := p.clients.ExecutorClient(ctx, botID)
 		if err != nil {
 			return nil, fmt.Errorf("get client: %w", err)
 		}
@@ -94,7 +94,7 @@ func (p *Provider) OpenContainerFile(ctx context.Context, botID, containerPath s
 	if subPath == "" || strings.Contains(subPath, "..") {
 		return nil, errors.New("invalid container path")
 	}
-	client, err := p.clients.MCPClient(ctx, botID)
+	client, err := p.clients.ExecutorClient(ctx, botID)
 	if err != nil {
 		return nil, fmt.Errorf("get client: %w", err)
 	}
@@ -107,7 +107,7 @@ func (p *Provider) ListPrefix(ctx context.Context, prefix string) ([]string, err
 	if botID == "" || sub == "" {
 		return nil, nil
 	}
-	client, err := p.clients.MCPClient(ctx, botID)
+	client, err := p.clients.ExecutorClient(ctx, botID)
 	if err != nil {
 		return nil, nil
 	}

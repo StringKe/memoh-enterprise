@@ -17,7 +17,7 @@ import (
 	ctr "github.com/memohai/memoh/internal/container"
 	"github.com/memohai/memoh/internal/db"
 	dbsqlc "github.com/memohai/memoh/internal/db/postgres/sqlc"
-	"github.com/memohai/memoh/internal/workspace/bridge"
+	"github.com/memohai/memoh/internal/workspace/executorclient"
 )
 
 const (
@@ -483,7 +483,7 @@ func (m *Manager) ensureDBRecords(ctx context.Context, botID, containerID, _ str
 		Namespace:        "default",
 		AutoStart:        true,
 		ContainerPath:    containerPath,
-		WorkspaceBackend: bridge.WorkspaceBackendContainer,
+		WorkspaceBackend: executorclient.WorkspaceBackendContainer,
 		LastStartedAt:    pgtype.Timestamptz{},
 		LastStoppedAt:    pgtype.Timestamptz{},
 	}); err != nil {

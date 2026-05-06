@@ -2,11 +2,18 @@ package botgroups
 
 import "time"
 
+const (
+	VisibilityPrivate      = "private"
+	VisibilityOrganization = "organization"
+	VisibilityPublic       = "public"
+)
+
 type Group struct {
 	ID          string         `json:"id"`
 	OwnerUserID string         `json:"owner_user_id"`
 	Name        string         `json:"name"`
 	Description string         `json:"description"`
+	Visibility  string         `json:"visibility"`
 	Metadata    map[string]any `json:"metadata,omitempty"`
 	BotCount    int64          `json:"bot_count"`
 	CreatedAt   time.Time      `json:"created_at"`
@@ -16,12 +23,14 @@ type Group struct {
 type CreateGroupRequest struct {
 	Name        string         `json:"name"`
 	Description string         `json:"description,omitempty"`
+	Visibility  string         `json:"visibility,omitempty"`
 	Metadata    map[string]any `json:"metadata,omitempty"`
 }
 
 type UpdateGroupRequest struct {
 	Name        string         `json:"name"`
 	Description string         `json:"description,omitempty"`
+	Visibility  string         `json:"visibility,omitempty"`
 	Metadata    map[string]any `json:"metadata,omitempty"`
 }
 

@@ -222,6 +222,12 @@ RETURNING *;
 DELETE FROM iam_principal_roles
 WHERE id = sqlc.arg(id);
 
+-- name: DeletePrincipalRoleByResourceAndID :exec
+DELETE FROM iam_principal_roles
+WHERE id = sqlc.arg(id)
+  AND resource_type = sqlc.arg(resource_type)
+  AND resource_id = sqlc.arg(resource_id);
+
 -- name: ListPrincipalRoles :many
 SELECT
   pr.*,

@@ -12,7 +12,7 @@ import (
 	"github.com/memohai/memoh/internal/config"
 	ctr "github.com/memohai/memoh/internal/container"
 	netctl "github.com/memohai/memoh/internal/network"
-	"github.com/memohai/memoh/internal/workspace/bridge"
+	"github.com/memohai/memoh/internal/workspace/executorclient"
 )
 
 type legacyRouteTestService struct {
@@ -186,11 +186,11 @@ func newLegacyRouteTestManager(t *testing.T, svc runtimeService, cfg config.Work
 		legacyIPs:         make(map[string]string),
 		logger:            logger,
 	}
-	m.grpcPool = bridge.NewPool(m.dialTarget)
+	m.grpcPool = executorclient.NewPool(m.dialTarget)
 	return m
 }
 
-func TestStartWithImageClearsLegacyRouteForBridgeContainer(t *testing.T) {
+func TestStartWithImageClearsLegacyRouteForExecutorContainer(t *testing.T) {
 	dataRoot := t.TempDir()
 	runtimeDir := filepath.Join(dataRoot, "runtime")
 	if err := os.MkdirAll(runtimeDir, 0o750); err != nil {
@@ -217,8 +217,8 @@ func TestStartWithImageClearsLegacyRouteForBridgeContainer(t *testing.T) {
 		t.Fatalf("StartWithImage failed: %v", err)
 	}
 
-	if got := m.dialTarget(botID); got != "unix://"+filepath.Join(dataRoot, "run", botID, "bridge.sock") {
-		t.Fatalf("expected unix dial target after bridge start, got %q", got)
+	if got := m.dialTarget(botID); got != "unix://"+filepath.Join(dataRoot, "run", botID, "workspace-executor.sock") {
+		t.Fatalf("expected unix dial target after workspace executor start, got %q", got)
 	}
 	if svc.createCalls != 1 || svc.startCalls != 1 {
 		t.Fatalf("expected create/start once, got create=%d start=%d", svc.createCalls, svc.startCalls)

@@ -11,7 +11,7 @@ type RuntimeCheckerAdapter struct {
 	checker Checker
 }
 
-// NewRuntimeCheckerAdapter creates a runtime checker bridge.
+// NewRuntimeCheckerAdapter creates a runtime checker executorclient.
 func NewRuntimeCheckerAdapter(checker Checker) *RuntimeCheckerAdapter {
 	return &RuntimeCheckerAdapter{checker: checker}
 }

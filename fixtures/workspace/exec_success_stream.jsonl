@@ -1,0 +1,3 @@
+{"command":["/bin/sh","-lc","printf hello"],"cwd":"/workspace","timeout_seconds":30}
+{"stdout":"hello"}
+{"exit_code":0}

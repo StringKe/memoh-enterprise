@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"strings"
+	"time"
 
 	"connectrpc.com/connect"
 
@@ -42,6 +43,25 @@ func (s *ProviderService) StartProviderOauth(ctx context.Context, req *connect.R
 	return connect.NewResponse(response), nil
 }
 
+func (s *ProviderService) AuthorizeProviderOauth(ctx context.Context, req *connect.Request[privatev1.AuthorizeProviderOauthRequest]) (*connect.Response[privatev1.AuthorizeProviderOauthResponse], error) {
+	providerID := strings.TrimSpace(req.Msg.GetProviderId())
+	if providerID == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("provider_id is required"))
+	}
+	result, err := s.providers.StartOAuthAuthorization(providerOAuthContext(ctx), providerID)
+	if err != nil {
+		return nil, providerConnectError(err)
+	}
+	response := &privatev1.AuthorizeProviderOauthResponse{
+		AuthorizeUrl: result.AuthURL,
+	}
+	if result.Device != nil {
+		response.AuthorizeUrl = result.Device.VerificationURI
+		response.State = result.Device.UserCode
+	}
+	return connect.NewResponse(response), nil
+}
+
 func (s *ProviderService) PollProviderOauth(ctx context.Context, req *connect.Request[privatev1.PollProviderOauthRequest]) (*connect.Response[privatev1.PollProviderOauthResponse], error) {
 	providerID := strings.TrimSpace(req.Msg.GetProviderId())
 	if providerID == "" {
@@ -54,6 +74,67 @@ func (s *ProviderService) PollProviderOauth(ctx context.Context, req *connect.Re
 	return connect.NewResponse(&privatev1.PollProviderOauthResponse{
 		Complete: status.HasToken,
 		Status:   providerOAuthStatusToProto(status),
+	}), nil
+}
+
+func (s *ProviderService) ExchangeProviderOauthToken(ctx context.Context, req *connect.Request[privatev1.ExchangeProviderOauthTokenRequest]) (*connect.Response[privatev1.ExchangeProviderOauthTokenResponse], error) {
+	providerID := strings.TrimSpace(req.Msg.GetProviderId())
+	if providerID == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("provider_id is required"))
+	}
+	state := strings.TrimSpace(req.Msg.GetState())
+	code := strings.TrimSpace(req.Msg.GetCode())
+	if state == "" || code == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("state and code are required"))
+	}
+	resolvedProviderID, err := s.providers.HandleOAuthCallback(providerOAuthContext(ctx), state, code)
+	if err != nil {
+		return nil, providerConnectError(err)
+	}
+	if resolvedProviderID != providerID {
+		return nil, connect.NewError(connect.CodePermissionDenied, errors.New("oauth state does not belong to provider"))
+	}
+	status, err := s.providers.GetOAuthStatus(providerOAuthContext(ctx), providerID)
+	if err != nil {
+		return nil, providerConnectError(err)
+	}
+	account := ""
+	if status.Account != nil {
+		account = firstNonEmptyString(status.Account.Label, status.Account.Login, status.Account.Email, status.Account.Name)
+	}
+	var expiresAt time.Time
+	if status.ExpiresAt != nil {
+		expiresAt = *status.ExpiresAt
+	}
+	return connect.NewResponse(&privatev1.ExchangeProviderOauthTokenResponse{
+		Authorized: status.HasToken,
+		Account:    account,
+		ExpiresAt:  timeToProto(expiresAt),
+		Metadata:   providerOAuthStatusToProto(status).GetMetadata(),
+	}), nil
+}
+
+func (s *ProviderService) GetProviderOauthToken(ctx context.Context, req *connect.Request[privatev1.GetProviderOauthTokenRequest]) (*connect.Response[privatev1.GetProviderOauthTokenResponse], error) {
+	providerID := strings.TrimSpace(req.Msg.GetProviderId())
+	if providerID == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("provider_id is required"))
+	}
+	status, err := s.providers.GetOAuthStatus(providerOAuthContext(ctx), providerID)
+	if err != nil {
+		return nil, providerConnectError(err)
+	}
+	var expiresAt time.Time
+	if status.ExpiresAt != nil {
+		expiresAt = *status.ExpiresAt
+	}
+	tokenType := ""
+	if status.HasToken {
+		tokenType = "bearer"
+	}
+	return connect.NewResponse(&privatev1.GetProviderOauthTokenResponse{
+		Available: status.HasToken,
+		TokenType: tokenType,
+		ExpiresAt: timeToProto(expiresAt),
 	}), nil
 }
 

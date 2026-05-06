@@ -11,17 +11,17 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
-	"github.com/labstack/echo/v4"
 
 	integrationv1 "github.com/memohai/memoh/internal/connectapi/gen/memoh/integration/v1"
 )
 
 const (
+	WebSocketPath      = "/integration/v1/ws"
 	wsHeartbeatTimeout = 45 * time.Second
 )
 
 type WebSocketHandler struct {
-	service          *Service
+	backend          GatewayBackend
 	hub              *Hub
 	logger           *slog.Logger
 	upgrader         websocket.Upgrader
@@ -32,9 +32,24 @@ func NewWebSocketHandler(log *slog.Logger, service *Service) *WebSocketHandler {
 	if log == nil {
 		log = slog.Default()
 	}
+	hub := NewHub()
+	return NewWebSocketHandlerWithBackend(log, NewLocalGatewayBackend(service, hub), hub)
+}
+
+func NewGatewayWebSocketHandler(log *slog.Logger, backend GatewayBackend) *WebSocketHandler {
+	return NewWebSocketHandlerWithBackend(log, backend, NewHub())
+}
+
+func NewWebSocketHandlerWithBackend(log *slog.Logger, backend GatewayBackend, hub *Hub) *WebSocketHandler {
+	if log == nil {
+		log = slog.Default()
+	}
+	if hub == nil {
+		hub = NewHub()
+	}
 	return &WebSocketHandler{
-		service:          service,
-		hub:              NewHub(),
+		backend:          backend,
+		hub:              hub,
 		logger:           log.With(slog.String("handler", "integration_ws")),
 		heartbeatTimeout: wsHeartbeatTimeout,
 		upgrader: websocket.Upgrader{
@@ -43,22 +58,36 @@ func NewWebSocketHandler(log *slog.Logger, service *Service) *WebSocketHandler {
 	}
 }
 
-func (h *WebSocketHandler) Register(e *echo.Echo) {
-	e.GET("/integration/v1/ws", h.handle)
+func (h *WebSocketHandler) HTTPHandler() http.Handler {
+	return h
 }
 
-func (h *WebSocketHandler) handle(c echo.Context) error {
-	conn, err := h.upgrader.Upgrade(c.Response(), c.Request(), nil)
+func (h *WebSocketHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != WebSocketPath {
+		http.NotFound(w, r)
+		return
+	}
+	if r.Method != http.MethodGet {
+		w.Header().Set("Allow", http.MethodGet)
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	h.handle(w, r)
+}
+
+func (h *WebSocketHandler) handle(w http.ResponseWriter, r *http.Request) {
+	conn, err := h.upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		return err
+		h.logger.Warn("integration websocket upgrade failed", slog.Any("error", err))
+		return
 	}
 	defer func() { _ = conn.Close() }()
 
-	ctx := c.Request().Context()
+	ctx := r.Context()
 	identity, err := h.authenticate(ctx, conn)
 	if err != nil {
 		_ = h.writeError(conn, nil, "", "unauthenticated", err.Error())
-		return nil
+		return
 	}
 	if err := h.writeEnvelope(conn, &integrationv1.Envelope{
 		Version:       wsProtocolVersion,
@@ -71,7 +100,7 @@ func (h *WebSocketHandler) handle(c echo.Context) error {
 			ScopeBotGroupId: identity.Token.ScopeBotGroupID,
 		}},
 	}); err != nil {
-		return nil
+		return
 	}
 	var writeMu sync.Mutex
 	connectionID := h.hub.Register(identity, func(envelope *integrationv1.Envelope) error {
@@ -80,7 +109,7 @@ func (h *WebSocketHandler) handle(c echo.Context) error {
 		return h.writeEnvelope(conn, envelope)
 	})
 	defer h.hub.Unregister(connectionID)
-	return h.readLoop(ctx, conn, identity, connectionID, &writeMu)
+	_ = h.readLoop(ctx, conn, identity, connectionID, &writeMu)
 }
 
 func (h *WebSocketHandler) authenticate(ctx context.Context, conn *websocket.Conn) (TokenIdentity, error) {
@@ -92,7 +121,10 @@ func (h *WebSocketHandler) authenticate(ctx context.Context, conn *websocket.Con
 	if authReq == nil {
 		return TokenIdentity{}, errors.New("first frame must be auth_request")
 	}
-	return h.service.ValidateToken(ctx, authReq.GetToken())
+	if h.backend == nil {
+		return TokenIdentity{}, errors.New("integration gateway backend is not configured")
+	}
+	return h.backend.ValidateToken(ctx, authReq.GetToken())
 }
 
 func (h *WebSocketHandler) readLoop(ctx context.Context, conn *websocket.Conn, identity TokenIdentity, connectionID string, writeMu *sync.Mutex) error {
@@ -126,7 +158,9 @@ func (h *WebSocketHandler) readLoop(ctx context.Context, conn *websocket.Conn, i
 				return nil
 			}
 		case *integrationv1.Envelope_AckRequest:
-			h.hub.Ack(identity.Token.ID, payload.AckRequest.GetEventId())
+			if err := h.backend.AckEvent(ctx, identity, payload.AckRequest.GetEventId()); err != nil {
+				return h.writeError(conn, writeMu, envelope.GetCorrelationId(), "internal", err.Error())
+			}
 			if err := h.safeWrite(conn, writeMu, responseEnvelope(envelope.GetCorrelationId(), &integrationv1.Envelope_AckResponse{AckResponse: &integrationv1.AckResponse{EventId: payload.AckRequest.GetEventId()}})); err != nil {
 				return nil
 			}
@@ -160,12 +194,12 @@ func (h *WebSocketHandler) readLoop(ctx context.Context, conn *websocket.Conn, i
 
 func (h *WebSocketHandler) handleSubscribe(ctx context.Context, conn *websocket.Conn, writeMu *sync.Mutex, identity TokenIdentity, connectionID string, correlationID string, req *integrationv1.SubscribeRequest) error {
 	for _, botID := range req.GetBotIds() {
-		if err := h.service.AuthorizeBot(ctx, identity, botID, "subscribe"); err != nil {
+		if err := h.backend.AuthorizeBot(ctx, identity, botID, "subscribe"); err != nil {
 			return h.writeError(conn, writeMu, correlationID, "permission_denied", err.Error())
 		}
 	}
 	for _, botGroupID := range req.GetBotGroupIds() {
-		if err := h.service.AuthorizeBotGroup(identity, botGroupID); err != nil {
+		if err := h.backend.AuthorizeBotGroup(ctx, identity, botGroupID); err != nil {
 			return h.writeError(conn, writeMu, correlationID, "permission_denied", err.Error())
 		}
 	}
@@ -174,7 +208,7 @@ func (h *WebSocketHandler) handleSubscribe(ctx context.Context, conn *websocket.
 		events = identity.Token.AllowedEventTypes
 	}
 	for _, eventType := range events {
-		if err := h.service.AuthorizeEvent(identity, eventType); err != nil {
+		if err := h.backend.AuthorizeEvent(ctx, identity, eventType); err != nil {
 			return h.writeError(conn, writeMu, correlationID, "permission_denied", err.Error())
 		}
 	}
@@ -201,16 +235,18 @@ func (h *WebSocketHandler) handleSendBotMessage(ctx context.Context, conn *webso
 	if strings.TrimSpace(req.GetText()) == "" {
 		return h.writeError(conn, writeMu, correlationID, "invalid_argument", "text is required")
 	}
-	if err := h.service.AuthorizeBot(ctx, identity, botID, "send_message"); err != nil {
+	result, err := h.backend.SendBotMessage(ctx, identity, SendBotMessageGatewayRequest{
+		BotID:     botID,
+		SessionID: strings.TrimSpace(req.GetSessionId()),
+		Text:      req.GetText(),
+		Metadata:  req.GetMetadata(),
+	})
+	if err != nil {
 		return h.writeError(conn, writeMu, correlationID, "permission_denied", err.Error())
 	}
-	sessionID := strings.TrimSpace(req.GetSessionId())
-	if sessionID == "" {
-		sessionID = h.hub.CreateOrBindSession(identity.Token.ID, botID, "", nil).ID
-	}
 	return h.safeWrite(conn, writeMu, responseEnvelope(correlationID, &integrationv1.Envelope_SendBotMessageResponse{SendBotMessageResponse: &integrationv1.SendBotMessageResponse{
-		MessageId: uuid.NewString(),
-		SessionId: sessionID,
+		MessageId: result.MessageID,
+		SessionId: result.SessionID,
 	}}))
 }
 
@@ -219,10 +255,13 @@ func (h *WebSocketHandler) handleCreateSession(ctx context.Context, conn *websoc
 	if botID == "" {
 		return h.writeError(conn, writeMu, correlationID, "invalid_argument", "bot_id is required")
 	}
-	if err := h.service.AuthorizeBot(ctx, identity, botID, "create_session"); err != nil {
+	if err := h.backend.AuthorizeBot(ctx, identity, botID, "create_session"); err != nil {
 		return h.writeError(conn, writeMu, correlationID, "permission_denied", err.Error())
 	}
-	session := h.hub.CreateOrBindSession(identity.Token.ID, botID, req.GetExternalSessionId(), req.GetMetadata())
+	session, err := h.backend.CreateSession(ctx, identity, botID, req.GetExternalSessionId(), req.GetMetadata())
+	if err != nil {
+		return h.writeError(conn, writeMu, correlationID, "internal", err.Error())
+	}
 	return h.safeWrite(conn, writeMu, responseEnvelope(correlationID, &integrationv1.Envelope_CreateSessionResponse{CreateSessionResponse: &integrationv1.CreateSessionResponse{
 		SessionId: session.ID,
 		BotId:     botID,
@@ -234,17 +273,17 @@ func (h *WebSocketHandler) handleGetSessionStatus(ctx context.Context, conn *web
 	if sessionID == "" {
 		return h.writeError(conn, writeMu, correlationID, "invalid_argument", "session_id is required")
 	}
-	session, ok := h.hub.Session(sessionID)
-	if !ok {
-		return h.writeError(conn, writeMu, correlationID, "not_found", "integration session not found")
-	}
-	if err := h.service.AuthorizeBot(ctx, identity, session.BotID, "get_session_status"); err != nil {
+	status, err := h.backend.GetSessionStatus(ctx, identity, sessionID)
+	if err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			return h.writeError(conn, writeMu, correlationID, "not_found", err.Error())
+		}
 		return h.writeError(conn, writeMu, correlationID, "permission_denied", err.Error())
 	}
 	return h.safeWrite(conn, writeMu, responseEnvelope(correlationID, &integrationv1.Envelope_GetSessionStatusResponse{GetSessionStatusResponse: &integrationv1.GetSessionStatusResponse{
 		SessionId: sessionID,
-		BotId:     session.BotID,
-		Status:    "active",
+		BotId:     status.BotID,
+		Status:    status.Status,
 	}}))
 }
 
@@ -253,7 +292,7 @@ func (h *WebSocketHandler) handleGetBotStatus(ctx context.Context, conn *websock
 	if botID == "" {
 		return h.writeError(conn, writeMu, correlationID, "invalid_argument", "bot_id is required")
 	}
-	if err := h.service.AuthorizeBot(ctx, identity, botID, "get_bot_status"); err != nil {
+	if err := h.backend.AuthorizeBot(ctx, identity, botID, "get_bot_status"); err != nil {
 		return h.writeError(conn, writeMu, correlationID, "permission_denied", err.Error())
 	}
 	return h.safeWrite(conn, writeMu, responseEnvelope(correlationID, &integrationv1.Envelope_GetBotStatusResponse{GetBotStatusResponse: &integrationv1.GetBotStatusResponse{
@@ -271,14 +310,20 @@ func (h *WebSocketHandler) handleRequestAction(ctx context.Context, conn *websoc
 	if actionType == "" {
 		return h.writeError(conn, writeMu, correlationID, "invalid_argument", "action_type is required")
 	}
-	if err := h.service.AuthorizeBot(ctx, identity, botID, actionType); err != nil {
+	result, err := h.backend.RequestAction(ctx, identity, RequestActionGatewayRequest{
+		BotID:       botID,
+		ActionType:  actionType,
+		PayloadJSON: req.GetPayloadJson(),
+		Metadata:    req.GetMetadata(),
+	})
+	if err != nil {
 		return h.writeError(conn, writeMu, correlationID, "permission_denied", err.Error())
 	}
 	return h.safeWrite(conn, writeMu, responseEnvelope(correlationID, &integrationv1.Envelope_RequestActionResponse{RequestActionResponse: &integrationv1.RequestActionResponse{
-		ActionId:   uuid.NewString(),
-		BotId:      botID,
-		ActionType: actionType,
-		Status:     "accepted",
+		ActionId:   result.ActionID,
+		BotId:      result.BotID,
+		ActionType: result.ActionType,
+		Status:     result.Status,
 	}}))
 }
 

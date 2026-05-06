@@ -104,6 +104,33 @@ func (*fakeInboundStreamProcessor) HandleInbound(ctx context.Context, _ ChannelC
 	return stream.Close(ctx)
 }
 
+type recordingManagerInboundSink struct {
+	cfg ChannelConfig
+	msg InboundMessage
+}
+
+func (s *recordingManagerInboundSink) HandleInbound(_ context.Context, cfg ChannelConfig, msg InboundMessage) error {
+	s.cfg = cfg
+	s.msg = msg
+	return nil
+}
+
+func TestManager_HandleInboundUsesExternalSink(t *testing.T) {
+	t.Parallel()
+
+	sink := &recordingManagerInboundSink{}
+	manager := NewManager(slog.New(slog.DiscardHandler), NewRegistry(), nil, nil, WithInboundSink(sink))
+	cfg := ChannelConfig{ID: "cfg-1", BotID: "bot-1", ChannelType: ChannelType("test")}
+	msg := InboundMessage{Channel: ChannelType("test"), BotID: "bot-1", Message: Message{Text: "hello"}}
+
+	if err := manager.HandleInbound(context.Background(), cfg, msg); err != nil {
+		t.Fatalf("HandleInbound failed: %v", err)
+	}
+	if sink.cfg.ID != "cfg-1" || sink.msg.Message.PlainText() != "hello" {
+		t.Fatalf("unexpected sink payload: cfg=%+v msg=%+v", sink.cfg, sink.msg)
+	}
+}
+
 func TestManager_handleInbound(t *testing.T) {
 	logger := slog.Default()
 

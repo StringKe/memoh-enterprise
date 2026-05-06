@@ -57,6 +57,12 @@ const (
 	// ChannelServiceDeleteBotChannelConfigProcedure is the fully-qualified name of the ChannelService's
 	// DeleteBotChannelConfig RPC.
 	ChannelServiceDeleteBotChannelConfigProcedure = "/memoh.private.v1.ChannelService/DeleteBotChannelConfig"
+	// ChannelServiceStartChannelQrLoginProcedure is the fully-qualified name of the ChannelService's
+	// StartChannelQrLogin RPC.
+	ChannelServiceStartChannelQrLoginProcedure = "/memoh.private.v1.ChannelService/StartChannelQrLogin"
+	// ChannelServicePollChannelQrLoginProcedure is the fully-qualified name of the ChannelService's
+	// PollChannelQrLogin RPC.
+	ChannelServicePollChannelQrLoginProcedure = "/memoh.private.v1.ChannelService/PollChannelQrLogin"
 )
 
 // ChannelServiceClient is a client for the memoh.private.v1.ChannelService service.
@@ -69,6 +75,8 @@ type ChannelServiceClient interface {
 	UpsertBotChannelConfig(context.Context, *connect.Request[v1.UpsertBotChannelConfigRequest]) (*connect.Response[v1.UpsertBotChannelConfigResponse], error)
 	UpdateBotChannelStatus(context.Context, *connect.Request[v1.UpdateBotChannelStatusRequest]) (*connect.Response[v1.UpdateBotChannelStatusResponse], error)
 	DeleteBotChannelConfig(context.Context, *connect.Request[v1.DeleteBotChannelConfigRequest]) (*connect.Response[v1.DeleteBotChannelConfigResponse], error)
+	StartChannelQrLogin(context.Context, *connect.Request[v1.StartChannelQrLoginRequest]) (*connect.Response[v1.StartChannelQrLoginResponse], error)
+	PollChannelQrLogin(context.Context, *connect.Request[v1.PollChannelQrLoginRequest]) (*connect.Response[v1.PollChannelQrLoginResponse], error)
 }
 
 // NewChannelServiceClient constructs a client for the memoh.private.v1.ChannelService service. By
@@ -130,6 +138,18 @@ func NewChannelServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 			connect.WithSchema(channelServiceMethods.ByName("DeleteBotChannelConfig")),
 			connect.WithClientOptions(opts...),
 		),
+		startChannelQrLogin: connect.NewClient[v1.StartChannelQrLoginRequest, v1.StartChannelQrLoginResponse](
+			httpClient,
+			baseURL+ChannelServiceStartChannelQrLoginProcedure,
+			connect.WithSchema(channelServiceMethods.ByName("StartChannelQrLogin")),
+			connect.WithClientOptions(opts...),
+		),
+		pollChannelQrLogin: connect.NewClient[v1.PollChannelQrLoginRequest, v1.PollChannelQrLoginResponse](
+			httpClient,
+			baseURL+ChannelServicePollChannelQrLoginProcedure,
+			connect.WithSchema(channelServiceMethods.ByName("PollChannelQrLogin")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -143,6 +163,8 @@ type channelServiceClient struct {
 	upsertBotChannelConfig      *connect.Client[v1.UpsertBotChannelConfigRequest, v1.UpsertBotChannelConfigResponse]
 	updateBotChannelStatus      *connect.Client[v1.UpdateBotChannelStatusRequest, v1.UpdateBotChannelStatusResponse]
 	deleteBotChannelConfig      *connect.Client[v1.DeleteBotChannelConfigRequest, v1.DeleteBotChannelConfigResponse]
+	startChannelQrLogin         *connect.Client[v1.StartChannelQrLoginRequest, v1.StartChannelQrLoginResponse]
+	pollChannelQrLogin          *connect.Client[v1.PollChannelQrLoginRequest, v1.PollChannelQrLoginResponse]
 }
 
 // ListChannels calls memoh.private.v1.ChannelService.ListChannels.
@@ -185,6 +207,16 @@ func (c *channelServiceClient) DeleteBotChannelConfig(ctx context.Context, req *
 	return c.deleteBotChannelConfig.CallUnary(ctx, req)
 }
 
+// StartChannelQrLogin calls memoh.private.v1.ChannelService.StartChannelQrLogin.
+func (c *channelServiceClient) StartChannelQrLogin(ctx context.Context, req *connect.Request[v1.StartChannelQrLoginRequest]) (*connect.Response[v1.StartChannelQrLoginResponse], error) {
+	return c.startChannelQrLogin.CallUnary(ctx, req)
+}
+
+// PollChannelQrLogin calls memoh.private.v1.ChannelService.PollChannelQrLogin.
+func (c *channelServiceClient) PollChannelQrLogin(ctx context.Context, req *connect.Request[v1.PollChannelQrLoginRequest]) (*connect.Response[v1.PollChannelQrLoginResponse], error) {
+	return c.pollChannelQrLogin.CallUnary(ctx, req)
+}
+
 // ChannelServiceHandler is an implementation of the memoh.private.v1.ChannelService service.
 type ChannelServiceHandler interface {
 	ListChannels(context.Context, *connect.Request[v1.ListChannelsRequest]) (*connect.Response[v1.ListChannelsResponse], error)
@@ -195,6 +227,8 @@ type ChannelServiceHandler interface {
 	UpsertBotChannelConfig(context.Context, *connect.Request[v1.UpsertBotChannelConfigRequest]) (*connect.Response[v1.UpsertBotChannelConfigResponse], error)
 	UpdateBotChannelStatus(context.Context, *connect.Request[v1.UpdateBotChannelStatusRequest]) (*connect.Response[v1.UpdateBotChannelStatusResponse], error)
 	DeleteBotChannelConfig(context.Context, *connect.Request[v1.DeleteBotChannelConfigRequest]) (*connect.Response[v1.DeleteBotChannelConfigResponse], error)
+	StartChannelQrLogin(context.Context, *connect.Request[v1.StartChannelQrLoginRequest]) (*connect.Response[v1.StartChannelQrLoginResponse], error)
+	PollChannelQrLogin(context.Context, *connect.Request[v1.PollChannelQrLoginRequest]) (*connect.Response[v1.PollChannelQrLoginResponse], error)
 }
 
 // NewChannelServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -252,6 +286,18 @@ func NewChannelServiceHandler(svc ChannelServiceHandler, opts ...connect.Handler
 		connect.WithSchema(channelServiceMethods.ByName("DeleteBotChannelConfig")),
 		connect.WithHandlerOptions(opts...),
 	)
+	channelServiceStartChannelQrLoginHandler := connect.NewUnaryHandler(
+		ChannelServiceStartChannelQrLoginProcedure,
+		svc.StartChannelQrLogin,
+		connect.WithSchema(channelServiceMethods.ByName("StartChannelQrLogin")),
+		connect.WithHandlerOptions(opts...),
+	)
+	channelServicePollChannelQrLoginHandler := connect.NewUnaryHandler(
+		ChannelServicePollChannelQrLoginProcedure,
+		svc.PollChannelQrLogin,
+		connect.WithSchema(channelServiceMethods.ByName("PollChannelQrLogin")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/memoh.private.v1.ChannelService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case ChannelServiceListChannelsProcedure:
@@ -270,6 +316,10 @@ func NewChannelServiceHandler(svc ChannelServiceHandler, opts ...connect.Handler
 			channelServiceUpdateBotChannelStatusHandler.ServeHTTP(w, r)
 		case ChannelServiceDeleteBotChannelConfigProcedure:
 			channelServiceDeleteBotChannelConfigHandler.ServeHTTP(w, r)
+		case ChannelServiceStartChannelQrLoginProcedure:
+			channelServiceStartChannelQrLoginHandler.ServeHTTP(w, r)
+		case ChannelServicePollChannelQrLoginProcedure:
+			channelServicePollChannelQrLoginHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -309,4 +359,12 @@ func (UnimplementedChannelServiceHandler) UpdateBotChannelStatus(context.Context
 
 func (UnimplementedChannelServiceHandler) DeleteBotChannelConfig(context.Context, *connect.Request[v1.DeleteBotChannelConfigRequest]) (*connect.Response[v1.DeleteBotChannelConfigResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.ChannelService.DeleteBotChannelConfig is not implemented"))
+}
+
+func (UnimplementedChannelServiceHandler) StartChannelQrLogin(context.Context, *connect.Request[v1.StartChannelQrLoginRequest]) (*connect.Response[v1.StartChannelQrLoginResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.ChannelService.StartChannelQrLogin is not implemented"))
+}
+
+func (UnimplementedChannelServiceHandler) PollChannelQrLogin(context.Context, *connect.Request[v1.PollChannelQrLoginRequest]) (*connect.Response[v1.PollChannelQrLoginResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.ChannelService.PollChannelQrLogin is not implemented"))
 }

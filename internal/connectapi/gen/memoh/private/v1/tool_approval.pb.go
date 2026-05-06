@@ -10,6 +10,7 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	structpb "google.golang.org/protobuf/types/known/structpb"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -230,11 +231,463 @@ func (*RejectToolResponse) Descriptor() ([]byte, []int) {
 	return file_memoh_private_v1_tool_approval_proto_rawDescGZIP(), []int{3}
 }
 
+type ToolApprovalItem struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	BotId          string                 `protobuf:"bytes,2,opt,name=bot_id,json=botId,proto3" json:"bot_id,omitempty"`
+	ConversationId string                 `protobuf:"bytes,3,opt,name=conversation_id,json=conversationId,proto3" json:"conversation_id,omitempty"`
+	RequestId      string                 `protobuf:"bytes,4,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	ToolName       string                 `protobuf:"bytes,5,opt,name=tool_name,json=toolName,proto3" json:"tool_name,omitempty"`
+	Status         string                 `protobuf:"bytes,6,opt,name=status,proto3" json:"status,omitempty"`
+	Payload        *structpb.Struct       `protobuf:"bytes,7,opt,name=payload,proto3" json:"payload,omitempty"`
+	CreatedAt      *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	DecidedAt      *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=decided_at,json=decidedAt,proto3" json:"decided_at,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *ToolApprovalItem) Reset() {
+	*x = ToolApprovalItem{}
+	mi := &file_memoh_private_v1_tool_approval_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ToolApprovalItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ToolApprovalItem) ProtoMessage() {}
+
+func (x *ToolApprovalItem) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_tool_approval_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ToolApprovalItem.ProtoReflect.Descriptor instead.
+func (*ToolApprovalItem) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_tool_approval_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *ToolApprovalItem) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *ToolApprovalItem) GetBotId() string {
+	if x != nil {
+		return x.BotId
+	}
+	return ""
+}
+
+func (x *ToolApprovalItem) GetConversationId() string {
+	if x != nil {
+		return x.ConversationId
+	}
+	return ""
+}
+
+func (x *ToolApprovalItem) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+func (x *ToolApprovalItem) GetToolName() string {
+	if x != nil {
+		return x.ToolName
+	}
+	return ""
+}
+
+func (x *ToolApprovalItem) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *ToolApprovalItem) GetPayload() *structpb.Struct {
+	if x != nil {
+		return x.Payload
+	}
+	return nil
+}
+
+func (x *ToolApprovalItem) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
+}
+
+func (x *ToolApprovalItem) GetDecidedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.DecidedAt
+	}
+	return nil
+}
+
+type ListToolApprovalRequestsRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	BotId          string                 `protobuf:"bytes,1,opt,name=bot_id,json=botId,proto3" json:"bot_id,omitempty"`
+	ConversationId string                 `protobuf:"bytes,2,opt,name=conversation_id,json=conversationId,proto3" json:"conversation_id,omitempty"`
+	Status         string                 `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
+	Page           *PageRequest           `protobuf:"bytes,4,opt,name=page,proto3" json:"page,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *ListToolApprovalRequestsRequest) Reset() {
+	*x = ListToolApprovalRequestsRequest{}
+	mi := &file_memoh_private_v1_tool_approval_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListToolApprovalRequestsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListToolApprovalRequestsRequest) ProtoMessage() {}
+
+func (x *ListToolApprovalRequestsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_tool_approval_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListToolApprovalRequestsRequest.ProtoReflect.Descriptor instead.
+func (*ListToolApprovalRequestsRequest) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_tool_approval_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *ListToolApprovalRequestsRequest) GetBotId() string {
+	if x != nil {
+		return x.BotId
+	}
+	return ""
+}
+
+func (x *ListToolApprovalRequestsRequest) GetConversationId() string {
+	if x != nil {
+		return x.ConversationId
+	}
+	return ""
+}
+
+func (x *ListToolApprovalRequestsRequest) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *ListToolApprovalRequestsRequest) GetPage() *PageRequest {
+	if x != nil {
+		return x.Page
+	}
+	return nil
+}
+
+type ListToolApprovalRequestsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Requests      []*ToolApprovalItem    `protobuf:"bytes,1,rep,name=requests,proto3" json:"requests,omitempty"`
+	Page          *PageResponse          `protobuf:"bytes,2,opt,name=page,proto3" json:"page,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListToolApprovalRequestsResponse) Reset() {
+	*x = ListToolApprovalRequestsResponse{}
+	mi := &file_memoh_private_v1_tool_approval_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListToolApprovalRequestsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListToolApprovalRequestsResponse) ProtoMessage() {}
+
+func (x *ListToolApprovalRequestsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_tool_approval_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListToolApprovalRequestsResponse.ProtoReflect.Descriptor instead.
+func (*ListToolApprovalRequestsResponse) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_tool_approval_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *ListToolApprovalRequestsResponse) GetRequests() []*ToolApprovalItem {
+	if x != nil {
+		return x.Requests
+	}
+	return nil
+}
+
+func (x *ListToolApprovalRequestsResponse) GetPage() *PageResponse {
+	if x != nil {
+		return x.Page
+	}
+	return nil
+}
+
+type GetToolApprovalRequestRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	BotId         string                 `protobuf:"bytes,1,opt,name=bot_id,json=botId,proto3" json:"bot_id,omitempty"`
+	RequestId     string                 `protobuf:"bytes,2,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetToolApprovalRequestRequest) Reset() {
+	*x = GetToolApprovalRequestRequest{}
+	mi := &file_memoh_private_v1_tool_approval_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetToolApprovalRequestRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetToolApprovalRequestRequest) ProtoMessage() {}
+
+func (x *GetToolApprovalRequestRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_tool_approval_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetToolApprovalRequestRequest.ProtoReflect.Descriptor instead.
+func (*GetToolApprovalRequestRequest) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_tool_approval_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *GetToolApprovalRequestRequest) GetBotId() string {
+	if x != nil {
+		return x.BotId
+	}
+	return ""
+}
+
+func (x *GetToolApprovalRequestRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+type GetToolApprovalRequestResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Request       *ToolApprovalItem      `protobuf:"bytes,1,opt,name=request,proto3" json:"request,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetToolApprovalRequestResponse) Reset() {
+	*x = GetToolApprovalRequestResponse{}
+	mi := &file_memoh_private_v1_tool_approval_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetToolApprovalRequestResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetToolApprovalRequestResponse) ProtoMessage() {}
+
+func (x *GetToolApprovalRequestResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_tool_approval_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetToolApprovalRequestResponse.ProtoReflect.Descriptor instead.
+func (*GetToolApprovalRequestResponse) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_tool_approval_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *GetToolApprovalRequestResponse) GetRequest() *ToolApprovalItem {
+	if x != nil {
+		return x.Request
+	}
+	return nil
+}
+
+type RespondToolApprovalRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	BotId          string                 `protobuf:"bytes,1,opt,name=bot_id,json=botId,proto3" json:"bot_id,omitempty"`
+	ConversationId string                 `protobuf:"bytes,2,opt,name=conversation_id,json=conversationId,proto3" json:"conversation_id,omitempty"`
+	RequestId      string                 `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	Decision       string                 `protobuf:"bytes,4,opt,name=decision,proto3" json:"decision,omitempty"`
+	Reason         string                 `protobuf:"bytes,5,opt,name=reason,proto3" json:"reason,omitempty"`
+	Payload        *structpb.Struct       `protobuf:"bytes,6,opt,name=payload,proto3" json:"payload,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *RespondToolApprovalRequest) Reset() {
+	*x = RespondToolApprovalRequest{}
+	mi := &file_memoh_private_v1_tool_approval_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RespondToolApprovalRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RespondToolApprovalRequest) ProtoMessage() {}
+
+func (x *RespondToolApprovalRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_tool_approval_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RespondToolApprovalRequest.ProtoReflect.Descriptor instead.
+func (*RespondToolApprovalRequest) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_tool_approval_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *RespondToolApprovalRequest) GetBotId() string {
+	if x != nil {
+		return x.BotId
+	}
+	return ""
+}
+
+func (x *RespondToolApprovalRequest) GetConversationId() string {
+	if x != nil {
+		return x.ConversationId
+	}
+	return ""
+}
+
+func (x *RespondToolApprovalRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+func (x *RespondToolApprovalRequest) GetDecision() string {
+	if x != nil {
+		return x.Decision
+	}
+	return ""
+}
+
+func (x *RespondToolApprovalRequest) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+func (x *RespondToolApprovalRequest) GetPayload() *structpb.Struct {
+	if x != nil {
+		return x.Payload
+	}
+	return nil
+}
+
+type RespondToolApprovalResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Request       *ToolApprovalItem      `protobuf:"bytes,1,opt,name=request,proto3" json:"request,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RespondToolApprovalResponse) Reset() {
+	*x = RespondToolApprovalResponse{}
+	mi := &file_memoh_private_v1_tool_approval_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RespondToolApprovalResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RespondToolApprovalResponse) ProtoMessage() {}
+
+func (x *RespondToolApprovalResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_tool_approval_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RespondToolApprovalResponse.ProtoReflect.Descriptor instead.
+func (*RespondToolApprovalResponse) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_tool_approval_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *RespondToolApprovalResponse) GetRequest() *ToolApprovalItem {
+	if x != nil {
+		return x.Request
+	}
+	return nil
+}
+
 var File_memoh_private_v1_tool_approval_proto protoreflect.FileDescriptor
 
 const file_memoh_private_v1_tool_approval_proto_rawDesc = "" +
 	"\n" +
-	"$memoh/private/v1/tool_approval.proto\x12\x10memoh.private.v1\x1a\x1cgoogle/protobuf/struct.proto\"\xa6\x01\n" +
+	"$memoh/private/v1/tool_approval.proto\x12\x10memoh.private.v1\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1dmemoh/private/v1/common.proto\"\xa6\x01\n" +
 	"\x12ApproveToolRequest\x12\x15\n" +
 	"\x06bot_id\x18\x01 \x01(\tR\x05botId\x12'\n" +
 	"\x0fconversation_id\x18\x02 \x01(\tR\x0econversationId\x12\x1d\n" +
@@ -248,11 +701,51 @@ const file_memoh_private_v1_tool_approval_proto_rawDesc = "" +
 	"\n" +
 	"request_id\x18\x03 \x01(\tR\trequestId\x12\x16\n" +
 	"\x06reason\x18\x04 \x01(\tR\x06reason\"\x14\n" +
-	"\x12RejectToolResponse2\xca\x01\n" +
+	"\x12RejectToolResponse\"\xdf\x02\n" +
+	"\x10ToolApprovalItem\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x15\n" +
+	"\x06bot_id\x18\x02 \x01(\tR\x05botId\x12'\n" +
+	"\x0fconversation_id\x18\x03 \x01(\tR\x0econversationId\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\x04 \x01(\tR\trequestId\x12\x1b\n" +
+	"\ttool_name\x18\x05 \x01(\tR\btoolName\x12\x16\n" +
+	"\x06status\x18\x06 \x01(\tR\x06status\x121\n" +
+	"\apayload\x18\a \x01(\v2\x17.google.protobuf.StructR\apayload\x129\n" +
+	"\n" +
+	"created_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
+	"\n" +
+	"decided_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\tdecidedAt\"\xac\x01\n" +
+	"\x1fListToolApprovalRequestsRequest\x12\x15\n" +
+	"\x06bot_id\x18\x01 \x01(\tR\x05botId\x12'\n" +
+	"\x0fconversation_id\x18\x02 \x01(\tR\x0econversationId\x12\x16\n" +
+	"\x06status\x18\x03 \x01(\tR\x06status\x121\n" +
+	"\x04page\x18\x04 \x01(\v2\x1d.memoh.private.v1.PageRequestR\x04page\"\x96\x01\n" +
+	" ListToolApprovalRequestsResponse\x12>\n" +
+	"\brequests\x18\x01 \x03(\v2\".memoh.private.v1.ToolApprovalItemR\brequests\x122\n" +
+	"\x04page\x18\x02 \x01(\v2\x1e.memoh.private.v1.PageResponseR\x04page\"U\n" +
+	"\x1dGetToolApprovalRequestRequest\x12\x15\n" +
+	"\x06bot_id\x18\x01 \x01(\tR\x05botId\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\x02 \x01(\tR\trequestId\"^\n" +
+	"\x1eGetToolApprovalRequestResponse\x12<\n" +
+	"\arequest\x18\x01 \x01(\v2\".memoh.private.v1.ToolApprovalItemR\arequest\"\xe2\x01\n" +
+	"\x1aRespondToolApprovalRequest\x12\x15\n" +
+	"\x06bot_id\x18\x01 \x01(\tR\x05botId\x12'\n" +
+	"\x0fconversation_id\x18\x02 \x01(\tR\x0econversationId\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\x03 \x01(\tR\trequestId\x12\x1a\n" +
+	"\bdecision\x18\x04 \x01(\tR\bdecision\x12\x16\n" +
+	"\x06reason\x18\x05 \x01(\tR\x06reason\x121\n" +
+	"\apayload\x18\x06 \x01(\v2\x17.google.protobuf.StructR\apayload\"[\n" +
+	"\x1bRespondToolApprovalResponse\x12<\n" +
+	"\arequest\x18\x01 \x01(\v2\".memoh.private.v1.ToolApprovalItemR\arequest2\xbf\x04\n" +
 	"\x13ToolApprovalService\x12Z\n" +
 	"\vApproveTool\x12$.memoh.private.v1.ApproveToolRequest\x1a%.memoh.private.v1.ApproveToolResponse\x12W\n" +
 	"\n" +
-	"RejectTool\x12#.memoh.private.v1.RejectToolRequest\x1a$.memoh.private.v1.RejectToolResponseBMZKgithub.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1;privatev1b\x06proto3"
+	"RejectTool\x12#.memoh.private.v1.RejectToolRequest\x1a$.memoh.private.v1.RejectToolResponse\x12\x81\x01\n" +
+	"\x18ListToolApprovalRequests\x121.memoh.private.v1.ListToolApprovalRequestsRequest\x1a2.memoh.private.v1.ListToolApprovalRequestsResponse\x12{\n" +
+	"\x16GetToolApprovalRequest\x12/.memoh.private.v1.GetToolApprovalRequestRequest\x1a0.memoh.private.v1.GetToolApprovalRequestResponse\x12r\n" +
+	"\x13RespondToolApproval\x12,.memoh.private.v1.RespondToolApprovalRequest\x1a-.memoh.private.v1.RespondToolApprovalResponseBMZKgithub.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1;privatev1b\x06proto3"
 
 var (
 	file_memoh_private_v1_tool_approval_proto_rawDescOnce sync.Once
@@ -266,25 +759,50 @@ func file_memoh_private_v1_tool_approval_proto_rawDescGZIP() []byte {
 	return file_memoh_private_v1_tool_approval_proto_rawDescData
 }
 
-var file_memoh_private_v1_tool_approval_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_memoh_private_v1_tool_approval_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_memoh_private_v1_tool_approval_proto_goTypes = []any{
-	(*ApproveToolRequest)(nil),  // 0: memoh.private.v1.ApproveToolRequest
-	(*ApproveToolResponse)(nil), // 1: memoh.private.v1.ApproveToolResponse
-	(*RejectToolRequest)(nil),   // 2: memoh.private.v1.RejectToolRequest
-	(*RejectToolResponse)(nil),  // 3: memoh.private.v1.RejectToolResponse
-	(*structpb.Struct)(nil),     // 4: google.protobuf.Struct
+	(*ApproveToolRequest)(nil),               // 0: memoh.private.v1.ApproveToolRequest
+	(*ApproveToolResponse)(nil),              // 1: memoh.private.v1.ApproveToolResponse
+	(*RejectToolRequest)(nil),                // 2: memoh.private.v1.RejectToolRequest
+	(*RejectToolResponse)(nil),               // 3: memoh.private.v1.RejectToolResponse
+	(*ToolApprovalItem)(nil),                 // 4: memoh.private.v1.ToolApprovalItem
+	(*ListToolApprovalRequestsRequest)(nil),  // 5: memoh.private.v1.ListToolApprovalRequestsRequest
+	(*ListToolApprovalRequestsResponse)(nil), // 6: memoh.private.v1.ListToolApprovalRequestsResponse
+	(*GetToolApprovalRequestRequest)(nil),    // 7: memoh.private.v1.GetToolApprovalRequestRequest
+	(*GetToolApprovalRequestResponse)(nil),   // 8: memoh.private.v1.GetToolApprovalRequestResponse
+	(*RespondToolApprovalRequest)(nil),       // 9: memoh.private.v1.RespondToolApprovalRequest
+	(*RespondToolApprovalResponse)(nil),      // 10: memoh.private.v1.RespondToolApprovalResponse
+	(*structpb.Struct)(nil),                  // 11: google.protobuf.Struct
+	(*timestamppb.Timestamp)(nil),            // 12: google.protobuf.Timestamp
+	(*PageRequest)(nil),                      // 13: memoh.private.v1.PageRequest
+	(*PageResponse)(nil),                     // 14: memoh.private.v1.PageResponse
 }
 var file_memoh_private_v1_tool_approval_proto_depIdxs = []int32{
-	4, // 0: memoh.private.v1.ApproveToolRequest.payload:type_name -> google.protobuf.Struct
-	0, // 1: memoh.private.v1.ToolApprovalService.ApproveTool:input_type -> memoh.private.v1.ApproveToolRequest
-	2, // 2: memoh.private.v1.ToolApprovalService.RejectTool:input_type -> memoh.private.v1.RejectToolRequest
-	1, // 3: memoh.private.v1.ToolApprovalService.ApproveTool:output_type -> memoh.private.v1.ApproveToolResponse
-	3, // 4: memoh.private.v1.ToolApprovalService.RejectTool:output_type -> memoh.private.v1.RejectToolResponse
-	3, // [3:5] is the sub-list for method output_type
-	1, // [1:3] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	11, // 0: memoh.private.v1.ApproveToolRequest.payload:type_name -> google.protobuf.Struct
+	11, // 1: memoh.private.v1.ToolApprovalItem.payload:type_name -> google.protobuf.Struct
+	12, // 2: memoh.private.v1.ToolApprovalItem.created_at:type_name -> google.protobuf.Timestamp
+	12, // 3: memoh.private.v1.ToolApprovalItem.decided_at:type_name -> google.protobuf.Timestamp
+	13, // 4: memoh.private.v1.ListToolApprovalRequestsRequest.page:type_name -> memoh.private.v1.PageRequest
+	4,  // 5: memoh.private.v1.ListToolApprovalRequestsResponse.requests:type_name -> memoh.private.v1.ToolApprovalItem
+	14, // 6: memoh.private.v1.ListToolApprovalRequestsResponse.page:type_name -> memoh.private.v1.PageResponse
+	4,  // 7: memoh.private.v1.GetToolApprovalRequestResponse.request:type_name -> memoh.private.v1.ToolApprovalItem
+	11, // 8: memoh.private.v1.RespondToolApprovalRequest.payload:type_name -> google.protobuf.Struct
+	4,  // 9: memoh.private.v1.RespondToolApprovalResponse.request:type_name -> memoh.private.v1.ToolApprovalItem
+	0,  // 10: memoh.private.v1.ToolApprovalService.ApproveTool:input_type -> memoh.private.v1.ApproveToolRequest
+	2,  // 11: memoh.private.v1.ToolApprovalService.RejectTool:input_type -> memoh.private.v1.RejectToolRequest
+	5,  // 12: memoh.private.v1.ToolApprovalService.ListToolApprovalRequests:input_type -> memoh.private.v1.ListToolApprovalRequestsRequest
+	7,  // 13: memoh.private.v1.ToolApprovalService.GetToolApprovalRequest:input_type -> memoh.private.v1.GetToolApprovalRequestRequest
+	9,  // 14: memoh.private.v1.ToolApprovalService.RespondToolApproval:input_type -> memoh.private.v1.RespondToolApprovalRequest
+	1,  // 15: memoh.private.v1.ToolApprovalService.ApproveTool:output_type -> memoh.private.v1.ApproveToolResponse
+	3,  // 16: memoh.private.v1.ToolApprovalService.RejectTool:output_type -> memoh.private.v1.RejectToolResponse
+	6,  // 17: memoh.private.v1.ToolApprovalService.ListToolApprovalRequests:output_type -> memoh.private.v1.ListToolApprovalRequestsResponse
+	8,  // 18: memoh.private.v1.ToolApprovalService.GetToolApprovalRequest:output_type -> memoh.private.v1.GetToolApprovalRequestResponse
+	10, // 19: memoh.private.v1.ToolApprovalService.RespondToolApproval:output_type -> memoh.private.v1.RespondToolApprovalResponse
+	15, // [15:20] is the sub-list for method output_type
+	10, // [10:15] is the sub-list for method input_type
+	10, // [10:10] is the sub-list for extension type_name
+	10, // [10:10] is the sub-list for extension extendee
+	0,  // [0:10] is the sub-list for field type_name
 }
 
 func init() { file_memoh_private_v1_tool_approval_proto_init() }
@@ -292,13 +810,14 @@ func file_memoh_private_v1_tool_approval_proto_init() {
 	if File_memoh_private_v1_tool_approval_proto != nil {
 		return
 	}
+	file_memoh_private_v1_common_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_memoh_private_v1_tool_approval_proto_rawDesc), len(file_memoh_private_v1_tool_approval_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

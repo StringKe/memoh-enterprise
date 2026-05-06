@@ -1,0 +1,78 @@
+syntax = "proto3";
+
+package memoh.event.v1;
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/memohai/memoh/internal/connectapi/gen/memoh/event/v1;eventv1";
+
+message EventEnvelope {
+  string event_id = 1;
+  string topic = 2;
+  string payload_type = 3;
+  string idempotency_key = 4;
+  string aggregate_type = 5;
+  string aggregate_id = 6;
+  string partition_key = 7;
+  google.protobuf.Timestamp occurred_at = 8;
+  oneof payload {
+    AgentRunEvent agent_run = 20;
+    ConnectorEvent connector = 21;
+    WorkspaceExecEvent workspace_exec = 22;
+    MessageEvent message = 23;
+    google.protobuf.Struct custom = 24;
+  }
+}
+
+message AgentRunEvent {
+  string event_id = 1;
+  string run_id = 2;
+  string bot_id = 3;
+  string bot_group_id = 4;
+  string session_id = 5;
+  string user_id = 6;
+  string event_type = 7;
+  string status = 8;
+  string text = 9;
+  google.protobuf.Struct payload = 10;
+  google.protobuf.Timestamp occurred_at = 11;
+}
+
+message ConnectorEvent {
+  string event_id = 1;
+  string channel_config_id = 2;
+  string channel_type = 3;
+  string owner_instance_id = 4;
+  int64 lease_version = 5;
+  string event_type = 6;
+  string status = 7;
+  google.protobuf.Struct payload = 8;
+  google.protobuf.Timestamp occurred_at = 9;
+}
+
+message WorkspaceExecEvent {
+  string event_id = 1;
+  string run_id = 2;
+  string workspace_id = 3;
+  string process_id = 4;
+  string command = 5;
+  string event_type = 6;
+  int32 exit_code = 7;
+  string error_code = 8;
+  string error_message = 9;
+  google.protobuf.Timestamp occurred_at = 10;
+}
+
+message MessageEvent {
+  string event_id = 1;
+  string bot_id = 2;
+  string bot_group_id = 3;
+  string session_id = 4;
+  string message_id = 5;
+  string channel_type = 6;
+  string direction = 7;
+  string text = 8;
+  google.protobuf.Struct payload = 9;
+  google.protobuf.Timestamp occurred_at = 10;
+}

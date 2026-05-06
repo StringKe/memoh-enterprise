@@ -128,6 +128,42 @@ message ListAclObservedConversationsByChannelTypeResponse {
   PageResponse page = 2;
 }
 
+message ListAclChannelIdentitiesRequest {
+  string bot_id = 1;
+  string channel = 2;
+  PageRequest page = 3;
+}
+
+message ListAclChannelIdentitiesResponse {
+  repeated AclChannelIdentity identities = 1;
+  PageResponse page = 2;
+}
+
+message GetAclChannelIdentityRequest {
+  string id = 1;
+}
+
+message GetAclChannelIdentityResponse {
+  AclChannelIdentity identity = 1;
+}
+
+message UpsertAclChannelIdentityRequest {
+  string channel = 1;
+  string identity_id = 2;
+  string display_name = 3;
+  google.protobuf.Struct metadata = 4;
+}
+
+message UpsertAclChannelIdentityResponse {
+  AclChannelIdentity identity = 1;
+}
+
+message DeleteAclChannelIdentityRequest {
+  string id = 1;
+}
+
+message DeleteAclChannelIdentityResponse {}
+
 service AclService {
   rpc ListAclRules(ListAclRulesRequest) returns (ListAclRulesResponse);
   rpc CreateAclRule(CreateAclRuleRequest) returns (CreateAclRuleResponse);
@@ -139,4 +175,8 @@ service AclService {
   rpc SearchAclChannelIdentities(SearchAclChannelIdentitiesRequest) returns (SearchAclChannelIdentitiesResponse);
   rpc ListAclObservedConversations(ListAclObservedConversationsRequest) returns (ListAclObservedConversationsResponse);
   rpc ListAclObservedConversationsByChannelType(ListAclObservedConversationsByChannelTypeRequest) returns (ListAclObservedConversationsByChannelTypeResponse);
+  rpc ListAclChannelIdentities(ListAclChannelIdentitiesRequest) returns (ListAclChannelIdentitiesResponse);
+  rpc GetAclChannelIdentity(GetAclChannelIdentityRequest) returns (GetAclChannelIdentityResponse);
+  rpc UpsertAclChannelIdentity(UpsertAclChannelIdentityRequest) returns (UpsertAclChannelIdentityResponse);
+  rpc DeleteAclChannelIdentity(DeleteAclChannelIdentityRequest) returns (DeleteAclChannelIdentityResponse);
 }

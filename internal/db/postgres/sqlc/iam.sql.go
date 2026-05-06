@@ -261,6 +261,24 @@ func (q *Queries) DeletePrincipalRoleAssignment(ctx context.Context, arg DeleteP
 	return err
 }
 
+const deletePrincipalRoleByResourceAndID = `-- name: DeletePrincipalRoleByResourceAndID :exec
+DELETE FROM iam_principal_roles
+WHERE id = $1
+  AND resource_type = $2
+  AND resource_id = $3
+`
+
+type DeletePrincipalRoleByResourceAndIDParams struct {
+	ID           pgtype.UUID `json:"id"`
+	ResourceType string      `json:"resource_type"`
+	ResourceID   pgtype.UUID `json:"resource_id"`
+}
+
+func (q *Queries) DeletePrincipalRoleByResourceAndID(ctx context.Context, arg DeletePrincipalRoleByResourceAndIDParams) error {
+	_, err := q.db.Exec(ctx, deletePrincipalRoleByResourceAndID, arg.ID, arg.ResourceType, arg.ResourceID)
+	return err
+}
+
 const deleteSSOGroupMapping = `-- name: DeleteSSOGroupMapping :exec
 DELETE FROM iam_sso_group_mappings
 WHERE provider_id = $1

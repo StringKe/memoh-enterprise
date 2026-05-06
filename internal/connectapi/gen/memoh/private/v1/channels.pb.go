@@ -1083,6 +1083,262 @@ func (*DeleteBotChannelConfigResponse) Descriptor() ([]byte, []int) {
 	return file_memoh_private_v1_channels_proto_rawDescGZIP(), []int{18}
 }
 
+type StartChannelQrLoginRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	BotId         string                 `protobuf:"bytes,1,opt,name=bot_id,json=botId,proto3" json:"bot_id,omitempty"`
+	Channel       string                 `protobuf:"bytes,2,opt,name=channel,proto3" json:"channel,omitempty"`
+	Options       *structpb.Struct       `protobuf:"bytes,3,opt,name=options,proto3" json:"options,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StartChannelQrLoginRequest) Reset() {
+	*x = StartChannelQrLoginRequest{}
+	mi := &file_memoh_private_v1_channels_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StartChannelQrLoginRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StartChannelQrLoginRequest) ProtoMessage() {}
+
+func (x *StartChannelQrLoginRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_channels_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StartChannelQrLoginRequest.ProtoReflect.Descriptor instead.
+func (*StartChannelQrLoginRequest) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_channels_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *StartChannelQrLoginRequest) GetBotId() string {
+	if x != nil {
+		return x.BotId
+	}
+	return ""
+}
+
+func (x *StartChannelQrLoginRequest) GetChannel() string {
+	if x != nil {
+		return x.Channel
+	}
+	return ""
+}
+
+func (x *StartChannelQrLoginRequest) GetOptions() *structpb.Struct {
+	if x != nil {
+		return x.Options
+	}
+	return nil
+}
+
+type StartChannelQrLoginResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	LoginId       string                 `protobuf:"bytes,1,opt,name=login_id,json=loginId,proto3" json:"login_id,omitempty"`
+	QrUrl         string                 `protobuf:"bytes,2,opt,name=qr_url,json=qrUrl,proto3" json:"qr_url,omitempty"`
+	QrImage       []byte                 `protobuf:"bytes,3,opt,name=qr_image,json=qrImage,proto3" json:"qr_image,omitempty"`
+	MimeType      string                 `protobuf:"bytes,4,opt,name=mime_type,json=mimeType,proto3" json:"mime_type,omitempty"`
+	ExpiresAt     *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StartChannelQrLoginResponse) Reset() {
+	*x = StartChannelQrLoginResponse{}
+	mi := &file_memoh_private_v1_channels_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StartChannelQrLoginResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StartChannelQrLoginResponse) ProtoMessage() {}
+
+func (x *StartChannelQrLoginResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_channels_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StartChannelQrLoginResponse.ProtoReflect.Descriptor instead.
+func (*StartChannelQrLoginResponse) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_channels_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *StartChannelQrLoginResponse) GetLoginId() string {
+	if x != nil {
+		return x.LoginId
+	}
+	return ""
+}
+
+func (x *StartChannelQrLoginResponse) GetQrUrl() string {
+	if x != nil {
+		return x.QrUrl
+	}
+	return ""
+}
+
+func (x *StartChannelQrLoginResponse) GetQrImage() []byte {
+	if x != nil {
+		return x.QrImage
+	}
+	return nil
+}
+
+func (x *StartChannelQrLoginResponse) GetMimeType() string {
+	if x != nil {
+		return x.MimeType
+	}
+	return ""
+}
+
+func (x *StartChannelQrLoginResponse) GetExpiresAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.ExpiresAt
+	}
+	return nil
+}
+
+type PollChannelQrLoginRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	BotId         string                 `protobuf:"bytes,1,opt,name=bot_id,json=botId,proto3" json:"bot_id,omitempty"`
+	Channel       string                 `protobuf:"bytes,2,opt,name=channel,proto3" json:"channel,omitempty"`
+	LoginId       string                 `protobuf:"bytes,3,opt,name=login_id,json=loginId,proto3" json:"login_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PollChannelQrLoginRequest) Reset() {
+	*x = PollChannelQrLoginRequest{}
+	mi := &file_memoh_private_v1_channels_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PollChannelQrLoginRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PollChannelQrLoginRequest) ProtoMessage() {}
+
+func (x *PollChannelQrLoginRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_channels_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PollChannelQrLoginRequest.ProtoReflect.Descriptor instead.
+func (*PollChannelQrLoginRequest) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_channels_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *PollChannelQrLoginRequest) GetBotId() string {
+	if x != nil {
+		return x.BotId
+	}
+	return ""
+}
+
+func (x *PollChannelQrLoginRequest) GetChannel() string {
+	if x != nil {
+		return x.Channel
+	}
+	return ""
+}
+
+func (x *PollChannelQrLoginRequest) GetLoginId() string {
+	if x != nil {
+		return x.LoginId
+	}
+	return ""
+}
+
+type PollChannelQrLoginResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Status        string                 `protobuf:"bytes,1,opt,name=status,proto3" json:"status,omitempty"`
+	Config        *BotChannelConfig      `protobuf:"bytes,2,opt,name=config,proto3" json:"config,omitempty"`
+	Metadata      *structpb.Struct       `protobuf:"bytes,3,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PollChannelQrLoginResponse) Reset() {
+	*x = PollChannelQrLoginResponse{}
+	mi := &file_memoh_private_v1_channels_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PollChannelQrLoginResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PollChannelQrLoginResponse) ProtoMessage() {}
+
+func (x *PollChannelQrLoginResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_channels_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PollChannelQrLoginResponse.ProtoReflect.Descriptor instead.
+func (*PollChannelQrLoginResponse) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_channels_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *PollChannelQrLoginResponse) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *PollChannelQrLoginResponse) GetConfig() *BotChannelConfig {
+	if x != nil {
+		return x.Config
+	}
+	return nil
+}
+
+func (x *PollChannelQrLoginResponse) GetMetadata() *structpb.Struct {
+	if x != nil {
+		return x.Metadata
+	}
+	return nil
+}
+
 var File_memoh_private_v1_channels_proto protoreflect.FileDescriptor
 
 const file_memoh_private_v1_channels_proto_rawDesc = "" +
@@ -1160,7 +1416,26 @@ const file_memoh_private_v1_channels_proto_rawDesc = "" +
 	"\x1dDeleteBotChannelConfigRequest\x12\x15\n" +
 	"\x06bot_id\x18\x01 \x01(\tR\x05botId\x12\x18\n" +
 	"\achannel\x18\x02 \x01(\tR\achannel\" \n" +
-	"\x1eDeleteBotChannelConfigResponse2\xc4\a\n" +
+	"\x1eDeleteBotChannelConfigResponse\"\x80\x01\n" +
+	"\x1aStartChannelQrLoginRequest\x12\x15\n" +
+	"\x06bot_id\x18\x01 \x01(\tR\x05botId\x12\x18\n" +
+	"\achannel\x18\x02 \x01(\tR\achannel\x121\n" +
+	"\aoptions\x18\x03 \x01(\v2\x17.google.protobuf.StructR\aoptions\"\xc2\x01\n" +
+	"\x1bStartChannelQrLoginResponse\x12\x19\n" +
+	"\blogin_id\x18\x01 \x01(\tR\aloginId\x12\x15\n" +
+	"\x06qr_url\x18\x02 \x01(\tR\x05qrUrl\x12\x19\n" +
+	"\bqr_image\x18\x03 \x01(\fR\aqrImage\x12\x1b\n" +
+	"\tmime_type\x18\x04 \x01(\tR\bmimeType\x129\n" +
+	"\n" +
+	"expires_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt\"g\n" +
+	"\x19PollChannelQrLoginRequest\x12\x15\n" +
+	"\x06bot_id\x18\x01 \x01(\tR\x05botId\x12\x18\n" +
+	"\achannel\x18\x02 \x01(\tR\achannel\x12\x19\n" +
+	"\blogin_id\x18\x03 \x01(\tR\aloginId\"\xa5\x01\n" +
+	"\x1aPollChannelQrLoginResponse\x12\x16\n" +
+	"\x06status\x18\x01 \x01(\tR\x06status\x12:\n" +
+	"\x06config\x18\x02 \x01(\v2\".memoh.private.v1.BotChannelConfigR\x06config\x123\n" +
+	"\bmetadata\x18\x03 \x01(\v2\x17.google.protobuf.StructR\bmetadata2\xa9\t\n" +
 	"\x0eChannelService\x12]\n" +
 	"\fListChannels\x12%.memoh.private.v1.ListChannelsRequest\x1a&.memoh.private.v1.ListChannelsResponse\x12W\n" +
 	"\n" +
@@ -1170,7 +1445,9 @@ const file_memoh_private_v1_channels_proto_rawDesc = "" +
 	"\x13GetBotChannelConfig\x12,.memoh.private.v1.GetBotChannelConfigRequest\x1a-.memoh.private.v1.GetBotChannelConfigResponse\x12{\n" +
 	"\x16UpsertBotChannelConfig\x12/.memoh.private.v1.UpsertBotChannelConfigRequest\x1a0.memoh.private.v1.UpsertBotChannelConfigResponse\x12{\n" +
 	"\x16UpdateBotChannelStatus\x12/.memoh.private.v1.UpdateBotChannelStatusRequest\x1a0.memoh.private.v1.UpdateBotChannelStatusResponse\x12{\n" +
-	"\x16DeleteBotChannelConfig\x12/.memoh.private.v1.DeleteBotChannelConfigRequest\x1a0.memoh.private.v1.DeleteBotChannelConfigResponseBMZKgithub.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1;privatev1b\x06proto3"
+	"\x16DeleteBotChannelConfig\x12/.memoh.private.v1.DeleteBotChannelConfigRequest\x1a0.memoh.private.v1.DeleteBotChannelConfigResponse\x12r\n" +
+	"\x13StartChannelQrLogin\x12,.memoh.private.v1.StartChannelQrLoginRequest\x1a-.memoh.private.v1.StartChannelQrLoginResponse\x12o\n" +
+	"\x12PollChannelQrLogin\x12+.memoh.private.v1.PollChannelQrLoginRequest\x1a,.memoh.private.v1.PollChannelQrLoginResponseBMZKgithub.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1;privatev1b\x06proto3"
 
 var (
 	file_memoh_private_v1_channels_proto_rawDescOnce sync.Once
@@ -1184,7 +1461,7 @@ func file_memoh_private_v1_channels_proto_rawDescGZIP() []byte {
 	return file_memoh_private_v1_channels_proto_rawDescData
 }
 
-var file_memoh_private_v1_channels_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
+var file_memoh_private_v1_channels_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
 var file_memoh_private_v1_channels_proto_goTypes = []any{
 	(*Channel)(nil),                             // 0: memoh.private.v1.Channel
 	(*ChannelIdentityConfig)(nil),               // 1: memoh.private.v1.ChannelIdentityConfig
@@ -1205,52 +1482,64 @@ var file_memoh_private_v1_channels_proto_goTypes = []any{
 	(*UpdateBotChannelStatusResponse)(nil),      // 16: memoh.private.v1.UpdateBotChannelStatusResponse
 	(*DeleteBotChannelConfigRequest)(nil),       // 17: memoh.private.v1.DeleteBotChannelConfigRequest
 	(*DeleteBotChannelConfigResponse)(nil),      // 18: memoh.private.v1.DeleteBotChannelConfigResponse
-	(*structpb.Struct)(nil),                     // 19: google.protobuf.Struct
-	(*AuditFields)(nil),                         // 20: memoh.private.v1.AuditFields
-	(*timestamppb.Timestamp)(nil),               // 21: google.protobuf.Timestamp
+	(*StartChannelQrLoginRequest)(nil),          // 19: memoh.private.v1.StartChannelQrLoginRequest
+	(*StartChannelQrLoginResponse)(nil),         // 20: memoh.private.v1.StartChannelQrLoginResponse
+	(*PollChannelQrLoginRequest)(nil),           // 21: memoh.private.v1.PollChannelQrLoginRequest
+	(*PollChannelQrLoginResponse)(nil),          // 22: memoh.private.v1.PollChannelQrLoginResponse
+	(*structpb.Struct)(nil),                     // 23: google.protobuf.Struct
+	(*AuditFields)(nil),                         // 24: memoh.private.v1.AuditFields
+	(*timestamppb.Timestamp)(nil),               // 25: google.protobuf.Timestamp
 }
 var file_memoh_private_v1_channels_proto_depIdxs = []int32{
-	19, // 0: memoh.private.v1.Channel.metadata:type_name -> google.protobuf.Struct
-	19, // 1: memoh.private.v1.ChannelIdentityConfig.config:type_name -> google.protobuf.Struct
-	20, // 2: memoh.private.v1.ChannelIdentityConfig.audit:type_name -> memoh.private.v1.AuditFields
-	19, // 3: memoh.private.v1.BotChannelConfig.credentials:type_name -> google.protobuf.Struct
-	19, // 4: memoh.private.v1.BotChannelConfig.self_identity:type_name -> google.protobuf.Struct
-	19, // 5: memoh.private.v1.BotChannelConfig.routing:type_name -> google.protobuf.Struct
-	21, // 6: memoh.private.v1.BotChannelConfig.verified_at:type_name -> google.protobuf.Timestamp
-	20, // 7: memoh.private.v1.BotChannelConfig.audit:type_name -> memoh.private.v1.AuditFields
+	23, // 0: memoh.private.v1.Channel.metadata:type_name -> google.protobuf.Struct
+	23, // 1: memoh.private.v1.ChannelIdentityConfig.config:type_name -> google.protobuf.Struct
+	24, // 2: memoh.private.v1.ChannelIdentityConfig.audit:type_name -> memoh.private.v1.AuditFields
+	23, // 3: memoh.private.v1.BotChannelConfig.credentials:type_name -> google.protobuf.Struct
+	23, // 4: memoh.private.v1.BotChannelConfig.self_identity:type_name -> google.protobuf.Struct
+	23, // 5: memoh.private.v1.BotChannelConfig.routing:type_name -> google.protobuf.Struct
+	25, // 6: memoh.private.v1.BotChannelConfig.verified_at:type_name -> google.protobuf.Timestamp
+	24, // 7: memoh.private.v1.BotChannelConfig.audit:type_name -> memoh.private.v1.AuditFields
 	0,  // 8: memoh.private.v1.ListChannelsResponse.channels:type_name -> memoh.private.v1.Channel
 	0,  // 9: memoh.private.v1.GetChannelResponse.channel:type_name -> memoh.private.v1.Channel
 	1,  // 10: memoh.private.v1.GetChannelIdentityConfigResponse.config:type_name -> memoh.private.v1.ChannelIdentityConfig
-	19, // 11: memoh.private.v1.UpsertChannelIdentityConfigRequest.config:type_name -> google.protobuf.Struct
+	23, // 11: memoh.private.v1.UpsertChannelIdentityConfigRequest.config:type_name -> google.protobuf.Struct
 	1,  // 12: memoh.private.v1.UpsertChannelIdentityConfigResponse.config:type_name -> memoh.private.v1.ChannelIdentityConfig
 	2,  // 13: memoh.private.v1.GetBotChannelConfigResponse.config:type_name -> memoh.private.v1.BotChannelConfig
-	19, // 14: memoh.private.v1.UpsertBotChannelConfigRequest.credentials:type_name -> google.protobuf.Struct
-	19, // 15: memoh.private.v1.UpsertBotChannelConfigRequest.self_identity:type_name -> google.protobuf.Struct
-	19, // 16: memoh.private.v1.UpsertBotChannelConfigRequest.routing:type_name -> google.protobuf.Struct
-	21, // 17: memoh.private.v1.UpsertBotChannelConfigRequest.verified_at:type_name -> google.protobuf.Timestamp
+	23, // 14: memoh.private.v1.UpsertBotChannelConfigRequest.credentials:type_name -> google.protobuf.Struct
+	23, // 15: memoh.private.v1.UpsertBotChannelConfigRequest.self_identity:type_name -> google.protobuf.Struct
+	23, // 16: memoh.private.v1.UpsertBotChannelConfigRequest.routing:type_name -> google.protobuf.Struct
+	25, // 17: memoh.private.v1.UpsertBotChannelConfigRequest.verified_at:type_name -> google.protobuf.Timestamp
 	2,  // 18: memoh.private.v1.UpsertBotChannelConfigResponse.config:type_name -> memoh.private.v1.BotChannelConfig
 	2,  // 19: memoh.private.v1.UpdateBotChannelStatusResponse.config:type_name -> memoh.private.v1.BotChannelConfig
-	3,  // 20: memoh.private.v1.ChannelService.ListChannels:input_type -> memoh.private.v1.ListChannelsRequest
-	5,  // 21: memoh.private.v1.ChannelService.GetChannel:input_type -> memoh.private.v1.GetChannelRequest
-	7,  // 22: memoh.private.v1.ChannelService.GetChannelIdentityConfig:input_type -> memoh.private.v1.GetChannelIdentityConfigRequest
-	9,  // 23: memoh.private.v1.ChannelService.UpsertChannelIdentityConfig:input_type -> memoh.private.v1.UpsertChannelIdentityConfigRequest
-	11, // 24: memoh.private.v1.ChannelService.GetBotChannelConfig:input_type -> memoh.private.v1.GetBotChannelConfigRequest
-	13, // 25: memoh.private.v1.ChannelService.UpsertBotChannelConfig:input_type -> memoh.private.v1.UpsertBotChannelConfigRequest
-	15, // 26: memoh.private.v1.ChannelService.UpdateBotChannelStatus:input_type -> memoh.private.v1.UpdateBotChannelStatusRequest
-	17, // 27: memoh.private.v1.ChannelService.DeleteBotChannelConfig:input_type -> memoh.private.v1.DeleteBotChannelConfigRequest
-	4,  // 28: memoh.private.v1.ChannelService.ListChannels:output_type -> memoh.private.v1.ListChannelsResponse
-	6,  // 29: memoh.private.v1.ChannelService.GetChannel:output_type -> memoh.private.v1.GetChannelResponse
-	8,  // 30: memoh.private.v1.ChannelService.GetChannelIdentityConfig:output_type -> memoh.private.v1.GetChannelIdentityConfigResponse
-	10, // 31: memoh.private.v1.ChannelService.UpsertChannelIdentityConfig:output_type -> memoh.private.v1.UpsertChannelIdentityConfigResponse
-	12, // 32: memoh.private.v1.ChannelService.GetBotChannelConfig:output_type -> memoh.private.v1.GetBotChannelConfigResponse
-	14, // 33: memoh.private.v1.ChannelService.UpsertBotChannelConfig:output_type -> memoh.private.v1.UpsertBotChannelConfigResponse
-	16, // 34: memoh.private.v1.ChannelService.UpdateBotChannelStatus:output_type -> memoh.private.v1.UpdateBotChannelStatusResponse
-	18, // 35: memoh.private.v1.ChannelService.DeleteBotChannelConfig:output_type -> memoh.private.v1.DeleteBotChannelConfigResponse
-	28, // [28:36] is the sub-list for method output_type
-	20, // [20:28] is the sub-list for method input_type
-	20, // [20:20] is the sub-list for extension type_name
-	20, // [20:20] is the sub-list for extension extendee
-	0,  // [0:20] is the sub-list for field type_name
+	23, // 20: memoh.private.v1.StartChannelQrLoginRequest.options:type_name -> google.protobuf.Struct
+	25, // 21: memoh.private.v1.StartChannelQrLoginResponse.expires_at:type_name -> google.protobuf.Timestamp
+	2,  // 22: memoh.private.v1.PollChannelQrLoginResponse.config:type_name -> memoh.private.v1.BotChannelConfig
+	23, // 23: memoh.private.v1.PollChannelQrLoginResponse.metadata:type_name -> google.protobuf.Struct
+	3,  // 24: memoh.private.v1.ChannelService.ListChannels:input_type -> memoh.private.v1.ListChannelsRequest
+	5,  // 25: memoh.private.v1.ChannelService.GetChannel:input_type -> memoh.private.v1.GetChannelRequest
+	7,  // 26: memoh.private.v1.ChannelService.GetChannelIdentityConfig:input_type -> memoh.private.v1.GetChannelIdentityConfigRequest
+	9,  // 27: memoh.private.v1.ChannelService.UpsertChannelIdentityConfig:input_type -> memoh.private.v1.UpsertChannelIdentityConfigRequest
+	11, // 28: memoh.private.v1.ChannelService.GetBotChannelConfig:input_type -> memoh.private.v1.GetBotChannelConfigRequest
+	13, // 29: memoh.private.v1.ChannelService.UpsertBotChannelConfig:input_type -> memoh.private.v1.UpsertBotChannelConfigRequest
+	15, // 30: memoh.private.v1.ChannelService.UpdateBotChannelStatus:input_type -> memoh.private.v1.UpdateBotChannelStatusRequest
+	17, // 31: memoh.private.v1.ChannelService.DeleteBotChannelConfig:input_type -> memoh.private.v1.DeleteBotChannelConfigRequest
+	19, // 32: memoh.private.v1.ChannelService.StartChannelQrLogin:input_type -> memoh.private.v1.StartChannelQrLoginRequest
+	21, // 33: memoh.private.v1.ChannelService.PollChannelQrLogin:input_type -> memoh.private.v1.PollChannelQrLoginRequest
+	4,  // 34: memoh.private.v1.ChannelService.ListChannels:output_type -> memoh.private.v1.ListChannelsResponse
+	6,  // 35: memoh.private.v1.ChannelService.GetChannel:output_type -> memoh.private.v1.GetChannelResponse
+	8,  // 36: memoh.private.v1.ChannelService.GetChannelIdentityConfig:output_type -> memoh.private.v1.GetChannelIdentityConfigResponse
+	10, // 37: memoh.private.v1.ChannelService.UpsertChannelIdentityConfig:output_type -> memoh.private.v1.UpsertChannelIdentityConfigResponse
+	12, // 38: memoh.private.v1.ChannelService.GetBotChannelConfig:output_type -> memoh.private.v1.GetBotChannelConfigResponse
+	14, // 39: memoh.private.v1.ChannelService.UpsertBotChannelConfig:output_type -> memoh.private.v1.UpsertBotChannelConfigResponse
+	16, // 40: memoh.private.v1.ChannelService.UpdateBotChannelStatus:output_type -> memoh.private.v1.UpdateBotChannelStatusResponse
+	18, // 41: memoh.private.v1.ChannelService.DeleteBotChannelConfig:output_type -> memoh.private.v1.DeleteBotChannelConfigResponse
+	20, // 42: memoh.private.v1.ChannelService.StartChannelQrLogin:output_type -> memoh.private.v1.StartChannelQrLoginResponse
+	22, // 43: memoh.private.v1.ChannelService.PollChannelQrLogin:output_type -> memoh.private.v1.PollChannelQrLoginResponse
+	34, // [34:44] is the sub-list for method output_type
+	24, // [24:34] is the sub-list for method input_type
+	24, // [24:24] is the sub-list for extension type_name
+	24, // [24:24] is the sub-list for extension extendee
+	0,  // [0:24] is the sub-list for field type_name
 }
 
 func init() { file_memoh_private_v1_channels_proto_init() }
@@ -1266,7 +1555,7 @@ func file_memoh_private_v1_channels_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_memoh_private_v1_channels_proto_rawDesc), len(file_memoh_private_v1_channels_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   19,
+			NumMessages:   23,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

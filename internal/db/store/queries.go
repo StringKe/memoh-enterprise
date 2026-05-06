@@ -12,8 +12,13 @@ import (
 // Queries is the transitional database interface implemented by sqlc-backed stores.
 // Domain-specific stores should replace this broad interface module by module.
 type Queries interface {
+	AckEventDelivery(ctx context.Context, arg dbsqlc.AckEventDeliveryParams) (dbsqlc.EventDelivery, error)
+	AcquireChannelConnectorLease(ctx context.Context, arg dbsqlc.AcquireChannelConnectorLeaseParams) (dbsqlc.AcquireChannelConnectorLeaseRow, error)
 	ApproveToolApprovalRequest(ctx context.Context, arg dbsqlc.ApproveToolApprovalRequestParams) (dbsqlc.ToolApprovalRequest, error)
+	CheckChannelConnectorLease(ctx context.Context, arg dbsqlc.CheckChannelConnectorLeaseParams) (bool, error)
+	ClaimEventDeliveries(ctx context.Context, arg dbsqlc.ClaimEventDeliveriesParams) ([]dbsqlc.ClaimEventDeliveriesRow, error)
 	ClearMCPOAuthTokens(ctx context.Context, connectionID pgtype.UUID) error
+	CompleteAgentRunLease(ctx context.Context, runID pgtype.UUID) (dbsqlc.AgentRunLease, error)
 	CompleteCompactionLog(ctx context.Context, arg dbsqlc.CompleteCompactionLogParams) (dbsqlc.BotHistoryMessageCompact, error)
 	CompleteHeartbeatLog(ctx context.Context, arg dbsqlc.CompleteHeartbeatLogParams) (dbsqlc.BotHeartbeatLog, error)
 	CompleteScheduleLog(ctx context.Context, arg dbsqlc.CompleteScheduleLogParams) (dbsqlc.ScheduleLog, error)
@@ -33,6 +38,7 @@ type Queries interface {
 	CountTokenUsageRecords(ctx context.Context, arg dbsqlc.CountTokenUsageRecordsParams) (int64, error)
 	AssignPrincipalRole(ctx context.Context, arg dbsqlc.AssignPrincipalRoleParams) (dbsqlc.IamPrincipalRole, error)
 	CreateAccount(ctx context.Context, arg dbsqlc.CreateAccountParams) (dbsqlc.IamUser, error)
+	CreateAgentRunLease(ctx context.Context, arg dbsqlc.CreateAgentRunLeaseParams) (dbsqlc.AgentRunLease, error)
 	CreateBindCode(ctx context.Context, arg dbsqlc.CreateBindCodeParams) (dbsqlc.IamChannelIdentityBindCode, error)
 	CreateBot(ctx context.Context, arg dbsqlc.CreateBotParams) (dbsqlc.CreateBotRow, error)
 	CreateBotACLRule(ctx context.Context, arg dbsqlc.CreateBotACLRuleParams) (dbsqlc.CreateBotACLRuleRow, error)
@@ -45,6 +51,7 @@ type Queries interface {
 	CreateCompactionLog(ctx context.Context, arg dbsqlc.CreateCompactionLogParams) (dbsqlc.BotHistoryMessageCompact, error)
 	CreateEmailOutbox(ctx context.Context, arg dbsqlc.CreateEmailOutboxParams) (dbsqlc.EmailOutbox, error)
 	CreateEmailProvider(ctx context.Context, arg dbsqlc.CreateEmailProviderParams) (dbsqlc.EmailProvider, error)
+	CreateEventDeliveries(ctx context.Context, arg dbsqlc.CreateEventDeliveriesParams) ([]dbsqlc.EventDelivery, error)
 	CreateHeartbeatLog(ctx context.Context, arg dbsqlc.CreateHeartbeatLogParams) (dbsqlc.CreateHeartbeatLogRow, error)
 	CreateMCPConnection(ctx context.Context, arg dbsqlc.CreateMCPConnectionParams) (dbsqlc.McpConnection, error)
 	CreateMemoryProvider(ctx context.Context, arg dbsqlc.CreateMemoryProviderParams) (dbsqlc.MemoryProvider, error)
@@ -65,6 +72,7 @@ type Queries interface {
 	CreateIntegrationAPIToken(ctx context.Context, arg dbsqlc.CreateIntegrationAPITokenParams) (dbsqlc.IntegrationApiToken, error)
 	CreatePasswordIdentity(ctx context.Context, arg dbsqlc.CreatePasswordIdentityParams) (dbsqlc.IamIdentity, error)
 	CreateUser(ctx context.Context, arg dbsqlc.CreateUserParams) (dbsqlc.IamUser, error)
+	DeadLetterEventDelivery(ctx context.Context, arg dbsqlc.DeadLetterEventDeliveryParams) (dbsqlc.EventDelivery, error)
 	DeleteBotACLRuleByID(ctx context.Context, id pgtype.UUID) error
 	DeleteBotByID(ctx context.Context, id pgtype.UUID) error
 	DeleteBotChannelConfig(ctx context.Context, arg dbsqlc.DeleteBotChannelConfigParams) error
@@ -95,6 +103,7 @@ type Queries interface {
 	DeleteProvider(ctx context.Context, id pgtype.UUID) error
 	DeleteProviderOAuthToken(ctx context.Context, providerID pgtype.UUID) error
 	DeletePrincipalRole(ctx context.Context, id pgtype.UUID) error
+	DeletePrincipalRoleByResourceAndID(ctx context.Context, arg dbsqlc.DeletePrincipalRoleByResourceAndIDParams) error
 	DeletePrincipalRoleAssignment(ctx context.Context, arg dbsqlc.DeletePrincipalRoleAssignmentParams) error
 	DeleteSchedule(ctx context.Context, id pgtype.UUID) error
 	DeleteScheduleLogsByBot(ctx context.Context, botID pgtype.UUID) error
@@ -106,12 +115,17 @@ type Queries interface {
 	DeleteUserProviderOAuthToken(ctx context.Context, arg dbsqlc.DeleteUserProviderOAuthTokenParams) error
 	DisableAllIntegrationAPITokens(ctx context.Context) error
 	DisableIntegrationAPIToken(ctx context.Context, id pgtype.UUID) (dbsqlc.IntegrationApiToken, error)
+	EnqueueEvent(ctx context.Context, arg dbsqlc.EnqueueEventParams) (dbsqlc.EventOutbox, error)
 	EvaluateBotACLRule(ctx context.Context, arg dbsqlc.EvaluateBotACLRuleParams) (string, error)
 	ExtendIAMSession(ctx context.Context, arg dbsqlc.ExtendIAMSessionParams) (dbsqlc.IamSession, error)
+	ExpireAgentRunLeases(ctx context.Context) (int64, error)
+	FailEventDelivery(ctx context.Context, arg dbsqlc.FailEventDeliveryParams) (dbsqlc.EventDelivery, error)
 	FindChatRoute(ctx context.Context, arg dbsqlc.FindChatRouteParams) (dbsqlc.FindChatRouteRow, error)
 	GetAccountByIdentity(ctx context.Context, identity string) (dbsqlc.IamUser, error)
 	GetAccountByUserID(ctx context.Context, userID pgtype.UUID) (dbsqlc.IamUser, error)
+	GetActiveAgentRunLease(ctx context.Context, runID pgtype.UUID) (dbsqlc.AgentRunLease, error)
 	GetActiveSessionForRoute(ctx context.Context, routeID pgtype.UUID) (dbsqlc.BotSession, error)
+	GetAgentRunLease(ctx context.Context, runID pgtype.UUID) (dbsqlc.AgentRunLease, error)
 	GetBindCode(ctx context.Context, token string) (dbsqlc.IamChannelIdentityBindCode, error)
 	GetBindCodeForUpdate(ctx context.Context, token string) (dbsqlc.IamChannelIdentityBindCode, error)
 	GetBotACLDefaultEffect(ctx context.Context, id pgtype.UUID) (string, error)
@@ -137,12 +151,14 @@ type Queries interface {
 	GetChatSettings(ctx context.Context, id pgtype.UUID) (dbsqlc.GetChatSettingsRow, error)
 	GetCompactionLogByID(ctx context.Context, id pgtype.UUID) (dbsqlc.BotHistoryMessageCompact, error)
 	GetContainerByBotID(ctx context.Context, botID pgtype.UUID) (dbsqlc.Container, error)
+	GetCurrentChannelConnectorLease(ctx context.Context, channelConfigID pgtype.UUID) (dbsqlc.ChannelConnectorLease, error)
 	GetDefaultMemoryProvider(ctx context.Context) (dbsqlc.MemoryProvider, error)
 	GetEmailOAuthTokenByProvider(ctx context.Context, emailProviderID pgtype.UUID) (dbsqlc.EmailOauthToken, error)
 	GetEmailOAuthTokenByState(ctx context.Context, state string) (dbsqlc.EmailOauthToken, error)
 	GetEmailOutboxByID(ctx context.Context, id pgtype.UUID) (dbsqlc.EmailOutbox, error)
 	GetEmailProviderByID(ctx context.Context, id pgtype.UUID) (dbsqlc.EmailProvider, error)
 	GetEmailProviderByName(ctx context.Context, name string) (dbsqlc.EmailProvider, error)
+	GetEventDelivery(ctx context.Context, arg dbsqlc.GetEventDeliveryParams) (dbsqlc.EventDelivery, error)
 	GetIAMGroupByID(ctx context.Context, id pgtype.UUID) (dbsqlc.IamGroup, error)
 	GetIAMSessionByID(ctx context.Context, id pgtype.UUID) (dbsqlc.GetIAMSessionByIDRow, error)
 	GetIdentityByProviderSubject(ctx context.Context, arg dbsqlc.GetIdentityByProviderSubjectParams) (dbsqlc.IamIdentity, error)
@@ -201,7 +217,8 @@ type Queries interface {
 	ListBotChannelConfigsByType(ctx context.Context, channelType string) ([]dbsqlc.BotChannelConfig, error)
 	ListBotEmailBindings(ctx context.Context, botID pgtype.UUID) ([]dbsqlc.BotEmailBinding, error)
 	ListBotEmailBindingsByProvider(ctx context.Context, emailProviderID pgtype.UUID) ([]dbsqlc.BotEmailBinding, error)
-	ListBotGroupsByOwner(ctx context.Context, ownerUserID pgtype.UUID) ([]dbsqlc.BotGroup, error)
+	ListAccessibleBotGroups(ctx context.Context, userID pgtype.UUID) ([]dbsqlc.BotGroup, error)
+	ListAccessibleBots(ctx context.Context, userID pgtype.UUID) ([]dbsqlc.ListAccessibleBotsRow, error)
 	ListBotsByOwner(ctx context.Context, ownerUserID pgtype.UUID) ([]dbsqlc.ListBotsByOwnerRow, error)
 	ListBrowserContexts(ctx context.Context) ([]dbsqlc.BrowserContext, error)
 	ListChannelIdentitiesByUserID(ctx context.Context, userID pgtype.UUID) ([]dbsqlc.IamChannelIdentity, error)
@@ -280,9 +297,12 @@ type Queries interface {
 	MarkBindCodeUsed(ctx context.Context, arg dbsqlc.MarkBindCodeUsedParams) (dbsqlc.IamChannelIdentityBindCode, error)
 	MarkMessagesCompacted(ctx context.Context, arg dbsqlc.MarkMessagesCompactedParams) error
 	NextVersion(ctx context.Context, containerID string) (int32, error)
+	ReleaseChannelConnectorLease(ctx context.Context, arg dbsqlc.ReleaseChannelConnectorLeaseParams) (int64, error)
 	RejectToolApprovalRequest(ctx context.Context, arg dbsqlc.RejectToolApprovalRequestParams) (dbsqlc.ToolApprovalRequest, error)
 	RemoveChatParticipant(ctx context.Context, arg dbsqlc.RemoveChatParticipantParams) error
 	ReplaceSSOGroupMemberships(ctx context.Context, arg dbsqlc.ReplaceSSOGroupMembershipsParams) error
+	RenewChannelConnectorLease(ctx context.Context, arg dbsqlc.RenewChannelConnectorLeaseParams) (dbsqlc.ChannelConnectorLease, error)
+	RevokeAgentRunLease(ctx context.Context, runID pgtype.UUID) (dbsqlc.AgentRunLease, error)
 	RevokeIAMSession(ctx context.Context, id pgtype.UUID) error
 	SaveMatrixSyncSinceToken(ctx context.Context, arg dbsqlc.SaveMatrixSyncSinceTokenParams) (int64, error)
 	SearchAccounts(ctx context.Context, arg dbsqlc.SearchAccountsParams) ([]dbsqlc.IamUser, error)
@@ -360,5 +380,6 @@ type Queries interface {
 	UpsertUserChannelBinding(ctx context.Context, arg dbsqlc.UpsertUserChannelBindingParams) (dbsqlc.IamUserChannelBinding, error)
 	UpsertUserProviderOAuthToken(ctx context.Context, arg dbsqlc.UpsertUserProviderOAuthTokenParams) (dbsqlc.IamUserProviderOauthToken, error)
 	UseIAMLoginCode(ctx context.Context, codeHash string) (dbsqlc.IamLoginCode, error)
+	ValidateActiveAgentRunLease(ctx context.Context, arg dbsqlc.ValidateActiveAgentRunLeaseParams) (dbsqlc.AgentRunLease, error)
 	WithTx(tx pgx.Tx) Queries
 }

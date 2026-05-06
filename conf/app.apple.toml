@@ -29,7 +29,7 @@ driver = "postgres"
 backend = "apple"
 default_image = "debian:bookworm-slim"
 image_pull_policy = "if_not_present"
-# Local workspace state and bridge sockets.
+# Local workspace state and workspace executor sockets.
 data_root = "data"
 
 [apple]

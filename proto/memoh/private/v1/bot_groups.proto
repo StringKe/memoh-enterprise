@@ -12,15 +12,17 @@ message BotGroup {
   string owner_user_id = 2;
   string name = 3;
   string description = 4;
-  google.protobuf.Struct metadata = 5;
-  int64 bot_count = 6;
-  AuditFields audit = 7;
+  string visibility = 5;
+  google.protobuf.Struct metadata = 6;
+  int64 bot_count = 7;
+  AuditFields audit = 8;
 }
 
 message CreateBotGroupRequest {
   string name = 1;
   string description = 2;
-  google.protobuf.Struct metadata = 3;
+  string visibility = 3;
+  google.protobuf.Struct metadata = 4;
 }
 
 message CreateBotGroupResponse {
@@ -48,7 +50,8 @@ message UpdateBotGroupRequest {
   string id = 1;
   string name = 2;
   string description = 3;
-  google.protobuf.Struct metadata = 4;
+  string visibility = 4;
+  google.protobuf.Struct metadata = 5;
 }
 
 message UpdateBotGroupResponse {
@@ -84,6 +87,43 @@ message DeleteBotGroupSettingsRequest {
 
 message DeleteBotGroupSettingsResponse {}
 
+message BotGroupPrincipalRole {
+  string id = 1;
+  string group_id = 2;
+  string principal_type = 3;
+  string principal_id = 4;
+  string role = 5;
+  AuditFields audit = 6;
+}
+
+message ListBotGroupPrincipalRolesRequest {
+  string group_id = 1;
+  PageRequest page = 2;
+}
+
+message ListBotGroupPrincipalRolesResponse {
+  repeated BotGroupPrincipalRole roles = 1;
+  PageResponse page = 2;
+}
+
+message AssignBotGroupPrincipalRoleRequest {
+  string group_id = 1;
+  string principal_type = 2;
+  string principal_id = 3;
+  string role = 4;
+}
+
+message AssignBotGroupPrincipalRoleResponse {
+  BotGroupPrincipalRole role = 1;
+}
+
+message DeleteBotGroupPrincipalRoleRequest {
+  string group_id = 1;
+  string id = 2;
+}
+
+message DeleteBotGroupPrincipalRoleResponse {}
+
 service BotGroupService {
   rpc CreateBotGroup(CreateBotGroupRequest) returns (CreateBotGroupResponse);
   rpc GetBotGroup(GetBotGroupRequest) returns (GetBotGroupResponse);
@@ -93,4 +133,7 @@ service BotGroupService {
   rpc GetBotGroupSettings(GetBotGroupSettingsRequest) returns (GetBotGroupSettingsResponse);
   rpc UpdateBotGroupSettings(UpdateBotGroupSettingsRequest) returns (UpdateBotGroupSettingsResponse);
   rpc DeleteBotGroupSettings(DeleteBotGroupSettingsRequest) returns (DeleteBotGroupSettingsResponse);
+  rpc ListBotGroupPrincipalRoles(ListBotGroupPrincipalRolesRequest) returns (ListBotGroupPrincipalRolesResponse);
+  rpc AssignBotGroupPrincipalRole(AssignBotGroupPrincipalRoleRequest) returns (AssignBotGroupPrincipalRoleResponse);
+  rpc DeleteBotGroupPrincipalRole(DeleteBotGroupPrincipalRoleRequest) returns (DeleteBotGroupPrincipalRoleResponse);
 }

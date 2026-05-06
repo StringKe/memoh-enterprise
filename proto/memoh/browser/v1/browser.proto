@@ -1,0 +1,149 @@
+syntax = "proto3";
+
+package memoh.browser.v1;
+
+import "google/protobuf/struct.proto";
+
+option go_package = "github.com/memohai/memoh/internal/connectapi/gen/memoh/browser/v1;browserv1";
+
+service BrowserService {
+  rpc ListCores(ListCoresRequest) returns (ListCoresResponse);
+  rpc ListDevices(ListDevicesRequest) returns (ListDevicesResponse);
+  rpc CreateContext(CreateContextRequest) returns (CreateContextResponse);
+  rpc CloseContext(CloseContextRequest) returns (CloseContextResponse);
+  rpc CreateSession(CreateSessionRequest) returns (CreateSessionResponse);
+  rpc CloseSession(CloseSessionRequest) returns (CloseSessionResponse);
+  rpc Navigate(NavigateRequest) returns (NavigateResponse);
+  rpc Click(ClickRequest) returns (ClickResponse);
+  rpc TypeText(TypeTextRequest) returns (TypeTextResponse);
+  rpc Screenshot(ScreenshotRequest) returns (ScreenshotResponse);
+  rpc Evaluate(EvaluateRequest) returns (EvaluateResponse);
+}
+
+message BrowserCore {
+  string id = 1;
+  string name = 2;
+  string version = 3;
+  google.protobuf.Struct metadata = 4;
+}
+
+message BrowserDevice {
+  string id = 1;
+  string name = 2;
+  string user_agent = 3;
+  int32 width = 4;
+  int32 height = 5;
+  bool mobile = 6;
+  google.protobuf.Struct metadata = 7;
+}
+
+message BrowserContext {
+  string context_id = 1;
+  string core_id = 2;
+  string device_id = 3;
+  google.protobuf.Struct options = 4;
+}
+
+message BrowserSession {
+  string session_id = 1;
+  string context_id = 2;
+  string url = 3;
+  string title = 4;
+}
+
+message ListCoresRequest {}
+
+message ListCoresResponse {
+  repeated BrowserCore cores = 1;
+}
+
+message ListDevicesRequest {}
+
+message ListDevicesResponse {
+  repeated BrowserDevice devices = 1;
+}
+
+message CreateContextRequest {
+  string core_id = 1;
+  string device_id = 2;
+  google.protobuf.Struct options = 3;
+}
+
+message CreateContextResponse {
+  BrowserContext context = 1;
+}
+
+message CloseContextRequest {
+  string context_id = 1;
+}
+
+message CloseContextResponse {}
+
+message CreateSessionRequest {
+  string context_id = 1;
+  string initial_url = 2;
+}
+
+message CreateSessionResponse {
+  BrowserSession session = 1;
+}
+
+message CloseSessionRequest {
+  string session_id = 1;
+}
+
+message CloseSessionResponse {}
+
+message NavigateRequest {
+  string session_id = 1;
+  string url = 2;
+  int32 timeout_ms = 3;
+}
+
+message NavigateResponse {
+  BrowserSession session = 1;
+  string status = 2;
+}
+
+message ClickRequest {
+  string session_id = 1;
+  string selector = 2;
+  int32 timeout_ms = 3;
+}
+
+message ClickResponse {
+  string status = 1;
+}
+
+message TypeTextRequest {
+  string session_id = 1;
+  string selector = 2;
+  string text = 3;
+  int32 timeout_ms = 4;
+}
+
+message TypeTextResponse {
+  string status = 1;
+}
+
+message ScreenshotRequest {
+  string session_id = 1;
+  string selector = 2;
+  bool full_page = 3;
+  int32 max_bytes = 4;
+}
+
+message ScreenshotResponse {
+  bytes image = 1;
+  string mime_type = 2;
+}
+
+message EvaluateRequest {
+  string session_id = 1;
+  string expression = 2;
+  google.protobuf.Struct args = 3;
+}
+
+message EvaluateResponse {
+  google.protobuf.Value result = 1;
+}

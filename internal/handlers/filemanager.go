@@ -12,7 +12,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"github.com/memohai/memoh/internal/workspace/bridge"
+	"github.com/memohai/memoh/internal/workspace/executorclient"
 )
 
 const mediaContainerRoot = "/data/media"
@@ -90,12 +90,12 @@ func isContainerMediaPath(containerPath string) bool {
 	return cleaned == mediaContainerRoot || strings.HasPrefix(cleaned, mediaContainerRoot+"/")
 }
 
-// getGRPCClient returns the gRPC client for the bot's container.
-func (h *ContainerdHandler) getGRPCClient(ctx context.Context, botID string) (*bridge.Client, error) {
-	return h.manager.MCPClient(ctx, botID)
+// getWorkspaceExecutorClient returns the workspace executor client for the bot's container.
+func (h *ContainerdHandler) getWorkspaceExecutorClient(ctx context.Context, botID string) (*executorclient.Client, error) {
+	return h.manager.ExecutorClient(ctx, botID)
 }
 
-// fsFileInfoFromEntry converts a gRPC FileEntry to FSFileInfo.
+// fsFileInfoFromEntry converts a workspace file entry to FSFileInfo.
 func fsFileInfoFromEntry(containerPath, name string, isDir bool, size int64, mode, modTime string) FSFileInfo {
 	return FSFileInfo{
 		Name:    name,
@@ -110,13 +110,13 @@ func fsFileInfoFromEntry(containerPath, name string, isDir bool, size int64, mod
 // fsHTTPError maps mcpclient domain errors to HTTP status codes.
 func fsHTTPError(err error) *echo.HTTPError {
 	switch {
-	case errors.Is(err, bridge.ErrNotFound):
+	case errors.Is(err, executorclient.ErrNotFound):
 		return echo.NewHTTPError(http.StatusNotFound, err.Error())
-	case errors.Is(err, bridge.ErrBadRequest):
+	case errors.Is(err, executorclient.ErrBadRequest):
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
-	case errors.Is(err, bridge.ErrForbidden):
+	case errors.Is(err, executorclient.ErrForbidden):
 		return echo.NewHTTPError(http.StatusForbidden, err.Error())
-	case errors.Is(err, bridge.ErrUnavailable):
+	case errors.Is(err, executorclient.ErrUnavailable):
 		return echo.NewHTTPError(http.StatusServiceUnavailable, err.Error())
 	default:
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
@@ -153,7 +153,7 @@ func (h *ContainerdHandler) FSStat(c echo.Context) error {
 	}
 
 	ctx := c.Request().Context()
-	client, err := h.getGRPCClient(ctx, botID)
+	client, err := h.getWorkspaceExecutorClient(ctx, botID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusServiceUnavailable, fmt.Sprintf("container not reachable: %v", err))
 	}
@@ -200,7 +200,7 @@ func (h *ContainerdHandler) FSList(c echo.Context) error {
 	}
 
 	ctx := c.Request().Context()
-	client, err := h.getGRPCClient(ctx, botID)
+	client, err := h.getWorkspaceExecutorClient(ctx, botID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusServiceUnavailable, fmt.Sprintf("container not reachable: %v", err))
 	}
@@ -258,7 +258,7 @@ func (h *ContainerdHandler) FSRead(c echo.Context) error {
 	}
 
 	ctx := c.Request().Context()
-	client, err := h.getGRPCClient(ctx, botID)
+	client, err := h.getWorkspaceExecutorClient(ctx, botID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusServiceUnavailable, fmt.Sprintf("container not reachable: %v", err))
 	}
@@ -314,7 +314,7 @@ func (h *ContainerdHandler) FSDownload(c echo.Context) error {
 	}
 
 	ctx := c.Request().Context()
-	client, err := h.getGRPCClient(ctx, botID)
+	client, err := h.getWorkspaceExecutorClient(ctx, botID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusServiceUnavailable, fmt.Sprintf("container not reachable: %v", err))
 	}
@@ -370,7 +370,7 @@ func (h *ContainerdHandler) FSWrite(c echo.Context) error {
 	}
 
 	ctx := c.Request().Context()
-	client, err := h.getGRPCClient(ctx, botID)
+	client, err := h.getWorkspaceExecutorClient(ctx, botID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusServiceUnavailable, fmt.Sprintf("container not reachable: %v", err))
 	}
@@ -411,7 +411,7 @@ func (h *ContainerdHandler) FSUpload(c echo.Context) error {
 	}
 
 	ctx := c.Request().Context()
-	client, err := h.getGRPCClient(ctx, botID)
+	client, err := h.getWorkspaceExecutorClient(ctx, botID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusServiceUnavailable, fmt.Sprintf("container not reachable: %v", err))
 	}
@@ -467,7 +467,7 @@ func (h *ContainerdHandler) FSMkdir(c echo.Context) error {
 	}
 
 	ctx := c.Request().Context()
-	client, err := h.getGRPCClient(ctx, botID)
+	client, err := h.getWorkspaceExecutorClient(ctx, botID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusServiceUnavailable, fmt.Sprintf("container not reachable: %v", err))
 	}
@@ -514,7 +514,7 @@ func (h *ContainerdHandler) FSDelete(c echo.Context) error {
 	}
 
 	ctx := c.Request().Context()
-	client, err := h.getGRPCClient(ctx, botID)
+	client, err := h.getWorkspaceExecutorClient(ctx, botID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusServiceUnavailable, fmt.Sprintf("container not reachable: %v", err))
 	}
@@ -561,7 +561,7 @@ func (h *ContainerdHandler) FSRename(c echo.Context) error {
 	}
 
 	ctx := c.Request().Context()
-	client, err := h.getGRPCClient(ctx, botID)
+	client, err := h.getWorkspaceExecutorClient(ctx, botID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusServiceUnavailable, fmt.Sprintf("container not reachable: %v", err))
 	}

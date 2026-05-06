@@ -12,6 +12,7 @@ REPO="https://github.com/${GITHUB_REPO}.git"
 DIR="memoh-enterprise"
 COMPOSE_PROJECT_NAME="memoh"
 SILENT=false
+DRY_RUN=false
 DEPLOY_RUNTIME="${MEMOH_DEPLOY_RUNTIME:-containerd}"
 VERSION_SET=false
 
@@ -48,7 +49,7 @@ else
 fi
 
 NETWORK_NAME="${COMPOSE_PROJECT_NAME}_memoh-network"
-PROJECT_CONTAINERS="memoh-postgres memoh-migrate memoh-server memoh-sparse memoh-qdrant memoh-browser"
+PROJECT_CONTAINERS="memoh-postgres memoh-migrate memoh-server memoh-web memoh-browser memoh-agent-runner memoh-connector memoh-integration-gateway memoh-worker memoh-sparse memoh-qdrant"
 PROJECT_VOLUMES="${COMPOSE_PROJECT_NAME}_postgres_data ${COMPOSE_PROJECT_NAME}_containerd_data ${COMPOSE_PROJECT_NAME}_memoh_data ${COMPOSE_PROJECT_NAME}_server_cni_state ${COMPOSE_PROJECT_NAME}_qdrant_data ${COMPOSE_PROJECT_NAME}_openviking_data"
 
 EXISTING_CONFIG_SOURCE=""
@@ -65,6 +66,7 @@ EXISTING_REPO_DIR=false
 while [ $# -gt 0 ]; do
   case "$1" in
     -y|--yes) SILENT=true ;;
+    --dry-run) DRY_RUN=true ;;
     --version)
       shift
       MEMOH_VERSION="$1"
@@ -222,6 +224,18 @@ normalize_deploy_runtime() {
   esac
 }
 
+validate_version_or_exit() {
+  version="$1"
+  if [ -z "$version" ] || [ "$version" = "latest" ]; then
+    return
+  fi
+  if printf '%s' "$version" | grep -Eq '^v?[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.]+)?$'; then
+    return
+  fi
+  echo "${RED}Error: unsupported version '${version}'. Use latest or a semver tag such as v0.8.0.${NC}" >&2
+  exit 1
+}
+
 normalize_deploy_runtime_or_exit() {
   normalized_deploy_runtime=$(normalize_deploy_runtime "$DEPLOY_RUNTIME" || true)
   if [ -z "$normalized_deploy_runtime" ]; then
@@ -241,9 +255,11 @@ normalize_container_backend_or_exit() {
 }
 
 enforce_compose_container_backend() {
-  if [ "$CONTAINER_BACKEND" = "containerd" ]; then
+  case "$CONTAINER_BACKEND" in
+    containerd|docker|podman)
     return
-  fi
+      ;;
+  esac
   if [ "$INSTALL_MODE" = "upgrade" ] && [ "$CONTAINER_BACKEND_SET" = false ]; then
     echo "${YELLOW}ℹ Existing config uses workspace backend '${CONTAINER_BACKEND}'. The one-click compose stack is designed for containerd; reusing your config unchanged.${NC}"
     return
@@ -252,6 +268,54 @@ enforce_compose_container_backend() {
   echo "The server image starts an embedded containerd and mounts the required runtime paths."
   echo "For docker, podman, kubernetes, or apple backends, use a manual deployment and edit [container].backend in config.toml."
   exit 1
+}
+
+missing_command() {
+  command -v "$1" >/dev/null 2>&1 || printf ' %s' "$1"
+}
+
+validate_dry_run_runtime_or_exit() {
+  missing=""
+  missing="$missing$(missing_command git)"
+  case "$DEPLOY_RUNTIME" in
+    containerd)
+      missing="$missing$(missing_command containerd)"
+      missing="$missing$(missing_command nerdctl)"
+      if ! command -v buildctl >/dev/null 2>&1 && ! command -v buildkitd >/dev/null 2>&1; then
+        missing="$missing buildkit"
+      fi
+      ;;
+    docker)
+      missing="$missing$(missing_command docker)"
+      ;;
+    podman)
+      missing="$missing$(missing_command podman)"
+      ;;
+  esac
+  if [ -n "$missing" ]; then
+    echo "${RED}Error: dry-run prerequisite check failed. Missing:${missing}${NC}" >&2
+    exit 1
+  fi
+}
+
+print_runtime_plan() {
+  echo "${GREEN}Memoh Enterprise install plan${NC}"
+  echo "  version: ${MEMOH_DOCKER_VERSION}"
+  echo "  image registry: ghcr.io/stringke"
+  echo "  deployment runtime: ${DEPLOY_RUNTIME}"
+  echo "  workspace backend: ${CONTAINER_BACKEND}"
+  echo "  database backend: postgres"
+  echo ""
+  echo "  services:"
+  echo "    server:              26810"
+  echo "    web:                 26811"
+  echo "    browser-gateway:     26812"
+  echo "    agent-runner:        26813"
+  echo "    connector:           26814"
+  echo "    integration-gateway: 26815"
+  echo "    worker:              26816"
+  echo "    postgres:            26817"
+  echo "    qdrant:              26818"
 }
 
 escape_toml_string() {
@@ -733,10 +797,28 @@ show_failure_logs() {
 }
 
 normalize_deploy_runtime_or_exit
+normalize_container_backend_or_exit
+
+if [ "$DRY_RUN" = true ]; then
+  if [ -z "$MEMOH_VERSION" ]; then
+    MEMOH_VERSION="latest"
+  fi
+  validate_version_or_exit "$MEMOH_VERSION"
+  if [ "$MEMOH_VERSION" = "latest" ]; then
+    MEMOH_DOCKER_VERSION="latest"
+  else
+    MEMOH_DOCKER_VERSION=$(echo "$MEMOH_VERSION" | sed 's/^v//')
+  fi
+  validate_dry_run_runtime_or_exit
+  print_runtime_plan
+  exit 0
+fi
+
 ensure_common_tools
 ensure_deploy_runtime
 
 # Resolve version: use MEMOH_VERSION env if set, otherwise fetch latest release
+validate_version_or_exit "$MEMOH_VERSION"
 if [ "$VERSION_SET" = true ] && [ "$MEMOH_VERSION" = "latest" ]; then
     echo "${GREEN}✓ Using latest image tag from main checkout${NC}"
 elif [ -n "$MEMOH_VERSION" ]; then

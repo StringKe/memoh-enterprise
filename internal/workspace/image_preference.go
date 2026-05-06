@@ -12,7 +12,7 @@ import (
 	"github.com/memohai/memoh/internal/config"
 	"github.com/memohai/memoh/internal/db"
 	dbsqlc "github.com/memohai/memoh/internal/db/postgres/sqlc"
-	"github.com/memohai/memoh/internal/workspace/bridge"
+	"github.com/memohai/memoh/internal/workspace/executorclient"
 )
 
 const (
@@ -76,12 +76,12 @@ func workspaceBackendFromMetadata(metadata map[string]any) string {
 	section := workspaceSection(metadata)
 	backend, _ := section[workspaceBackendMetadataKey].(string)
 	switch strings.ToLower(strings.TrimSpace(backend)) {
-	case bridge.WorkspaceBackendLocal:
-		return bridge.WorkspaceBackendLocal
-	case bridge.WorkspaceBackendContainer, "":
-		return bridge.WorkspaceBackendContainer
+	case executorclient.WorkspaceBackendLocal:
+		return executorclient.WorkspaceBackendLocal
+	case executorclient.WorkspaceBackendContainer, "":
+		return executorclient.WorkspaceBackendContainer
 	default:
-		return bridge.WorkspaceBackendContainer
+		return executorclient.WorkspaceBackendContainer
 	}
 }
 
@@ -272,7 +272,7 @@ func (m *Manager) botWorkspaceImagePreference(ctx context.Context, botID string)
 
 func (m *Manager) botWorkspaceStartPreference(ctx context.Context, botID string) (WorkspaceStartConfig, error) {
 	if m.queries == nil {
-		return WorkspaceStartConfig{Backend: bridge.WorkspaceBackendContainer}, nil
+		return WorkspaceStartConfig{Backend: executorclient.WorkspaceBackendContainer}, nil
 	}
 	botUUID, err := db.ParseUUID(botID)
 	if err != nil {
@@ -281,7 +281,7 @@ func (m *Manager) botWorkspaceStartPreference(ctx context.Context, botID string)
 	row, err := m.queries.GetBotByID(ctx, botUUID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return WorkspaceStartConfig{Backend: bridge.WorkspaceBackendContainer}, nil
+			return WorkspaceStartConfig{Backend: executorclient.WorkspaceBackendContainer}, nil
 		}
 		return WorkspaceStartConfig{}, err
 	}

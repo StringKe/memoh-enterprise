@@ -27,10 +27,10 @@ import (
 )
 
 const (
-	snapshotImageRepository = "memoh-workspace-snapshot"
-	snapshotParentLabel     = "memoh.snapshot_parent"
-	bridgeTCPPort           = "9090"
-	workspaceContainerPref  = "workspace-"
+	snapshotImageRepository  = "memoh-workspace-snapshot"
+	snapshotParentLabel      = "memoh.snapshot_parent"
+	workspaceExecutorTCPPort = "9090"
+	workspaceContainerPref   = "workspace-"
 )
 
 var invalidSnapshotTagChars = regexp.MustCompile(`[^A-Za-z0-9_.-]+`)
@@ -151,7 +151,7 @@ func (s *Service) CreateContainer(ctx context.Context, req containerapi.CreateCo
 		DNS:    req.Spec.DNS,
 		Init:   boolPtr(true),
 		PortBindings: nat.PortMap{
-			nat.Port(bridgeTCPPort + "/tcp"): []nat.PortBinding{{HostIP: "127.0.0.1", HostPort: ""}},
+			nat.Port(workspaceExecutorTCPPort + "/tcp"): []nat.PortBinding{{HostIP: "127.0.0.1", HostPort: ""}},
 		},
 	}
 	if req.Spec.NetworkJoinTarget.Value != "" {
@@ -160,13 +160,13 @@ func (s *Service) CreateContainer(ctx context.Context, req containerapi.CreateCo
 	cfg := &container.Config{
 		Image:      req.ImageRef,
 		Cmd:        req.Spec.Cmd,
-		Env:        upsertEnv(req.Spec.Env, "BRIDGE_TCP_ADDR", ":"+bridgeTCPPort),
+		Env:        upsertEnv(req.Spec.Env, "WORKSPACE_EXECUTOR_TCP_ADDR", ":"+workspaceExecutorTCPPort),
 		WorkingDir: req.Spec.WorkDir,
 		User:       req.Spec.User,
 		Tty:        req.Spec.TTY,
 		Labels:     labels,
 		ExposedPorts: nat.PortSet{
-			nat.Port(bridgeTCPPort + "/tcp"): struct{}{},
+			nat.Port(workspaceExecutorTCPPort + "/tcp"): struct{}{},
 		},
 	}
 	resp, err := s.client.ContainerCreate(ctx, cfg, hostCfg, nil, nil, req.ID)
@@ -176,7 +176,7 @@ func (s *Service) CreateContainer(ctx context.Context, req containerapi.CreateCo
 	return s.GetContainer(ctx, resp.ID)
 }
 
-func (s *Service) BridgeTarget(botID string) string {
+func (s *Service) WorkspaceExecutorTarget(botID string) string {
 	if strings.TrimSpace(botID) == "" {
 		return ""
 	}
@@ -186,14 +186,14 @@ func (s *Service) BridgeTarget(botID string) string {
 	if err != nil {
 		return ""
 	}
-	if host := firstHostPort(info, bridgeTCPPort); host != "" {
+	if host := firstHostPort(info, workspaceExecutorTCPPort); host != "" {
 		return host
 	}
 	ip := firstContainerIP(info)
 	if ip == "" {
 		return ""
 	}
-	return net.JoinHostPort(ip, bridgeTCPPort)
+	return net.JoinHostPort(ip, workspaceExecutorTCPPort)
 }
 
 func firstHostPort(info container.InspectResponse, port string) string {

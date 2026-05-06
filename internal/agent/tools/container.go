@@ -16,8 +16,8 @@ import (
 	sdk "github.com/memohai/twilight-ai/sdk"
 
 	"github.com/memohai/memoh/internal/agent/background"
-	"github.com/memohai/memoh/internal/workspace/bridge"
-	pb "github.com/memohai/memoh/internal/workspace/bridgepb"
+	pb "github.com/memohai/memoh/internal/connectapi/gen/memoh/workspace/v1"
+	"github.com/memohai/memoh/internal/workspace/executorclient"
 )
 
 // blockedSleepPattern matches standalone `sleep N` where N >= 2.
@@ -32,17 +32,17 @@ const containerOpTimeout = 30 * time.Second
 
 // largeFileThreshold defines the size above which file operations use
 // streaming (async chunked I/O) instead of loading fully into memory.
-// Files <= this threshold use the simpler synchronous gRPC calls.
+// Files <= this threshold use the simpler synchronous ConnectRPC calls.
 const largeFileThreshold = 512 * 1024 // 512 KB
 
 type ContainerProvider struct {
-	clients     bridge.Provider
+	clients     executorclient.Provider
 	bgManager   *background.Manager
 	execWorkDir string
 	logger      *slog.Logger
 }
 
-func NewContainerProvider(log *slog.Logger, clients bridge.Provider, bgManager *background.Manager, execWorkDir string) *ContainerProvider {
+func NewContainerProvider(log *slog.Logger, clients executorclient.Provider, bgManager *background.Manager, execWorkDir string) *ContainerProvider {
 	if log == nil {
 		log = slog.Default()
 	}
@@ -183,11 +183,11 @@ type toolWorkspace struct {
 }
 
 func (p *ContainerProvider) resolveToolWorkspace(ctx context.Context, session SessionContext) toolWorkspace {
-	info := bridge.WorkspaceInfo{
-		Backend:        bridge.WorkspaceBackendContainer,
+	info := executorclient.WorkspaceInfo{
+		Backend:        executorclient.WorkspaceBackendContainer,
 		DefaultWorkDir: p.execWorkDir,
 	}
-	if resolver, ok := p.clients.(bridge.WorkspaceInfoProvider); ok {
+	if resolver, ok := p.clients.(executorclient.WorkspaceInfoProvider); ok {
 		if resolved, err := resolver.WorkspaceInfo(ctx, session.BotID); err == nil {
 			info = resolved
 		}
@@ -196,7 +196,7 @@ func (p *ContainerProvider) resolveToolWorkspace(ctx context.Context, session Se
 	if wd == "" {
 		wd = p.execWorkDir
 	}
-	if strings.EqualFold(info.Backend, bridge.WorkspaceBackendLocal) {
+	if strings.EqualFold(info.Backend, executorclient.WorkspaceBackendLocal) {
 		return toolWorkspace{
 			defaultWorkDir:          wd,
 			locationDescription:     "on the local machine",
@@ -228,12 +228,12 @@ func (*ContainerProvider) normalizePath(path, workDir string) string {
 	return path
 }
 
-func (p *ContainerProvider) getClient(ctx context.Context, botID string) (*bridge.Client, error) {
+func (p *ContainerProvider) getClient(ctx context.Context, botID string) (*executorclient.Client, error) {
 	botID = strings.TrimSpace(botID)
 	if botID == "" {
 		return nil, errors.New("bot_id is required")
 	}
-	client, err := p.clients.MCPClient(ctx, botID)
+	client, err := p.clients.ExecutorClient(ctx, botID)
 	if err != nil {
 		return nil, fmt.Errorf("container not reachable: %w", err)
 	}
@@ -547,7 +547,7 @@ func (p *ContainerProvider) execExec(ctx context.Context, session SessionContext
 // background manager — the process keeps running in the container, and the
 // agent gets an immediate "auto_backgrounded" response.
 func (p *ContainerProvider) execExecWithFlip(
-	ctx context.Context, session SessionContext, client *bridge.Client,
+	ctx context.Context, session SessionContext, client *executorclient.Client,
 	command, workDir, description string, softTimeout int32,
 ) (any, error) {
 	// Start streaming exec with a large container-side timeout so the process
@@ -579,12 +579,12 @@ func (p *ContainerProvider) execExecWithFlip(
 				resultCh <- background.AdoptResult{Err: recvErr}
 				return
 			}
-			switch msg.GetStream() {
-			case pb.ExecOutput_STDOUT:
+			switch msg.GetKind() {
+			case pb.ExecResponse_KIND_STDOUT:
 				stdout.Write(msg.GetData())
-			case pb.ExecOutput_STDERR:
+			case pb.ExecResponse_KIND_STDERR:
 				stderr.Write(msg.GetData())
-			case pb.ExecOutput_EXIT:
+			case pb.ExecResponse_KIND_EXIT:
 				exitCode = msg.GetExitCode()
 			}
 		}
@@ -624,7 +624,7 @@ func (p *ContainerProvider) execExecWithFlip(
 // The goroutine reading from the stream continues; its result feeds the task.
 func (p *ContainerProvider) flipToBackground(
 	ctx context.Context,
-	session SessionContext, client *bridge.Client,
+	session SessionContext, client *executorclient.Client,
 	resultCh <-chan background.AdoptResult,
 	command, workDir, description string, softTimeout int32,
 ) (any, error) {
@@ -677,10 +677,10 @@ func detectBlockedSleep(command string) string {
 // returns (taskID, outputFile). Used by both explicit and auto-background paths.
 func (p *ContainerProvider) spawnBackground(
 	ctx context.Context,
-	session SessionContext, client *bridge.Client,
+	session SessionContext, client *executorclient.Client,
 	command, workDir, description string,
 ) (taskID, outputFile string) {
-	execFn := func(ctx context.Context, cmd, wd string, timeout int32) (*bridge.ExecResult, error) {
+	execFn := func(ctx context.Context, cmd, wd string, timeout int32) (*executorclient.ExecResult, error) {
 		return client.Exec(ctx, cmd, wd, timeout)
 	}
 	writeFn := func(ctx context.Context, path string, data []byte) error {
@@ -689,7 +689,7 @@ func (p *ContainerProvider) spawnBackground(
 	readFn := func(ctx context.Context, path string) ([]byte, error) {
 		// Use pool to get a fresh client — the original client may be in a failed
 		// state if the streaming exec errored, but the pool will re-dial as needed.
-		c, err := p.clients.MCPClient(ctx, session.BotID)
+		c, err := p.clients.ExecutorClient(ctx, session.BotID)
 		if err != nil {
 			return nil, err
 		}
@@ -710,7 +710,7 @@ func (p *ContainerProvider) spawnBackground(
 
 // execExecBackground spawns the command as a background task and returns immediately.
 func (p *ContainerProvider) execExecBackground(
-	ctx context.Context, session SessionContext, client *bridge.Client,
+	ctx context.Context, session SessionContext, client *executorclient.Client,
 	command, workDir, description string,
 ) (any, error) {
 	taskID, outputFile := p.spawnBackground(ctx, session, client, command, workDir, description)

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -22,8 +23,11 @@ const defaultProtocolVersion = "2026-05-05"
 type Options struct {
 	URL                  string
 	Token                string
+	ClientID             string
+	ClientCredential     string
 	ProtocolVersion      string
 	RequestTimeout       time.Duration
+	HeartbeatInterval    time.Duration
 	ReconnectBackoff     time.Duration
 	MaxReconnectAttempts int
 	Dialer               *websocket.Dialer
@@ -118,14 +122,28 @@ func New(options Options) *Client {
 }
 
 func (c *Client) Connect(ctx context.Context) (ConnectionInfo, error) {
-	conn, resp, err := c.options.Dialer.DialContext(ctx, c.options.URL, c.options.Header)
+	conn, resp, err := c.options.Dialer.DialContext(ctx, c.options.URL, c.dialHeader())
 	if resp != nil {
 		_ = resp.Body.Close()
 	}
 	if err != nil {
 		return ConnectionInfo{}, err
 	}
+	authenticated := false
+	defer func() {
+		if authenticated {
+			return
+		}
+		c.mu.Lock()
+		if c.conn == conn {
+			c.conn = nil
+		}
+		c.mu.Unlock()
+		_ = conn.Close()
+	}()
+	c.mu.Lock()
 	c.conn = conn
+	c.mu.Unlock()
 	if err := c.writeEnvelope(&integrationv1.Envelope{
 		Version:   c.options.ProtocolVersion,
 		MessageId: c.options.IDFactory(),
@@ -133,25 +151,28 @@ func (c *Client) Connect(ctx context.Context) (ConnectionInfo, error) {
 			AuthRequest: &integrationv1.AuthRequest{Token: c.options.Token},
 		},
 	}); err != nil {
-		_ = conn.Close()
 		return ConnectionInfo{}, err
 	}
 	envelope, err := readEnvelope(conn)
 	if err != nil {
-		_ = conn.Close()
 		return ConnectionInfo{}, err
 	}
 	if protocolErr := envelope.GetError(); protocolErr != nil {
-		_ = conn.Close()
 		return ConnectionInfo{}, &ProtocolError{Code: protocolErr.GetCode(), Message: protocolErr.GetMessage()}
 	}
 	auth := envelope.GetAuthResponse()
 	if auth == nil {
-		_ = conn.Close()
 		return ConnectionInfo{}, errors.New("integration auth response missing")
 	}
 	c.resetRuntime()
-	go c.readLoop()
+	c.mu.Lock()
+	c.conn = conn
+	c.mu.Unlock()
+	authenticated = true
+	go c.readLoop(conn)
+	if c.options.HeartbeatInterval > 0 {
+		go c.heartbeatLoop(context.WithoutCancel(ctx), c.done)
+	}
 	return ConnectionInfo{
 		IntegrationID:   auth.GetIntegrationId(),
 		ScopeType:       auth.GetScopeType(),
@@ -321,6 +342,7 @@ func (c *Client) Close() error {
 	conn := c.conn
 	c.conn = nil
 	c.rejectPendingLocked(errors.New("integration websocket closed"))
+	c.closeDoneLocked()
 	c.mu.Unlock()
 	if conn == nil {
 		return nil
@@ -379,12 +401,16 @@ func (c *Client) request(ctx context.Context, payload any) (*integrationv1.Envel
 	}
 }
 
-func (c *Client) readLoop() {
+func (c *Client) readLoop(conn *websocket.Conn) {
 	for {
-		envelope, err := readEnvelope(c.conn)
+		envelope, err := readEnvelope(conn)
 		if err != nil {
 			c.mu.Lock()
-			c.rejectPendingLocked(err)
+			if c.conn == conn {
+				c.conn = nil
+				c.rejectPendingLocked(err)
+				c.closeDoneLocked()
+			}
 			c.mu.Unlock()
 			return
 		}
@@ -432,6 +458,27 @@ func (c *Client) resetRuntime() {
 	c.mu.Unlock()
 }
 
+func (c *Client) heartbeatLoop(ctx context.Context, done <-chan struct{}) {
+	ticker := time.NewTicker(c.options.HeartbeatInterval)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-done:
+			return
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			pingCtx, cancel := context.WithTimeout(ctx, c.options.RequestTimeout)
+			err := c.Ping(pingCtx)
+			cancel()
+			if err != nil {
+				_ = c.Close()
+				return
+			}
+		}
+	}
+}
+
 func (c *Client) seenEvent(messageID string) bool {
 	if messageID == "" {
 		return false
@@ -450,6 +497,28 @@ func (c *Client) rejectPendingLocked(err error) {
 		ch <- response{err: err}
 		delete(c.pending, id)
 	}
+}
+
+func (c *Client) closeDoneLocked() {
+	select {
+	case <-c.done:
+	default:
+		close(c.done)
+	}
+}
+
+func (c *Client) dialHeader() http.Header {
+	header := cloneHeader(c.options.Header)
+	if c.options.Token != "" && !hasHeader(header, "Authorization") {
+		header.Set("Authorization", "Bearer "+c.options.Token)
+	}
+	if c.options.ClientID != "" {
+		header.Set("X-Memoh-Client-ID", c.options.ClientID)
+	}
+	if c.options.ClientCredential != "" {
+		header.Set("X-Memoh-Client-Secret", c.options.ClientCredential)
+	}
+	return header
 }
 
 func (c *Client) writeEnvelope(envelope *integrationv1.Envelope) error {
@@ -500,4 +569,31 @@ func cloneStringMap(values map[string]string) map[string]string {
 		cloned[key] = value
 	}
 	return cloned
+}
+
+func cloneHeader(header http.Header) http.Header {
+	if len(header) == 0 {
+		return make(http.Header)
+	}
+	cloned := make(http.Header, len(header))
+	for key, values := range header {
+		cloned[key] = append([]string(nil), values...)
+	}
+	return cloned
+}
+
+func hasHeader(header http.Header, name string) bool {
+	if len(header) == 0 {
+		return false
+	}
+	_, ok := header[http.CanonicalHeaderKey(name)]
+	if ok {
+		return true
+	}
+	for key := range header {
+		if strings.EqualFold(key, name) {
+			return true
+		}
+	}
+	return false
 }

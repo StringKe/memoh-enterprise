@@ -3,9 +3,9 @@ package workspace
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"log/slog"
-	"net"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -13,15 +13,14 @@ import (
 	"sync"
 	"time"
 
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
-	"google.golang.org/grpc/test/bufconn"
+	"golang.org/x/net/http2"
+	"golang.org/x/net/http2/h2c"
 
 	"github.com/memohai/memoh/internal/config"
+	"github.com/memohai/memoh/internal/connectapi/gen/memoh/workspace/v1/workspacev1connect"
 	ctr "github.com/memohai/memoh/internal/container"
-	"github.com/memohai/memoh/internal/workspace/bridge"
-	pb "github.com/memohai/memoh/internal/workspace/bridgepb"
-	"github.com/memohai/memoh/internal/workspace/bridgesvc"
+	"github.com/memohai/memoh/internal/workspace/executorclient"
+	"github.com/memohai/memoh/internal/workspace/executorsvc"
 )
 
 const (
@@ -36,7 +35,7 @@ type LocalService struct {
 	dataRoot     string
 	logger       *slog.Logger
 	mu           sync.Mutex
-	localClients map[string]*localBridgeClient
+	localClients map[string]*localExecutorClient
 }
 
 type localContainerMetadata struct {
@@ -50,11 +49,9 @@ type localContainerMetadata struct {
 	UpdatedAt     time.Time         `json:"updated_at"`
 }
 
-type localBridgeClient struct {
-	client   *bridge.Client
-	conn     *grpc.ClientConn
-	server   *grpc.Server
-	listener *bufconn.Listener
+type localExecutorClient struct {
+	client *executorclient.Client
+	server *httptest.Server
 }
 
 func NewLocalService(log *slog.Logger, cfg config.LocalConfig, dataRoot string) *LocalService {
@@ -65,7 +62,7 @@ func NewLocalService(log *slog.Logger, cfg config.LocalConfig, dataRoot string) 
 		cfg:          cfg,
 		dataRoot:     dataRoot,
 		logger:       log.With(slog.String("service", "local-workspace")),
-		localClients: make(map[string]*localBridgeClient),
+		localClients: make(map[string]*localExecutorClient),
 	}
 }
 
@@ -107,7 +104,7 @@ func (s *LocalService) CreateContainer(ctx context.Context, req ctr.CreateContai
 	if err := os.MkdirAll(absPath, 0o750); err != nil {
 		return ctr.ContainerInfo{}, err
 	}
-	if err := seedBridgeTemplates(absPath); err != nil {
+	if err := seedExecutorTemplates(absPath); err != nil {
 		return ctr.ContainerInfo{}, err
 	}
 	if err := os.MkdirAll(s.metadataRoot(), 0o750); err != nil {
@@ -291,7 +288,7 @@ func (*LocalService) SnapshotSupported(context.Context) bool {
 	return false
 }
 
-func (s *LocalService) MCPClient(_ context.Context, botID string) (*bridge.Client, error) {
+func (s *LocalService) ExecutorClient(ctx context.Context, botID string) (*executorclient.Client, error) {
 	meta, err := s.readMetadata(LocalContainerPrefix + strings.TrimSpace(botID))
 	if err != nil {
 		return nil, err
@@ -307,7 +304,7 @@ func (s *LocalService) MCPClient(_ context.Context, botID string) (*bridge.Clien
 	if cached, ok := s.localClients[botID]; ok {
 		return cached.client, nil
 	}
-	client, err := s.newBridgeClient(meta)
+	client, err := s.newExecutorClient(ctx, meta)
 	if err != nil {
 		return nil, err
 	}
@@ -315,13 +312,13 @@ func (s *LocalService) MCPClient(_ context.Context, botID string) (*bridge.Clien
 	return client.client, nil
 }
 
-func (s *LocalService) WorkspaceInfo(_ context.Context, botID string) (bridge.WorkspaceInfo, error) {
+func (s *LocalService) WorkspaceInfo(_ context.Context, botID string) (executorclient.WorkspaceInfo, error) {
 	meta, err := s.readMetadata(LocalContainerPrefix + strings.TrimSpace(botID))
 	if err != nil {
-		return bridge.WorkspaceInfo{}, err
+		return executorclient.WorkspaceInfo{}, err
 	}
-	return bridge.WorkspaceInfo{
-		Backend:        bridge.WorkspaceBackendLocal,
+	return executorclient.WorkspaceInfo{
+		Backend:        executorclient.WorkspaceBackendLocal,
 		DefaultWorkDir: meta.WorkspacePath,
 	}, nil
 }
@@ -338,43 +335,24 @@ func (s *LocalService) DefaultWorkspacePath(botID, displayName string) string {
 	return filepath.Join(s.cfg.WorkspaceParent(), name)
 }
 
-func (s *LocalService) newBridgeClient(meta localContainerMetadata) (*localBridgeClient, error) {
-	listener := bufconn.Listen(16 * 1024 * 1024)
-	server := grpc.NewServer(
-		grpc.MaxRecvMsgSize(16*1024*1024),
-		grpc.MaxSendMsgSize(16*1024*1024),
-	)
-	pb.RegisterContainerServiceServer(server, bridgesvc.New(bridgesvc.Options{
+func (s *LocalService) newExecutorClient(ctx context.Context, meta localContainerMetadata) (*localExecutorClient, error) {
+	mux := http.NewServeMux()
+	path, handler := workspacev1connect.NewWorkspaceExecutorServiceHandler(executorsvc.New(executorsvc.Options{
 		DefaultWorkDir:    meta.WorkspacePath,
 		WorkspaceRoot:     meta.WorkspacePath,
 		DataMount:         config.DefaultDataMount,
 		AllowHostAbsolute: s.cfg.AllowAbsolutePaths,
 	}))
-	go func() {
-		if err := server.Serve(listener); err != nil && !errors.Is(err, grpc.ErrServerStopped) {
-			s.logger.Warn("local bridge server stopped", slog.String("bot_id", meta.BotID), slog.Any("error", err))
-		}
-	}()
-	conn, err := grpc.NewClient("passthrough:///local-"+meta.BotID,
-		grpc.WithContextDialer(func(dialCtx context.Context, _ string) (net.Conn, error) {
-			return listener.DialContext(dialCtx)
-		}),
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithDefaultCallOptions(
-			grpc.MaxCallRecvMsgSize(16*1024*1024),
-			grpc.MaxCallSendMsgSize(16*1024*1024),
-		),
-	)
+	mux.Handle(path, handler)
+	server := httptest.NewServer(h2c.NewHandler(mux, &http2.Server{}))
+	client, err := executorclient.Dial(ctx, server.URL)
 	if err != nil {
-		server.Stop()
-		_ = listener.Close()
+		server.Close()
 		return nil, err
 	}
-	return &localBridgeClient{
-		client:   bridge.NewClientFromConn(conn),
-		conn:     conn,
-		server:   server,
-		listener: listener,
+	return &localExecutorClient{
+		client: client,
+		server: server,
 	}, nil
 }
 
@@ -387,21 +365,15 @@ func (s *LocalService) closeClient(botID string) {
 	}
 }
 
-func (c *localBridgeClient) close() {
+func (c *localExecutorClient) close() {
 	if c == nil {
 		return
 	}
 	if c.client != nil {
 		_ = c.client.Close()
 	}
-	if c.conn != nil {
-		_ = c.conn.Close()
-	}
 	if c.server != nil {
-		c.server.Stop()
-	}
-	if c.listener != nil {
-		_ = c.listener.Close()
+		c.server.Close()
 	}
 }
 

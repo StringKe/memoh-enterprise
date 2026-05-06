@@ -57,6 +57,15 @@ const (
 	// BotGroupServiceDeleteBotGroupSettingsProcedure is the fully-qualified name of the
 	// BotGroupService's DeleteBotGroupSettings RPC.
 	BotGroupServiceDeleteBotGroupSettingsProcedure = "/memoh.private.v1.BotGroupService/DeleteBotGroupSettings"
+	// BotGroupServiceListBotGroupPrincipalRolesProcedure is the fully-qualified name of the
+	// BotGroupService's ListBotGroupPrincipalRoles RPC.
+	BotGroupServiceListBotGroupPrincipalRolesProcedure = "/memoh.private.v1.BotGroupService/ListBotGroupPrincipalRoles"
+	// BotGroupServiceAssignBotGroupPrincipalRoleProcedure is the fully-qualified name of the
+	// BotGroupService's AssignBotGroupPrincipalRole RPC.
+	BotGroupServiceAssignBotGroupPrincipalRoleProcedure = "/memoh.private.v1.BotGroupService/AssignBotGroupPrincipalRole"
+	// BotGroupServiceDeleteBotGroupPrincipalRoleProcedure is the fully-qualified name of the
+	// BotGroupService's DeleteBotGroupPrincipalRole RPC.
+	BotGroupServiceDeleteBotGroupPrincipalRoleProcedure = "/memoh.private.v1.BotGroupService/DeleteBotGroupPrincipalRole"
 )
 
 // BotGroupServiceClient is a client for the memoh.private.v1.BotGroupService service.
@@ -69,6 +78,9 @@ type BotGroupServiceClient interface {
 	GetBotGroupSettings(context.Context, *connect.Request[v1.GetBotGroupSettingsRequest]) (*connect.Response[v1.GetBotGroupSettingsResponse], error)
 	UpdateBotGroupSettings(context.Context, *connect.Request[v1.UpdateBotGroupSettingsRequest]) (*connect.Response[v1.UpdateBotGroupSettingsResponse], error)
 	DeleteBotGroupSettings(context.Context, *connect.Request[v1.DeleteBotGroupSettingsRequest]) (*connect.Response[v1.DeleteBotGroupSettingsResponse], error)
+	ListBotGroupPrincipalRoles(context.Context, *connect.Request[v1.ListBotGroupPrincipalRolesRequest]) (*connect.Response[v1.ListBotGroupPrincipalRolesResponse], error)
+	AssignBotGroupPrincipalRole(context.Context, *connect.Request[v1.AssignBotGroupPrincipalRoleRequest]) (*connect.Response[v1.AssignBotGroupPrincipalRoleResponse], error)
+	DeleteBotGroupPrincipalRole(context.Context, *connect.Request[v1.DeleteBotGroupPrincipalRoleRequest]) (*connect.Response[v1.DeleteBotGroupPrincipalRoleResponse], error)
 }
 
 // NewBotGroupServiceClient constructs a client for the memoh.private.v1.BotGroupService service. By
@@ -130,19 +142,40 @@ func NewBotGroupServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 			connect.WithSchema(botGroupServiceMethods.ByName("DeleteBotGroupSettings")),
 			connect.WithClientOptions(opts...),
 		),
+		listBotGroupPrincipalRoles: connect.NewClient[v1.ListBotGroupPrincipalRolesRequest, v1.ListBotGroupPrincipalRolesResponse](
+			httpClient,
+			baseURL+BotGroupServiceListBotGroupPrincipalRolesProcedure,
+			connect.WithSchema(botGroupServiceMethods.ByName("ListBotGroupPrincipalRoles")),
+			connect.WithClientOptions(opts...),
+		),
+		assignBotGroupPrincipalRole: connect.NewClient[v1.AssignBotGroupPrincipalRoleRequest, v1.AssignBotGroupPrincipalRoleResponse](
+			httpClient,
+			baseURL+BotGroupServiceAssignBotGroupPrincipalRoleProcedure,
+			connect.WithSchema(botGroupServiceMethods.ByName("AssignBotGroupPrincipalRole")),
+			connect.WithClientOptions(opts...),
+		),
+		deleteBotGroupPrincipalRole: connect.NewClient[v1.DeleteBotGroupPrincipalRoleRequest, v1.DeleteBotGroupPrincipalRoleResponse](
+			httpClient,
+			baseURL+BotGroupServiceDeleteBotGroupPrincipalRoleProcedure,
+			connect.WithSchema(botGroupServiceMethods.ByName("DeleteBotGroupPrincipalRole")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // botGroupServiceClient implements BotGroupServiceClient.
 type botGroupServiceClient struct {
-	createBotGroup         *connect.Client[v1.CreateBotGroupRequest, v1.CreateBotGroupResponse]
-	getBotGroup            *connect.Client[v1.GetBotGroupRequest, v1.GetBotGroupResponse]
-	listBotGroups          *connect.Client[v1.ListBotGroupsRequest, v1.ListBotGroupsResponse]
-	updateBotGroup         *connect.Client[v1.UpdateBotGroupRequest, v1.UpdateBotGroupResponse]
-	deleteBotGroup         *connect.Client[v1.DeleteBotGroupRequest, v1.DeleteBotGroupResponse]
-	getBotGroupSettings    *connect.Client[v1.GetBotGroupSettingsRequest, v1.GetBotGroupSettingsResponse]
-	updateBotGroupSettings *connect.Client[v1.UpdateBotGroupSettingsRequest, v1.UpdateBotGroupSettingsResponse]
-	deleteBotGroupSettings *connect.Client[v1.DeleteBotGroupSettingsRequest, v1.DeleteBotGroupSettingsResponse]
+	createBotGroup              *connect.Client[v1.CreateBotGroupRequest, v1.CreateBotGroupResponse]
+	getBotGroup                 *connect.Client[v1.GetBotGroupRequest, v1.GetBotGroupResponse]
+	listBotGroups               *connect.Client[v1.ListBotGroupsRequest, v1.ListBotGroupsResponse]
+	updateBotGroup              *connect.Client[v1.UpdateBotGroupRequest, v1.UpdateBotGroupResponse]
+	deleteBotGroup              *connect.Client[v1.DeleteBotGroupRequest, v1.DeleteBotGroupResponse]
+	getBotGroupSettings         *connect.Client[v1.GetBotGroupSettingsRequest, v1.GetBotGroupSettingsResponse]
+	updateBotGroupSettings      *connect.Client[v1.UpdateBotGroupSettingsRequest, v1.UpdateBotGroupSettingsResponse]
+	deleteBotGroupSettings      *connect.Client[v1.DeleteBotGroupSettingsRequest, v1.DeleteBotGroupSettingsResponse]
+	listBotGroupPrincipalRoles  *connect.Client[v1.ListBotGroupPrincipalRolesRequest, v1.ListBotGroupPrincipalRolesResponse]
+	assignBotGroupPrincipalRole *connect.Client[v1.AssignBotGroupPrincipalRoleRequest, v1.AssignBotGroupPrincipalRoleResponse]
+	deleteBotGroupPrincipalRole *connect.Client[v1.DeleteBotGroupPrincipalRoleRequest, v1.DeleteBotGroupPrincipalRoleResponse]
 }
 
 // CreateBotGroup calls memoh.private.v1.BotGroupService.CreateBotGroup.
@@ -185,6 +218,21 @@ func (c *botGroupServiceClient) DeleteBotGroupSettings(ctx context.Context, req 
 	return c.deleteBotGroupSettings.CallUnary(ctx, req)
 }
 
+// ListBotGroupPrincipalRoles calls memoh.private.v1.BotGroupService.ListBotGroupPrincipalRoles.
+func (c *botGroupServiceClient) ListBotGroupPrincipalRoles(ctx context.Context, req *connect.Request[v1.ListBotGroupPrincipalRolesRequest]) (*connect.Response[v1.ListBotGroupPrincipalRolesResponse], error) {
+	return c.listBotGroupPrincipalRoles.CallUnary(ctx, req)
+}
+
+// AssignBotGroupPrincipalRole calls memoh.private.v1.BotGroupService.AssignBotGroupPrincipalRole.
+func (c *botGroupServiceClient) AssignBotGroupPrincipalRole(ctx context.Context, req *connect.Request[v1.AssignBotGroupPrincipalRoleRequest]) (*connect.Response[v1.AssignBotGroupPrincipalRoleResponse], error) {
+	return c.assignBotGroupPrincipalRole.CallUnary(ctx, req)
+}
+
+// DeleteBotGroupPrincipalRole calls memoh.private.v1.BotGroupService.DeleteBotGroupPrincipalRole.
+func (c *botGroupServiceClient) DeleteBotGroupPrincipalRole(ctx context.Context, req *connect.Request[v1.DeleteBotGroupPrincipalRoleRequest]) (*connect.Response[v1.DeleteBotGroupPrincipalRoleResponse], error) {
+	return c.deleteBotGroupPrincipalRole.CallUnary(ctx, req)
+}
+
 // BotGroupServiceHandler is an implementation of the memoh.private.v1.BotGroupService service.
 type BotGroupServiceHandler interface {
 	CreateBotGroup(context.Context, *connect.Request[v1.CreateBotGroupRequest]) (*connect.Response[v1.CreateBotGroupResponse], error)
@@ -195,6 +243,9 @@ type BotGroupServiceHandler interface {
 	GetBotGroupSettings(context.Context, *connect.Request[v1.GetBotGroupSettingsRequest]) (*connect.Response[v1.GetBotGroupSettingsResponse], error)
 	UpdateBotGroupSettings(context.Context, *connect.Request[v1.UpdateBotGroupSettingsRequest]) (*connect.Response[v1.UpdateBotGroupSettingsResponse], error)
 	DeleteBotGroupSettings(context.Context, *connect.Request[v1.DeleteBotGroupSettingsRequest]) (*connect.Response[v1.DeleteBotGroupSettingsResponse], error)
+	ListBotGroupPrincipalRoles(context.Context, *connect.Request[v1.ListBotGroupPrincipalRolesRequest]) (*connect.Response[v1.ListBotGroupPrincipalRolesResponse], error)
+	AssignBotGroupPrincipalRole(context.Context, *connect.Request[v1.AssignBotGroupPrincipalRoleRequest]) (*connect.Response[v1.AssignBotGroupPrincipalRoleResponse], error)
+	DeleteBotGroupPrincipalRole(context.Context, *connect.Request[v1.DeleteBotGroupPrincipalRoleRequest]) (*connect.Response[v1.DeleteBotGroupPrincipalRoleResponse], error)
 }
 
 // NewBotGroupServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -252,6 +303,24 @@ func NewBotGroupServiceHandler(svc BotGroupServiceHandler, opts ...connect.Handl
 		connect.WithSchema(botGroupServiceMethods.ByName("DeleteBotGroupSettings")),
 		connect.WithHandlerOptions(opts...),
 	)
+	botGroupServiceListBotGroupPrincipalRolesHandler := connect.NewUnaryHandler(
+		BotGroupServiceListBotGroupPrincipalRolesProcedure,
+		svc.ListBotGroupPrincipalRoles,
+		connect.WithSchema(botGroupServiceMethods.ByName("ListBotGroupPrincipalRoles")),
+		connect.WithHandlerOptions(opts...),
+	)
+	botGroupServiceAssignBotGroupPrincipalRoleHandler := connect.NewUnaryHandler(
+		BotGroupServiceAssignBotGroupPrincipalRoleProcedure,
+		svc.AssignBotGroupPrincipalRole,
+		connect.WithSchema(botGroupServiceMethods.ByName("AssignBotGroupPrincipalRole")),
+		connect.WithHandlerOptions(opts...),
+	)
+	botGroupServiceDeleteBotGroupPrincipalRoleHandler := connect.NewUnaryHandler(
+		BotGroupServiceDeleteBotGroupPrincipalRoleProcedure,
+		svc.DeleteBotGroupPrincipalRole,
+		connect.WithSchema(botGroupServiceMethods.ByName("DeleteBotGroupPrincipalRole")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/memoh.private.v1.BotGroupService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case BotGroupServiceCreateBotGroupProcedure:
@@ -270,6 +339,12 @@ func NewBotGroupServiceHandler(svc BotGroupServiceHandler, opts ...connect.Handl
 			botGroupServiceUpdateBotGroupSettingsHandler.ServeHTTP(w, r)
 		case BotGroupServiceDeleteBotGroupSettingsProcedure:
 			botGroupServiceDeleteBotGroupSettingsHandler.ServeHTTP(w, r)
+		case BotGroupServiceListBotGroupPrincipalRolesProcedure:
+			botGroupServiceListBotGroupPrincipalRolesHandler.ServeHTTP(w, r)
+		case BotGroupServiceAssignBotGroupPrincipalRoleProcedure:
+			botGroupServiceAssignBotGroupPrincipalRoleHandler.ServeHTTP(w, r)
+		case BotGroupServiceDeleteBotGroupPrincipalRoleProcedure:
+			botGroupServiceDeleteBotGroupPrincipalRoleHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -309,4 +384,16 @@ func (UnimplementedBotGroupServiceHandler) UpdateBotGroupSettings(context.Contex
 
 func (UnimplementedBotGroupServiceHandler) DeleteBotGroupSettings(context.Context, *connect.Request[v1.DeleteBotGroupSettingsRequest]) (*connect.Response[v1.DeleteBotGroupSettingsResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.BotGroupService.DeleteBotGroupSettings is not implemented"))
+}
+
+func (UnimplementedBotGroupServiceHandler) ListBotGroupPrincipalRoles(context.Context, *connect.Request[v1.ListBotGroupPrincipalRolesRequest]) (*connect.Response[v1.ListBotGroupPrincipalRolesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.BotGroupService.ListBotGroupPrincipalRoles is not implemented"))
+}
+
+func (UnimplementedBotGroupServiceHandler) AssignBotGroupPrincipalRole(context.Context, *connect.Request[v1.AssignBotGroupPrincipalRoleRequest]) (*connect.Response[v1.AssignBotGroupPrincipalRoleResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.BotGroupService.AssignBotGroupPrincipalRole is not implemented"))
+}
+
+func (UnimplementedBotGroupServiceHandler) DeleteBotGroupPrincipalRole(context.Context, *connect.Request[v1.DeleteBotGroupPrincipalRoleRequest]) (*connect.Response[v1.DeleteBotGroupPrincipalRoleResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.BotGroupService.DeleteBotGroupPrincipalRole is not implemented"))
 }

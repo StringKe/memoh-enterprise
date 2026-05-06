@@ -6,18 +6,18 @@ import (
 	"strings"
 	"time"
 
-	"github.com/memohai/memoh/internal/workspace/bridge"
+	"github.com/memohai/memoh/internal/workspace/executorclient"
 )
 
 // FSClient provides file operations against a bot's container filesystem.
 type FSClient struct {
-	provider bridge.Provider
+	provider executorclient.Provider
 	botID    string
 	now      func() time.Time
 }
 
 // NewFSClient creates a new container filesystem client.
-func NewFSClient(provider bridge.Provider, botID string, now func() time.Time) *FSClient {
+func NewFSClient(provider executorclient.Provider, botID string, now func() time.Time) *FSClient {
 	if now == nil {
 		now = time.Now
 	}
@@ -30,7 +30,7 @@ func (f *FSClient) ReadText(ctx context.Context, path string) (string, error) {
 	if f.provider == nil {
 		return "", nil
 	}
-	client, err := f.provider.MCPClient(ctx, f.botID)
+	client, err := f.provider.ExecutorClient(ctx, f.botID)
 	if err != nil {
 		return "", fmt.Errorf("mcp client: %w", err)
 	}

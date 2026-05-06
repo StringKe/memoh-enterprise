@@ -98,7 +98,7 @@ func validateCheck(check Check) error {
 		if strings.TrimSpace(check.ResourceID) != "" {
 			return errors.New("system resource id must be empty")
 		}
-	case ResourceBot:
+	case ResourceBot, ResourceBotGroup:
 	default:
 		return fmt.Errorf("unsupported resource type %q", check.ResourceType)
 	}

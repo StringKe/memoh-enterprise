@@ -14,8 +14,8 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"github.com/memohai/memoh/internal/config"
-	"github.com/memohai/memoh/internal/workspace/bridge"
-	pb "github.com/memohai/memoh/internal/workspace/bridgepb"
+	pb "github.com/memohai/memoh/internal/connectapi/gen/memoh/workspace/v1"
+	"github.com/memohai/memoh/internal/workspace/executorclient"
 )
 
 const (
@@ -106,12 +106,12 @@ func ManagedDir() string {
 func ManagedSkillDirForName(name string) (string, error) {
 	name = strings.TrimSpace(name)
 	if !IsValidName(name) {
-		return "", bridge.ErrBadRequest
+		return "", executorclient.ErrBadRequest
 	}
 
 	dirPath := path.Clean(path.Join(ManagedDirPath, name))
 	if dirPath == ManagedDirPath || !strings.HasPrefix(dirPath, ManagedDirPath+"/") {
-		return "", bridge.ErrBadRequest
+		return "", executorclient.ErrBadRequest
 	}
 	return dirPath, nil
 }
@@ -164,7 +164,7 @@ func LoadEffective(ctx context.Context, client fileClient, rawCompatRoots []stri
 func ApplyAction(ctx context.Context, client fileClient, rawCompatRoots []string, req ActionRequest) error {
 	targetPath := strings.TrimSpace(req.TargetPath)
 	if targetPath == "" {
-		return bridge.ErrBadRequest
+		return executorclient.ErrBadRequest
 	}
 
 	switch strings.TrimSpace(req.Action) {
@@ -172,7 +172,7 @@ func ApplyAction(ctx context.Context, client fileClient, rawCompatRoots []string
 		idx := readIndex(ctx, client)
 		items := scan(ctx, client, DiscoveryRoots(rawCompatRoots))
 		if !containsSourcePath(items, targetPath) {
-			return bridge.ErrNotFound
+			return executorclient.ErrNotFound
 		}
 		if idx.Overrides == nil {
 			idx.Overrides = make(map[string]indexOverride)
@@ -184,7 +184,7 @@ func ApplyAction(ctx context.Context, client fileClient, rawCompatRoots []string
 		idx := readIndex(ctx, client)
 		items := scan(ctx, client, DiscoveryRoots(rawCompatRoots))
 		if !containsSourcePath(items, targetPath) {
-			return bridge.ErrNotFound
+			return executorclient.ErrNotFound
 		}
 		delete(idx.Overrides, targetPath)
 		writeIndex(ctx, client, idx.withItems(resolve(items, idx.Overrides)))
@@ -193,14 +193,14 @@ func ApplyAction(ctx context.Context, client fileClient, rawCompatRoots []string
 		items := scan(ctx, client, DiscoveryRoots(rawCompatRoots))
 		target, ok := findBySourcePath(items, targetPath)
 		if !ok {
-			return bridge.ErrNotFound
+			return executorclient.ErrNotFound
 		}
 		if target.Managed {
-			return bridge.ErrBadRequest
+			return executorclient.ErrBadRequest
 		}
 		for _, item := range items {
 			if item.Name == target.Name && item.Managed {
-				return bridge.ErrBadRequest
+				return executorclient.ErrBadRequest
 			}
 		}
 		dirPath, err := ManagedSkillDirForName(target.Name)
@@ -217,7 +217,7 @@ func ApplyAction(ctx context.Context, client fileClient, rawCompatRoots []string
 		writeIndex(ctx, client, idx.withItems(resolve(scan(ctx, client, DiscoveryRoots(rawCompatRoots)), idx.Overrides)))
 		return nil
 	default:
-		return bridge.ErrBadRequest
+		return executorclient.ErrBadRequest
 	}
 }
 

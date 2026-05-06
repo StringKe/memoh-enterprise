@@ -14,6 +14,7 @@ import (
 	"github.com/memohai/memoh/internal/db"
 	"github.com/memohai/memoh/internal/db/postgres/sqlc"
 	dbstore "github.com/memohai/memoh/internal/db/store"
+	"github.com/memohai/memoh/internal/iam/rbac"
 )
 
 var (
@@ -24,6 +25,11 @@ var (
 type Service struct {
 	queries dbstore.Queries
 	logger  *slog.Logger
+	rbac    PermissionService
+}
+
+type PermissionService interface {
+	HasPermission(ctx context.Context, check rbac.Check) (bool, error)
 }
 
 func NewService(log *slog.Logger, queries dbstore.Queries) *Service {
@@ -34,6 +40,10 @@ func NewService(log *slog.Logger, queries dbstore.Queries) *Service {
 		queries: queries,
 		logger:  log.With(slog.String("service", "botgroups")),
 	}
+}
+
+func (s *Service) SetRBACService(service PermissionService) {
+	s.rbac = service
 }
 
 func (s *Service) CreateGroup(ctx context.Context, ownerID string, req CreateGroupRequest) (Group, error) {
@@ -52,27 +62,35 @@ func (s *Service) CreateGroup(ctx context.Context, ownerID string, req CreateGro
 	if err != nil {
 		return Group{}, err
 	}
+	visibility, err := normalizeVisibility(req.Visibility)
+	if err != nil {
+		return Group{}, err
+	}
 	row, err := s.queries.CreateBotGroup(ctx, sqlc.CreateBotGroupParams{
 		OwnerUserID: ownerUUID,
 		Name:        name,
 		Description: strings.TrimSpace(req.Description),
+		Visibility:  visibility,
 		Metadata:    metadata,
 	})
 	if err != nil {
 		return Group{}, err
 	}
+	if err := s.assignGroupOwnerRole(ctx, ownerUUID, row.ID); err != nil {
+		return Group{}, err
+	}
 	return s.toGroup(ctx, row)
 }
 
-func (s *Service) ListGroups(ctx context.Context, ownerID string) ([]Group, error) {
+func (s *Service) ListGroups(ctx context.Context, userID string) ([]Group, error) {
 	if s.queries == nil {
 		return nil, errors.New("bot group queries not configured")
 	}
-	ownerUUID, err := db.ParseUUID(strings.TrimSpace(ownerID))
+	userUUID, err := db.ParseUUID(strings.TrimSpace(userID))
 	if err != nil {
 		return nil, err
 	}
-	rows, err := s.queries.ListBotGroupsByOwner(ctx, ownerUUID)
+	rows, err := s.queries.ListAccessibleBotGroups(ctx, userUUID)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +106,7 @@ func (s *Service) ListGroups(ctx context.Context, ownerID string) ([]Group, erro
 }
 
 func (s *Service) GetGroup(ctx context.Context, requesterID, groupID string) (Group, error) {
-	row, err := s.requireOwnedGroup(ctx, requesterID, groupID)
+	row, err := s.requireGroupPermission(ctx, requesterID, groupID, rbac.PermissionBotGroupRead)
 	if err != nil {
 		return Group{}, err
 	}
@@ -96,7 +114,7 @@ func (s *Service) GetGroup(ctx context.Context, requesterID, groupID string) (Gr
 }
 
 func (s *Service) UpdateGroup(ctx context.Context, requesterID, groupID string, req UpdateGroupRequest) (Group, error) {
-	row, err := s.requireOwnedGroup(ctx, requesterID, groupID)
+	row, err := s.requireGroupPermission(ctx, requesterID, groupID, rbac.PermissionBotGroupUpdate)
 	if err != nil {
 		return Group{}, err
 	}
@@ -108,10 +126,15 @@ func (s *Service) UpdateGroup(ctx context.Context, requesterID, groupID string, 
 	if err != nil {
 		return Group{}, err
 	}
+	visibility, err := normalizeVisibility(req.Visibility)
+	if err != nil {
+		return Group{}, err
+	}
 	updated, err := s.queries.UpdateBotGroup(ctx, sqlc.UpdateBotGroupParams{
 		ID:          row.ID,
 		Name:        name,
 		Description: strings.TrimSpace(req.Description),
+		Visibility:  visibility,
 		Metadata:    metadata,
 	})
 	if err != nil {
@@ -121,7 +144,7 @@ func (s *Service) UpdateGroup(ctx context.Context, requesterID, groupID string, 
 }
 
 func (s *Service) DeleteGroup(ctx context.Context, requesterID, groupID string) error {
-	row, err := s.requireOwnedGroup(ctx, requesterID, groupID)
+	row, err := s.requireGroupPermission(ctx, requesterID, groupID, rbac.PermissionBotGroupDelete)
 	if err != nil {
 		return err
 	}
@@ -132,7 +155,7 @@ func (s *Service) DeleteGroup(ctx context.Context, requesterID, groupID string) 
 }
 
 func (s *Service) GetGroupSettings(ctx context.Context, requesterID, groupID string) (GroupSettings, error) {
-	group, err := s.requireOwnedGroup(ctx, requesterID, groupID)
+	group, err := s.requireGroupPermission(ctx, requesterID, groupID, rbac.PermissionBotGroupRead)
 	if err != nil {
 		return GroupSettings{}, err
 	}
@@ -147,7 +170,7 @@ func (s *Service) GetGroupSettings(ctx context.Context, requesterID, groupID str
 }
 
 func (s *Service) UpsertGroupSettings(ctx context.Context, requesterID, groupID string, req GroupSettings) (GroupSettings, error) {
-	group, err := s.requireOwnedGroup(ctx, requesterID, groupID)
+	group, err := s.requireGroupPermission(ctx, requesterID, groupID, rbac.PermissionBotGroupUpdate)
 	if err != nil {
 		return GroupSettings{}, err
 	}
@@ -163,39 +186,71 @@ func (s *Service) UpsertGroupSettings(ctx context.Context, requesterID, groupID 
 }
 
 func (s *Service) DeleteGroupSettings(ctx context.Context, requesterID, groupID string) error {
-	group, err := s.requireOwnedGroup(ctx, requesterID, groupID)
+	group, err := s.requireGroupPermission(ctx, requesterID, groupID, rbac.PermissionBotGroupUpdate)
 	if err != nil {
 		return err
 	}
 	return s.queries.DeleteBotGroupSettings(ctx, group.ID)
 }
 
-func (s *Service) requireOwnedGroup(ctx context.Context, requesterID, groupID string) (sqlc.BotGroup, error) {
-	if s.queries == nil {
-		return sqlc.BotGroup{}, errors.New("bot group queries not configured")
+func (s *Service) HasGroupPermission(ctx context.Context, userID, groupID string, permission rbac.PermissionKey) (bool, error) {
+	row, err := s.groupByID(ctx, groupID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return false, ErrGroupNotFound
+		}
+		return false, err
 	}
-	requesterUUID, err := db.ParseUUID(strings.TrimSpace(requesterID))
+	requesterUUID, err := db.ParseUUID(strings.TrimSpace(userID))
+	if err != nil {
+		return false, err
+	}
+	if row.OwnerUserID == requesterUUID {
+		return true, nil
+	}
+	if permission == rbac.PermissionBotGroupRead || permission == rbac.PermissionBotGroupUse {
+		if row.Visibility == VisibilityOrganization || row.Visibility == VisibilityPublic {
+			return true, nil
+		}
+	}
+	if s.rbac == nil {
+		return false, nil
+	}
+	return s.rbac.HasPermission(ctx, rbac.Check{
+		UserID:        userID,
+		PermissionKey: permission,
+		ResourceType:  rbac.ResourceBotGroup,
+		ResourceID:    groupID,
+	})
+}
+
+func (s *Service) requireGroupPermission(ctx context.Context, requesterID, groupID string, permission rbac.PermissionKey) (sqlc.BotGroup, error) {
+	row, err := s.groupByID(ctx, groupID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return sqlc.BotGroup{}, ErrGroupNotFound
+		}
+		return sqlc.BotGroup{}, err
+	}
+	allowed, err := s.HasGroupPermission(ctx, requesterID, groupID, permission)
 	if err != nil {
 		return sqlc.BotGroup{}, err
+	}
+	if !allowed {
+		return sqlc.BotGroup{}, ErrGroupAccessDenied
+	}
+	return row, nil
+}
+
+func (s *Service) groupByID(ctx context.Context, groupID string) (sqlc.BotGroup, error) {
+	if s.queries == nil {
+		return sqlc.BotGroup{}, errors.New("bot group queries not configured")
 	}
 	groupUUID, err := db.ParseUUID(strings.TrimSpace(groupID))
 	if err != nil {
 		return sqlc.BotGroup{}, err
 	}
-	row, err := s.queries.GetBotGroupByOwnerAndID(ctx, sqlc.GetBotGroupByOwnerAndIDParams{
-		OwnerUserID: requesterUUID,
-		ID:          groupUUID,
-	})
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			if _, getErr := s.queries.GetBotGroupByID(ctx, groupUUID); getErr == nil {
-				return sqlc.BotGroup{}, ErrGroupAccessDenied
-			}
-			return sqlc.BotGroup{}, ErrGroupNotFound
-		}
-		return sqlc.BotGroup{}, err
-	}
-	return row, nil
+	return s.queries.GetBotGroupByID(ctx, groupUUID)
 }
 
 func (s *Service) toGroup(ctx context.Context, row sqlc.BotGroup) (Group, error) {
@@ -212,11 +267,44 @@ func (s *Service) toGroup(ctx context.Context, row sqlc.BotGroup) (Group, error)
 		OwnerUserID: row.OwnerUserID.String(),
 		Name:        row.Name,
 		Description: row.Description,
+		Visibility:  row.Visibility,
 		Metadata:    metadata,
 		BotCount:    count,
 		CreatedAt:   timeFromPg(row.CreatedAt),
 		UpdatedAt:   timeFromPg(row.UpdatedAt),
 	}, nil
+}
+
+func (s *Service) assignGroupOwnerRole(ctx context.Context, ownerID pgtype.UUID, groupID pgtype.UUID) error {
+	role, err := s.queries.GetRoleByKey(ctx, string(rbac.RoleBotGroupOwner))
+	if err != nil {
+		return err
+	}
+	_, err = s.queries.AssignPrincipalRole(ctx, sqlc.AssignPrincipalRoleParams{
+		PrincipalType: string(rbac.PrincipalUser),
+		PrincipalID:   ownerID,
+		RoleID:        role.ID,
+		ResourceType:  string(rbac.ResourceBotGroup),
+		ResourceID:    groupID,
+		Source:        string(rbac.SourceSystem),
+	})
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil
+	}
+	return err
+}
+
+func normalizeVisibility(value string) (string, error) {
+	switch strings.TrimSpace(value) {
+	case "", VisibilityPrivate:
+		return VisibilityPrivate, nil
+	case VisibilityOrganization:
+		return VisibilityOrganization, nil
+	case VisibilityPublic:
+		return VisibilityPublic, nil
+	default:
+		return "", errors.New("visibility must be private, organization, or public")
+	}
 }
 
 func groupSettingsParams(groupID pgtype.UUID, settings GroupSettings) (sqlc.UpsertBotGroupSettingsParams, error) {

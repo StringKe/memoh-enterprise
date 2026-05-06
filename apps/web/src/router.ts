@@ -109,6 +109,14 @@ const routes = [
         },
       },
       {
+        name: "structured-data",
+        path: "structured-data",
+        component: () => import("@/pages/structured-data/index.vue"),
+        meta: {
+          breadcrumb: i18nRef("sidebar.structuredData"),
+        },
+      },
+      {
         name: "web-search",
         path: "web-search",
         component: () => import("@/pages/web-search/index.vue"),

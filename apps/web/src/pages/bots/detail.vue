@@ -170,6 +170,7 @@ import BotSchedule from "./components/bot-schedule.vue";
 import BotContainer from "./components/bot-container.vue";
 import BotAccess from "./components/bot-access.vue";
 import AvatarEditDialog from "./components/avatar-edit-dialog.vue";
+import StructuredDataWorkspace from "@/pages/structured-data/components/structured-data-workspace.vue";
 import { resolveApiErrorMessage } from "@/utils/api-error";
 import { useAvatarInitials } from "@/composables/useAvatarInitials";
 import { useSyncedQueryParam } from "@/composables/useSyncedQueryParam";
@@ -260,6 +261,12 @@ const tabList = computed(() => {
       label: "bots.tabs.memory",
       component: BotMemory,
       params: { "bot-id": bot_id },
+    },
+    {
+      value: "structured-data",
+      label: "bots.tabs.structuredData",
+      component: StructuredDataWorkspace,
+      params: { "owner-type": "bot", "owner-bot-id": bot_id },
     },
     {
       value: "channels",

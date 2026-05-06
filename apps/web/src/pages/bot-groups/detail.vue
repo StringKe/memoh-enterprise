@@ -127,6 +127,14 @@
       </div>
       <GroupSettingsForm v-if="groupId" :group-id="groupId" />
     </div>
+
+    <div class="rounded-md border p-4">
+      <StructuredDataWorkspace
+        v-if="groupId"
+        owner-type="bot_group"
+        :owner-bot-group-id="groupId"
+      />
+    </div>
   </section>
 </template>
 
@@ -151,6 +159,7 @@ import { Trash2 } from "lucide-vue-next";
 import { connectClients } from "@/lib/connect-client";
 import { resolveApiErrorMessage } from "@/utils/api-error";
 import GroupSettingsForm from "./components/group-settings-form.vue";
+import StructuredDataWorkspace from "@/pages/structured-data/components/structured-data-workspace.vue";
 
 const route = useRoute();
 const router = useRouter();

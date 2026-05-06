@@ -7,7 +7,7 @@ This fork keeps the core agent platform and web management experience, but narro
 ## Upstream
 
 - Upstream repository: [memohai/Memoh](https://github.com/memohai/Memoh)
-- Current upstream alignment commit: `4509b6db06a888e2688103e7ffb7a4e4b9a60863`
+- Current upstream alignment commit: `beae0041b9f0e009509e6411673175e672b6f163`
 - Alignment marker: [`.parent-commit`](./.parent-commit)
 
 This project is built on top of Memoh. Thanks to the Memoh maintainers and contributors for creating and maintaining the original self-hosted AI agent platform. Memoh Enterprise exists because that upstream work provides the agent runtime, container workspace model, memory system, channel integrations, and web management foundation.

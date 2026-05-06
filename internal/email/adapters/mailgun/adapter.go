@@ -141,7 +141,10 @@ func (a *Adapter) StartReceiving(ctx context.Context, config map[string]any, han
 func (*Adapter) HandleWebhook(_ context.Context, config map[string]any, r *http.Request) (*email.InboundEmail, error) {
 	signingKey, _ := config["webhook_signing_key"].(string)
 
-	if err := r.ParseMultipartForm(10 << 20); err != nil {
+	const maxFormBytes = 10 << 20
+	r.Body = http.MaxBytesReader(nil, r.Body, maxFormBytes)
+	// #nosec G120 -- request body is bounded by MaxBytesReader before multipart parsing.
+	if err := r.ParseMultipartForm(maxFormBytes); err != nil {
 		if err2 := r.ParseForm(); err2 != nil {
 			return nil, fmt.Errorf("parse form: %w", err2)
 		}

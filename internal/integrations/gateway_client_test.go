@@ -21,7 +21,7 @@ func TestWebSocketHandlerServesHTTPWithoutEcho(t *testing.T) {
 	t.Parallel()
 
 	handler := NewGatewayWebSocketHandler(nil, NewLocalGatewayBackend(NewService(nil, nil), NewHub()))
-	req := httptest.NewRequest(http.MethodPost, WebSocketPath, strings.NewReader(""))
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodPost, WebSocketPath, strings.NewReader(""))
 	req.Header.Set("Content-Type", "text/plain")
 	recorder := httptest.NewRecorder()
 	handler.HTTPHandler().ServeHTTP(recorder, req)

@@ -2,6 +2,7 @@ package connectapi
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"sort"
 	"strings"
@@ -11,20 +12,45 @@ import (
 
 	"github.com/memohai/memoh/internal/bots"
 	"github.com/memohai/memoh/internal/channel"
+	"github.com/memohai/memoh/internal/channel/adapters/weixin"
 	privatev1 "github.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1"
 	"github.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1/privatev1connect"
 	"github.com/memohai/memoh/internal/iam/rbac"
 )
 
 type ChannelService struct {
-	store     *channel.Store
-	registry  *channel.Registry
-	lifecycle *channel.Lifecycle
-	bots      *bots.Service
+	store       *channel.Store
+	registry    *channel.Registry
+	lifecycle   *channel.Lifecycle
+	bots        *bots.Service
+	permissions channelBotPermissionChecker
+	weixinQR    weixinQRClient
 }
 
 func NewChannelService(store *channel.Store, registry *channel.Registry, lifecycle *channel.Lifecycle, bots *bots.Service) *ChannelService {
-	return &ChannelService{store: store, registry: registry, lifecycle: lifecycle, bots: bots}
+	return &ChannelService{
+		store:       store,
+		registry:    registry,
+		lifecycle:   lifecycle,
+		bots:        bots,
+		permissions: bots,
+		weixinQR:    weixin.NewClient(nil),
+	}
+}
+
+type channelBotPermissionChecker interface {
+	HasBotPermission(ctx context.Context, userID, botID string, permission rbac.PermissionKey) (bool, error)
+}
+
+type weixinQRClient interface {
+	FetchQRCode(ctx context.Context, apiBaseURL string) (*weixin.QRCodeResponse, error)
+	PollQRStatus(ctx context.Context, apiBaseURL, qrcode string) (*weixin.QRStatusResponse, error)
+}
+
+const weixinQRBaseURL = "https://ilinkai.weixin.qq.com"
+
+func (s *ChannelService) SetWeixinQRClient(client weixinQRClient) {
+	s.weixinQR = client
 }
 
 func NewChannelHandler(service *ChannelService) Handler {
@@ -228,10 +254,42 @@ func (s *ChannelService) StartChannelQrLogin(ctx context.Context, req *connect.R
 	if err := s.requireBotPermission(ctx, userID, req.Msg.GetBotId(), rbac.PermissionBotUpdate); err != nil {
 		return nil, botConnectError(err)
 	}
-	if _, err := s.parseChannelType(req.Msg.GetChannel()); err != nil {
+	channelType, err := s.parseChannelType(req.Msg.GetChannel())
+	if err != nil {
 		return nil, err
 	}
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("channel QR login is not implemented"))
+	if channelType != channel.ChannelTypeWeixin {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("channel does not support QR login"))
+	}
+	if s.weixinQR == nil {
+		return nil, connect.NewError(connect.CodeInternal, errors.New("weixin QR client is not configured"))
+	}
+	qr, err := s.weixinQR.FetchQRCode(ctx, weixinQRBaseURL)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+	if qr == nil {
+		return nil, connect.NewError(connect.CodeInternal, errors.New("weixin QR login returned empty response"))
+	}
+	loginID := strings.TrimSpace(qr.QRCode)
+	qrURL := strings.TrimSpace(qr.QRCode)
+	image, mimeType := decodeQRCodeImage(qr.QRCodeImgContent)
+	if loginID == "" {
+		loginID = strings.TrimSpace(qr.QRCodeImgContent)
+	}
+	if qrURL == "" {
+		qrURL = loginID
+	}
+	if loginID == "" {
+		return nil, connect.NewError(connect.CodeInternal, errors.New("weixin QR login did not return a login id"))
+	}
+	return connect.NewResponse(&privatev1.StartChannelQrLoginResponse{
+		LoginId:   loginID,
+		QrUrl:     qrURL,
+		QrImage:   image,
+		MimeType:  mimeType,
+		ExpiresAt: timeToProto(time.Now().UTC().Add(2 * time.Minute)),
+	}), nil
 }
 
 func (s *ChannelService) PollChannelQrLogin(ctx context.Context, req *connect.Request[privatev1.PollChannelQrLoginRequest]) (*connect.Response[privatev1.PollChannelQrLoginResponse], error) {
@@ -242,13 +300,60 @@ func (s *ChannelService) PollChannelQrLogin(ctx context.Context, req *connect.Re
 	if err := s.requireBotPermission(ctx, userID, req.Msg.GetBotId(), rbac.PermissionBotUpdate); err != nil {
 		return nil, botConnectError(err)
 	}
-	if _, err := s.parseChannelType(req.Msg.GetChannel()); err != nil {
+	channelType, err := s.parseChannelType(req.Msg.GetChannel())
+	if err != nil {
 		return nil, err
+	}
+	if channelType != channel.ChannelTypeWeixin {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("channel does not support QR login"))
 	}
 	if strings.TrimSpace(req.Msg.GetLoginId()) == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("login_id is required"))
 	}
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("channel QR login polling is not implemented"))
+	if s.weixinQR == nil {
+		return nil, connect.NewError(connect.CodeInternal, errors.New("weixin QR client is not configured"))
+	}
+	status, err := s.weixinQR.PollQRStatus(ctx, weixinQRBaseURL, strings.TrimSpace(req.Msg.GetLoginId()))
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+	if status == nil {
+		return nil, connect.NewError(connect.CodeInternal, errors.New("weixin QR polling returned empty response"))
+	}
+	statusValue := strings.TrimSpace(status.Status)
+	if statusValue == "" {
+		statusValue = "wait"
+	}
+	resp := &privatev1.PollChannelQrLoginResponse{
+		Status: statusValue,
+		Metadata: mapToStruct(map[string]any{
+			"ilink_bot_id":  strings.TrimSpace(status.ILinkBotID),
+			"ilink_user_id": strings.TrimSpace(status.ILinkUserID),
+			"base_url":      strings.TrimSpace(status.BaseURL),
+		}),
+	}
+	if statusValue == "confirmed" && strings.TrimSpace(status.BotToken) != "" {
+		if s.lifecycle == nil {
+			return nil, connect.NewError(connect.CodeInternal, errors.New("channel lifecycle not configured"))
+		}
+		baseURL := strings.TrimSpace(status.BaseURL)
+		if baseURL == "" {
+			baseURL = weixinQRBaseURL
+		}
+		disabled := false
+		cfg, err := s.lifecycle.UpsertBotChannelConfig(ctx, strings.TrimSpace(req.Msg.GetBotId()), channelType, channel.UpsertConfigRequest{
+			Credentials: map[string]any{
+				"token":   strings.TrimSpace(status.BotToken),
+				"baseUrl": baseURL,
+			},
+			Disabled: &disabled,
+		})
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, err)
+		}
+		resp.Config = botChannelConfigToProto(cfg)
+	}
+	return connect.NewResponse(resp), nil
 }
 
 func (s *ChannelService) parseChannelType(raw string) (channel.ChannelType, error) {
@@ -263,10 +368,14 @@ func (s *ChannelService) parseChannelType(raw string) (channel.ChannelType, erro
 }
 
 func (s *ChannelService) requireBotPermission(ctx context.Context, userID, botID string, permission rbac.PermissionKey) error {
-	if s.bots == nil {
+	checker := s.permissions
+	if checker == nil {
+		checker = s.bots
+	}
+	if checker == nil {
 		return errors.New("bot service not configured")
 	}
-	allowed, err := s.bots.HasBotPermission(ctx, userID, strings.TrimSpace(botID), permission)
+	allowed, err := checker.HasBotPermission(ctx, userID, strings.TrimSpace(botID), permission)
 	if err != nil {
 		return err
 	}
@@ -274,6 +383,28 @@ func (s *ChannelService) requireBotPermission(ctx context.Context, userID, botID
 		return bots.ErrBotAccessDenied
 	}
 	return nil
+}
+
+func decodeQRCodeImage(raw string) ([]byte, string) {
+	raw = strings.TrimSpace(raw)
+	if raw == "" || strings.HasPrefix(raw, "http://") || strings.HasPrefix(raw, "https://") {
+		return nil, ""
+	}
+	mimeType := "image/png"
+	if prefix, body, ok := strings.Cut(raw, ","); ok && strings.Contains(prefix, ";base64") {
+		raw = strings.TrimSpace(body)
+		if strings.HasPrefix(prefix, "data:") {
+			mimeType = strings.TrimPrefix(strings.TrimSuffix(prefix, ";base64"), "data:")
+		}
+	}
+	decoded, err := base64.StdEncoding.DecodeString(raw)
+	if err != nil {
+		decoded, err = base64.RawStdEncoding.DecodeString(raw)
+	}
+	if err != nil || len(decoded) == 0 {
+		return nil, ""
+	}
+	return decoded, mimeType
 }
 
 func channelIdentityIDForRequest(userID, requested string) (string, error) {

@@ -54,7 +54,7 @@ git log --oneline "$(cat .parent-commit)"..upstream/main
 同步时按 enterprise scope 过滤上游变化：
 
 - 接收：Go server、agent、MCP、memory、schedule、providers、models、channels、email、workspace、container runtime、Browser Gateway、Web 管理后台、PostgreSQL、ConnectRPC proto、TypeScript SDK、非交互 CLI。
-- 接收：Docker Engine 和 containerd 相关修复。
+- 接收：containerd、Docker Engine、Podman 相关修复。
 - 接收：`apps/web`、`packages/ui`、`packages/sdk`、`packages/icons`、`packages/config` 中服务 Web 管理后台和 Browser Gateway 的改动。
 - 接收：`web-ui` 配置字段。
 - 拒绝：Desktop/Electron。
@@ -115,7 +115,7 @@ git show --name-status <commit-sha>
 git cherry-pick --no-commit <commit-sha>
 ```
 
-然后删除不该进入 enterprise 的变更，只保留后端、PostgreSQL、Browser Gateway、Docker Engine、containerd、非交互 CLI 等允许范围。
+然后删除不该进入 enterprise 的变更，只保留后端、PostgreSQL、Browser Gateway、containerd、Docker Engine、Podman、非交互 CLI 等允许范围。
 
 5. 冲突处理后执行残留审计：
 
@@ -177,7 +177,7 @@ git push origin sync/upstream-<YYYYMMDD>
 
 - 上游恢复 Desktop、TUI、SQLite 文件时，enterprise 侧继续删除。
 - 上游修改 `apps/web` 管理后台时，按企业版 Web 管理后台能力同步。
-- 上游修改 shared config 时，保留 PostgreSQL、Docker Engine、containerd、Browser Gateway、Web 管理后台、`web-ui`，删除 SQLite、Desktop 分支。
+- 上游修改 shared config 时，保留 PostgreSQL、containerd、Docker Engine、Podman、Browser Gateway、Web 管理后台、`web-ui`，删除 SQLite、Desktop 分支。
 - 上游修改 CLI root 行为时，`memoh` 无参数仍只显示 help，不进入 TUI。
 - 上游新增数据库变更时，只迁移到 `db/postgres/` 和 PostgreSQL sqlc。
 - 上游新增 Browser Gateway 或 browser automation 能力时，按 agent 工具能力接收。
@@ -188,4 +188,4 @@ git push origin sync/upstream-<YYYYMMDD>
 - `.parent-commit` 指向本轮已同步且已验证的上游 commit。
 - `origin/main` 包含同步结果。
 - 残留审计没有恢复 Desktop GUI、TUI、SQLite 支持入口。
-- PostgreSQL、server、CLI、Web 管理后台、Browser Gateway、Docker Engine、containerd 验证通过。
+- PostgreSQL、server、CLI、Web 管理后台、Browser Gateway、containerd、Docker Engine、Podman 验证通过。

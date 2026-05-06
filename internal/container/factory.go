@@ -9,6 +9,7 @@ const (
 	BackendKubernetes = "kubernetes"
 	BackendK8s        = "k8s"
 	BackendDocker     = "docker"
+	BackendPodman     = "podman"
 )
 
 func NormalizeBackend(backend string) string {

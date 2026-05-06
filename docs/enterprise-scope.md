@@ -15,7 +15,7 @@
 - 保留 `packages/ui`、`packages/sdk`、`packages/icons`、`packages/config`，它们服务 Web 管理后台和 Browser Gateway。
 - 保留 ConnectRPC protobuf 和 TypeScript SDK 生成链路。
 - 保留 PostgreSQL，且 PostgreSQL 是唯一关系数据库后端。
-- 保留 Docker Engine、containerd、Kubernetes runtime 相关能力。
+- 保留 containerd、Docker Engine、Podman、Kubernetes runtime 相关能力。
 - 保留非交互 CLI。
 - 移除 Desktop GUI、终端 TUI、SQLite、Windows 发布/配置、Docker Hub 发布、npmjs 发布和中国特化优化。
 - 运行和发布目标只覆盖 Linux `amd64` / `arm64`，macOS 只保留本地开发兼容。
@@ -133,6 +133,7 @@
 - PostgreSQL 迁移、sqlc、服务启动和 CLI migration 正常工作。
 - Browser Gateway 和 agent browser automation 保持可用。
 - Docker Engine runtime adapter 和 Docker Compose 运维命令保持可用。
+- Podman runtime adapter 保持可用，复用 Podman Docker-compatible API。
 - containerd runtime adapter 和 `memoh bots ctr ...` 保持可用。
 - `web-ui` 配置项保留。
 - Go 编译通过。

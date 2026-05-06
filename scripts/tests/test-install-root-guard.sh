@@ -58,7 +58,7 @@ fi
 
 OPT_IN_OUTPUT="$TMPDIR/opt-in-output.txt"
 set +e
-PATH="$FAKEBIN:/usr/bin:/bin" HOME="$TMPDIR/home" DOCKER_MARKER="$DOCKER_MARKER" MEMOH_ALLOW_ROOT_INSTALL=true sh "$ROOT/scripts/install.sh" --yes >"$OPT_IN_OUTPUT" 2>&1
+PATH="$FAKEBIN:/usr/bin:/bin" HOME="$TMPDIR/home" DOCKER_MARKER="$DOCKER_MARKER" MEMOH_ALLOW_ROOT_INSTALL=true sh "$ROOT/scripts/install.sh" --yes --runtime docker >"$OPT_IN_OUTPUT" 2>&1
 OPT_IN_STATUS=$?
 set -e
 

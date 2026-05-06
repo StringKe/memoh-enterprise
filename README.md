@@ -21,7 +21,7 @@ Included:
 - Go server with ConnectRPC management APIs under `/connect`.
 - Vue web management UI in `apps/web`.
 - PostgreSQL as the only relational database backend.
-- Docker Engine, containerd, and Kubernetes workspace runtimes.
+- containerd, Docker Engine, Podman, and Kubernetes workspace runtimes.
 - Browser Gateway for headless browser automation used by agent tools.
 - In-process AI agent runtime with tools, MCP, memory, schedule, providers, models, channels, email, workspace, and container management.
 - Bot Groups for enterprise-level configuration inheritance and grouped bot operations.
@@ -61,6 +61,24 @@ Supported deployment targets:
 macOS is supported for local development compatibility, especially on Apple Silicon. Desktop GUI support is not part of this fork.
 
 ## Quick Start
+
+Server installer:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/StringKe/memoh-enterprise/main/scripts/install.sh | sh -s -- --runtime containerd --version latest
+```
+
+Supported deployment runtimes:
+
+```bash
+scripts/install.sh --runtime containerd --version latest
+scripts/install.sh --runtime docker --version latest
+scripts/install.sh --runtime podman --version latest
+```
+
+The installer installs missing server prerequisites automatically, including the selected runtime CLI.
+
+Manual Compose start:
 
 ```bash
 cp conf/app.docker.toml config.toml

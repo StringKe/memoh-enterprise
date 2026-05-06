@@ -12,6 +12,8 @@ REPO="https://github.com/${GITHUB_REPO}.git"
 DIR="memoh-enterprise"
 COMPOSE_PROJECT_NAME="memoh"
 SILENT=false
+DEPLOY_RUNTIME="${MEMOH_DEPLOY_RUNTIME:-containerd}"
+VERSION_SET=false
 
 # Track whether the user explicitly set environment-backed options so upgrades
 # can reuse prior install values by default.
@@ -66,9 +68,18 @@ while [ $# -gt 0 ]; do
     --version)
       shift
       MEMOH_VERSION="$1"
+      VERSION_SET=true
       ;;
     --version=*)
       MEMOH_VERSION="${1#--version=}"
+      VERSION_SET=true
+      ;;
+    --runtime)
+      shift
+      DEPLOY_RUNTIME="$1"
+      ;;
+    --runtime=*)
+      DEPLOY_RUNTIME="${1#--runtime=}"
       ;;
     --install-mode)
       shift
@@ -111,7 +122,7 @@ if [ "$(id -u 2>/dev/null || printf '1')" = "0" ] && [ "${MEMOH_ALLOW_ROOT_INSTA
   echo "Run it as your normal user instead:"
   echo "  curl -fsSL https://memoh.sh | sh"
   echo ""
-  echo "The installer will use sudo for Docker commands only when Docker requires it."
+  echo "The installer will use sudo for package installation and runtime commands when required."
   echo "To override this guard, set MEMOH_ALLOW_ROOT_INSTALL=true."
   exit 1
 fi
@@ -196,16 +207,34 @@ normalize_container_backend() {
   case "$backend" in
     containerd) printf '%s' "containerd" ;;
     docker) printf '%s' "docker" ;;
+    podman) printf '%s' "podman" ;;
     kubernetes|k8s) printf '%s' "kubernetes" ;;
     apple) printf '%s' "apple" ;;
     *) return 1 ;;
   esac
 }
 
+normalize_deploy_runtime() {
+  runtime=$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')
+  case "$runtime" in
+    containerd|docker|podman) printf '%s' "$runtime" ;;
+    *) return 1 ;;
+  esac
+}
+
+normalize_deploy_runtime_or_exit() {
+  normalized_deploy_runtime=$(normalize_deploy_runtime "$DEPLOY_RUNTIME" || true)
+  if [ -z "$normalized_deploy_runtime" ]; then
+    echo "${RED}Error: unsupported deployment runtime '${DEPLOY_RUNTIME}'. Use containerd, docker, or podman.${NC}"
+    exit 1
+  fi
+  DEPLOY_RUNTIME="$normalized_deploy_runtime"
+}
+
 normalize_container_backend_or_exit() {
   normalized_container_backend=$(normalize_container_backend "$CONTAINER_BACKEND" || true)
   if [ -z "$normalized_container_backend" ]; then
-    echo "${RED}Error: unsupported workspace backend '${CONTAINER_BACKEND}'. Use containerd, docker, kubernetes, or apple.${NC}"
+    echo "${RED}Error: unsupported workspace backend '${CONTAINER_BACKEND}'. Use containerd, docker, podman, kubernetes, or apple.${NC}"
     exit 1
   fi
   CONTAINER_BACKEND="$normalized_container_backend"
@@ -216,12 +245,12 @@ enforce_compose_container_backend() {
     return
   fi
   if [ "$INSTALL_MODE" = "upgrade" ] && [ "$CONTAINER_BACKEND_SET" = false ]; then
-    echo "${YELLOW}ℹ Existing config uses workspace backend '${CONTAINER_BACKEND}'. The one-click Docker Compose stack is designed for containerd; reusing your config unchanged.${NC}"
+    echo "${YELLOW}ℹ Existing config uses workspace backend '${CONTAINER_BACKEND}'. The one-click compose stack is designed for containerd; reusing your config unchanged.${NC}"
     return
   fi
-  echo "${RED}Error: one-click Docker Compose installs support workspace backend 'containerd' only.${NC}"
+  echo "${RED}Error: one-click compose installs support workspace backend 'containerd' only.${NC}"
   echo "The server image starts an embedded containerd and mounts the required runtime paths."
-  echo "For docker, kubernetes, or apple backends, use a manual deployment and edit [container].backend in config.toml."
+  echo "For docker, podman, kubernetes, or apple backends, use a manual deployment and edit [container].backend in config.toml."
   exit 1
 }
 
@@ -272,6 +301,209 @@ fetch_latest_version() {
     echo "${RED}Error: curl or wget is required${NC}" >&2
     exit 1
   fi
+}
+
+sudo_cmd() {
+  if [ "$(id -u 2>/dev/null || printf '1')" = "0" ]; then
+    "$@"
+  elif command -v sudo >/dev/null 2>&1; then
+    sudo "$@"
+  else
+    echo "${RED}Error: sudo is required to install missing server dependencies.${NC}" >&2
+    exit 1
+  fi
+}
+
+detect_package_manager() {
+  if command -v apt-get >/dev/null 2>&1; then
+    printf '%s' "apt"
+  elif command -v dnf >/dev/null 2>&1; then
+    printf '%s' "dnf"
+  elif command -v yum >/dev/null 2>&1; then
+    printf '%s' "yum"
+  else
+    return 1
+  fi
+}
+
+install_packages() {
+  packages="$*"
+  [ -n "$packages" ] || return 0
+  pm=$(detect_package_manager || true)
+  case "$pm" in
+    apt)
+      sudo_cmd apt-get update
+      # shellcheck disable=SC2086
+      sudo_cmd env DEBIAN_FRONTEND=noninteractive apt-get install -y $packages
+      ;;
+    dnf)
+      # shellcheck disable=SC2086
+      sudo_cmd dnf install -y $packages
+      ;;
+    yum)
+      # shellcheck disable=SC2086
+      sudo_cmd yum install -y $packages
+      ;;
+    *)
+      echo "${RED}Error: unsupported package manager. Install manually: ${packages}${NC}" >&2
+      exit 1
+      ;;
+  esac
+}
+
+ensure_common_tools() {
+  missing=""
+  for tool in git openssl tar gzip; do
+    if ! command -v "$tool" >/dev/null 2>&1; then
+      missing="$missing $tool"
+    fi
+  done
+  if ! command -v curl >/dev/null 2>&1 && ! command -v wget >/dev/null 2>&1; then
+    missing="$missing curl"
+  fi
+  if [ -n "$missing" ]; then
+    echo "${YELLOW}Installing common dependencies:${missing}${NC}"
+    # shellcheck disable=SC2086
+    install_packages $missing
+  fi
+}
+
+start_system_service() {
+  service="$1"
+  if command -v systemctl >/dev/null 2>&1; then
+    sudo_cmd systemctl enable --now "$service" >/dev/null 2>&1 || true
+  fi
+}
+
+install_nerdctl_binary() {
+  if command -v nerdctl >/dev/null 2>&1; then
+    return
+  fi
+  arch=$(uname -m)
+  case "$arch" in
+    x86_64|amd64) nerdctl_arch="amd64" ;;
+    aarch64|arm64) nerdctl_arch="arm64" ;;
+    *)
+      echo "${RED}Error: unsupported architecture '${arch}'. Only amd64 and arm64 are supported.${NC}" >&2
+      exit 1
+      ;;
+  esac
+  version=$(fetch_latest_nerdctl_version)
+  if [ -z "$version" ]; then
+    echo "${RED}Error: failed to resolve latest nerdctl release.${NC}" >&2
+    exit 1
+  fi
+  archive="nerdctl-full-${version}-linux-${nerdctl_arch}.tar.gz"
+  url="https://github.com/containerd/nerdctl/releases/download/${version}/${archive}"
+  tmp="/tmp/${archive}"
+  echo "${YELLOW}Installing nerdctl ${version}...${NC}"
+  download_file "$url" "$tmp"
+  sudo_cmd tar -C /usr/local -xzf "$tmp"
+  rm -f "$tmp"
+}
+
+fetch_latest_nerdctl_version() {
+  if command -v curl >/dev/null 2>&1; then
+    curl -fsSL "https://api.github.com/repos/containerd/nerdctl/releases/latest" | grep '"tag_name"' | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/'
+  else
+    wget -qO- "https://api.github.com/repos/containerd/nerdctl/releases/latest" | grep '"tag_name"' | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/'
+  fi
+}
+
+download_file() {
+  url="$1"
+  out="$2"
+  if command -v curl >/dev/null 2>&1; then
+    curl -fsSL "$url" -o "$out"
+  else
+    wget -qO "$out" "$url"
+  fi
+}
+
+ensure_containerd_runtime() {
+  missing=""
+  command -v containerd >/dev/null 2>&1 || missing="$missing containerd"
+  if [ -n "$missing" ]; then
+    echo "${YELLOW}Installing containerd...${NC}"
+    # shellcheck disable=SC2086
+    install_packages $missing
+  fi
+  start_system_service containerd
+  install_nerdctl_binary
+  CONTAINER_CMD="nerdctl"
+  if ! nerdctl info >/dev/null 2>&1; then
+    if command -v sudo >/dev/null 2>&1 && sudo nerdctl info >/dev/null 2>&1; then
+      CONTAINER_CMD="sudo nerdctl"
+    else
+      echo "${RED}Error: Cannot connect to containerd with nerdctl.${NC}"
+      exit 1
+    fi
+  fi
+  if ! $CONTAINER_CMD compose version >/dev/null 2>&1; then
+    echo "${RED}Error: nerdctl compose is required.${NC}"
+    exit 1
+  fi
+}
+
+ensure_docker_runtime() {
+  if ! command -v docker >/dev/null 2>&1; then
+    echo "${YELLOW}Installing Docker Engine...${NC}"
+    pm=$(detect_package_manager || true)
+    case "$pm" in
+      apt) install_packages docker.io docker-compose-plugin ;;
+      dnf|yum) install_packages docker docker-compose-plugin ;;
+      *) install_packages docker ;;
+    esac
+  fi
+  start_system_service docker
+  CONTAINER_CMD="docker"
+  if ! docker info >/dev/null 2>&1; then
+    if command -v sudo >/dev/null 2>&1 && sudo docker info >/dev/null 2>&1; then
+      CONTAINER_CMD="sudo docker"
+    else
+      echo "${RED}Error: Cannot connect to Docker daemon${NC}"
+      echo "Try: sudo usermod -aG docker \$USER && newgrp docker"
+      exit 1
+    fi
+  fi
+  if ! $CONTAINER_CMD compose version >/dev/null 2>&1; then
+    echo "${RED}Error: Docker Compose v2 is required${NC}"
+    exit 1
+  fi
+}
+
+ensure_podman_runtime() {
+  if ! command -v podman >/dev/null 2>&1; then
+    echo "${YELLOW}Installing Podman...${NC}"
+    install_packages podman podman-compose
+  elif ! podman compose version >/dev/null 2>&1 && ! command -v podman-compose >/dev/null 2>&1; then
+    echo "${YELLOW}Installing podman-compose...${NC}"
+    install_packages podman-compose
+  fi
+  start_system_service podman.socket
+  CONTAINER_CMD="podman"
+  if ! podman info >/dev/null 2>&1; then
+    if command -v sudo >/dev/null 2>&1 && sudo podman info >/dev/null 2>&1; then
+      CONTAINER_CMD="sudo podman"
+    else
+      echo "${RED}Error: Cannot run podman info.${NC}"
+      exit 1
+    fi
+  fi
+  if ! $CONTAINER_CMD compose version >/dev/null 2>&1; then
+    echo "${RED}Error: podman compose is required.${NC}"
+    exit 1
+  fi
+}
+
+ensure_deploy_runtime() {
+  case "$DEPLOY_RUNTIME" in
+    containerd) ensure_containerd_runtime ;;
+    docker) ensure_docker_runtime ;;
+    podman) ensure_podman_runtime ;;
+  esac
+  DOCKER="$CONTAINER_CMD"
+  echo "${GREEN}✓ Deployment runtime: ${DEPLOY_RUNTIME} (${DOCKER})${NC}"
 }
 
 detect_existing_installation() {
@@ -389,6 +621,9 @@ load_existing_settings() {
       value=$(read_env_file_value "$EXISTING_ENV_SOURCE" "MEMOH_CONTAINER_BACKEND" || true)
       [ -n "$value" ] && CONTAINER_BACKEND="$value"
     fi
+
+    value=$(read_env_file_value "$EXISTING_ENV_SOURCE" "MEMOH_DEPLOY_RUNTIME" || true)
+    [ -n "$value" ] && DEPLOY_RUNTIME="$value"
   fi
 }
 
@@ -399,13 +634,13 @@ prompt_install_mode() {
         INSTALL_MODE="upgrade"
         echo "${YELLOW}ℹ Existing Memoh installation detected. Reusing existing configuration in silent mode.${NC}"
       elif [ "$EXISTING_DOCKER_STATE" = true ]; then
-        echo "${RED}Error: Existing Memoh Docker state was detected but no reusable config.toml was found.${NC}"
-        echo "Run again with MEMOH_INSTALL_MODE=reinstall to wipe Docker data, or restore the previous config.toml."
+        echo "${RED}Error: Existing Memoh runtime state was detected but no reusable config.toml was found.${NC}"
+        echo "Run again with MEMOH_INSTALL_MODE=reinstall to wipe runtime data, or restore the previous config.toml."
         exit 1
       else
         INSTALL_MODE="fresh"
         if [ "$EXISTING_INSTALL_STATE" = true ]; then
-          echo "${YELLOW}ℹ Existing Memoh files were detected, but no Docker state or reusable config.toml was found. Proceeding with a fresh install in silent mode.${NC}"
+          echo "${YELLOW}ℹ Existing Memoh files were detected, but no runtime state or reusable config.toml was found. Proceeding with a fresh install in silent mode.${NC}"
         fi
       fi
     fi
@@ -432,20 +667,20 @@ prompt_install_mode() {
     echo "  - Repository checkout: ${WORKSPACE}/${DIR}" > /dev/tty
   fi
   if [ -n "$EXISTING_DOCKER_VOLUMES" ]; then
-    echo "  - Docker volumes:${EXISTING_DOCKER_VOLUMES}" > /dev/tty
+    echo "  - Runtime volumes:${EXISTING_DOCKER_VOLUMES}" > /dev/tty
   fi
   if [ "$EXISTING_DOCKER_CONTAINERS" = true ]; then
     echo "  - Existing Memoh containers" > /dev/tty
   fi
   if [ "$EXISTING_DOCKER_NETWORK" = true ]; then
-    echo "  - Docker network: ${NETWORK_NAME}" > /dev/tty
+    echo "  - Runtime network: ${NETWORK_NAME}" > /dev/tty
   fi
   echo "" > /dev/tty
 
   if [ -n "$EXISTING_CONFIG_SOURCE" ]; then
     echo "Choose install mode:" > /dev/tty
     echo "  1) Upgrade existing installation (recommended, reuses config and DB password)" > /dev/tty
-    echo "  2) Reinstall from scratch (removes Memoh Docker data)" > /dev/tty
+    echo "  2) Reinstall from scratch (removes Memoh runtime data)" > /dev/tty
     echo "  3) Abort" > /dev/tty
     printf "  Install mode [1]: " > /dev/tty
     read -r input < /dev/tty || true
@@ -457,7 +692,7 @@ prompt_install_mode() {
   elif [ "$EXISTING_DOCKER_STATE" = true ]; then
     echo "No reusable config.toml was found for a safe upgrade." > /dev/tty
     echo "Choose install mode:" > /dev/tty
-    echo "  1) Reinstall from scratch (removes Memoh Docker data)" > /dev/tty
+    echo "  1) Reinstall from scratch (removes Memoh runtime data)" > /dev/tty
     echo "  2) Abort" > /dev/tty
     printf "  Install mode [2]: " > /dev/tty
     read -r input < /dev/tty || true
@@ -466,7 +701,7 @@ prompt_install_mode() {
       *) INSTALL_MODE="abort" ;;
     esac
   else
-    echo "No reusable config.toml or Docker state was found." > /dev/tty
+    echo "No reusable config.toml or runtime state was found." > /dev/tty
     echo "Choose install mode:" > /dev/tty
     echo "  1) Continue fresh install (recommended)" > /dev/tty
     echo "  2) Abort" > /dev/tty
@@ -480,7 +715,7 @@ prompt_install_mode() {
 }
 
 cleanup_existing_installation() {
-  echo "${YELLOW}Removing existing Memoh Docker containers, volumes, and network...${NC}"
+  echo "${YELLOW}Removing existing Memoh containers, volumes, and network...${NC}"
   for container in $PROJECT_CONTAINERS; do
     $DOCKER rm -f "$container" >/dev/null 2>&1 || true
   done
@@ -497,31 +732,14 @@ show_failure_logs() {
   $DOCKER compose $COMPOSE_FILES $COMPOSE_PROFILES logs --no-color --tail=200 $log_services || true
 }
 
-# Check Docker and determine if sudo is needed
-DOCKER="docker"
-if ! command -v docker >/dev/null 2>&1; then
-    echo "${RED}Error: Docker is not installed${NC}"
-    echo "Install Docker first: https://docs.docker.com/get-docker/"
-    exit 1
-fi
-if ! docker info >/dev/null 2>&1; then
-    if sudo docker info >/dev/null 2>&1; then
-        DOCKER="sudo docker"
-    else
-        echo "${RED}Error: Cannot connect to Docker daemon${NC}"
-        echo "Try: sudo usermod -aG docker \$USER && newgrp docker"
-        exit 1
-    fi
-fi
-if ! $DOCKER compose version >/dev/null 2>&1; then
-    echo "${RED}Error: Docker Compose v2 is required${NC}"
-    echo "Install: https://docs.docker.com/compose/install/"
-    exit 1
-fi
-echo "${GREEN}✓ Docker and Docker Compose detected${NC}"
+normalize_deploy_runtime_or_exit
+ensure_common_tools
+ensure_deploy_runtime
 
 # Resolve version: use MEMOH_VERSION env if set, otherwise fetch latest release
-if [ -n "$MEMOH_VERSION" ]; then
+if [ "$VERSION_SET" = true ] && [ "$MEMOH_VERSION" = "latest" ]; then
+    echo "${GREEN}✓ Using latest image tag from main checkout${NC}"
+elif [ -n "$MEMOH_VERSION" ]; then
     echo "${GREEN}✓ Using specified version: ${MEMOH_VERSION}${NC}"
 else
     MEMOH_VERSION=$(fetch_latest_version | grep '"tag_name"' | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/')
@@ -532,13 +750,15 @@ else
     fi
 fi
 
-# Docker image tag: strip leading "v", fall back to "latest" only when version is unknown
-if [ -n "$MEMOH_VERSION" ]; then
+# Image tag: strip leading "v", fall back to "latest" only when version is unknown
+if [ "$MEMOH_VERSION" = "latest" ]; then
+    MEMOH_DOCKER_VERSION="latest"
+elif [ -n "$MEMOH_VERSION" ]; then
     MEMOH_DOCKER_VERSION=$(echo "$MEMOH_VERSION" | sed 's/^v//')
 else
     MEMOH_DOCKER_VERSION="latest"
 fi
-echo "${GREEN}✓ Docker image version: ${MEMOH_DOCKER_VERSION}${NC}"
+echo "${GREEN}✓ Image version: ${MEMOH_DOCKER_VERSION}${NC}"
 
 # Generate random JWT secret
 gen_secret() {
@@ -604,7 +824,7 @@ if [ "$INSTALL_MODE" = "upgrade" ] && [ -z "$EXISTING_CONFIG_SOURCE" ]; then
 fi
 
 if [ "$INSTALL_MODE" = "fresh" ] && [ "$EXISTING_DOCKER_STATE" = true ]; then
-  echo "${RED}Error: Existing Memoh Docker state was detected. Use upgrade or reinstall instead of fresh.${NC}"
+  echo "${RED}Error: Existing Memoh runtime state was detected. Use upgrade or reinstall instead of fresh.${NC}"
   exit 1
 fi
 enforce_compose_container_backend
@@ -641,7 +861,7 @@ if [ "$SILENT" = false ] && [ "$INSTALL_MODE" != "upgrade" ]; then
   read -r input < /dev/tty || true
   [ -n "$input" ] && PG_PASS="$input"
 
-  echo "  Workspace backend: containerd (Docker Compose default; starts an embedded containerd inside memoh-server)" > /dev/tty
+  echo "  Workspace backend: containerd (compose default; starts an embedded containerd inside memoh-server)" > /dev/tty
   echo "  Other backends such as docker, kubernetes, and apple are configured manually in config.toml." > /dev/tty
 
   printf "  Enable sparse memory service? [%s]: " "$( [ "$USE_SPARSE" = true ] && printf 'Y/n' || printf 'y/N' )" > /dev/tty
@@ -692,7 +912,7 @@ CLONED_FRESH=false
 if [ -d "$DIR" ]; then
     echo "Updating existing installation in $WORKSPACE..."
     cd "$DIR"
-    if [ -n "$MEMOH_VERSION" ]; then
+    if [ -n "$MEMOH_VERSION" ] && [ "$MEMOH_VERSION" != "latest" ]; then
         git fetch --depth 1 origin tag "$MEMOH_VERSION"
         git checkout "$MEMOH_VERSION"
     else
@@ -702,7 +922,7 @@ if [ -d "$DIR" ]; then
     fi
 else
     echo "Cloning Memoh into $WORKSPACE..."
-    if [ -n "$MEMOH_VERSION" ]; then
+    if [ -n "$MEMOH_VERSION" ] && [ "$MEMOH_VERSION" != "latest" ]; then
         git clone --depth 1 --branch "$MEMOH_VERSION" "$REPO" "$DIR"
     else
         git clone --depth 1 "$REPO" "$DIR"
@@ -718,12 +938,13 @@ if [ ! -f "$COMPOSE_FILE_NAME" ]; then
   exit 1
 fi
 
-# Pin Docker image versions in the selected compose file.
+# Pin image versions in the selected compose file.
 if [ "$MEMOH_DOCKER_VERSION" != "latest" ]; then
     sed -i.bak "s|ghcr.io/stringke/server:latest|ghcr.io/stringke/server:${MEMOH_DOCKER_VERSION}|g" "$COMPOSE_FILE_NAME"
+    sed -i.bak "s|ghcr.io/stringke/web:\\${WEB_TAG:-latest}|ghcr.io/stringke/web:\\${WEB_TAG:-${MEMOH_DOCKER_VERSION}}|g" "$COMPOSE_FILE_NAME"
     sed -i.bak "s|ghcr.io/stringke/sparse:latest|ghcr.io/stringke/sparse:${MEMOH_DOCKER_VERSION}|g" "$COMPOSE_FILE_NAME"
     rm -f "${COMPOSE_FILE_NAME}.bak"
-    echo "${GREEN}✓ Docker images pinned to ${MEMOH_DOCKER_VERSION}${NC}"
+    echo "${GREEN}✓ Images pinned to ${MEMOH_DOCKER_VERSION}${NC}"
 fi
 
 if [ "$INSTALL_MODE" = "upgrade" ]; then
@@ -789,6 +1010,7 @@ write_env_value "MEMOH_CONFIG" "./config.toml"
 write_env_value "MEMOH_DATA_DIR" "$MEMOH_DATA_DIR"
 write_env_value "MEMOH_DATABASE_DRIVER" "$DATABASE_DRIVER"
 write_env_value "MEMOH_CONTAINER_BACKEND" "$CONTAINER_BACKEND"
+write_env_value "MEMOH_DEPLOY_RUNTIME" "$DEPLOY_RUNTIME"
 write_env_value "USE_SPARSE" "$USE_SPARSE"
 write_env_value "BROWSER_TAG" "$BROWSER_TAG"
 write_env_value "BROWSER_CORES" "$BROWSER_CORES"
@@ -801,7 +1023,7 @@ if [ "$INSTALL_MODE" = "reinstall" ]; then
 fi
 
 echo ""
-echo "${GREEN}Pulling Docker images...${NC}"
+echo "${GREEN}Pulling images...${NC}"
 $DOCKER compose $COMPOSE_FILES $COMPOSE_PROFILES pull
 
 echo ""
@@ -839,7 +1061,7 @@ echo "  cd ${INSTALL_DIR} && ${COMPOSE_CMD} ps       # Status"
 echo "  cd ${INSTALL_DIR} && ${COMPOSE_CMD} logs -f   # Logs"
 echo "  cd ${INSTALL_DIR} && ${COMPOSE_CMD} down      # Stop"
 if [ "$INSTALL_MODE" != "fresh" ]; then
-  echo "  cd ${INSTALL_DIR} && ${COMPOSE_CMD} down -v   # Remove containers and Docker data"
+  echo "  cd ${INSTALL_DIR} && ${COMPOSE_CMD} down -v   # Remove containers and runtime data"
 fi
 echo ""
 echo "${YELLOW}⏳ First startup may take 1-2 minutes, please be patient.${NC}"

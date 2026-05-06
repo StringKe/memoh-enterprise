@@ -47,6 +47,7 @@ type Config struct {
 	Container      ContainerConfig      `toml:"container"`
 	Containerd     ContainerdConfig     `toml:"containerd"`
 	Docker         DockerConfig         `toml:"docker"`
+	Podman         PodmanConfig         `toml:"podman"`
 	Kubernetes     KubernetesConfig     `toml:"kubernetes"`
 	Apple          AppleConfig          `toml:"apple"`
 	Local          LocalConfig          `toml:"local"`
@@ -103,6 +104,10 @@ type ContainerdConfig struct {
 }
 
 type DockerConfig struct {
+	Host string `toml:"host"`
+}
+
+type PodmanConfig struct {
 	Host string `toml:"host"`
 }
 

@@ -29,6 +29,7 @@ driver = "postgres"
 # - containerd: direct containerd integration with CNI and snapshot support.
 # - docker: host Docker Engine API, best for host/binary deployments where
 #   workspace bind-mount source paths are valid on the Docker host.
+# - podman: host Podman API socket, compatible with the Docker backend semantics.
 # - kubernetes: create one Pod/PVC per bot workspace.
 # - apple: macOS Apple Container backend via socktainer.
 backend = "docker"
@@ -37,7 +38,7 @@ default_image = "debian:bookworm-slim"
 # Local backends apply it before creating the workspace; Kubernetes maps it to
 # the Pod imagePullPolicy and lets the cluster perform the pull.
 image_pull_policy = "if_not_present"
-# containerd snapshotter name. Ignored by Docker and Kubernetes backends.
+# containerd snapshotter name. Ignored by Docker, Podman, and Kubernetes backends.
 snapshotter = "overlayfs"
 # Host/runtime data root for sockets, CNI state, overlay sidecars, and workspace metadata.
 data_root = "data"
@@ -56,6 +57,11 @@ namespace = "default"
 # Leave empty to use Docker's standard environment discovery (DOCKER_HOST,
 # DOCKER_TLS_VERIFY, DOCKER_CERT_PATH, or the platform default socket).
 host = ""
+
+[podman]
+# Used when [container].backend = "podman".
+# Defaults to the rootful Podman API socket started by `systemctl enable --now podman.socket`.
+host = "unix:///run/podman/podman.sock"
 
 [kubernetes]
 # Enable with [container].backend = "kubernetes".

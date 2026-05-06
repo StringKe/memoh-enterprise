@@ -6,7 +6,7 @@ Configure it in `config.toml`:
 
 ```toml
 [container]
-backend = "containerd" # containerd, docker, kubernetes, or apple
+backend = "containerd" # containerd, docker, podman, kubernetes, or apple
 ```
 
 ## Choosing a backend
@@ -15,6 +15,7 @@ backend = "containerd" # containerd, docker, kubernetes, or apple
 |---------|----------|-------|
 | `containerd` | Docker Compose installs, Linux servers, development | Default for the official Docker image. Supports CNI networking, snapshots, CDI devices, and provider sidecars. |
 | `docker` | Host/binary deployments with Docker Engine | Uses the host Docker API. Runtime bind-mount paths such as `container.runtime_dir` must exist on the Docker host. |
+| `podman` | Host/binary deployments with Podman | Uses the Podman Docker-compatible API socket. Runtime bind-mount paths such as `container.runtime_dir` must exist on the Podman host. |
 | `kubernetes` | Cluster deployments | Creates one Pod/PVC per bot workspace. Uses Kubernetes-native networking and storage. |
 | `apple` | macOS local testing | Uses socktainer and Apple Containerization. Overlay provider sidecars are not supported. |
 
@@ -67,6 +68,31 @@ The Docker backend talks to Docker Engine through the standard Docker environmen
 
 Avoid switching a stock Docker Compose install from `containerd` to `docker` unless you also provide host-valid paths for `runtime_dir` and Docker socket access. Otherwise the workspace containers can be created without the bridge runtime files they need.
 
+## Podman
+
+```toml
+[container]
+backend = "podman"
+
+[podman]
+host = "unix:///run/podman/podman.sock"
+
+[container]
+backend = "podman"
+default_image = "debian:bookworm-slim"
+runtime_dir = "/opt/memoh/runtime"
+data_root = "/opt/memoh/data"
+snapshotter = "podman"
+```
+
+The Podman backend uses Podman's Docker-compatible API. Enable the rootful socket before starting a host or binary deployment:
+
+```bash
+sudo systemctl enable --now podman.socket
+```
+
+Use `host = "unix:///run/user/<uid>/podman/podman.sock"` only for explicit rootless deployments where the Memoh server process runs as the same user and the user service stays active.
+
 ## Kubernetes
 
 ```toml
@@ -114,6 +140,7 @@ Runtime capabilities differ by backend:
 |---------|-----------------|------------------|---------------------------|-------------|
 | `containerd` | CNI | Yes | No | Yes |
 | `docker` | Join Docker container network | Limited by Docker runtime capabilities | No | No |
+| `podman` | Join Podman container network | Limited by Podman runtime capabilities | No | No |
 | `kubernetes` | Pod network | Provider-dependent | Yes | No |
 | `apple` | Basic local runtime | No | No | No |
 

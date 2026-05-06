@@ -32,7 +32,8 @@ func TestDockerSnapshotImageRefSanitizesRuntimeName(t *testing.T) {
 }
 
 func TestContainerInfoKeepsActiveStorageRefAsContainerID(t *testing.T) {
-	info := containerInfoFromInspect(dockercontainer.InspectResponse{
+	svc := &Service{runtimeName: "docker"}
+	info := svc.containerInfoFromInspect(dockercontainer.InspectResponse{
 		ContainerJSONBase: &dockercontainer.ContainerJSONBase{
 			ID:      "docker-container-id",
 			Name:    "/workspace-bot-1",
@@ -59,6 +60,24 @@ func TestContainerInfoKeepsActiveStorageRefAsContainerID(t *testing.T) {
 	}
 	if info.Labels[containerapi.StorageKeyLabel] != "workspace-active-1" {
 		t.Fatalf("storage label = %q, want workspace-active-1", info.Labels[containerapi.StorageKeyLabel])
+	}
+}
+
+func TestPodmanContainerInfoUsesPodmanRuntimeName(t *testing.T) {
+	svc := &Service{runtimeName: "podman"}
+	info := svc.containerInfoFromInspect(dockercontainer.InspectResponse{
+		ContainerJSONBase: &dockercontainer.ContainerJSONBase{
+			ID:      "podman-container-id",
+			Name:    "/workspace-bot-1",
+			Created: "2026-01-02T03:04:05Z",
+		},
+		Config: &dockercontainer.Config{Image: "debian:bookworm-slim"},
+	})
+	if info.StorageRef.Driver != "podman" {
+		t.Fatalf("StorageRef.Driver = %q, want podman", info.StorageRef.Driver)
+	}
+	if info.Runtime.Name != "podman" {
+		t.Fatalf("Runtime.Name = %q, want podman", info.Runtime.Name)
 	}
 }
 

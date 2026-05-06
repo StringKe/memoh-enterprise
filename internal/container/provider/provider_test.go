@@ -33,6 +33,27 @@ func TestProvideServiceDockerSlot(t *testing.T) {
 	}
 }
 
+func TestProvideServicePodmanSlot(t *testing.T) {
+	svc, cleanup, err := ProvideService(context.Background(), slog.Default(), config.Config{}, containerapi.BackendPodman)
+	if err != nil {
+		t.Fatalf("ProvideService podman returned error: %v", err)
+	}
+	defer cleanup()
+	imageSvc, ok := svc.(containerapi.ImageService)
+	if !ok {
+		t.Fatal("podman service should expose optional ImageService")
+	}
+	_, imgErr := imageSvc.GetImage(context.Background(), "memohai/definitely-missing:test")
+	switch {
+	case containerapi.IsNotFound(imgErr):
+		return
+	case imgErr != nil && dockerclient.IsErrConnectionFailed(imgErr):
+		t.Skipf("podman socket unavailable: %v", imgErr)
+	default:
+		t.Fatalf("podman GetImage error = %v, want not found (or skip if socket unreachable)", imgErr)
+	}
+}
+
 func TestProvideServiceKubernetesSlot(t *testing.T) {
 	svc, cleanup, err := ProvideService(context.Background(), slog.Default(), config.Config{}, containerapi.BackendKubernetes)
 	if err != nil {

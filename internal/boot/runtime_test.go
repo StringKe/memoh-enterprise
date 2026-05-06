@@ -131,3 +131,23 @@ func TestProvideRuntimeConfigBackendIgnoresEnvOverride(t *testing.T) {
 		t.Fatalf("ContainerBackend = %q, want docker", rc.ContainerBackend)
 	}
 }
+
+func TestProvideRuntimeConfigAcceptsPodmanBackend(t *testing.T) {
+	cfg := config.Config{
+		Auth: config.AuthConfig{
+			JWTSecret:    "secret",
+			JWTExpiresIn: "24h",
+		},
+		Timezone: config.DefaultTimezone,
+		Container: config.ContainerConfig{
+			Backend: "podman",
+		},
+	}
+	rc, err := ProvideRuntimeConfig(cfg)
+	if err != nil {
+		t.Fatalf("ProvideRuntimeConfig returned error: %v", err)
+	}
+	if rc.ContainerBackend != "podman" {
+		t.Fatalf("ContainerBackend = %q, want podman", rc.ContainerBackend)
+	}
+}

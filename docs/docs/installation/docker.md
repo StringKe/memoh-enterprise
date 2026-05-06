@@ -1,6 +1,27 @@
 # Docker Installation
 
-Docker Compose is the default way to run Memoh Enterprise. The stack includes PostgreSQL, the Go server, the Web management UI, and optional Qdrant, Browser Gateway, and sparse memory services.
+The server installer is the default way to run Memoh Enterprise on Linux servers. The stack includes PostgreSQL, the Go server, the Web management UI, and optional Qdrant, Browser Gateway, and sparse memory services.
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/StringKe/memoh-enterprise/main/scripts/install.sh | sh -s -- --runtime containerd --version latest
+```
+
+Supported deployment runtimes:
+
+```bash
+scripts/install.sh --runtime containerd --version latest
+scripts/install.sh --runtime docker --version latest
+scripts/install.sh --runtime podman --version latest
+```
+
+The installer installs missing server prerequisites automatically:
+
+- `containerd` runtime: `containerd`, `nerdctl`, CNI/runtime files from the `nerdctl-full` release.
+- `docker` runtime: Docker Engine and Docker Compose v2.
+- `podman` runtime: Podman and `podman-compose`.
+- Common tools: `git`, `curl` or `wget`, `openssl`, `tar`, and `gzip`.
+
+Manual Docker Compose remains supported when Docker Engine is already installed.
 
 ## Services
 

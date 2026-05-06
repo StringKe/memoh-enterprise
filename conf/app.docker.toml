@@ -46,6 +46,11 @@ namespace = "default"
 # uses containerd above.
 host = ""
 
+[podman]
+# Used only when [container].backend = "podman"; the official Compose stack
+# uses containerd above.
+host = "unix:///run/podman/podman.sock"
+
 [local]
 # Local workspaces are intended for trusted local deployments, not the default
 # Docker Compose deployment. Keep disabled here because local commands run as

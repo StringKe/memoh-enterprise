@@ -6,7 +6,7 @@
 
 ```toml
 [container]
-backend = "containerd" # containerd、docker、kubernetes 或 apple
+backend = "containerd" # containerd、docker、podman、kubernetes 或 apple
 ```
 
 ## 怎么选

@@ -32,6 +32,12 @@ func ProvideService(ctx context.Context, log *slog.Logger, cfg config.Config, ba
 			return nil, nil, err
 		}
 		return svc, func() { _ = svc.Close() }, nil
+	case containerapi.BackendPodman:
+		svc, err := dockeradapter.NewPodmanService(log, cfg)
+		if err != nil {
+			return nil, nil, err
+		}
+		return svc, func() { _ = svc.Close() }, nil
 	case containerapi.BackendKubernetes, containerapi.BackendK8s:
 		return k8sadapter.NewService(cfg), func() {}, nil
 	case containerapi.BackendContainerd:

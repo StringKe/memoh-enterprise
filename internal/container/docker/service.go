@@ -36,25 +36,39 @@ const (
 var invalidSnapshotTagChars = regexp.MustCompile(`[^A-Za-z0-9_.-]+`)
 
 type Service struct {
-	client *client.Client
-	logger *slog.Logger
+	client      *client.Client
+	logger      *slog.Logger
+	runtimeName string
 }
 
 func NewService(log *slog.Logger, cfg config.Config) (*Service, error) {
+	return newService(log, cfg.Docker.Host, "docker")
+}
+
+func NewPodmanService(log *slog.Logger, cfg config.Config) (*Service, error) {
+	host := strings.TrimSpace(cfg.Podman.Host)
+	if host == "" {
+		host = "unix:///run/podman/podman.sock"
+	}
+	return newService(log, host, "podman")
+}
+
+func newService(log *slog.Logger, host string, runtimeName string) (*Service, error) {
 	if log == nil {
 		log = slog.Default()
 	}
 	opts := []client.Opt{client.FromEnv, client.WithAPIVersionNegotiation()}
-	if host := strings.TrimSpace(cfg.Docker.Host); host != "" {
+	if host := strings.TrimSpace(host); host != "" {
 		opts = append(opts, client.WithHost(host))
 	}
 	cli, err := client.NewClientWithOpts(opts...)
 	if err != nil {
-		return nil, fmt.Errorf("create docker client: %w", err)
+		return nil, fmt.Errorf("create %s client: %w", runtimeName, err)
 	}
 	return &Service{
-		client: cli,
-		logger: log.With(slog.String("service", "docker")),
+		client:      cli,
+		logger:      log.With(slog.String("service", runtimeName)),
+		runtimeName: runtimeName,
 	}, nil
 }
 
@@ -208,7 +222,7 @@ func (s *Service) GetContainer(ctx context.Context, id string) (containerapi.Con
 	if err != nil {
 		return containerapi.ContainerInfo{}, mapDockerErr(err)
 	}
-	return containerInfoFromInspect(info), nil
+	return s.containerInfoFromInspect(info), nil
 }
 
 func (s *Service) ListContainers(ctx context.Context) ([]containerapi.ContainerInfo, error) {
@@ -218,7 +232,7 @@ func (s *Service) ListContainers(ctx context.Context) ([]containerapi.ContainerI
 	}
 	out := make([]containerapi.ContainerInfo, len(items))
 	for i, item := range items {
-		out[i] = containerInfoFromSummary(item)
+		out[i] = s.containerInfoFromSummary(item)
 	}
 	return out, nil
 }
@@ -249,7 +263,7 @@ func (s *Service) ListContainersByLabel(ctx context.Context, key, value string) 
 	}
 	out := make([]containerapi.ContainerInfo, len(items))
 	for i, item := range items {
-		out[i] = containerInfoFromSummary(item)
+		out[i] = s.containerInfoFromSummary(item)
 	}
 	return out, nil
 }
@@ -367,7 +381,7 @@ func (s *Service) CommitSnapshot(ctx context.Context, req containerapi.CommitSna
 	if strings.TrimSpace(name) == "" || strings.TrimSpace(key) == "" {
 		return containerapi.ErrInvalidArgument
 	}
-	if strings.TrimSpace(snapshotter) != "" && strings.TrimSpace(snapshotter) != "docker" {
+	if strings.TrimSpace(snapshotter) != "" && strings.TrimSpace(snapshotter) != s.runtimeName {
 		return containerapi.ErrNotSupported
 	}
 	info, err := s.client.ContainerInspect(ctx, key)
@@ -393,7 +407,7 @@ func (s *Service) CommitSnapshot(ctx context.Context, req containerapi.CommitSna
 
 func (s *Service) ListSnapshots(ctx context.Context, req containerapi.ListSnapshotsRequest) ([]containerapi.SnapshotInfo, error) {
 	snapshotter := strings.TrimSpace(req.Driver)
-	if strings.TrimSpace(snapshotter) != "" && strings.TrimSpace(snapshotter) != "docker" {
+	if strings.TrimSpace(snapshotter) != "" && strings.TrimSpace(snapshotter) != s.runtimeName {
 		return nil, containerapi.ErrNotSupported
 	}
 	images, err := s.client.ImageList(ctx, image.ListOptions{
@@ -428,7 +442,7 @@ func (s *Service) PrepareSnapshot(ctx context.Context, req containerapi.PrepareS
 	if strings.TrimSpace(key) == "" || strings.TrimSpace(parent) == "" {
 		return containerapi.ErrInvalidArgument
 	}
-	if strings.TrimSpace(snapshotter) != "" && strings.TrimSpace(snapshotter) != "docker" {
+	if strings.TrimSpace(snapshotter) != "" && strings.TrimSpace(snapshotter) != s.runtimeName {
 		return containerapi.ErrNotSupported
 	}
 	target := dockerSnapshotImageRef(key)
@@ -527,7 +541,7 @@ func imageInfoFromSummary(info image.Summary) containerapi.ImageInfo {
 	return containerapi.ImageInfo{Name: name, ID: info.ID, Tags: append([]string(nil), info.RepoTags...)}
 }
 
-func containerInfoFromInspect(info container.InspectResponse) containerapi.ContainerInfo {
+func (s *Service) containerInfoFromInspect(info container.InspectResponse) containerapi.ContainerInfo {
 	created, _ := time.Parse(time.RFC3339Nano, info.Created)
 	imageRef := info.Image
 	if info.Config != nil && strings.TrimSpace(info.Config.Image) != "" {
@@ -545,14 +559,14 @@ func containerInfoFromInspect(info container.InspectResponse) containerapi.Conta
 		ID:         id,
 		Image:      imageRef,
 		Labels:     labels,
-		StorageRef: containerapi.StorageRef{Driver: "docker", Key: info.ID, Kind: "container"},
-		Runtime:    containerapi.RuntimeInfo{Name: "docker"},
+		StorageRef: containerapi.StorageRef{Driver: s.runtimeName, Key: info.ID, Kind: "container"},
+		Runtime:    containerapi.RuntimeInfo{Name: s.runtimeName},
 		CreatedAt:  created,
 		UpdatedAt:  created,
 	}
 }
 
-func containerInfoFromSummary(info container.Summary) containerapi.ContainerInfo {
+func (s *Service) containerInfoFromSummary(info container.Summary) containerapi.ContainerInfo {
 	id := info.ID
 	for _, name := range info.Names {
 		name = strings.TrimPrefix(strings.TrimSpace(name), "/")
@@ -565,8 +579,8 @@ func containerInfoFromSummary(info container.Summary) containerapi.ContainerInfo
 		ID:         id,
 		Image:      info.Image,
 		Labels:     info.Labels,
-		StorageRef: containerapi.StorageRef{Driver: "docker", Key: info.ID, Kind: "container"},
-		Runtime:    containerapi.RuntimeInfo{Name: "docker"},
+		StorageRef: containerapi.StorageRef{Driver: s.runtimeName, Key: info.ID, Kind: "container"},
+		Runtime:    containerapi.RuntimeInfo{Name: s.runtimeName},
 		CreatedAt:  time.Unix(info.Created, 0),
 		UpdatedAt:  time.Unix(info.Created, 0),
 	}

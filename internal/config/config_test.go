@@ -127,6 +127,9 @@ func TestLoadReadsBackendSpecificConfigs(t *testing.T) {
 [docker]
 host = "unix:///var/run/docker.sock"
 
+[podman]
+host = "unix:///run/podman/podman.sock"
+
 [apple]
 socket_path = "/tmp/socktainer.sock"
 binary_path = "/opt/homebrew/bin/socktainer"
@@ -141,6 +144,9 @@ binary_path = "/opt/homebrew/bin/socktainer"
 	}
 	if cfg.Docker.Host != "unix:///var/run/docker.sock" {
 		t.Fatalf("docker host = %q", cfg.Docker.Host)
+	}
+	if cfg.Podman.Host != "unix:///run/podman/podman.sock" {
+		t.Fatalf("podman host = %q", cfg.Podman.Host)
 	}
 	if cfg.Apple.SocketPath != "/tmp/socktainer.sock" {
 		t.Fatalf("apple socket path = %q", cfg.Apple.SocketPath)

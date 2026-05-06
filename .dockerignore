@@ -54,7 +54,6 @@ coverage/
 # Data
 data/
 *.db
-*.sqlite
 
 # Docker
 docker-compose.override.yml

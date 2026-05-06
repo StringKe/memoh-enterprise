@@ -94,7 +94,7 @@ tmp/
 # compiled files
 /memoh
 /agent
-/bridge
+/workspace-executor
 
 docs/docs/.vitepress/cache
 .pnpm-store

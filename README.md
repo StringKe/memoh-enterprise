@@ -1,84 +1,141 @@
 # Memoh Enterprise
 
-Memoh Enterprise is an enterprise-focused, fully open-source fork of [Memoh](https://github.com/memohai/Memoh). The upstream project is a self-hosted, always-on AI agent platform that runs bots in containers with long-term memory and chat integrations.
+Memoh Enterprise is a fully open-source, enterprise-focused fork of [Memoh](https://github.com/memohai/Memoh). It keeps Memoh's self-hosted AI agent foundation and reshapes the project into a server-first platform for enterprise deployments.
 
-This fork keeps the core agent platform and web management experience, but narrows the product to enterprise server deployments. It removes desktop and terminal UI surfaces, removes SQLite, standardizes on PostgreSQL, and replaces the OpenAPI management surface with ConnectRPC.
+This fork is not a desktop product. It removes Desktop GUI, terminal TUI, SQLite, Windows packaging, Docker Hub publishing, npmjs publishing, and China-specific runtime optimizations. The supported product surface is the Go server, ConnectRPC APIs, web management UI, PostgreSQL, containerized workspaces, browser automation, enterprise integrations, and operational CLI.
 
-## Upstream
+## What Is New In This Fork
+
+- **Enterprise scope**: server-first architecture with Web UI, RBAC, SSO, Bot Groups, API tokens, audit-aware management APIs, and operational CLI.
+- **ConnectRPC management API**: the old OpenAPI management surface is replaced by protobuf contracts and ConnectRPC handlers.
+- **Bot Groups**: grouped bot ownership, visibility, inherited settings, and principal role assignment for enterprise administration.
+- **Integration Gateway**: external enterprise integrations use a dedicated WebSocket protocol and separate protobuf contracts.
+- **Scoped integration tokens**: integration clients can use global, bot-scoped, or bot-group-scoped API tokens.
+- **Split runtime services**: server, agent runner, connector, integration gateway, worker, browser gateway, and workspace executor are separate runtime roles.
+- **PostgreSQL only**: PostgreSQL is the only relational database backend. SQLite support is removed.
+- **Workspace Executor**: the old bridge role is renamed and narrowed into the in-workspace execution boundary for files, exec, PTY, and MCP server processes.
+- **Container runtime focus**: containerd is the default workspace runtime, with Docker Engine, Podman, and Kubernetes runtime support retained where implemented.
+- **Browser automation retained**: Browser Gateway and Playwright-based agent tools remain supported because they are agent capabilities, not GUI features.
+- **Feishu/Lark WebSocket lifecycle fix**: Feishu/Lark channel connections now close their WebSocket transport on stop and do not leave old subscriptions running after token or config updates.
+- **Vite+ frontend tooling**: frontend checks, formatting, tests, and package-manager wrappers are handled through Vite+.
+- **GitHub-native publishing**: Docker images publish to GHCR and npm packages publish to GitHub Packages.
+
+## Upstream Relationship
+
+This repository is built on top of upstream Memoh.
 
 - Upstream repository: [memohai/Memoh](https://github.com/memohai/Memoh)
+- Enterprise repository: [StringKe/memoh-enterprise](https://github.com/StringKe/memoh-enterprise)
+- Upstream alignment marker: [`.parent-commit`](./.parent-commit)
 - Current upstream alignment commit: `beae0041b9f0e009509e6411673175e672b6f163`
-- Alignment marker: [`.parent-commit`](./.parent-commit)
 
-This project is built on top of Memoh. Thanks to the Memoh maintainers and contributors for creating and maintaining the original self-hosted AI agent platform. Memoh Enterprise exists because that upstream work provides the agent runtime, container workspace model, memory system, channel integrations, and web management foundation.
+Thanks to the Memoh maintainers and contributors for the original self-hosted AI agent platform, including the agent runtime, long-term memory model, workspace container design, channel integrations, and web management foundation.
 
-This fork is expected to keep syncing useful upstream server, agent, memory, provider, channel, workspace, and web management improvements. Upstream changes for Desktop GUI, TUI, SQLite, Windows packaging, Docker Hub publishing, npmjs publishing, and China-specific optimizations are intentionally excluded.
+This fork continues to sync useful upstream changes for server, agent, memory, MCP, providers, models, channels, email, workspace, container runtime, Browser Gateway, and Web UI. Changes that reintroduce Desktop GUI, TUI, SQLite, Windows packaging, Docker Hub, npmjs, or China-specific optimizations are intentionally excluded.
 
-## Enterprise Scope
+See [docs/upstream-sync.md](./docs/upstream-sync.md) for the synchronization process.
+
+## Product Scope
 
 Included:
 
-- Go server with ConnectRPC management APIs under `/connect`.
-- Vue web management UI in `apps/web`.
-- PostgreSQL as the only relational database backend.
-- containerd, Docker Engine, Podman, and Kubernetes workspace runtimes.
-- Browser Gateway for headless browser automation used by agent tools.
-- Split runtime services: `memoh-server`, `memoh-agent-runner`, `memoh-connector`, `memoh-integration-gateway`, `memoh-worker`, and `workspace-executor`.
-- Agent tools, MCP, memory, schedule, providers, models, channels, email, workspace, and container management.
-- Bot Groups for enterprise-level configuration inheritance and grouped bot operations.
-- Enterprise integration API tokens for global, bot-scoped, and bot-group-scoped access.
-- WebSocket-based external integration protocol with Go and TypeScript SDKs.
-- GHCR-based publishing for Docker images and packages.
-- Non-interactive `memoh` CLI for server operations and administrative maintenance.
+- Go server and `memoh-server`.
+- Web management UI in [`apps/web`](./apps/web).
+- Browser Gateway in [`apps/browser`](./apps/browser).
+- ConnectRPC management API under `/connect`.
+- TypeScript management SDK in [`packages/sdk`](./packages/sdk).
+- PostgreSQL schema, migrations, and sqlc queries in [`db/postgres`](./db/postgres).
+- Bot Groups, RBAC, SSO, auth, settings, models, providers, memory, schedules, channels, email, and workspace management.
+- External integration WebSocket API and SDKs.
+- Non-interactive `memoh` CLI for server operations and break-glass administration.
+- Docker Engine, containerd, Podman, and Kubernetes runtime adapters.
+- Linux `amd64` and Linux `arm64` deployment targets.
+- macOS local development compatibility.
 
 Removed:
 
-- Electron/Desktop application.
+- Electron/Desktop app.
 - Terminal TUI.
-- SQLite database backend.
+- SQLite schema, migrations, driver, generated code, configuration, and documentation.
+- Windows release targets and installation instructions.
 - Docker Hub publishing.
 - npmjs publishing.
-- Windows-specific packaging.
-- China-specific installation and runtime optimizations.
+- China-specific mirrors, installation paths, and runtime optimizations.
 
-## ConnectRPC And Integration APIs
+## Architecture
 
-The internal management API is ConnectRPC-first. Protocol definitions live in [`proto/memoh/private/v1`](./proto/memoh/private/v1), generated Go handlers live under [`internal/connectapi`](./internal/connectapi), and generated TypeScript client types live under [`packages/sdk`](./packages/sdk).
+| Runtime | Default Port | Role |
+| --- | ---: | --- |
+| `memoh-server` | `26810` | Control plane, ConnectRPC management API, auth, RBAC, settings, token admin, health, and container control |
+| `memoh-web` | `26811` | Vue 3 web management UI |
+| `memoh-browser` | `26812` | Browser Gateway for Playwright automation used by agent tools |
+| `memoh-agent-runner` | `26813` | Agent run lifecycle, tool orchestration, and model execution flow |
+| `memoh-connector` | internal | Platform channel adapters and long-lived connector leases |
+| `memoh-integration-gateway` | `26815` | External enterprise WebSocket integration API |
+| `memoh-worker` | internal | Schedule, heartbeat, compaction, cleanup, and PostgreSQL outbox consumers |
+| `workspace-executor` | Unix socket | In-workspace file, exec, PTY, and MCP server execution boundary |
+| PostgreSQL | `26817` | Relational database |
+| Qdrant HTTP | `26818` | Optional vector storage |
+| Qdrant gRPC | `26819` | Optional vector storage gRPC endpoint |
+| Sparse memory service | `26820` | Optional sparse retrieval service |
 
-External enterprise integrations use a separate WebSocket protocol. Its protobuf definitions live in [`proto/memoh/integration/v1`](./proto/memoh/integration/v1). SDKs are provided for:
+## API Surfaces
 
-- Go: [`sdk/go/integration`](./sdk/go/integration)
-- TypeScript: [`packages/integration-sdk-ts`](./packages/integration-sdk-ts)
+### Management API
 
-Other languages are not supported at this stage.
+Management APIs are ConnectRPC-first.
 
-## Runtime Architecture
+- Protobuf contracts: [`proto/memoh/private/v1`](./proto/memoh/private/v1)
+- Generated Go code: [`internal/connectapi/gen`](./internal/connectapi/gen)
+- ConnectRPC handlers: [`internal/connectapi`](./internal/connectapi)
+- TypeScript SDK: [`packages/sdk`](./packages/sdk)
 
-- `memoh-server`: control plane, ConnectRPC management API, auth, RBAC, settings, token admin, and health checks.
-- `memoh-agent-runner`: agent run lifecycle and tool orchestration.
-- `memoh-connector`: platform channel adapters and long-lived connector leases.
-- `memoh-integration-gateway`: external enterprise WebSocket integration API.
-- `memoh-worker`: schedule, heartbeat, compaction, cleanup, and PostgreSQL outbox consumers.
-- `workspace-executor`: in-workspace file, exec, PTY, and MCP server execution boundary.
+Generate protocol artifacts:
 
-## Runtime Targets
+```bash
+mise run proto-generate
+```
 
-Supported deployment targets:
+### External Integration API
 
-- Linux `amd64`
-- Linux `arm64`
+Enterprise external integrations use WebSocket, not webhook. The external integration protocol is intentionally separate from the internal management API.
 
-macOS is supported for local development compatibility, especially on Apple Silicon. Desktop GUI support is not part of this fork.
+- Protobuf contracts: [`proto/memoh/integration/v1`](./proto/memoh/integration/v1)
+- Integration Gateway: [`cmd/integration-gateway`](./cmd/integration-gateway)
+- Go SDK: [`sdk/go/integration`](./sdk/go/integration)
+- TypeScript SDK: [`packages/integration-sdk-ts`](./packages/integration-sdk-ts)
 
-## Quick Start
+Only Go and TypeScript SDKs are maintained at this stage.
 
-Server installer:
+## Runtime Services
+
+Memoh Enterprise splits platform responsibilities into explicit services:
+
+- `memoh-server`: control plane, API, auth, RBAC, token administration, container runtime coordination.
+- `memoh-agent-runner`: agent execution lifecycle and tool orchestration.
+- `memoh-connector`: platform channel long connections and inbound/outbound message flow.
+- `memoh-integration-gateway`: external enterprise WebSocket integration clients.
+- `memoh-worker`: background schedules, compaction, cleanup, heartbeat, and outbox work.
+- `memoh-browser`: Browser Gateway for agent browser automation.
+- `workspace-executor`: workspace-local execution service mounted inside workspace containers.
+
+This split keeps platform integrations, model work, browser automation, and workspace execution out of the main control plane process.
+
+## Channel And Integration Notes
+
+The project keeps platform channel adapters for enterprise bot use cases. Telegram, Feishu/Lark, WeCom, DingTalk, Slack, Discord, Matrix, QQ, WeChat, Misskey, and local web channels are represented in the codebase.
+
+Feishu/Lark WebSocket connections use a project-owned transport so `Stop` closes the WebSocket and waits for the read, ping, and reconnect loops to exit. Updating channel credentials now restarts the connection without leaving the old subscription owned by the previous SDK client.
+
+## Installation
+
+Default server install with containerd:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/StringKe/memoh-enterprise/main/scripts/install.sh | sh -s -- --runtime containerd --version latest
 ```
 
-Supported deployment runtimes:
+Supported install runtime flags:
 
 ```bash
 scripts/install.sh --runtime containerd --version latest
@@ -86,9 +143,18 @@ scripts/install.sh --runtime docker --version latest
 scripts/install.sh --runtime podman --version latest
 ```
 
-The installer installs missing server prerequisites automatically, including the selected runtime CLI.
+The installer defaults to:
 
-Manual Compose start:
+- image registry: `ghcr.io/stringke`
+- database driver: `postgres`
+- deployment runtime: `containerd`
+- workspace backend: `containerd`
+
+It installs missing host prerequisites through the system package manager when required.
+
+## Manual Compose Deployment
+
+Create a config file and start the stack:
 
 ```bash
 cp conf/app.docker.toml config.toml
@@ -98,48 +164,161 @@ docker compose up -d
 Enable optional services:
 
 ```bash
-docker compose --profile qdrant --profile browser --profile sparse up -d
+docker compose --profile browser --profile qdrant --profile sparse up -d
 ```
 
-Default local endpoints:
+Useful compose operations through the CLI:
 
-- Server API: `http://localhost:26810`
-- Web UI: `http://localhost:26811`
-- Browser Gateway: `http://localhost:26812` when the `browser` profile is enabled
-- Agent Runner: `http://localhost:26813`
-- Integration Gateway: `http://localhost:26815`
-- PostgreSQL: `localhost:26817`
-- Qdrant HTTP: `http://localhost:26818`
-- Qdrant gRPC: `localhost:26819`
-- Sparse memory service: `http://localhost:26820`
+```bash
+memoh start
+memoh stop
+memoh restart server
+memoh status
+memoh logs server
+memoh update
+```
 
-Default admin account in templates: `admin` / `admin123`. Change it before production use.
+Inspect nested containerd inside the server container:
+
+```bash
+memoh ctr images ls
+memoh ctr containers ls
+memoh ctr --namespace default tasks ls
+```
+
+Default admin credentials in templates are `admin` / `admin123`. Change them before exposing a deployment.
 
 ## Local Development
+
+Install toolchains:
 
 ```bash
 mise install
 mise run setup
+```
+
+Run infrastructure and server on the host:
+
+```bash
 mise run local:dev
 ```
 
-Useful commands:
+Run Browser Gateway on the host:
 
 ```bash
 mise run local:browser
+```
+
+Run Web UI development server:
+
+```bash
 mise run web:dev
+```
+
+Run the full containerized development environment:
+
+```bash
 mise run dev
+```
+
+Common development commands:
+
+```bash
 mise run dev:infra
-mise run e2e:smoke
+mise run dev:logs
+mise run dev:restart -- server
+mise run db-up
+mise run db-down
 mise run sqlc-generate
 mise run proto-generate
 mise run sdk-generate
 mise run build-unified
-go test ./cmd/... ./internal/...
+mise run e2e:smoke
 ```
+
+## Validation
+
+Run Go tests:
+
+```bash
+go test ./...
+```
+
+Run repository checks:
+
+```bash
+mise run lint
+```
+
+Run frontend tests:
+
+```bash
+vp test
+```
+
+Run endpoint smoke tests against a running deployment:
+
+```bash
+mise run e2e:smoke
+```
+
+## Publishing
+
+Docker images are published to GHCR under `ghcr.io/stringke`.
+
+Primary images:
+
+- `ghcr.io/stringke/server`
+- `ghcr.io/stringke/web`
+- `ghcr.io/stringke/browser`
+- `ghcr.io/stringke/agent-runner`
+- `ghcr.io/stringke/connector`
+- `ghcr.io/stringke/integration-gateway`
+- `ghcr.io/stringke/worker`
+- `ghcr.io/stringke/sparse`
+
+npm packages are published to GitHub Packages at `https://npm.pkg.github.com`.
+
+Published package candidates:
+
+- `apps/browser`
+- `packages/config`
+- `packages/icons`
+- `packages/sdk`
+- `packages/integration-sdk-ts`
+- `packages/ui`
+
+There are no binary release artifacts for this fork.
+
+## Important Directories
+
+| Path | Purpose |
+| --- | --- |
+| [`cmd/server`](./cmd/server) | `memoh-server` entrypoint |
+| [`cmd/memoh`](./cmd/memoh) | Non-interactive operations CLI |
+| [`cmd/agent-runner`](./cmd/agent-runner) | Agent runner service |
+| [`cmd/connector`](./cmd/connector) | Connector service |
+| [`cmd/integration-gateway`](./cmd/integration-gateway) | Enterprise integration gateway |
+| [`cmd/worker`](./cmd/worker) | Background worker service |
+| [`cmd/workspace-executor`](./cmd/workspace-executor) | Workspace execution boundary |
+| [`internal`](./internal) | Go backend packages |
+| [`apps/web`](./apps/web) | Web management UI |
+| [`apps/browser`](./apps/browser) | Browser Gateway |
+| [`packages/sdk`](./packages/sdk) | TypeScript ConnectRPC management SDK |
+| [`packages/integration-sdk-ts`](./packages/integration-sdk-ts) | TypeScript integration SDK |
+| [`sdk/go/integration`](./sdk/go/integration) | Go integration SDK |
+| [`db/postgres`](./db/postgres) | PostgreSQL migrations and queries |
+| [`proto`](./proto) | ConnectRPC and integration protobuf contracts |
+| [`deploy`](./deploy) | Compose, Docker, and Kubernetes deployment files |
+| [`scripts`](./scripts) | Install, release, DB, and E2E scripts |
+| [`docs`](./docs) | Project documentation |
 
 ## Documentation
 
-- Enterprise scope: [`docs/enterprise-scope.md`](./docs/enterprise-scope.md)
-- Upstream sync process: [`docs/upstream-sync.md`](./docs/upstream-sync.md)
-- Deployment guide: [`DEPLOYMENT.md`](./DEPLOYMENT.md)
+- [Enterprise scope](./docs/enterprise-scope.md)
+- [Upstream sync guide](./docs/upstream-sync.md)
+- [Deployment guide](./DEPLOYMENT.md)
+
+## License
+
+This fork follows the repository license in [LICENSE](./LICENSE).

@@ -1,63 +1,66 @@
-import { apiHttpUrl } from "../../lib/runtime-url";
+import type { BotSessionMessage, StreamChatRequest } from "@stringke/sdk/connect";
+import { streamConnectChat, connectClients } from "../../lib/connect-client";
+import { consumeConnectServerStream } from "../../lib/connect-colada";
+import { timestampToISOString } from "../../lib/connect-runtime";
+import { createConnectChatStreamNormalizer } from "./useChat.connect-stream";
 import type {
   ChatAttachment,
   FetchMessagesOptions,
   Message,
   MessageStreamEvent,
-  StreamEventHandler,
+  UIMessage,
+  UIStreamEvent,
   UITurn,
 } from "./useChat.types";
-import { parseStreamPayload, readSSEStream } from "./useChat.sse";
 
-interface ChannelAttachmentPayload {
-  type: string;
-  base64: string;
-  mime: string;
-  name: string;
+export interface SendMessageOverrides {
+  modelId?: string;
+  reasoningEffort?: string;
 }
 
-interface ChannelMessagePayload {
-  text?: string;
-  attachments?: ChannelAttachmentPayload[];
-}
-
-function authHeaders(extra?: HeadersInit): HeadersInit {
-  const token = localStorage.getItem("token") || "";
+function botSessionMessageToMessage(message: BotSessionMessage): Message {
+  const payload = message.payload as Record<string, unknown> | undefined;
   return {
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    ...extra,
+    id: message.id,
+    bot_id: message.botId,
+    session_id: message.sessionId,
+    role: message.role,
+    content: payload ?? message.text,
+    display_content: message.text,
+    created_at: timestampToISOString(message.createdAt),
   };
 }
 
-function botRuntimeUrl(botId: string, path: string, query?: URLSearchParams): string {
-  const url = apiHttpUrl(`/bots/${encodeURIComponent(botId)}${path}`);
-  const queryString = query?.toString();
-  return queryString ? `${url}?${queryString}` : url;
-}
-
-function messagesQuery(sessionId?: string, options?: FetchMessagesOptions): URLSearchParams {
-  const query = new URLSearchParams();
-  query.set("limit", String(options?.limit ?? 30));
-  if (options?.before?.trim()) query.set("before", options.before.trim());
-  if (sessionId?.trim()) query.set("session_id", sessionId.trim());
-  return query;
-}
-
-async function readJsonResponse<T>(response: Response): Promise<T> {
-  if (!response.ok) {
-    const message = await response.text();
-    throw new Error(message || `Request failed with status ${response.status}`);
+function messageToUITurn(message: Message): UITurn {
+  const timestamp = message.created_at ?? new Date().toISOString();
+  if (message.role === "user") {
+    return {
+      id: message.id,
+      role: "user",
+      text: typeof message.display_content === "string" ? message.display_content : "",
+      attachments: [],
+      timestamp,
+      platform: message.platform,
+      sender_display_name: message.sender_display_name,
+      sender_avatar_url: message.sender_avatar_url,
+      sender_user_id: message.sender_user_id,
+    };
   }
-  return response.json() as Promise<T>;
-}
 
-async function readStreamResponse(response: Response): Promise<ReadableStream<Uint8Array>> {
-  if (!response.ok) {
-    const message = await response.text();
-    throw new Error(message || `Request failed with status ${response.status}`);
-  }
-  if (!response.body) throw new Error("No response body");
-  return response.body;
+  const text =
+    typeof message.display_content === "string"
+      ? message.display_content
+      : typeof message.content === "string"
+        ? message.content
+        : "";
+  const data: UIMessage = { id: 0, type: "text", content: text };
+  return {
+    id: message.id,
+    role: "assistant",
+    messages: [data],
+    timestamp,
+    platform: message.platform,
+  };
 }
 
 export async function fetchMessages(
@@ -65,14 +68,18 @@ export async function fetchMessages(
   sessionId?: string,
   options?: FetchMessagesOptions,
 ): Promise<Message[]> {
-  const response = await fetch(
-    botRuntimeUrl(botId, "/messages", messagesQuery(sessionId, options)),
-    {
-      headers: authHeaders(),
+  const id = botId.trim();
+  const sid = sessionId?.trim() ?? "";
+  if (!id || !sid) return [];
+  const response = await connectClients.bots.listBotSessionMessages({
+    botId: id,
+    sessionId: sid,
+    page: {
+      pageSize: options?.limit ?? 30,
+      pageToken: options?.before?.trim() ?? "",
     },
-  );
-  const data = await readJsonResponse<{ items?: Message[] }>(response);
-  return data.items ?? [];
+  });
+  return response.messages.map(botSessionMessageToMessage);
 }
 
 export async function fetchMessagesUI(
@@ -80,18 +87,8 @@ export async function fetchMessagesUI(
   sessionId?: string,
   options?: FetchMessagesOptions,
 ): Promise<UITurn[]> {
-  const query = messagesQuery(sessionId, options);
-  query.set("format", "ui");
-  const response = await fetch(botRuntimeUrl(botId, "/messages", query), {
-    headers: authHeaders(),
-  });
-  const data = await readJsonResponse<{ items?: UITurn[] }>(response);
-  return data.items ?? [];
-}
-
-export interface SendMessageOverrides {
-  modelId?: string;
-  reasoningEffort?: string;
+  const messages = await fetchMessages(botId, sessionId, options);
+  return messages.map(messageToUITurn);
 }
 
 export async function sendLocalChannelMessage(
@@ -100,53 +97,56 @@ export async function sendLocalChannelMessage(
   attachments?: ChatAttachment[],
   overrides?: SendMessageOverrides,
 ): Promise<void> {
-  const msg: ChannelMessagePayload = {};
-  const trimmedText = text.trim();
-  if (trimmedText) {
-    msg.text = trimmedText;
-  }
-  if (attachments?.length) {
-    msg.attachments = attachments.map(
-      (item): ChannelAttachmentPayload => ({
-        type: item.type,
-        base64: item.base64,
-        mime: item.mime ?? "",
-        name: item.name ?? "",
-      }),
-    );
-  }
-  const body: Record<string, unknown> = { message: msg };
-  if (overrides?.modelId) body.model_id = overrides.modelId;
-  if (overrides?.reasoningEffort) body.reasoning_effort = overrides.reasoningEffort;
-
-  const response = await fetch(botRuntimeUrl(botId, "/local/messages"), {
-    method: "POST",
-    headers: authHeaders({ "Content-Type": "application/json" }),
-    body: JSON.stringify(body),
-  });
-  if (!response.ok) {
-    const message = await response.text();
-    throw new Error(message || `Request failed with status ${response.status}`);
-  }
+  const controller = new AbortController();
+  await streamLocalChannelMessage(
+    {
+      botId,
+      sessionId: "",
+      text,
+      attachments,
+      overrides,
+    },
+    controller.signal,
+    () => {},
+  );
 }
 
-export async function streamLocalChannel(
-  botId: string,
+export async function streamLocalChannelMessage(
+  input: {
+    botId: string;
+    sessionId: string;
+    text: string;
+    attachments?: ChatAttachment[];
+    overrides?: SendMessageOverrides;
+  },
   signal: AbortSignal,
-  onEvent: StreamEventHandler,
+  onEvent: (event: UIStreamEvent) => void,
 ): Promise<void> {
-  const id = botId.trim();
+  const id = input.botId.trim();
   if (!id) throw new Error("bot id is required");
 
-  const response = await fetch(botRuntimeUrl(id, "/local/stream"), {
-    headers: authHeaders({ Accept: "text/event-stream" }),
-    signal,
-  });
-  const body = await readStreamResponse(response);
+  const request: StreamChatRequest = {
+    $typeName: "memoh.private.v1.StreamChatRequest",
+    botId: id,
+    sessionId: input.sessionId.trim(),
+    message: input.text.trim(),
+    attachmentIds: [],
+    options: {
+      attachments: input.attachments ?? [],
+      model_id: input.overrides?.modelId ?? "",
+      reasoning_effort: input.overrides?.reasoningEffort ?? "",
+    } as unknown as NonNullable<StreamChatRequest["options"]>,
+  };
+  const normalize = createConnectChatStreamNormalizer();
 
-  await readSSEStream(body, (payload) => {
-    const event = parseStreamPayload(payload);
-    if (event) onEvent(event);
+  await consumeConnectServerStream({
+    signal,
+    stream: (nextSignal) => streamConnectChat(request, nextSignal),
+    onEvent: (event) => {
+      for (const normalized of normalize(event)) {
+        onEvent(normalized);
+      }
+    },
   });
 }
 
@@ -157,25 +157,10 @@ export async function streamMessageEvents(
   since?: string,
 ): Promise<void> {
   const id = botId.trim();
-  if (!id) throw new Error("bot id is required");
-
-  const query: Record<string, string> = {};
-  if (since?.trim()) query.since = since.trim();
-
-  const response = await fetch(botRuntimeUrl(id, "/messages/events", new URLSearchParams(query)), {
-    headers: authHeaders({ Accept: "text/event-stream" }),
-    signal,
-  });
-  const body = await readStreamResponse(response);
-
-  await readSSEStream(body, (payload) => {
-    try {
-      const parsed = JSON.parse(payload);
-      if (!parsed || typeof parsed !== "object" || !("type" in parsed)) return;
-      if (typeof parsed.type !== "string" || !parsed.type.trim()) return;
-      onEvent(parsed as MessageStreamEvent);
-    } catch {
-      // Ignore unparsable payloads
-    }
-  });
+  if (!id || signal.aborted) return;
+  const messages = await fetchMessages(id, undefined, { before: since, limit: 1 });
+  for (const message of messages) {
+    if (signal.aborted) return;
+    onEvent({ type: "message_created", bot_id: id, message, session_id: message.session_id });
+  }
 }

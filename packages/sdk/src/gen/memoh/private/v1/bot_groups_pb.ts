@@ -13,7 +13,7 @@ import type { JsonObject, Message } from "@bufbuild/protobuf";
  * Describes the file memoh/private/v1/bot_groups.proto.
  */
 export const file_memoh_private_v1_bot_groups: GenFile /*@__PURE__*/ = fileDesc(
-  "CiFtZW1vaC9wcml2YXRlL3YxL2JvdF9ncm91cHMucHJvdG8SEG1lbW9oLnByaXZhdGUudjEivAEKCEJvdEdyb3VwEgoKAmlkGAEgASgJEhUKDW93bmVyX3VzZXJfaWQYAiABKAkSDAoEbmFtZRgDIAEoCRITCgtkZXNjcmlwdGlvbhgEIAEoCRIpCghtZXRhZGF0YRgFIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QSEQoJYm90X2NvdW50GAYgASgDEiwKBWF1ZGl0GAcgASgLMh0ubWVtb2gucHJpdmF0ZS52MS5BdWRpdEZpZWxkcyJlChVDcmVhdGVCb3RHcm91cFJlcXVlc3QSDAoEbmFtZRgBIAEoCRITCgtkZXNjcmlwdGlvbhgCIAEoCRIpCghtZXRhZGF0YRgDIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QiQwoWQ3JlYXRlQm90R3JvdXBSZXNwb25zZRIpCgVncm91cBgBIAEoCzIaLm1lbW9oLnByaXZhdGUudjEuQm90R3JvdXAiIAoSR2V0Qm90R3JvdXBSZXF1ZXN0EgoKAmlkGAEgASgJIkAKE0dldEJvdEdyb3VwUmVzcG9uc2USKQoFZ3JvdXAYASABKAsyGi5tZW1vaC5wcml2YXRlLnYxLkJvdEdyb3VwIkMKFExpc3RCb3RHcm91cHNSZXF1ZXN0EisKBHBhZ2UYASABKAsyHS5tZW1vaC5wcml2YXRlLnYxLlBhZ2VSZXF1ZXN0InEKFUxpc3RCb3RHcm91cHNSZXNwb25zZRIqCgZncm91cHMYASADKAsyGi5tZW1vaC5wcml2YXRlLnYxLkJvdEdyb3VwEiwKBHBhZ2UYAiABKAsyHi5tZW1vaC5wcml2YXRlLnYxLlBhZ2VSZXNwb25zZSJxChVVcGRhdGVCb3RHcm91cFJlcXVlc3QSCgoCaWQYASABKAkSDAoEbmFtZRgCIAEoCRITCgtkZXNjcmlwdGlvbhgDIAEoCRIpCghtZXRhZGF0YRgEIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QiQwoWVXBkYXRlQm90R3JvdXBSZXNwb25zZRIpCgVncm91cBgBIAEoCzIaLm1lbW9oLnByaXZhdGUudjEuQm90R3JvdXAiIwoVRGVsZXRlQm90R3JvdXBSZXF1ZXN0EgoKAmlkGAEgASgJIhgKFkRlbGV0ZUJvdEdyb3VwUmVzcG9uc2UiLgoaR2V0Qm90R3JvdXBTZXR0aW5nc1JlcXVlc3QSEAoIZ3JvdXBfaWQYASABKAkiTgobR2V0Qm90R3JvdXBTZXR0aW5nc1Jlc3BvbnNlEi8KCHNldHRpbmdzGAEgASgLMh0ubWVtb2gucHJpdmF0ZS52MS5Cb3RTZXR0aW5ncyJiCh1VcGRhdGVCb3RHcm91cFNldHRpbmdzUmVxdWVzdBIQCghncm91cF9pZBgBIAEoCRIvCghzZXR0aW5ncxgCIAEoCzIdLm1lbW9oLnByaXZhdGUudjEuQm90U2V0dGluZ3MiUQoeVXBkYXRlQm90R3JvdXBTZXR0aW5nc1Jlc3BvbnNlEi8KCHNldHRpbmdzGAEgASgLMh0ubWVtb2gucHJpdmF0ZS52MS5Cb3RTZXR0aW5ncyIxCh1EZWxldGVCb3RHcm91cFNldHRpbmdzUmVxdWVzdBIQCghncm91cF9pZBgBIAEoCSIgCh5EZWxldGVCb3RHcm91cFNldHRpbmdzUmVzcG9uc2Uy7AYKD0JvdEdyb3VwU2VydmljZRJjCg5DcmVhdGVCb3RHcm91cBInLm1lbW9oLnByaXZhdGUudjEuQ3JlYXRlQm90R3JvdXBSZXF1ZXN0GigubWVtb2gucHJpdmF0ZS52MS5DcmVhdGVCb3RHcm91cFJlc3BvbnNlEloKC0dldEJvdEdyb3VwEiQubWVtb2gucHJpdmF0ZS52MS5HZXRCb3RHcm91cFJlcXVlc3QaJS5tZW1vaC5wcml2YXRlLnYxLkdldEJvdEdyb3VwUmVzcG9uc2USYAoNTGlzdEJvdEdyb3VwcxImLm1lbW9oLnByaXZhdGUudjEuTGlzdEJvdEdyb3Vwc1JlcXVlc3QaJy5tZW1vaC5wcml2YXRlLnYxLkxpc3RCb3RHcm91cHNSZXNwb25zZRJjCg5VcGRhdGVCb3RHcm91cBInLm1lbW9oLnByaXZhdGUudjEuVXBkYXRlQm90R3JvdXBSZXF1ZXN0GigubWVtb2gucHJpdmF0ZS52MS5VcGRhdGVCb3RHcm91cFJlc3BvbnNlEmMKDkRlbGV0ZUJvdEdyb3VwEicubWVtb2gucHJpdmF0ZS52MS5EZWxldGVCb3RHcm91cFJlcXVlc3QaKC5tZW1vaC5wcml2YXRlLnYxLkRlbGV0ZUJvdEdyb3VwUmVzcG9uc2UScgoTR2V0Qm90R3JvdXBTZXR0aW5ncxIsLm1lbW9oLnByaXZhdGUudjEuR2V0Qm90R3JvdXBTZXR0aW5nc1JlcXVlc3QaLS5tZW1vaC5wcml2YXRlLnYxLkdldEJvdEdyb3VwU2V0dGluZ3NSZXNwb25zZRJ7ChZVcGRhdGVCb3RHcm91cFNldHRpbmdzEi8ubWVtb2gucHJpdmF0ZS52MS5VcGRhdGVCb3RHcm91cFNldHRpbmdzUmVxdWVzdBowLm1lbW9oLnByaXZhdGUudjEuVXBkYXRlQm90R3JvdXBTZXR0aW5nc1Jlc3BvbnNlEnsKFkRlbGV0ZUJvdEdyb3VwU2V0dGluZ3MSLy5tZW1vaC5wcml2YXRlLnYxLkRlbGV0ZUJvdEdyb3VwU2V0dGluZ3NSZXF1ZXN0GjAubWVtb2gucHJpdmF0ZS52MS5EZWxldGVCb3RHcm91cFNldHRpbmdzUmVzcG9uc2VCTVpLZ2l0aHViLmNvbS9tZW1vaGFpL21lbW9oL2ludGVybmFsL2Nvbm5lY3RhcGkvZ2VuL21lbW9oL3ByaXZhdGUvdjE7cHJpdmF0ZXYxYgZwcm90bzM",
+  "CiFtZW1vaC9wcml2YXRlL3YxL2JvdF9ncm91cHMucHJvdG8SEG1lbW9oLnByaXZhdGUudjEi0AEKCEJvdEdyb3VwEgoKAmlkGAEgASgJEhUKDW93bmVyX3VzZXJfaWQYAiABKAkSDAoEbmFtZRgDIAEoCRITCgtkZXNjcmlwdGlvbhgEIAEoCRISCgp2aXNpYmlsaXR5GAUgASgJEikKCG1ldGFkYXRhGAYgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdBIRCglib3RfY291bnQYByABKAMSLAoFYXVkaXQYCCABKAsyHS5tZW1vaC5wcml2YXRlLnYxLkF1ZGl0RmllbGRzInkKFUNyZWF0ZUJvdEdyb3VwUmVxdWVzdBIMCgRuYW1lGAEgASgJEhMKC2Rlc2NyaXB0aW9uGAIgASgJEhIKCnZpc2liaWxpdHkYAyABKAkSKQoIbWV0YWRhdGEYBCABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0IkMKFkNyZWF0ZUJvdEdyb3VwUmVzcG9uc2USKQoFZ3JvdXAYASABKAsyGi5tZW1vaC5wcml2YXRlLnYxLkJvdEdyb3VwIiAKEkdldEJvdEdyb3VwUmVxdWVzdBIKCgJpZBgBIAEoCSJAChNHZXRCb3RHcm91cFJlc3BvbnNlEikKBWdyb3VwGAEgASgLMhoubWVtb2gucHJpdmF0ZS52MS5Cb3RHcm91cCJDChRMaXN0Qm90R3JvdXBzUmVxdWVzdBIrCgRwYWdlGAEgASgLMh0ubWVtb2gucHJpdmF0ZS52MS5QYWdlUmVxdWVzdCJxChVMaXN0Qm90R3JvdXBzUmVzcG9uc2USKgoGZ3JvdXBzGAEgAygLMhoubWVtb2gucHJpdmF0ZS52MS5Cb3RHcm91cBIsCgRwYWdlGAIgASgLMh4ubWVtb2gucHJpdmF0ZS52MS5QYWdlUmVzcG9uc2UihQEKFVVwZGF0ZUJvdEdyb3VwUmVxdWVzdBIKCgJpZBgBIAEoCRIMCgRuYW1lGAIgASgJEhMKC2Rlc2NyaXB0aW9uGAMgASgJEhIKCnZpc2liaWxpdHkYBCABKAkSKQoIbWV0YWRhdGEYBSABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0IkMKFlVwZGF0ZUJvdEdyb3VwUmVzcG9uc2USKQoFZ3JvdXAYASABKAsyGi5tZW1vaC5wcml2YXRlLnYxLkJvdEdyb3VwIiMKFURlbGV0ZUJvdEdyb3VwUmVxdWVzdBIKCgJpZBgBIAEoCSIYChZEZWxldGVCb3RHcm91cFJlc3BvbnNlIi4KGkdldEJvdEdyb3VwU2V0dGluZ3NSZXF1ZXN0EhAKCGdyb3VwX2lkGAEgASgJIk4KG0dldEJvdEdyb3VwU2V0dGluZ3NSZXNwb25zZRIvCghzZXR0aW5ncxgBIAEoCzIdLm1lbW9oLnByaXZhdGUudjEuQm90U2V0dGluZ3MiYgodVXBkYXRlQm90R3JvdXBTZXR0aW5nc1JlcXVlc3QSEAoIZ3JvdXBfaWQYASABKAkSLwoIc2V0dGluZ3MYAiABKAsyHS5tZW1vaC5wcml2YXRlLnYxLkJvdFNldHRpbmdzIlEKHlVwZGF0ZUJvdEdyb3VwU2V0dGluZ3NSZXNwb25zZRIvCghzZXR0aW5ncxgBIAEoCzIdLm1lbW9oLnByaXZhdGUudjEuQm90U2V0dGluZ3MiMQodRGVsZXRlQm90R3JvdXBTZXR0aW5nc1JlcXVlc3QSEAoIZ3JvdXBfaWQYASABKAkiIAoeRGVsZXRlQm90R3JvdXBTZXR0aW5nc1Jlc3BvbnNlIp8BChVCb3RHcm91cFByaW5jaXBhbFJvbGUSCgoCaWQYASABKAkSEAoIZ3JvdXBfaWQYAiABKAkSFgoOcHJpbmNpcGFsX3R5cGUYAyABKAkSFAoMcHJpbmNpcGFsX2lkGAQgASgJEgwKBHJvbGUYBSABKAkSLAoFYXVkaXQYBiABKAsyHS5tZW1vaC5wcml2YXRlLnYxLkF1ZGl0RmllbGRzImIKIUxpc3RCb3RHcm91cFByaW5jaXBhbFJvbGVzUmVxdWVzdBIQCghncm91cF9pZBgBIAEoCRIrCgRwYWdlGAIgASgLMh0ubWVtb2gucHJpdmF0ZS52MS5QYWdlUmVxdWVzdCKKAQoiTGlzdEJvdEdyb3VwUHJpbmNpcGFsUm9sZXNSZXNwb25zZRI2CgVyb2xlcxgBIAMoCzInLm1lbW9oLnByaXZhdGUudjEuQm90R3JvdXBQcmluY2lwYWxSb2xlEiwKBHBhZ2UYAiABKAsyHi5tZW1vaC5wcml2YXRlLnYxLlBhZ2VSZXNwb25zZSJyCiJBc3NpZ25Cb3RHcm91cFByaW5jaXBhbFJvbGVSZXF1ZXN0EhAKCGdyb3VwX2lkGAEgASgJEhYKDnByaW5jaXBhbF90eXBlGAIgASgJEhQKDHByaW5jaXBhbF9pZBgDIAEoCRIMCgRyb2xlGAQgASgJIlwKI0Fzc2lnbkJvdEdyb3VwUHJpbmNpcGFsUm9sZVJlc3BvbnNlEjUKBHJvbGUYASABKAsyJy5tZW1vaC5wcml2YXRlLnYxLkJvdEdyb3VwUHJpbmNpcGFsUm9sZSJCCiJEZWxldGVCb3RHcm91cFByaW5jaXBhbFJvbGVSZXF1ZXN0EhAKCGdyb3VwX2lkGAEgASgJEgoKAmlkGAIgASgJIiUKI0RlbGV0ZUJvdEdyb3VwUHJpbmNpcGFsUm9sZVJlc3BvbnNlMpAKCg9Cb3RHcm91cFNlcnZpY2USYwoOQ3JlYXRlQm90R3JvdXASJy5tZW1vaC5wcml2YXRlLnYxLkNyZWF0ZUJvdEdyb3VwUmVxdWVzdBooLm1lbW9oLnByaXZhdGUudjEuQ3JlYXRlQm90R3JvdXBSZXNwb25zZRJaCgtHZXRCb3RHcm91cBIkLm1lbW9oLnByaXZhdGUudjEuR2V0Qm90R3JvdXBSZXF1ZXN0GiUubWVtb2gucHJpdmF0ZS52MS5HZXRCb3RHcm91cFJlc3BvbnNlEmAKDUxpc3RCb3RHcm91cHMSJi5tZW1vaC5wcml2YXRlLnYxLkxpc3RCb3RHcm91cHNSZXF1ZXN0GicubWVtb2gucHJpdmF0ZS52MS5MaXN0Qm90R3JvdXBzUmVzcG9uc2USYwoOVXBkYXRlQm90R3JvdXASJy5tZW1vaC5wcml2YXRlLnYxLlVwZGF0ZUJvdEdyb3VwUmVxdWVzdBooLm1lbW9oLnByaXZhdGUudjEuVXBkYXRlQm90R3JvdXBSZXNwb25zZRJjCg5EZWxldGVCb3RHcm91cBInLm1lbW9oLnByaXZhdGUudjEuRGVsZXRlQm90R3JvdXBSZXF1ZXN0GigubWVtb2gucHJpdmF0ZS52MS5EZWxldGVCb3RHcm91cFJlc3BvbnNlEnIKE0dldEJvdEdyb3VwU2V0dGluZ3MSLC5tZW1vaC5wcml2YXRlLnYxLkdldEJvdEdyb3VwU2V0dGluZ3NSZXF1ZXN0Gi0ubWVtb2gucHJpdmF0ZS52MS5HZXRCb3RHcm91cFNldHRpbmdzUmVzcG9uc2USewoWVXBkYXRlQm90R3JvdXBTZXR0aW5ncxIvLm1lbW9oLnByaXZhdGUudjEuVXBkYXRlQm90R3JvdXBTZXR0aW5nc1JlcXVlc3QaMC5tZW1vaC5wcml2YXRlLnYxLlVwZGF0ZUJvdEdyb3VwU2V0dGluZ3NSZXNwb25zZRJ7ChZEZWxldGVCb3RHcm91cFNldHRpbmdzEi8ubWVtb2gucHJpdmF0ZS52MS5EZWxldGVCb3RHcm91cFNldHRpbmdzUmVxdWVzdBowLm1lbW9oLnByaXZhdGUudjEuRGVsZXRlQm90R3JvdXBTZXR0aW5nc1Jlc3BvbnNlEocBChpMaXN0Qm90R3JvdXBQcmluY2lwYWxSb2xlcxIzLm1lbW9oLnByaXZhdGUudjEuTGlzdEJvdEdyb3VwUHJpbmNpcGFsUm9sZXNSZXF1ZXN0GjQubWVtb2gucHJpdmF0ZS52MS5MaXN0Qm90R3JvdXBQcmluY2lwYWxSb2xlc1Jlc3BvbnNlEooBChtBc3NpZ25Cb3RHcm91cFByaW5jaXBhbFJvbGUSNC5tZW1vaC5wcml2YXRlLnYxLkFzc2lnbkJvdEdyb3VwUHJpbmNpcGFsUm9sZVJlcXVlc3QaNS5tZW1vaC5wcml2YXRlLnYxLkFzc2lnbkJvdEdyb3VwUHJpbmNpcGFsUm9sZVJlc3BvbnNlEooBChtEZWxldGVCb3RHcm91cFByaW5jaXBhbFJvbGUSNC5tZW1vaC5wcml2YXRlLnYxLkRlbGV0ZUJvdEdyb3VwUHJpbmNpcGFsUm9sZVJlcXVlc3QaNS5tZW1vaC5wcml2YXRlLnYxLkRlbGV0ZUJvdEdyb3VwUHJpbmNpcGFsUm9sZVJlc3BvbnNlQk1aS2dpdGh1Yi5jb20vbWVtb2hhaS9tZW1vaC9pbnRlcm5hbC9jb25uZWN0YXBpL2dlbi9tZW1vaC9wcml2YXRlL3YxO3ByaXZhdGV2MWIGcHJvdG8z",
   [file_google_protobuf_struct, file_memoh_private_v1_common],
 );
 
@@ -42,17 +42,22 @@ export type BotGroup = Message<"memoh.private.v1.BotGroup"> & {
   description: string;
 
   /**
-   * @generated from field: google.protobuf.Struct metadata = 5;
+   * @generated from field: string visibility = 5;
+   */
+  visibility: string;
+
+  /**
+   * @generated from field: google.protobuf.Struct metadata = 6;
    */
   metadata?: JsonObject | undefined;
 
   /**
-   * @generated from field: int64 bot_count = 6;
+   * @generated from field: int64 bot_count = 7;
    */
   botCount: bigint;
 
   /**
-   * @generated from field: memoh.private.v1.AuditFields audit = 7;
+   * @generated from field: memoh.private.v1.AuditFields audit = 8;
    */
   audit?: AuditFields | undefined;
 };
@@ -81,7 +86,12 @@ export type CreateBotGroupRequest = Message<"memoh.private.v1.CreateBotGroupRequ
   description: string;
 
   /**
-   * @generated from field: google.protobuf.Struct metadata = 3;
+   * @generated from field: string visibility = 3;
+   */
+  visibility: string;
+
+  /**
+   * @generated from field: google.protobuf.Struct metadata = 4;
    */
   metadata?: JsonObject | undefined;
 };
@@ -207,7 +217,12 @@ export type UpdateBotGroupRequest = Message<"memoh.private.v1.UpdateBotGroupRequ
   description: string;
 
   /**
-   * @generated from field: google.protobuf.Struct metadata = 4;
+   * @generated from field: string visibility = 4;
+   */
+  visibility: string;
+
+  /**
+   * @generated from field: google.protobuf.Struct metadata = 5;
    */
   metadata?: JsonObject | undefined;
 };
@@ -373,6 +388,181 @@ export const DeleteBotGroupSettingsResponseSchema: GenMessage<DeleteBotGroupSett
   messageDesc(file_memoh_private_v1_bot_groups, 16);
 
 /**
+ * @generated from message memoh.private.v1.BotGroupPrincipalRole
+ */
+export type BotGroupPrincipalRole = Message<"memoh.private.v1.BotGroupPrincipalRole"> & {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id: string;
+
+  /**
+   * @generated from field: string group_id = 2;
+   */
+  groupId: string;
+
+  /**
+   * @generated from field: string principal_type = 3;
+   */
+  principalType: string;
+
+  /**
+   * @generated from field: string principal_id = 4;
+   */
+  principalId: string;
+
+  /**
+   * @generated from field: string role = 5;
+   */
+  role: string;
+
+  /**
+   * @generated from field: memoh.private.v1.AuditFields audit = 6;
+   */
+  audit?: AuditFields | undefined;
+};
+
+/**
+ * Describes the message memoh.private.v1.BotGroupPrincipalRole.
+ * Use `create(BotGroupPrincipalRoleSchema)` to create a new message.
+ */
+export const BotGroupPrincipalRoleSchema: GenMessage<BotGroupPrincipalRole> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_bot_groups, 17);
+
+/**
+ * @generated from message memoh.private.v1.ListBotGroupPrincipalRolesRequest
+ */
+export type ListBotGroupPrincipalRolesRequest =
+  Message<"memoh.private.v1.ListBotGroupPrincipalRolesRequest"> & {
+    /**
+     * @generated from field: string group_id = 1;
+     */
+    groupId: string;
+
+    /**
+     * @generated from field: memoh.private.v1.PageRequest page = 2;
+     */
+    page?: PageRequest | undefined;
+  };
+
+/**
+ * Describes the message memoh.private.v1.ListBotGroupPrincipalRolesRequest.
+ * Use `create(ListBotGroupPrincipalRolesRequestSchema)` to create a new message.
+ */
+export const ListBotGroupPrincipalRolesRequestSchema: GenMessage<ListBotGroupPrincipalRolesRequest> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_bot_groups, 18);
+
+/**
+ * @generated from message memoh.private.v1.ListBotGroupPrincipalRolesResponse
+ */
+export type ListBotGroupPrincipalRolesResponse =
+  Message<"memoh.private.v1.ListBotGroupPrincipalRolesResponse"> & {
+    /**
+     * @generated from field: repeated memoh.private.v1.BotGroupPrincipalRole roles = 1;
+     */
+    roles: BotGroupPrincipalRole[];
+
+    /**
+     * @generated from field: memoh.private.v1.PageResponse page = 2;
+     */
+    page?: PageResponse | undefined;
+  };
+
+/**
+ * Describes the message memoh.private.v1.ListBotGroupPrincipalRolesResponse.
+ * Use `create(ListBotGroupPrincipalRolesResponseSchema)` to create a new message.
+ */
+export const ListBotGroupPrincipalRolesResponseSchema: GenMessage<ListBotGroupPrincipalRolesResponse> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_bot_groups, 19);
+
+/**
+ * @generated from message memoh.private.v1.AssignBotGroupPrincipalRoleRequest
+ */
+export type AssignBotGroupPrincipalRoleRequest =
+  Message<"memoh.private.v1.AssignBotGroupPrincipalRoleRequest"> & {
+    /**
+     * @generated from field: string group_id = 1;
+     */
+    groupId: string;
+
+    /**
+     * @generated from field: string principal_type = 2;
+     */
+    principalType: string;
+
+    /**
+     * @generated from field: string principal_id = 3;
+     */
+    principalId: string;
+
+    /**
+     * @generated from field: string role = 4;
+     */
+    role: string;
+  };
+
+/**
+ * Describes the message memoh.private.v1.AssignBotGroupPrincipalRoleRequest.
+ * Use `create(AssignBotGroupPrincipalRoleRequestSchema)` to create a new message.
+ */
+export const AssignBotGroupPrincipalRoleRequestSchema: GenMessage<AssignBotGroupPrincipalRoleRequest> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_bot_groups, 20);
+
+/**
+ * @generated from message memoh.private.v1.AssignBotGroupPrincipalRoleResponse
+ */
+export type AssignBotGroupPrincipalRoleResponse =
+  Message<"memoh.private.v1.AssignBotGroupPrincipalRoleResponse"> & {
+    /**
+     * @generated from field: memoh.private.v1.BotGroupPrincipalRole role = 1;
+     */
+    role?: BotGroupPrincipalRole | undefined;
+  };
+
+/**
+ * Describes the message memoh.private.v1.AssignBotGroupPrincipalRoleResponse.
+ * Use `create(AssignBotGroupPrincipalRoleResponseSchema)` to create a new message.
+ */
+export const AssignBotGroupPrincipalRoleResponseSchema: GenMessage<AssignBotGroupPrincipalRoleResponse> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_bot_groups, 21);
+
+/**
+ * @generated from message memoh.private.v1.DeleteBotGroupPrincipalRoleRequest
+ */
+export type DeleteBotGroupPrincipalRoleRequest =
+  Message<"memoh.private.v1.DeleteBotGroupPrincipalRoleRequest"> & {
+    /**
+     * @generated from field: string group_id = 1;
+     */
+    groupId: string;
+
+    /**
+     * @generated from field: string id = 2;
+     */
+    id: string;
+  };
+
+/**
+ * Describes the message memoh.private.v1.DeleteBotGroupPrincipalRoleRequest.
+ * Use `create(DeleteBotGroupPrincipalRoleRequestSchema)` to create a new message.
+ */
+export const DeleteBotGroupPrincipalRoleRequestSchema: GenMessage<DeleteBotGroupPrincipalRoleRequest> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_bot_groups, 22);
+
+/**
+ * @generated from message memoh.private.v1.DeleteBotGroupPrincipalRoleResponse
+ */
+export type DeleteBotGroupPrincipalRoleResponse =
+  Message<"memoh.private.v1.DeleteBotGroupPrincipalRoleResponse"> & {};
+
+/**
+ * Describes the message memoh.private.v1.DeleteBotGroupPrincipalRoleResponse.
+ * Use `create(DeleteBotGroupPrincipalRoleResponseSchema)` to create a new message.
+ */
+export const DeleteBotGroupPrincipalRoleResponseSchema: GenMessage<DeleteBotGroupPrincipalRoleResponse> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_bot_groups, 23);
+
+/**
  * @generated from service memoh.private.v1.BotGroupService
  */
 export const BotGroupService: GenService<{
@@ -439,5 +629,29 @@ export const BotGroupService: GenService<{
     methodKind: "unary";
     input: typeof DeleteBotGroupSettingsRequestSchema;
     output: typeof DeleteBotGroupSettingsResponseSchema;
+  };
+  /**
+   * @generated from rpc memoh.private.v1.BotGroupService.ListBotGroupPrincipalRoles
+   */
+  listBotGroupPrincipalRoles: {
+    methodKind: "unary";
+    input: typeof ListBotGroupPrincipalRolesRequestSchema;
+    output: typeof ListBotGroupPrincipalRolesResponseSchema;
+  };
+  /**
+   * @generated from rpc memoh.private.v1.BotGroupService.AssignBotGroupPrincipalRole
+   */
+  assignBotGroupPrincipalRole: {
+    methodKind: "unary";
+    input: typeof AssignBotGroupPrincipalRoleRequestSchema;
+    output: typeof AssignBotGroupPrincipalRoleResponseSchema;
+  };
+  /**
+   * @generated from rpc memoh.private.v1.BotGroupService.DeleteBotGroupPrincipalRole
+   */
+  deleteBotGroupPrincipalRole: {
+    methodKind: "unary";
+    input: typeof DeleteBotGroupPrincipalRoleRequestSchema;
+    output: typeof DeleteBotGroupPrincipalRoleResponseSchema;
   };
 }> /*@__PURE__*/ = serviceDesc(file_memoh_private_v1_bot_groups, 0);

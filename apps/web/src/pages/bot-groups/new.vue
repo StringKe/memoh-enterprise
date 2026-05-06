@@ -18,6 +18,22 @@
         />
       </div>
 
+      <div class="space-y-2">
+        <Label>{{ $t("botGroups.visibility") }}</Label>
+        <Select v-model="form.visibility">
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="private">{{ $t("botGroups.visibilityPrivate") }}</SelectItem>
+            <SelectItem value="organization">{{
+              $t("botGroups.visibilityOrganization")
+            }}</SelectItem>
+            <SelectItem value="public">{{ $t("botGroups.visibilityPublic") }}</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       <div class="flex justify-end gap-2">
         <Button type="button" variant="outline" @click="router.back()">
           {{ $t("common.cancel") }}
@@ -37,7 +53,18 @@ import { useRouter } from "vue-router";
 import { toast } from "vue-sonner";
 import { useI18n } from "vue-i18n";
 import { useMutation, useQueryCache } from "@pinia/colada";
-import { Button, Input, Label, Spinner, Textarea } from "@stringke/ui";
+import {
+  Button,
+  Input,
+  Label,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Spinner,
+  Textarea,
+} from "@stringke/ui";
 import { connectClients } from "@/lib/connect-client";
 import { resolveApiErrorMessage } from "@/utils/api-error";
 
@@ -48,6 +75,7 @@ const queryCache = useQueryCache();
 const form = reactive({
   name: "",
   description: "",
+  visibility: "private",
 });
 
 const { mutateAsync: createGroup, isLoading: creating } = useMutation({
@@ -55,6 +83,7 @@ const { mutateAsync: createGroup, isLoading: creating } = useMutation({
     connectClients.botGroups.createBotGroup({
       name: form.name.trim(),
       description: form.description.trim(),
+      visibility: form.visibility,
     }),
   onSettled: () => queryCache.invalidateQueries({ key: ["bot-groups"] }),
 });

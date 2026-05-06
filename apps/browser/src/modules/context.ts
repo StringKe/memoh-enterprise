@@ -1,9 +1,86 @@
 import { Elysia } from "elysia";
-import { storage } from "../storage";
 import { z } from "zod";
-import { BrowserContextConfigModel } from "../models";
 import { getBrowser, getOrCreateBotBrowser } from "../browser";
+import { BrowserContextConfigModel, type BrowserContextConfig } from "../models";
+import { storage } from "../storage";
 import { actionModule } from "./action";
+
+export interface BrowserContextSummary {
+  id: string;
+  name: string;
+  botId?: string;
+  core: "chromium" | "firefox";
+  config: BrowserContextConfig;
+}
+
+export interface CreateBrowserContextInput {
+  id?: string;
+  name?: string;
+  botId?: string;
+  config?: unknown;
+}
+
+function toBrowserContextSummary(
+  entry: NonNullable<ReturnType<typeof storage.get>>,
+): BrowserContextSummary {
+  return {
+    id: entry.id,
+    name: entry.name,
+    botId: entry.botId,
+    core: entry.core,
+    config: entry.config,
+  };
+}
+
+export function getBrowserContext(id: string): BrowserContextSummary | null {
+  const entry = storage.get(id);
+  return entry ? toBrowserContextSummary(entry) : null;
+}
+
+export function listBrowserContexts(): BrowserContextSummary[] {
+  return [...storage.values()].map(toBrowserContextSummary);
+}
+
+export async function createBrowserContext({
+  id = crypto.randomUUID(),
+  name = "",
+  botId,
+  config,
+}: CreateBrowserContextInput): Promise<BrowserContextSummary> {
+  const parsedConfig = BrowserContextConfigModel.parse(config ?? { core: "chromium" });
+  const core = parsedConfig.core ?? "chromium";
+
+  if (storage.has(id)) {
+    throw new Error(`context with id "${id}" already exists`);
+  }
+
+  const browser = botId ? (await getOrCreateBotBrowser(botId, core)).browser : getBrowser(core);
+  const context = await browser.newContext({
+    viewport: parsedConfig.viewport,
+    userAgent: parsedConfig.userAgent,
+    deviceScaleFactor: parsedConfig.deviceScaleFactor,
+    isMobile: parsedConfig.isMobile,
+    locale: parsedConfig.locale,
+    timezoneId: parsedConfig.timezoneId,
+    geolocation: parsedConfig.geolocation,
+    permissions: parsedConfig.permissions,
+    extraHTTPHeaders: parsedConfig.extraHTTPHeaders,
+    ignoreHTTPSErrors: parsedConfig.ignoreHTTPSErrors,
+    proxy: parsedConfig.proxy,
+  });
+
+  storage.set(id, { id, name, botId, core, context, config: parsedConfig });
+  return { id, name, botId, core, config: parsedConfig };
+}
+
+export async function closeBrowserContext(id: string): Promise<boolean> {
+  const entry = storage.get(id);
+  if (entry) {
+    await entry.context.close();
+    storage.delete(id);
+  }
+  return true;
+}
 
 export const contextModule = new Elysia({ prefix: "/context" })
   .use(actionModule)
@@ -13,8 +90,7 @@ export const contextModule = new Elysia({ prefix: "/context" })
   .get(
     "/",
     ({ query }) => {
-      const { id } = query;
-      const entry = storage.get(id);
+      const entry = getBrowserContext(query.id);
       if (!entry) return null;
       return { id: entry.id, name: entry.name, core: entry.core, config: entry.config };
     },
@@ -27,39 +103,21 @@ export const contextModule = new Elysia({ prefix: "/context" })
   .post(
     "/",
     async ({ body, set }) => {
-      const { name, config, id, bot_id } = body;
-      const core = config.core ?? "chromium";
-
-      // Reject duplicate context IDs to prevent orphaning live contexts
-      if (storage.has(id)) {
-        set.status = 409;
-        return { error: `context with id "${id}" already exists` };
+      try {
+        const entry = await createBrowserContext({
+          id: body.id,
+          name: body.name,
+          botId: body.bot_id,
+          config: body.config,
+        });
+        return { id: entry.id, name: entry.name, core: entry.core, config: entry.config };
+      } catch (error) {
+        if (error instanceof Error && error.message.includes("already exists")) {
+          set.status = 409;
+          return { error: error.message };
+        }
+        throw error;
       }
-
-      // Use per-bot isolated browser process if bot_id provided, otherwise shared fallback
-      let browser;
-      if (bot_id) {
-        const botEntry = await getOrCreateBotBrowser(bot_id, core);
-        browser = botEntry.browser;
-      } else {
-        browser = getBrowser(core);
-      }
-
-      const context = await browser.newContext({
-        viewport: config.viewport,
-        userAgent: config.userAgent,
-        deviceScaleFactor: config.deviceScaleFactor,
-        isMobile: config.isMobile,
-        locale: config.locale,
-        timezoneId: config.timezoneId,
-        geolocation: config.geolocation,
-        permissions: config.permissions,
-        extraHTTPHeaders: config.extraHTTPHeaders,
-        ignoreHTTPSErrors: config.ignoreHTTPSErrors,
-        proxy: config.proxy,
-      });
-      storage.set(id, { id, name, botId: bot_id, core, context, config });
-      return { id, name, core, config };
     },
     {
       body: z.object({
@@ -71,26 +129,17 @@ export const contextModule = new Elysia({ prefix: "/context" })
     },
   )
   .delete("/:id", async ({ params }) => {
-    const entry = storage.get(params.id);
-    if (entry) {
-      await entry.context.close();
-      storage.delete(params.id);
-    }
+    await closeBrowserContext(params.id);
     return { success: true };
   })
-
-  // Export storage state (cookies + localStorage) from a context
   .get("/:id/storage-state", async ({ params, set }) => {
     const entry = storage.get(params.id);
     if (!entry) {
       set.status = 404;
       return { error: "context not found" };
     }
-    const state = await entry.context.storageState();
-    return state;
+    return await entry.context.storageState();
   })
-
-  // Import cookies into an existing context
   .post(
     "/:id/storage-state",
     async ({ params, body, set }) => {

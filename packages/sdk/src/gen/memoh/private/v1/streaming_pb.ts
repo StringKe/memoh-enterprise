@@ -15,7 +15,7 @@ import type { JsonObject, Message } from "@bufbuild/protobuf";
  * Describes the file memoh/private/v1/streaming.proto.
  */
 export const file_memoh_private_v1_streaming: GenFile /*@__PURE__*/ = fileDesc(
-  "CiBtZW1vaC9wcml2YXRlL3YxL3N0cmVhbWluZy5wcm90bxIQbWVtb2gucHJpdmF0ZS52MSKKAQoRU3RyZWFtQ2hhdFJlcXVlc3QSDgoGYm90X2lkGAEgASgJEhIKCnNlc3Npb25faWQYAiABKAkSDwoHbWVzc2FnZRgDIAEoCRIWCg5hdHRhY2htZW50X2lkcxgEIAMoCRIoCgdvcHRpb25zGAUgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdCKWAQoSU3RyZWFtQ2hhdFJlc3BvbnNlEgoKAmlkGAEgASgJEgwKBHR5cGUYAiABKAkSDAoEdGV4dBgDIAEoCRIoCgdwYXlsb2FkGAQgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdBIuCgpjcmVhdGVkX2F0GAUgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCJtCh5TdHJlYW1Db250YWluZXJQcm9ncmVzc1JlcXVlc3QSDgoGYm90X2lkGAEgASgJEhEKCW9wZXJhdGlvbhgCIAEoCRIoCgdvcHRpb25zGAMgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdCKmAQofU3RyZWFtQ29udGFpbmVyUHJvZ3Jlc3NSZXNwb25zZRIKCgJpZBgBIAEoCRIMCgR0eXBlGAIgASgJEg8KB21lc3NhZ2UYAyABKAkSKAoHcGF5bG9hZBgEIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QSLgoKY3JlYXRlZF9hdBgFIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAyaAoLQ2hhdFNlcnZpY2USWQoKU3RyZWFtQ2hhdBIjLm1lbW9oLnByaXZhdGUudjEuU3RyZWFtQ2hhdFJlcXVlc3QaJC5tZW1vaC5wcml2YXRlLnYxLlN0cmVhbUNoYXRSZXNwb25zZTABMpUBChBDb250YWluZXJTZXJ2aWNlEoABChdTdHJlYW1Db250YWluZXJQcm9ncmVzcxIwLm1lbW9oLnByaXZhdGUudjEuU3RyZWFtQ29udGFpbmVyUHJvZ3Jlc3NSZXF1ZXN0GjEubWVtb2gucHJpdmF0ZS52MS5TdHJlYW1Db250YWluZXJQcm9ncmVzc1Jlc3BvbnNlMAFCTVpLZ2l0aHViLmNvbS9tZW1vaGFpL21lbW9oL2ludGVybmFsL2Nvbm5lY3RhcGkvZ2VuL21lbW9oL3ByaXZhdGUvdjE7cHJpdmF0ZXYxYgZwcm90bzM",
+  "CiBtZW1vaC9wcml2YXRlL3YxL3N0cmVhbWluZy5wcm90bxIQbWVtb2gucHJpdmF0ZS52MSKKAQoRU3RyZWFtQ2hhdFJlcXVlc3QSDgoGYm90X2lkGAEgASgJEhIKCnNlc3Npb25faWQYAiABKAkSDwoHbWVzc2FnZRgDIAEoCRIWCg5hdHRhY2htZW50X2lkcxgEIAMoCRIoCgdvcHRpb25zGAUgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdCKWAQoSU3RyZWFtQ2hhdFJlc3BvbnNlEgoKAmlkGAEgASgJEgwKBHR5cGUYAiABKAkSDAoEdGV4dBgDIAEoCRIoCgdwYXlsb2FkGAQgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdBIuCgpjcmVhdGVkX2F0GAUgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCJtCh5TdHJlYW1Db250YWluZXJQcm9ncmVzc1JlcXVlc3QSDgoGYm90X2lkGAEgASgJEhEKCW9wZXJhdGlvbhgCIAEoCRIoCgdvcHRpb25zGAMgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdCKmAQofU3RyZWFtQ29udGFpbmVyUHJvZ3Jlc3NSZXNwb25zZRIKCgJpZBgBIAEoCRIMCgR0eXBlGAIgASgJEg8KB21lc3NhZ2UYAyABKAkSKAoHcGF5bG9hZBgEIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QSLgoKY3JlYXRlZF9hdBgFIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAiKgoMVGVybWluYWxTaXplEgwKBGNvbHMYASABKA0SDAoEcm93cxgCIAEoDSKXAQoTT3BlblRlcm1pbmFsUmVxdWVzdBIOCgZib3RfaWQYASABKAkSEgoKc2Vzc2lvbl9pZBgCIAEoCRIPCgdjb21tYW5kGAMgASgJEhAKCHdvcmtfZGlyGAQgASgJEgsKA2VudhgFIAMoCRIsCgRzaXplGAYgASgLMh4ubWVtb2gucHJpdmF0ZS52MS5UZXJtaW5hbFNpemUiPwoUT3BlblRlcm1pbmFsUmVzcG9uc2USEwoLdGVybWluYWxfaWQYASABKAkSEgoKcHJvY2Vzc19pZBgCIAEoCSI8ChVTdHJlYW1UZXJtaW5hbFJlcXVlc3QSDgoGYm90X2lkGAEgASgJEhMKC3Rlcm1pbmFsX2lkGAIgASgJInkKFlN0cmVhbVRlcm1pbmFsUmVzcG9uc2USDAoEZGF0YRgBIAEoDBIOCgZleGl0ZWQYAiABKAgSEQoJZXhpdF9jb2RlGAMgASgFEi4KCmNyZWF0ZWRfYXQYBCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wIk4KGVdyaXRlVGVybWluYWxJbnB1dFJlcXVlc3QSDgoGYm90X2lkGAEgASgJEhMKC3Rlcm1pbmFsX2lkGAIgASgJEgwKBGRhdGEYAyABKAwiHAoaV3JpdGVUZXJtaW5hbElucHV0UmVzcG9uc2UiagoVUmVzaXplVGVybWluYWxSZXF1ZXN0Eg4KBmJvdF9pZBgBIAEoCRITCgt0ZXJtaW5hbF9pZBgCIAEoCRIsCgRzaXplGAMgASgLMh4ubWVtb2gucHJpdmF0ZS52MS5UZXJtaW5hbFNpemUiGAoWUmVzaXplVGVybWluYWxSZXNwb25zZSI7ChRDbG9zZVRlcm1pbmFsUmVxdWVzdBIOCgZib3RfaWQYASABKAkSEwoLdGVybWluYWxfaWQYAiABKAkiFwoVQ2xvc2VUZXJtaW5hbFJlc3BvbnNlIs0BChJXb3Jrc3BhY2VPcGVyYXRpb24SFAoMb3BlcmF0aW9uX2lkGAEgASgJEg4KBmJvdF9pZBgCIAEoCRIWCg5vcGVyYXRpb25fdHlwZRgDIAEoCRIOCgZzdGF0dXMYBCABKAkSDwoHbWVzc2FnZRgFIAEoCRIoCgdwYXlsb2FkGAYgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdBIuCgpjcmVhdGVkX2F0GAcgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCJfCh9TdHJlYW1Xb3Jrc3BhY2VPcGVyYXRpb25SZXF1ZXN0Eg4KBmJvdF9pZBgBIAEoCRIUCgxvcGVyYXRpb25faWQYAiABKAkSFgoOb3BlcmF0aW9uX3R5cGUYAyABKAkiWwogU3RyZWFtV29ya3NwYWNlT3BlcmF0aW9uUmVzcG9uc2USNwoJb3BlcmF0aW9uGAEgASgLMiQubWVtb2gucHJpdmF0ZS52MS5Xb3Jrc3BhY2VPcGVyYXRpb24iUQoVU3RhcnRDb250YWluZXJSZXF1ZXN0Eg4KBmJvdF9pZBgBIAEoCRIoCgdvcHRpb25zGAIgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdCJRChZTdGFydENvbnRhaW5lclJlc3BvbnNlEjcKCW9wZXJhdGlvbhgBIAEoCzIkLm1lbW9oLnByaXZhdGUudjEuV29ya3NwYWNlT3BlcmF0aW9uIjYKFFN0b3BDb250YWluZXJSZXF1ZXN0Eg4KBmJvdF9pZBgBIAEoCRIOCgZyZWFzb24YAiABKAkiUAoVU3RvcENvbnRhaW5lclJlc3BvbnNlEjcKCW9wZXJhdGlvbhgBIAEoCzIkLm1lbW9oLnByaXZhdGUudjEuV29ya3NwYWNlT3BlcmF0aW9uIlMKF1Jlc3RhcnRDb250YWluZXJSZXF1ZXN0Eg4KBmJvdF9pZBgBIAEoCRIoCgdvcHRpb25zGAIgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdCJTChhSZXN0YXJ0Q29udGFpbmVyUmVzcG9uc2USNwoJb3BlcmF0aW9uGAEgASgLMiQubWVtb2gucHJpdmF0ZS52MS5Xb3Jrc3BhY2VPcGVyYXRpb24iLgocR2V0Q29udGFpbmVyTGlmZWN5Y2xlUmVxdWVzdBIOCgZib3RfaWQYASABKAki0AEKHUdldENvbnRhaW5lckxpZmVjeWNsZVJlc3BvbnNlEg4KBmJvdF9pZBgBIAEoCRIUCgx3b3Jrc3BhY2VfaWQYAiABKAkSDwoHYmFja2VuZBgDIAEoCRIOCgZzdGF0dXMYBCABKAkSDQoFaW1hZ2UYBSABKAkSLgoKc3RhcnRlZF9hdBgGIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASKQoIbWV0YWRhdGEYByABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0IjEKH1N0cmVhbUNvbnRhaW5lckxpZmVjeWNsZVJlcXVlc3QSDgoGYm90X2lkGAEgASgJImYKIFN0cmVhbUNvbnRhaW5lckxpZmVjeWNsZVJlc3BvbnNlEkIKCWxpZmVjeWNsZRgBIAEoCzIvLm1lbW9oLnByaXZhdGUudjEuR2V0Q29udGFpbmVyTGlmZWN5Y2xlUmVzcG9uc2UiLAoaR2V0Q29udGFpbmVyTWV0cmljc1JlcXVlc3QSDgoGYm90X2lkGAEgASgJIskBChtHZXRDb250YWluZXJNZXRyaWNzUmVzcG9uc2USDgoGYm90X2lkGAEgASgJEhMKC2NwdV9wZXJjZW50GAIgASgBEhQKDG1lbW9yeV9ieXRlcxgDIAEoBBIaChJtZW1vcnlfbGltaXRfYnl0ZXMYBCABKAQSEAoIcnhfYnl0ZXMYBSABKAQSEAoIdHhfYnl0ZXMYBiABKAQSLwoLb2JzZXJ2ZWRfYXQYByABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wIi8KHVN0cmVhbUNvbnRhaW5lck1ldHJpY3NSZXF1ZXN0Eg4KBmJvdF9pZBgBIAEoCSJgCh5TdHJlYW1Db250YWluZXJNZXRyaWNzUmVzcG9uc2USPgoHbWV0cmljcxgBIAEoCzItLm1lbW9oLnByaXZhdGUudjEuR2V0Q29udGFpbmVyTWV0cmljc1Jlc3BvbnNlIrUBChFDb250YWluZXJTbmFwc2hvdBITCgtzbmFwc2hvdF9pZBgBIAEoCRIOCgZib3RfaWQYAiABKAkSDAoEbmFtZRgDIAEoCRISCgpzaXplX2J5dGVzGAQgASgDEi4KCmNyZWF0ZWRfYXQYBSABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEikKCG1ldGFkYXRhGAYgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdCJpCh5DcmVhdGVDb250YWluZXJTbmFwc2hvdFJlcXVlc3QSDgoGYm90X2lkGAEgASgJEgwKBG5hbWUYAiABKAkSKQoIbWV0YWRhdGEYAyABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0IlgKH0NyZWF0ZUNvbnRhaW5lclNuYXBzaG90UmVzcG9uc2USNQoIc25hcHNob3QYASABKAsyIy5tZW1vaC5wcml2YXRlLnYxLkNvbnRhaW5lclNuYXBzaG90Ii8KHUxpc3RDb250YWluZXJTbmFwc2hvdHNSZXF1ZXN0Eg4KBmJvdF9pZBgBIAEoCSJYCh5MaXN0Q29udGFpbmVyU25hcHNob3RzUmVzcG9uc2USNgoJc25hcHNob3RzGAEgAygLMiMubWVtb2gucHJpdmF0ZS52MS5Db250YWluZXJTbmFwc2hvdCJGCh9SZXN0b3JlQ29udGFpbmVyU25hcHNob3RSZXF1ZXN0Eg4KBmJvdF9pZBgBIAEoCRITCgtzbmFwc2hvdF9pZBgCIAEoCSJbCiBSZXN0b3JlQ29udGFpbmVyU25hcHNob3RSZXNwb25zZRI3CglvcGVyYXRpb24YASABKAsyJC5tZW1vaC5wcml2YXRlLnYxLldvcmtzcGFjZU9wZXJhdGlvbiJFCh5EZWxldGVDb250YWluZXJTbmFwc2hvdFJlcXVlc3QSDgoGYm90X2lkGAEgASgJEhMKC3NuYXBzaG90X2lkGAIgASgJIiEKH0RlbGV0ZUNvbnRhaW5lclNuYXBzaG90UmVzcG9uc2UidAoaSW1wb3J0Q29udGFpbmVyRGF0YVJlcXVlc3QSDgoGYm90X2lkGAEgASgJEg4KBnNvdXJjZRgCIAEoCRIMCgRkYXRhGAMgASgMEigKB29wdGlvbnMYBCABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0IlYKG0ltcG9ydENvbnRhaW5lckRhdGFSZXNwb25zZRI3CglvcGVyYXRpb24YASABKAsyJC5tZW1vaC5wcml2YXRlLnYxLldvcmtzcGFjZU9wZXJhdGlvbiJkChpFeHBvcnRDb250YWluZXJEYXRhUmVxdWVzdBIOCgZib3RfaWQYASABKAkSDAoEcGF0aBgCIAEoCRIoCgdvcHRpb25zGAMgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdCJQChtFeHBvcnRDb250YWluZXJEYXRhUmVzcG9uc2USDAoEZGF0YRgBIAEoDBIRCgltaW1lX3R5cGUYAiABKAkSEAoIZmlsZW5hbWUYAyABKAkifwoSQ29udGFpbmVyRmlsZUVudHJ5EgwKBHBhdGgYASABKAkSDgoGaXNfZGlyGAIgASgIEgwKBHNpemUYAyABKAMSDAoEbW9kZRgEIAEoCRIvCgttb2RpZmllZF9hdBgFIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAicwoZTGlzdENvbnRhaW5lckZpbGVzUmVxdWVzdBIOCgZib3RfaWQYASABKAkSDAoEcGF0aBgCIAEoCRIRCglyZWN1cnNpdmUYAyABKAgSEQoJcGFnZV9zaXplGAQgASgFEhIKCnBhZ2VfdG9rZW4YBSABKAkibAoaTGlzdENvbnRhaW5lckZpbGVzUmVzcG9uc2USNQoHZW50cmllcxgBIAMoCzIkLm1lbW9oLnByaXZhdGUudjEuQ29udGFpbmVyRmlsZUVudHJ5EhcKD25leHRfcGFnZV90b2tlbhgCIAEoCSJbChhSZWFkQ29udGFpbmVyRmlsZVJlcXVlc3QSDgoGYm90X2lkGAEgASgJEgwKBHBhdGgYAiABKAkSDgoGb2Zmc2V0GAMgASgDEhEKCW1heF9ieXRlcxgEIAEoAyJJChlSZWFkQ29udGFpbmVyRmlsZVJlc3BvbnNlEg8KB2NvbnRlbnQYASABKAwSDgoGYmluYXJ5GAIgASgIEgsKA2VvZhgDIAEoCCJmChlXcml0ZUNvbnRhaW5lckZpbGVSZXF1ZXN0Eg4KBmJvdF9pZBgBIAEoCRIMCgRwYXRoGAIgASgJEg8KB2NvbnRlbnQYAyABKAwSGgoSY3JlYXRlX3BhcmVudF9kaXJzGAQgASgIIjMKGldyaXRlQ29udGFpbmVyRmlsZVJlc3BvbnNlEhUKDWJ5dGVzX3dyaXR0ZW4YASABKAMiZwoaVXBsb2FkQ29udGFpbmVyRmlsZVJlcXVlc3QSDgoGYm90X2lkGAEgASgJEgwKBHBhdGgYAiABKAkSDwoHY29udGVudBgDIAEoDBIaChJjcmVhdGVfcGFyZW50X2RpcnMYBCABKAgiNAobVXBsb2FkQ29udGFpbmVyRmlsZVJlc3BvbnNlEhUKDWJ5dGVzX3dyaXR0ZW4YASABKAMiPAocRG93bmxvYWRDb250YWluZXJGaWxlUmVxdWVzdBIOCgZib3RfaWQYASABKAkSDAoEcGF0aBgCIAEoCSJVCh1Eb3dubG9hZENvbnRhaW5lckZpbGVSZXNwb25zZRIPCgdjb250ZW50GAEgASgMEhEKCW1pbWVfdHlwZRgCIAEoCRIQCghmaWxlbmFtZRgDIAEoCSJKChlNa2RpckNvbnRhaW5lckZpbGVSZXF1ZXN0Eg4KBmJvdF9pZBgBIAEoCRIMCgRwYXRoGAIgASgJEg8KB3BhcmVudHMYAyABKAgiHAoaTWtkaXJDb250YWluZXJGaWxlUmVzcG9uc2UiYwoaUmVuYW1lQ29udGFpbmVyRmlsZVJlcXVlc3QSDgoGYm90X2lkGAEgASgJEhAKCG9sZF9wYXRoGAIgASgJEhAKCG5ld19wYXRoGAMgASgJEhEKCW92ZXJ3cml0ZRgEIAEoCCIdChtSZW5hbWVDb250YWluZXJGaWxlUmVzcG9uc2UiTQoaRGVsZXRlQ29udGFpbmVyRmlsZVJlcXVlc3QSDgoGYm90X2lkGAEgASgJEgwKBHBhdGgYAiABKAkSEQoJcmVjdXJzaXZlGAMgASgIIh0KG0RlbGV0ZUNvbnRhaW5lckZpbGVSZXNwb25zZTJoCgtDaGF0U2VydmljZRJZCgpTdHJlYW1DaGF0EiMubWVtb2gucHJpdmF0ZS52MS5TdHJlYW1DaGF0UmVxdWVzdBokLm1lbW9oLnByaXZhdGUudjEuU3RyZWFtQ2hhdFJlc3BvbnNlMAEyvhkKEENvbnRhaW5lclNlcnZpY2USgAEKF1N0cmVhbUNvbnRhaW5lclByb2dyZXNzEjAubWVtb2gucHJpdmF0ZS52MS5TdHJlYW1Db250YWluZXJQcm9ncmVzc1JlcXVlc3QaMS5tZW1vaC5wcml2YXRlLnYxLlN0cmVhbUNvbnRhaW5lclByb2dyZXNzUmVzcG9uc2UwARJdCgxPcGVuVGVybWluYWwSJS5tZW1vaC5wcml2YXRlLnYxLk9wZW5UZXJtaW5hbFJlcXVlc3QaJi5tZW1vaC5wcml2YXRlLnYxLk9wZW5UZXJtaW5hbFJlc3BvbnNlEmUKDlN0cmVhbVRlcm1pbmFsEicubWVtb2gucHJpdmF0ZS52MS5TdHJlYW1UZXJtaW5hbFJlcXVlc3QaKC5tZW1vaC5wcml2YXRlLnYxLlN0cmVhbVRlcm1pbmFsUmVzcG9uc2UwARJvChJXcml0ZVRlcm1pbmFsSW5wdXQSKy5tZW1vaC5wcml2YXRlLnYxLldyaXRlVGVybWluYWxJbnB1dFJlcXVlc3QaLC5tZW1vaC5wcml2YXRlLnYxLldyaXRlVGVybWluYWxJbnB1dFJlc3BvbnNlEmMKDlJlc2l6ZVRlcm1pbmFsEicubWVtb2gucHJpdmF0ZS52MS5SZXNpemVUZXJtaW5hbFJlcXVlc3QaKC5tZW1vaC5wcml2YXRlLnYxLlJlc2l6ZVRlcm1pbmFsUmVzcG9uc2USYAoNQ2xvc2VUZXJtaW5hbBImLm1lbW9oLnByaXZhdGUudjEuQ2xvc2VUZXJtaW5hbFJlcXVlc3QaJy5tZW1vaC5wcml2YXRlLnYxLkNsb3NlVGVybWluYWxSZXNwb25zZRKDAQoYU3RyZWFtV29ya3NwYWNlT3BlcmF0aW9uEjEubWVtb2gucHJpdmF0ZS52MS5TdHJlYW1Xb3Jrc3BhY2VPcGVyYXRpb25SZXF1ZXN0GjIubWVtb2gucHJpdmF0ZS52MS5TdHJlYW1Xb3Jrc3BhY2VPcGVyYXRpb25SZXNwb25zZTABEmMKDlN0YXJ0Q29udGFpbmVyEicubWVtb2gucHJpdmF0ZS52MS5TdGFydENvbnRhaW5lclJlcXVlc3QaKC5tZW1vaC5wcml2YXRlLnYxLlN0YXJ0Q29udGFpbmVyUmVzcG9uc2USYAoNU3RvcENvbnRhaW5lchImLm1lbW9oLnByaXZhdGUudjEuU3RvcENvbnRhaW5lclJlcXVlc3QaJy5tZW1vaC5wcml2YXRlLnYxLlN0b3BDb250YWluZXJSZXNwb25zZRJpChBSZXN0YXJ0Q29udGFpbmVyEikubWVtb2gucHJpdmF0ZS52MS5SZXN0YXJ0Q29udGFpbmVyUmVxdWVzdBoqLm1lbW9oLnByaXZhdGUudjEuUmVzdGFydENvbnRhaW5lclJlc3BvbnNlEngKFUdldENvbnRhaW5lckxpZmVjeWNsZRIuLm1lbW9oLnByaXZhdGUudjEuR2V0Q29udGFpbmVyTGlmZWN5Y2xlUmVxdWVzdBovLm1lbW9oLnByaXZhdGUudjEuR2V0Q29udGFpbmVyTGlmZWN5Y2xlUmVzcG9uc2USgwEKGFN0cmVhbUNvbnRhaW5lckxpZmVjeWNsZRIxLm1lbW9oLnByaXZhdGUudjEuU3RyZWFtQ29udGFpbmVyTGlmZWN5Y2xlUmVxdWVzdBoyLm1lbW9oLnByaXZhdGUudjEuU3RyZWFtQ29udGFpbmVyTGlmZWN5Y2xlUmVzcG9uc2UwARJyChNHZXRDb250YWluZXJNZXRyaWNzEiwubWVtb2gucHJpdmF0ZS52MS5HZXRDb250YWluZXJNZXRyaWNzUmVxdWVzdBotLm1lbW9oLnByaXZhdGUudjEuR2V0Q29udGFpbmVyTWV0cmljc1Jlc3BvbnNlEn0KFlN0cmVhbUNvbnRhaW5lck1ldHJpY3MSLy5tZW1vaC5wcml2YXRlLnYxLlN0cmVhbUNvbnRhaW5lck1ldHJpY3NSZXF1ZXN0GjAubWVtb2gucHJpdmF0ZS52MS5TdHJlYW1Db250YWluZXJNZXRyaWNzUmVzcG9uc2UwARJ+ChdDcmVhdGVDb250YWluZXJTbmFwc2hvdBIwLm1lbW9oLnByaXZhdGUudjEuQ3JlYXRlQ29udGFpbmVyU25hcHNob3RSZXF1ZXN0GjEubWVtb2gucHJpdmF0ZS52MS5DcmVhdGVDb250YWluZXJTbmFwc2hvdFJlc3BvbnNlEnsKFkxpc3RDb250YWluZXJTbmFwc2hvdHMSLy5tZW1vaC5wcml2YXRlLnYxLkxpc3RDb250YWluZXJTbmFwc2hvdHNSZXF1ZXN0GjAubWVtb2gucHJpdmF0ZS52MS5MaXN0Q29udGFpbmVyU25hcHNob3RzUmVzcG9uc2USgQEKGFJlc3RvcmVDb250YWluZXJTbmFwc2hvdBIxLm1lbW9oLnByaXZhdGUudjEuUmVzdG9yZUNvbnRhaW5lclNuYXBzaG90UmVxdWVzdBoyLm1lbW9oLnByaXZhdGUudjEuUmVzdG9yZUNvbnRhaW5lclNuYXBzaG90UmVzcG9uc2USfgoXRGVsZXRlQ29udGFpbmVyU25hcHNob3QSMC5tZW1vaC5wcml2YXRlLnYxLkRlbGV0ZUNvbnRhaW5lclNuYXBzaG90UmVxdWVzdBoxLm1lbW9oLnByaXZhdGUudjEuRGVsZXRlQ29udGFpbmVyU25hcHNob3RSZXNwb25zZRJyChNJbXBvcnRDb250YWluZXJEYXRhEiwubWVtb2gucHJpdmF0ZS52MS5JbXBvcnRDb250YWluZXJEYXRhUmVxdWVzdBotLm1lbW9oLnByaXZhdGUudjEuSW1wb3J0Q29udGFpbmVyRGF0YVJlc3BvbnNlEnIKE0V4cG9ydENvbnRhaW5lckRhdGESLC5tZW1vaC5wcml2YXRlLnYxLkV4cG9ydENvbnRhaW5lckRhdGFSZXF1ZXN0Gi0ubWVtb2gucHJpdmF0ZS52MS5FeHBvcnRDb250YWluZXJEYXRhUmVzcG9uc2USbwoSTGlzdENvbnRhaW5lckZpbGVzEisubWVtb2gucHJpdmF0ZS52MS5MaXN0Q29udGFpbmVyRmlsZXNSZXF1ZXN0GiwubWVtb2gucHJpdmF0ZS52MS5MaXN0Q29udGFpbmVyRmlsZXNSZXNwb25zZRJsChFSZWFkQ29udGFpbmVyRmlsZRIqLm1lbW9oLnByaXZhdGUudjEuUmVhZENvbnRhaW5lckZpbGVSZXF1ZXN0GisubWVtb2gucHJpdmF0ZS52MS5SZWFkQ29udGFpbmVyRmlsZVJlc3BvbnNlEm8KEldyaXRlQ29udGFpbmVyRmlsZRIrLm1lbW9oLnByaXZhdGUudjEuV3JpdGVDb250YWluZXJGaWxlUmVxdWVzdBosLm1lbW9oLnByaXZhdGUudjEuV3JpdGVDb250YWluZXJGaWxlUmVzcG9uc2UScgoTVXBsb2FkQ29udGFpbmVyRmlsZRIsLm1lbW9oLnByaXZhdGUudjEuVXBsb2FkQ29udGFpbmVyRmlsZVJlcXVlc3QaLS5tZW1vaC5wcml2YXRlLnYxLlVwbG9hZENvbnRhaW5lckZpbGVSZXNwb25zZRJ4ChVEb3dubG9hZENvbnRhaW5lckZpbGUSLi5tZW1vaC5wcml2YXRlLnYxLkRvd25sb2FkQ29udGFpbmVyRmlsZVJlcXVlc3QaLy5tZW1vaC5wcml2YXRlLnYxLkRvd25sb2FkQ29udGFpbmVyRmlsZVJlc3BvbnNlEm8KEk1rZGlyQ29udGFpbmVyRmlsZRIrLm1lbW9oLnByaXZhdGUudjEuTWtkaXJDb250YWluZXJGaWxlUmVxdWVzdBosLm1lbW9oLnByaXZhdGUudjEuTWtkaXJDb250YWluZXJGaWxlUmVzcG9uc2UScgoTUmVuYW1lQ29udGFpbmVyRmlsZRIsLm1lbW9oLnByaXZhdGUudjEuUmVuYW1lQ29udGFpbmVyRmlsZVJlcXVlc3QaLS5tZW1vaC5wcml2YXRlLnYxLlJlbmFtZUNvbnRhaW5lckZpbGVSZXNwb25zZRJyChNEZWxldGVDb250YWluZXJGaWxlEiwubWVtb2gucHJpdmF0ZS52MS5EZWxldGVDb250YWluZXJGaWxlUmVxdWVzdBotLm1lbW9oLnByaXZhdGUudjEuRGVsZXRlQ29udGFpbmVyRmlsZVJlc3BvbnNlQk1aS2dpdGh1Yi5jb20vbWVtb2hhaS9tZW1vaC9pbnRlcm5hbC9jb25uZWN0YXBpL2dlbi9tZW1vaC9wcml2YXRlL3YxO3ByaXZhdGV2MWIGcHJvdG8z",
   [file_google_protobuf_struct, file_google_protobuf_timestamp],
 );
 
@@ -164,6 +164,1418 @@ export const StreamContainerProgressResponseSchema: GenMessage<StreamContainerPr
   messageDesc(file_memoh_private_v1_streaming, 3);
 
 /**
+ * @generated from message memoh.private.v1.TerminalSize
+ */
+export type TerminalSize = Message<"memoh.private.v1.TerminalSize"> & {
+  /**
+   * @generated from field: uint32 cols = 1;
+   */
+  cols: number;
+
+  /**
+   * @generated from field: uint32 rows = 2;
+   */
+  rows: number;
+};
+
+/**
+ * Describes the message memoh.private.v1.TerminalSize.
+ * Use `create(TerminalSizeSchema)` to create a new message.
+ */
+export const TerminalSizeSchema: GenMessage<TerminalSize> /*@__PURE__*/ = messageDesc(
+  file_memoh_private_v1_streaming,
+  4,
+);
+
+/**
+ * @generated from message memoh.private.v1.OpenTerminalRequest
+ */
+export type OpenTerminalRequest = Message<"memoh.private.v1.OpenTerminalRequest"> & {
+  /**
+   * @generated from field: string bot_id = 1;
+   */
+  botId: string;
+
+  /**
+   * @generated from field: string session_id = 2;
+   */
+  sessionId: string;
+
+  /**
+   * @generated from field: string command = 3;
+   */
+  command: string;
+
+  /**
+   * @generated from field: string work_dir = 4;
+   */
+  workDir: string;
+
+  /**
+   * @generated from field: repeated string env = 5;
+   */
+  env: string[];
+
+  /**
+   * @generated from field: memoh.private.v1.TerminalSize size = 6;
+   */
+  size?: TerminalSize | undefined;
+};
+
+/**
+ * Describes the message memoh.private.v1.OpenTerminalRequest.
+ * Use `create(OpenTerminalRequestSchema)` to create a new message.
+ */
+export const OpenTerminalRequestSchema: GenMessage<OpenTerminalRequest> /*@__PURE__*/ = messageDesc(
+  file_memoh_private_v1_streaming,
+  5,
+);
+
+/**
+ * @generated from message memoh.private.v1.OpenTerminalResponse
+ */
+export type OpenTerminalResponse = Message<"memoh.private.v1.OpenTerminalResponse"> & {
+  /**
+   * @generated from field: string terminal_id = 1;
+   */
+  terminalId: string;
+
+  /**
+   * @generated from field: string process_id = 2;
+   */
+  processId: string;
+};
+
+/**
+ * Describes the message memoh.private.v1.OpenTerminalResponse.
+ * Use `create(OpenTerminalResponseSchema)` to create a new message.
+ */
+export const OpenTerminalResponseSchema: GenMessage<OpenTerminalResponse> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 6);
+
+/**
+ * @generated from message memoh.private.v1.StreamTerminalRequest
+ */
+export type StreamTerminalRequest = Message<"memoh.private.v1.StreamTerminalRequest"> & {
+  /**
+   * @generated from field: string bot_id = 1;
+   */
+  botId: string;
+
+  /**
+   * @generated from field: string terminal_id = 2;
+   */
+  terminalId: string;
+};
+
+/**
+ * Describes the message memoh.private.v1.StreamTerminalRequest.
+ * Use `create(StreamTerminalRequestSchema)` to create a new message.
+ */
+export const StreamTerminalRequestSchema: GenMessage<StreamTerminalRequest> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 7);
+
+/**
+ * @generated from message memoh.private.v1.StreamTerminalResponse
+ */
+export type StreamTerminalResponse = Message<"memoh.private.v1.StreamTerminalResponse"> & {
+  /**
+   * @generated from field: bytes data = 1;
+   */
+  data: Uint8Array;
+
+  /**
+   * @generated from field: bool exited = 2;
+   */
+  exited: boolean;
+
+  /**
+   * @generated from field: int32 exit_code = 3;
+   */
+  exitCode: number;
+
+  /**
+   * @generated from field: google.protobuf.Timestamp created_at = 4;
+   */
+  createdAt?: Timestamp | undefined;
+};
+
+/**
+ * Describes the message memoh.private.v1.StreamTerminalResponse.
+ * Use `create(StreamTerminalResponseSchema)` to create a new message.
+ */
+export const StreamTerminalResponseSchema: GenMessage<StreamTerminalResponse> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 8);
+
+/**
+ * @generated from message memoh.private.v1.WriteTerminalInputRequest
+ */
+export type WriteTerminalInputRequest = Message<"memoh.private.v1.WriteTerminalInputRequest"> & {
+  /**
+   * @generated from field: string bot_id = 1;
+   */
+  botId: string;
+
+  /**
+   * @generated from field: string terminal_id = 2;
+   */
+  terminalId: string;
+
+  /**
+   * @generated from field: bytes data = 3;
+   */
+  data: Uint8Array;
+};
+
+/**
+ * Describes the message memoh.private.v1.WriteTerminalInputRequest.
+ * Use `create(WriteTerminalInputRequestSchema)` to create a new message.
+ */
+export const WriteTerminalInputRequestSchema: GenMessage<WriteTerminalInputRequest> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 9);
+
+/**
+ * @generated from message memoh.private.v1.WriteTerminalInputResponse
+ */
+export type WriteTerminalInputResponse =
+  Message<"memoh.private.v1.WriteTerminalInputResponse"> & {};
+
+/**
+ * Describes the message memoh.private.v1.WriteTerminalInputResponse.
+ * Use `create(WriteTerminalInputResponseSchema)` to create a new message.
+ */
+export const WriteTerminalInputResponseSchema: GenMessage<WriteTerminalInputResponse> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 10);
+
+/**
+ * @generated from message memoh.private.v1.ResizeTerminalRequest
+ */
+export type ResizeTerminalRequest = Message<"memoh.private.v1.ResizeTerminalRequest"> & {
+  /**
+   * @generated from field: string bot_id = 1;
+   */
+  botId: string;
+
+  /**
+   * @generated from field: string terminal_id = 2;
+   */
+  terminalId: string;
+
+  /**
+   * @generated from field: memoh.private.v1.TerminalSize size = 3;
+   */
+  size?: TerminalSize | undefined;
+};
+
+/**
+ * Describes the message memoh.private.v1.ResizeTerminalRequest.
+ * Use `create(ResizeTerminalRequestSchema)` to create a new message.
+ */
+export const ResizeTerminalRequestSchema: GenMessage<ResizeTerminalRequest> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 11);
+
+/**
+ * @generated from message memoh.private.v1.ResizeTerminalResponse
+ */
+export type ResizeTerminalResponse = Message<"memoh.private.v1.ResizeTerminalResponse"> & {};
+
+/**
+ * Describes the message memoh.private.v1.ResizeTerminalResponse.
+ * Use `create(ResizeTerminalResponseSchema)` to create a new message.
+ */
+export const ResizeTerminalResponseSchema: GenMessage<ResizeTerminalResponse> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 12);
+
+/**
+ * @generated from message memoh.private.v1.CloseTerminalRequest
+ */
+export type CloseTerminalRequest = Message<"memoh.private.v1.CloseTerminalRequest"> & {
+  /**
+   * @generated from field: string bot_id = 1;
+   */
+  botId: string;
+
+  /**
+   * @generated from field: string terminal_id = 2;
+   */
+  terminalId: string;
+};
+
+/**
+ * Describes the message memoh.private.v1.CloseTerminalRequest.
+ * Use `create(CloseTerminalRequestSchema)` to create a new message.
+ */
+export const CloseTerminalRequestSchema: GenMessage<CloseTerminalRequest> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 13);
+
+/**
+ * @generated from message memoh.private.v1.CloseTerminalResponse
+ */
+export type CloseTerminalResponse = Message<"memoh.private.v1.CloseTerminalResponse"> & {};
+
+/**
+ * Describes the message memoh.private.v1.CloseTerminalResponse.
+ * Use `create(CloseTerminalResponseSchema)` to create a new message.
+ */
+export const CloseTerminalResponseSchema: GenMessage<CloseTerminalResponse> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 14);
+
+/**
+ * @generated from message memoh.private.v1.WorkspaceOperation
+ */
+export type WorkspaceOperation = Message<"memoh.private.v1.WorkspaceOperation"> & {
+  /**
+   * @generated from field: string operation_id = 1;
+   */
+  operationId: string;
+
+  /**
+   * @generated from field: string bot_id = 2;
+   */
+  botId: string;
+
+  /**
+   * @generated from field: string operation_type = 3;
+   */
+  operationType: string;
+
+  /**
+   * @generated from field: string status = 4;
+   */
+  status: string;
+
+  /**
+   * @generated from field: string message = 5;
+   */
+  message: string;
+
+  /**
+   * @generated from field: google.protobuf.Struct payload = 6;
+   */
+  payload?: JsonObject | undefined;
+
+  /**
+   * @generated from field: google.protobuf.Timestamp created_at = 7;
+   */
+  createdAt?: Timestamp | undefined;
+};
+
+/**
+ * Describes the message memoh.private.v1.WorkspaceOperation.
+ * Use `create(WorkspaceOperationSchema)` to create a new message.
+ */
+export const WorkspaceOperationSchema: GenMessage<WorkspaceOperation> /*@__PURE__*/ = messageDesc(
+  file_memoh_private_v1_streaming,
+  15,
+);
+
+/**
+ * @generated from message memoh.private.v1.StreamWorkspaceOperationRequest
+ */
+export type StreamWorkspaceOperationRequest =
+  Message<"memoh.private.v1.StreamWorkspaceOperationRequest"> & {
+    /**
+     * @generated from field: string bot_id = 1;
+     */
+    botId: string;
+
+    /**
+     * @generated from field: string operation_id = 2;
+     */
+    operationId: string;
+
+    /**
+     * @generated from field: string operation_type = 3;
+     */
+    operationType: string;
+  };
+
+/**
+ * Describes the message memoh.private.v1.StreamWorkspaceOperationRequest.
+ * Use `create(StreamWorkspaceOperationRequestSchema)` to create a new message.
+ */
+export const StreamWorkspaceOperationRequestSchema: GenMessage<StreamWorkspaceOperationRequest> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 16);
+
+/**
+ * @generated from message memoh.private.v1.StreamWorkspaceOperationResponse
+ */
+export type StreamWorkspaceOperationResponse =
+  Message<"memoh.private.v1.StreamWorkspaceOperationResponse"> & {
+    /**
+     * @generated from field: memoh.private.v1.WorkspaceOperation operation = 1;
+     */
+    operation?: WorkspaceOperation | undefined;
+  };
+
+/**
+ * Describes the message memoh.private.v1.StreamWorkspaceOperationResponse.
+ * Use `create(StreamWorkspaceOperationResponseSchema)` to create a new message.
+ */
+export const StreamWorkspaceOperationResponseSchema: GenMessage<StreamWorkspaceOperationResponse> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 17);
+
+/**
+ * @generated from message memoh.private.v1.StartContainerRequest
+ */
+export type StartContainerRequest = Message<"memoh.private.v1.StartContainerRequest"> & {
+  /**
+   * @generated from field: string bot_id = 1;
+   */
+  botId: string;
+
+  /**
+   * @generated from field: google.protobuf.Struct options = 2;
+   */
+  options?: JsonObject | undefined;
+};
+
+/**
+ * Describes the message memoh.private.v1.StartContainerRequest.
+ * Use `create(StartContainerRequestSchema)` to create a new message.
+ */
+export const StartContainerRequestSchema: GenMessage<StartContainerRequest> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 18);
+
+/**
+ * @generated from message memoh.private.v1.StartContainerResponse
+ */
+export type StartContainerResponse = Message<"memoh.private.v1.StartContainerResponse"> & {
+  /**
+   * @generated from field: memoh.private.v1.WorkspaceOperation operation = 1;
+   */
+  operation?: WorkspaceOperation | undefined;
+};
+
+/**
+ * Describes the message memoh.private.v1.StartContainerResponse.
+ * Use `create(StartContainerResponseSchema)` to create a new message.
+ */
+export const StartContainerResponseSchema: GenMessage<StartContainerResponse> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 19);
+
+/**
+ * @generated from message memoh.private.v1.StopContainerRequest
+ */
+export type StopContainerRequest = Message<"memoh.private.v1.StopContainerRequest"> & {
+  /**
+   * @generated from field: string bot_id = 1;
+   */
+  botId: string;
+
+  /**
+   * @generated from field: string reason = 2;
+   */
+  reason: string;
+};
+
+/**
+ * Describes the message memoh.private.v1.StopContainerRequest.
+ * Use `create(StopContainerRequestSchema)` to create a new message.
+ */
+export const StopContainerRequestSchema: GenMessage<StopContainerRequest> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 20);
+
+/**
+ * @generated from message memoh.private.v1.StopContainerResponse
+ */
+export type StopContainerResponse = Message<"memoh.private.v1.StopContainerResponse"> & {
+  /**
+   * @generated from field: memoh.private.v1.WorkspaceOperation operation = 1;
+   */
+  operation?: WorkspaceOperation | undefined;
+};
+
+/**
+ * Describes the message memoh.private.v1.StopContainerResponse.
+ * Use `create(StopContainerResponseSchema)` to create a new message.
+ */
+export const StopContainerResponseSchema: GenMessage<StopContainerResponse> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 21);
+
+/**
+ * @generated from message memoh.private.v1.RestartContainerRequest
+ */
+export type RestartContainerRequest = Message<"memoh.private.v1.RestartContainerRequest"> & {
+  /**
+   * @generated from field: string bot_id = 1;
+   */
+  botId: string;
+
+  /**
+   * @generated from field: google.protobuf.Struct options = 2;
+   */
+  options?: JsonObject | undefined;
+};
+
+/**
+ * Describes the message memoh.private.v1.RestartContainerRequest.
+ * Use `create(RestartContainerRequestSchema)` to create a new message.
+ */
+export const RestartContainerRequestSchema: GenMessage<RestartContainerRequest> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 22);
+
+/**
+ * @generated from message memoh.private.v1.RestartContainerResponse
+ */
+export type RestartContainerResponse = Message<"memoh.private.v1.RestartContainerResponse"> & {
+  /**
+   * @generated from field: memoh.private.v1.WorkspaceOperation operation = 1;
+   */
+  operation?: WorkspaceOperation | undefined;
+};
+
+/**
+ * Describes the message memoh.private.v1.RestartContainerResponse.
+ * Use `create(RestartContainerResponseSchema)` to create a new message.
+ */
+export const RestartContainerResponseSchema: GenMessage<RestartContainerResponse> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 23);
+
+/**
+ * @generated from message memoh.private.v1.GetContainerLifecycleRequest
+ */
+export type GetContainerLifecycleRequest =
+  Message<"memoh.private.v1.GetContainerLifecycleRequest"> & {
+    /**
+     * @generated from field: string bot_id = 1;
+     */
+    botId: string;
+  };
+
+/**
+ * Describes the message memoh.private.v1.GetContainerLifecycleRequest.
+ * Use `create(GetContainerLifecycleRequestSchema)` to create a new message.
+ */
+export const GetContainerLifecycleRequestSchema: GenMessage<GetContainerLifecycleRequest> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 24);
+
+/**
+ * @generated from message memoh.private.v1.GetContainerLifecycleResponse
+ */
+export type GetContainerLifecycleResponse =
+  Message<"memoh.private.v1.GetContainerLifecycleResponse"> & {
+    /**
+     * @generated from field: string bot_id = 1;
+     */
+    botId: string;
+
+    /**
+     * @generated from field: string workspace_id = 2;
+     */
+    workspaceId: string;
+
+    /**
+     * @generated from field: string backend = 3;
+     */
+    backend: string;
+
+    /**
+     * @generated from field: string status = 4;
+     */
+    status: string;
+
+    /**
+     * @generated from field: string image = 5;
+     */
+    image: string;
+
+    /**
+     * @generated from field: google.protobuf.Timestamp started_at = 6;
+     */
+    startedAt?: Timestamp | undefined;
+
+    /**
+     * @generated from field: google.protobuf.Struct metadata = 7;
+     */
+    metadata?: JsonObject | undefined;
+  };
+
+/**
+ * Describes the message memoh.private.v1.GetContainerLifecycleResponse.
+ * Use `create(GetContainerLifecycleResponseSchema)` to create a new message.
+ */
+export const GetContainerLifecycleResponseSchema: GenMessage<GetContainerLifecycleResponse> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 25);
+
+/**
+ * @generated from message memoh.private.v1.StreamContainerLifecycleRequest
+ */
+export type StreamContainerLifecycleRequest =
+  Message<"memoh.private.v1.StreamContainerLifecycleRequest"> & {
+    /**
+     * @generated from field: string bot_id = 1;
+     */
+    botId: string;
+  };
+
+/**
+ * Describes the message memoh.private.v1.StreamContainerLifecycleRequest.
+ * Use `create(StreamContainerLifecycleRequestSchema)` to create a new message.
+ */
+export const StreamContainerLifecycleRequestSchema: GenMessage<StreamContainerLifecycleRequest> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 26);
+
+/**
+ * @generated from message memoh.private.v1.StreamContainerLifecycleResponse
+ */
+export type StreamContainerLifecycleResponse =
+  Message<"memoh.private.v1.StreamContainerLifecycleResponse"> & {
+    /**
+     * @generated from field: memoh.private.v1.GetContainerLifecycleResponse lifecycle = 1;
+     */
+    lifecycle?: GetContainerLifecycleResponse | undefined;
+  };
+
+/**
+ * Describes the message memoh.private.v1.StreamContainerLifecycleResponse.
+ * Use `create(StreamContainerLifecycleResponseSchema)` to create a new message.
+ */
+export const StreamContainerLifecycleResponseSchema: GenMessage<StreamContainerLifecycleResponse> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 27);
+
+/**
+ * @generated from message memoh.private.v1.GetContainerMetricsRequest
+ */
+export type GetContainerMetricsRequest = Message<"memoh.private.v1.GetContainerMetricsRequest"> & {
+  /**
+   * @generated from field: string bot_id = 1;
+   */
+  botId: string;
+};
+
+/**
+ * Describes the message memoh.private.v1.GetContainerMetricsRequest.
+ * Use `create(GetContainerMetricsRequestSchema)` to create a new message.
+ */
+export const GetContainerMetricsRequestSchema: GenMessage<GetContainerMetricsRequest> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 28);
+
+/**
+ * @generated from message memoh.private.v1.GetContainerMetricsResponse
+ */
+export type GetContainerMetricsResponse =
+  Message<"memoh.private.v1.GetContainerMetricsResponse"> & {
+    /**
+     * @generated from field: string bot_id = 1;
+     */
+    botId: string;
+
+    /**
+     * @generated from field: double cpu_percent = 2;
+     */
+    cpuPercent: number;
+
+    /**
+     * @generated from field: uint64 memory_bytes = 3;
+     */
+    memoryBytes: bigint;
+
+    /**
+     * @generated from field: uint64 memory_limit_bytes = 4;
+     */
+    memoryLimitBytes: bigint;
+
+    /**
+     * @generated from field: uint64 rx_bytes = 5;
+     */
+    rxBytes: bigint;
+
+    /**
+     * @generated from field: uint64 tx_bytes = 6;
+     */
+    txBytes: bigint;
+
+    /**
+     * @generated from field: google.protobuf.Timestamp observed_at = 7;
+     */
+    observedAt?: Timestamp | undefined;
+  };
+
+/**
+ * Describes the message memoh.private.v1.GetContainerMetricsResponse.
+ * Use `create(GetContainerMetricsResponseSchema)` to create a new message.
+ */
+export const GetContainerMetricsResponseSchema: GenMessage<GetContainerMetricsResponse> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 29);
+
+/**
+ * @generated from message memoh.private.v1.StreamContainerMetricsRequest
+ */
+export type StreamContainerMetricsRequest =
+  Message<"memoh.private.v1.StreamContainerMetricsRequest"> & {
+    /**
+     * @generated from field: string bot_id = 1;
+     */
+    botId: string;
+  };
+
+/**
+ * Describes the message memoh.private.v1.StreamContainerMetricsRequest.
+ * Use `create(StreamContainerMetricsRequestSchema)` to create a new message.
+ */
+export const StreamContainerMetricsRequestSchema: GenMessage<StreamContainerMetricsRequest> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 30);
+
+/**
+ * @generated from message memoh.private.v1.StreamContainerMetricsResponse
+ */
+export type StreamContainerMetricsResponse =
+  Message<"memoh.private.v1.StreamContainerMetricsResponse"> & {
+    /**
+     * @generated from field: memoh.private.v1.GetContainerMetricsResponse metrics = 1;
+     */
+    metrics?: GetContainerMetricsResponse | undefined;
+  };
+
+/**
+ * Describes the message memoh.private.v1.StreamContainerMetricsResponse.
+ * Use `create(StreamContainerMetricsResponseSchema)` to create a new message.
+ */
+export const StreamContainerMetricsResponseSchema: GenMessage<StreamContainerMetricsResponse> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 31);
+
+/**
+ * @generated from message memoh.private.v1.ContainerSnapshot
+ */
+export type ContainerSnapshot = Message<"memoh.private.v1.ContainerSnapshot"> & {
+  /**
+   * @generated from field: string snapshot_id = 1;
+   */
+  snapshotId: string;
+
+  /**
+   * @generated from field: string bot_id = 2;
+   */
+  botId: string;
+
+  /**
+   * @generated from field: string name = 3;
+   */
+  name: string;
+
+  /**
+   * @generated from field: int64 size_bytes = 4;
+   */
+  sizeBytes: bigint;
+
+  /**
+   * @generated from field: google.protobuf.Timestamp created_at = 5;
+   */
+  createdAt?: Timestamp | undefined;
+
+  /**
+   * @generated from field: google.protobuf.Struct metadata = 6;
+   */
+  metadata?: JsonObject | undefined;
+};
+
+/**
+ * Describes the message memoh.private.v1.ContainerSnapshot.
+ * Use `create(ContainerSnapshotSchema)` to create a new message.
+ */
+export const ContainerSnapshotSchema: GenMessage<ContainerSnapshot> /*@__PURE__*/ = messageDesc(
+  file_memoh_private_v1_streaming,
+  32,
+);
+
+/**
+ * @generated from message memoh.private.v1.CreateContainerSnapshotRequest
+ */
+export type CreateContainerSnapshotRequest =
+  Message<"memoh.private.v1.CreateContainerSnapshotRequest"> & {
+    /**
+     * @generated from field: string bot_id = 1;
+     */
+    botId: string;
+
+    /**
+     * @generated from field: string name = 2;
+     */
+    name: string;
+
+    /**
+     * @generated from field: google.protobuf.Struct metadata = 3;
+     */
+    metadata?: JsonObject | undefined;
+  };
+
+/**
+ * Describes the message memoh.private.v1.CreateContainerSnapshotRequest.
+ * Use `create(CreateContainerSnapshotRequestSchema)` to create a new message.
+ */
+export const CreateContainerSnapshotRequestSchema: GenMessage<CreateContainerSnapshotRequest> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 33);
+
+/**
+ * @generated from message memoh.private.v1.CreateContainerSnapshotResponse
+ */
+export type CreateContainerSnapshotResponse =
+  Message<"memoh.private.v1.CreateContainerSnapshotResponse"> & {
+    /**
+     * @generated from field: memoh.private.v1.ContainerSnapshot snapshot = 1;
+     */
+    snapshot?: ContainerSnapshot | undefined;
+  };
+
+/**
+ * Describes the message memoh.private.v1.CreateContainerSnapshotResponse.
+ * Use `create(CreateContainerSnapshotResponseSchema)` to create a new message.
+ */
+export const CreateContainerSnapshotResponseSchema: GenMessage<CreateContainerSnapshotResponse> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 34);
+
+/**
+ * @generated from message memoh.private.v1.ListContainerSnapshotsRequest
+ */
+export type ListContainerSnapshotsRequest =
+  Message<"memoh.private.v1.ListContainerSnapshotsRequest"> & {
+    /**
+     * @generated from field: string bot_id = 1;
+     */
+    botId: string;
+  };
+
+/**
+ * Describes the message memoh.private.v1.ListContainerSnapshotsRequest.
+ * Use `create(ListContainerSnapshotsRequestSchema)` to create a new message.
+ */
+export const ListContainerSnapshotsRequestSchema: GenMessage<ListContainerSnapshotsRequest> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 35);
+
+/**
+ * @generated from message memoh.private.v1.ListContainerSnapshotsResponse
+ */
+export type ListContainerSnapshotsResponse =
+  Message<"memoh.private.v1.ListContainerSnapshotsResponse"> & {
+    /**
+     * @generated from field: repeated memoh.private.v1.ContainerSnapshot snapshots = 1;
+     */
+    snapshots: ContainerSnapshot[];
+  };
+
+/**
+ * Describes the message memoh.private.v1.ListContainerSnapshotsResponse.
+ * Use `create(ListContainerSnapshotsResponseSchema)` to create a new message.
+ */
+export const ListContainerSnapshotsResponseSchema: GenMessage<ListContainerSnapshotsResponse> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 36);
+
+/**
+ * @generated from message memoh.private.v1.RestoreContainerSnapshotRequest
+ */
+export type RestoreContainerSnapshotRequest =
+  Message<"memoh.private.v1.RestoreContainerSnapshotRequest"> & {
+    /**
+     * @generated from field: string bot_id = 1;
+     */
+    botId: string;
+
+    /**
+     * @generated from field: string snapshot_id = 2;
+     */
+    snapshotId: string;
+  };
+
+/**
+ * Describes the message memoh.private.v1.RestoreContainerSnapshotRequest.
+ * Use `create(RestoreContainerSnapshotRequestSchema)` to create a new message.
+ */
+export const RestoreContainerSnapshotRequestSchema: GenMessage<RestoreContainerSnapshotRequest> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 37);
+
+/**
+ * @generated from message memoh.private.v1.RestoreContainerSnapshotResponse
+ */
+export type RestoreContainerSnapshotResponse =
+  Message<"memoh.private.v1.RestoreContainerSnapshotResponse"> & {
+    /**
+     * @generated from field: memoh.private.v1.WorkspaceOperation operation = 1;
+     */
+    operation?: WorkspaceOperation | undefined;
+  };
+
+/**
+ * Describes the message memoh.private.v1.RestoreContainerSnapshotResponse.
+ * Use `create(RestoreContainerSnapshotResponseSchema)` to create a new message.
+ */
+export const RestoreContainerSnapshotResponseSchema: GenMessage<RestoreContainerSnapshotResponse> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 38);
+
+/**
+ * @generated from message memoh.private.v1.DeleteContainerSnapshotRequest
+ */
+export type DeleteContainerSnapshotRequest =
+  Message<"memoh.private.v1.DeleteContainerSnapshotRequest"> & {
+    /**
+     * @generated from field: string bot_id = 1;
+     */
+    botId: string;
+
+    /**
+     * @generated from field: string snapshot_id = 2;
+     */
+    snapshotId: string;
+  };
+
+/**
+ * Describes the message memoh.private.v1.DeleteContainerSnapshotRequest.
+ * Use `create(DeleteContainerSnapshotRequestSchema)` to create a new message.
+ */
+export const DeleteContainerSnapshotRequestSchema: GenMessage<DeleteContainerSnapshotRequest> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 39);
+
+/**
+ * @generated from message memoh.private.v1.DeleteContainerSnapshotResponse
+ */
+export type DeleteContainerSnapshotResponse =
+  Message<"memoh.private.v1.DeleteContainerSnapshotResponse"> & {};
+
+/**
+ * Describes the message memoh.private.v1.DeleteContainerSnapshotResponse.
+ * Use `create(DeleteContainerSnapshotResponseSchema)` to create a new message.
+ */
+export const DeleteContainerSnapshotResponseSchema: GenMessage<DeleteContainerSnapshotResponse> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 40);
+
+/**
+ * @generated from message memoh.private.v1.ImportContainerDataRequest
+ */
+export type ImportContainerDataRequest = Message<"memoh.private.v1.ImportContainerDataRequest"> & {
+  /**
+   * @generated from field: string bot_id = 1;
+   */
+  botId: string;
+
+  /**
+   * @generated from field: string source = 2;
+   */
+  source: string;
+
+  /**
+   * @generated from field: bytes data = 3;
+   */
+  data: Uint8Array;
+
+  /**
+   * @generated from field: google.protobuf.Struct options = 4;
+   */
+  options?: JsonObject | undefined;
+};
+
+/**
+ * Describes the message memoh.private.v1.ImportContainerDataRequest.
+ * Use `create(ImportContainerDataRequestSchema)` to create a new message.
+ */
+export const ImportContainerDataRequestSchema: GenMessage<ImportContainerDataRequest> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 41);
+
+/**
+ * @generated from message memoh.private.v1.ImportContainerDataResponse
+ */
+export type ImportContainerDataResponse =
+  Message<"memoh.private.v1.ImportContainerDataResponse"> & {
+    /**
+     * @generated from field: memoh.private.v1.WorkspaceOperation operation = 1;
+     */
+    operation?: WorkspaceOperation | undefined;
+  };
+
+/**
+ * Describes the message memoh.private.v1.ImportContainerDataResponse.
+ * Use `create(ImportContainerDataResponseSchema)` to create a new message.
+ */
+export const ImportContainerDataResponseSchema: GenMessage<ImportContainerDataResponse> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 42);
+
+/**
+ * @generated from message memoh.private.v1.ExportContainerDataRequest
+ */
+export type ExportContainerDataRequest = Message<"memoh.private.v1.ExportContainerDataRequest"> & {
+  /**
+   * @generated from field: string bot_id = 1;
+   */
+  botId: string;
+
+  /**
+   * @generated from field: string path = 2;
+   */
+  path: string;
+
+  /**
+   * @generated from field: google.protobuf.Struct options = 3;
+   */
+  options?: JsonObject | undefined;
+};
+
+/**
+ * Describes the message memoh.private.v1.ExportContainerDataRequest.
+ * Use `create(ExportContainerDataRequestSchema)` to create a new message.
+ */
+export const ExportContainerDataRequestSchema: GenMessage<ExportContainerDataRequest> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 43);
+
+/**
+ * @generated from message memoh.private.v1.ExportContainerDataResponse
+ */
+export type ExportContainerDataResponse =
+  Message<"memoh.private.v1.ExportContainerDataResponse"> & {
+    /**
+     * @generated from field: bytes data = 1;
+     */
+    data: Uint8Array;
+
+    /**
+     * @generated from field: string mime_type = 2;
+     */
+    mimeType: string;
+
+    /**
+     * @generated from field: string filename = 3;
+     */
+    filename: string;
+  };
+
+/**
+ * Describes the message memoh.private.v1.ExportContainerDataResponse.
+ * Use `create(ExportContainerDataResponseSchema)` to create a new message.
+ */
+export const ExportContainerDataResponseSchema: GenMessage<ExportContainerDataResponse> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 44);
+
+/**
+ * @generated from message memoh.private.v1.ContainerFileEntry
+ */
+export type ContainerFileEntry = Message<"memoh.private.v1.ContainerFileEntry"> & {
+  /**
+   * @generated from field: string path = 1;
+   */
+  path: string;
+
+  /**
+   * @generated from field: bool is_dir = 2;
+   */
+  isDir: boolean;
+
+  /**
+   * @generated from field: int64 size = 3;
+   */
+  size: bigint;
+
+  /**
+   * @generated from field: string mode = 4;
+   */
+  mode: string;
+
+  /**
+   * @generated from field: google.protobuf.Timestamp modified_at = 5;
+   */
+  modifiedAt?: Timestamp | undefined;
+};
+
+/**
+ * Describes the message memoh.private.v1.ContainerFileEntry.
+ * Use `create(ContainerFileEntrySchema)` to create a new message.
+ */
+export const ContainerFileEntrySchema: GenMessage<ContainerFileEntry> /*@__PURE__*/ = messageDesc(
+  file_memoh_private_v1_streaming,
+  45,
+);
+
+/**
+ * @generated from message memoh.private.v1.ListContainerFilesRequest
+ */
+export type ListContainerFilesRequest = Message<"memoh.private.v1.ListContainerFilesRequest"> & {
+  /**
+   * @generated from field: string bot_id = 1;
+   */
+  botId: string;
+
+  /**
+   * @generated from field: string path = 2;
+   */
+  path: string;
+
+  /**
+   * @generated from field: bool recursive = 3;
+   */
+  recursive: boolean;
+
+  /**
+   * @generated from field: int32 page_size = 4;
+   */
+  pageSize: number;
+
+  /**
+   * @generated from field: string page_token = 5;
+   */
+  pageToken: string;
+};
+
+/**
+ * Describes the message memoh.private.v1.ListContainerFilesRequest.
+ * Use `create(ListContainerFilesRequestSchema)` to create a new message.
+ */
+export const ListContainerFilesRequestSchema: GenMessage<ListContainerFilesRequest> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 46);
+
+/**
+ * @generated from message memoh.private.v1.ListContainerFilesResponse
+ */
+export type ListContainerFilesResponse = Message<"memoh.private.v1.ListContainerFilesResponse"> & {
+  /**
+   * @generated from field: repeated memoh.private.v1.ContainerFileEntry entries = 1;
+   */
+  entries: ContainerFileEntry[];
+
+  /**
+   * @generated from field: string next_page_token = 2;
+   */
+  nextPageToken: string;
+};
+
+/**
+ * Describes the message memoh.private.v1.ListContainerFilesResponse.
+ * Use `create(ListContainerFilesResponseSchema)` to create a new message.
+ */
+export const ListContainerFilesResponseSchema: GenMessage<ListContainerFilesResponse> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 47);
+
+/**
+ * @generated from message memoh.private.v1.ReadContainerFileRequest
+ */
+export type ReadContainerFileRequest = Message<"memoh.private.v1.ReadContainerFileRequest"> & {
+  /**
+   * @generated from field: string bot_id = 1;
+   */
+  botId: string;
+
+  /**
+   * @generated from field: string path = 2;
+   */
+  path: string;
+
+  /**
+   * @generated from field: int64 offset = 3;
+   */
+  offset: bigint;
+
+  /**
+   * @generated from field: int64 max_bytes = 4;
+   */
+  maxBytes: bigint;
+};
+
+/**
+ * Describes the message memoh.private.v1.ReadContainerFileRequest.
+ * Use `create(ReadContainerFileRequestSchema)` to create a new message.
+ */
+export const ReadContainerFileRequestSchema: GenMessage<ReadContainerFileRequest> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 48);
+
+/**
+ * @generated from message memoh.private.v1.ReadContainerFileResponse
+ */
+export type ReadContainerFileResponse = Message<"memoh.private.v1.ReadContainerFileResponse"> & {
+  /**
+   * @generated from field: bytes content = 1;
+   */
+  content: Uint8Array;
+
+  /**
+   * @generated from field: bool binary = 2;
+   */
+  binary: boolean;
+
+  /**
+   * @generated from field: bool eof = 3;
+   */
+  eof: boolean;
+};
+
+/**
+ * Describes the message memoh.private.v1.ReadContainerFileResponse.
+ * Use `create(ReadContainerFileResponseSchema)` to create a new message.
+ */
+export const ReadContainerFileResponseSchema: GenMessage<ReadContainerFileResponse> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 49);
+
+/**
+ * @generated from message memoh.private.v1.WriteContainerFileRequest
+ */
+export type WriteContainerFileRequest = Message<"memoh.private.v1.WriteContainerFileRequest"> & {
+  /**
+   * @generated from field: string bot_id = 1;
+   */
+  botId: string;
+
+  /**
+   * @generated from field: string path = 2;
+   */
+  path: string;
+
+  /**
+   * @generated from field: bytes content = 3;
+   */
+  content: Uint8Array;
+
+  /**
+   * @generated from field: bool create_parent_dirs = 4;
+   */
+  createParentDirs: boolean;
+};
+
+/**
+ * Describes the message memoh.private.v1.WriteContainerFileRequest.
+ * Use `create(WriteContainerFileRequestSchema)` to create a new message.
+ */
+export const WriteContainerFileRequestSchema: GenMessage<WriteContainerFileRequest> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 50);
+
+/**
+ * @generated from message memoh.private.v1.WriteContainerFileResponse
+ */
+export type WriteContainerFileResponse = Message<"memoh.private.v1.WriteContainerFileResponse"> & {
+  /**
+   * @generated from field: int64 bytes_written = 1;
+   */
+  bytesWritten: bigint;
+};
+
+/**
+ * Describes the message memoh.private.v1.WriteContainerFileResponse.
+ * Use `create(WriteContainerFileResponseSchema)` to create a new message.
+ */
+export const WriteContainerFileResponseSchema: GenMessage<WriteContainerFileResponse> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 51);
+
+/**
+ * @generated from message memoh.private.v1.UploadContainerFileRequest
+ */
+export type UploadContainerFileRequest = Message<"memoh.private.v1.UploadContainerFileRequest"> & {
+  /**
+   * @generated from field: string bot_id = 1;
+   */
+  botId: string;
+
+  /**
+   * @generated from field: string path = 2;
+   */
+  path: string;
+
+  /**
+   * @generated from field: bytes content = 3;
+   */
+  content: Uint8Array;
+
+  /**
+   * @generated from field: bool create_parent_dirs = 4;
+   */
+  createParentDirs: boolean;
+};
+
+/**
+ * Describes the message memoh.private.v1.UploadContainerFileRequest.
+ * Use `create(UploadContainerFileRequestSchema)` to create a new message.
+ */
+export const UploadContainerFileRequestSchema: GenMessage<UploadContainerFileRequest> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 52);
+
+/**
+ * @generated from message memoh.private.v1.UploadContainerFileResponse
+ */
+export type UploadContainerFileResponse =
+  Message<"memoh.private.v1.UploadContainerFileResponse"> & {
+    /**
+     * @generated from field: int64 bytes_written = 1;
+     */
+    bytesWritten: bigint;
+  };
+
+/**
+ * Describes the message memoh.private.v1.UploadContainerFileResponse.
+ * Use `create(UploadContainerFileResponseSchema)` to create a new message.
+ */
+export const UploadContainerFileResponseSchema: GenMessage<UploadContainerFileResponse> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 53);
+
+/**
+ * @generated from message memoh.private.v1.DownloadContainerFileRequest
+ */
+export type DownloadContainerFileRequest =
+  Message<"memoh.private.v1.DownloadContainerFileRequest"> & {
+    /**
+     * @generated from field: string bot_id = 1;
+     */
+    botId: string;
+
+    /**
+     * @generated from field: string path = 2;
+     */
+    path: string;
+  };
+
+/**
+ * Describes the message memoh.private.v1.DownloadContainerFileRequest.
+ * Use `create(DownloadContainerFileRequestSchema)` to create a new message.
+ */
+export const DownloadContainerFileRequestSchema: GenMessage<DownloadContainerFileRequest> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 54);
+
+/**
+ * @generated from message memoh.private.v1.DownloadContainerFileResponse
+ */
+export type DownloadContainerFileResponse =
+  Message<"memoh.private.v1.DownloadContainerFileResponse"> & {
+    /**
+     * @generated from field: bytes content = 1;
+     */
+    content: Uint8Array;
+
+    /**
+     * @generated from field: string mime_type = 2;
+     */
+    mimeType: string;
+
+    /**
+     * @generated from field: string filename = 3;
+     */
+    filename: string;
+  };
+
+/**
+ * Describes the message memoh.private.v1.DownloadContainerFileResponse.
+ * Use `create(DownloadContainerFileResponseSchema)` to create a new message.
+ */
+export const DownloadContainerFileResponseSchema: GenMessage<DownloadContainerFileResponse> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 55);
+
+/**
+ * @generated from message memoh.private.v1.MkdirContainerFileRequest
+ */
+export type MkdirContainerFileRequest = Message<"memoh.private.v1.MkdirContainerFileRequest"> & {
+  /**
+   * @generated from field: string bot_id = 1;
+   */
+  botId: string;
+
+  /**
+   * @generated from field: string path = 2;
+   */
+  path: string;
+
+  /**
+   * @generated from field: bool parents = 3;
+   */
+  parents: boolean;
+};
+
+/**
+ * Describes the message memoh.private.v1.MkdirContainerFileRequest.
+ * Use `create(MkdirContainerFileRequestSchema)` to create a new message.
+ */
+export const MkdirContainerFileRequestSchema: GenMessage<MkdirContainerFileRequest> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 56);
+
+/**
+ * @generated from message memoh.private.v1.MkdirContainerFileResponse
+ */
+export type MkdirContainerFileResponse =
+  Message<"memoh.private.v1.MkdirContainerFileResponse"> & {};
+
+/**
+ * Describes the message memoh.private.v1.MkdirContainerFileResponse.
+ * Use `create(MkdirContainerFileResponseSchema)` to create a new message.
+ */
+export const MkdirContainerFileResponseSchema: GenMessage<MkdirContainerFileResponse> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 57);
+
+/**
+ * @generated from message memoh.private.v1.RenameContainerFileRequest
+ */
+export type RenameContainerFileRequest = Message<"memoh.private.v1.RenameContainerFileRequest"> & {
+  /**
+   * @generated from field: string bot_id = 1;
+   */
+  botId: string;
+
+  /**
+   * @generated from field: string old_path = 2;
+   */
+  oldPath: string;
+
+  /**
+   * @generated from field: string new_path = 3;
+   */
+  newPath: string;
+
+  /**
+   * @generated from field: bool overwrite = 4;
+   */
+  overwrite: boolean;
+};
+
+/**
+ * Describes the message memoh.private.v1.RenameContainerFileRequest.
+ * Use `create(RenameContainerFileRequestSchema)` to create a new message.
+ */
+export const RenameContainerFileRequestSchema: GenMessage<RenameContainerFileRequest> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 58);
+
+/**
+ * @generated from message memoh.private.v1.RenameContainerFileResponse
+ */
+export type RenameContainerFileResponse =
+  Message<"memoh.private.v1.RenameContainerFileResponse"> & {};
+
+/**
+ * Describes the message memoh.private.v1.RenameContainerFileResponse.
+ * Use `create(RenameContainerFileResponseSchema)` to create a new message.
+ */
+export const RenameContainerFileResponseSchema: GenMessage<RenameContainerFileResponse> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 59);
+
+/**
+ * @generated from message memoh.private.v1.DeleteContainerFileRequest
+ */
+export type DeleteContainerFileRequest = Message<"memoh.private.v1.DeleteContainerFileRequest"> & {
+  /**
+   * @generated from field: string bot_id = 1;
+   */
+  botId: string;
+
+  /**
+   * @generated from field: string path = 2;
+   */
+  path: string;
+
+  /**
+   * @generated from field: bool recursive = 3;
+   */
+  recursive: boolean;
+};
+
+/**
+ * Describes the message memoh.private.v1.DeleteContainerFileRequest.
+ * Use `create(DeleteContainerFileRequestSchema)` to create a new message.
+ */
+export const DeleteContainerFileRequestSchema: GenMessage<DeleteContainerFileRequest> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 60);
+
+/**
+ * @generated from message memoh.private.v1.DeleteContainerFileResponse
+ */
+export type DeleteContainerFileResponse =
+  Message<"memoh.private.v1.DeleteContainerFileResponse"> & {};
+
+/**
+ * Describes the message memoh.private.v1.DeleteContainerFileResponse.
+ * Use `create(DeleteContainerFileResponseSchema)` to create a new message.
+ */
+export const DeleteContainerFileResponseSchema: GenMessage<DeleteContainerFileResponse> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_streaming, 61);
+
+/**
  * @generated from service memoh.private.v1.ChatService
  */
 export const ChatService: GenService<{
@@ -188,5 +1600,221 @@ export const ContainerService: GenService<{
     methodKind: "server_streaming";
     input: typeof StreamContainerProgressRequestSchema;
     output: typeof StreamContainerProgressResponseSchema;
+  };
+  /**
+   * @generated from rpc memoh.private.v1.ContainerService.OpenTerminal
+   */
+  openTerminal: {
+    methodKind: "unary";
+    input: typeof OpenTerminalRequestSchema;
+    output: typeof OpenTerminalResponseSchema;
+  };
+  /**
+   * @generated from rpc memoh.private.v1.ContainerService.StreamTerminal
+   */
+  streamTerminal: {
+    methodKind: "server_streaming";
+    input: typeof StreamTerminalRequestSchema;
+    output: typeof StreamTerminalResponseSchema;
+  };
+  /**
+   * @generated from rpc memoh.private.v1.ContainerService.WriteTerminalInput
+   */
+  writeTerminalInput: {
+    methodKind: "unary";
+    input: typeof WriteTerminalInputRequestSchema;
+    output: typeof WriteTerminalInputResponseSchema;
+  };
+  /**
+   * @generated from rpc memoh.private.v1.ContainerService.ResizeTerminal
+   */
+  resizeTerminal: {
+    methodKind: "unary";
+    input: typeof ResizeTerminalRequestSchema;
+    output: typeof ResizeTerminalResponseSchema;
+  };
+  /**
+   * @generated from rpc memoh.private.v1.ContainerService.CloseTerminal
+   */
+  closeTerminal: {
+    methodKind: "unary";
+    input: typeof CloseTerminalRequestSchema;
+    output: typeof CloseTerminalResponseSchema;
+  };
+  /**
+   * @generated from rpc memoh.private.v1.ContainerService.StreamWorkspaceOperation
+   */
+  streamWorkspaceOperation: {
+    methodKind: "server_streaming";
+    input: typeof StreamWorkspaceOperationRequestSchema;
+    output: typeof StreamWorkspaceOperationResponseSchema;
+  };
+  /**
+   * @generated from rpc memoh.private.v1.ContainerService.StartContainer
+   */
+  startContainer: {
+    methodKind: "unary";
+    input: typeof StartContainerRequestSchema;
+    output: typeof StartContainerResponseSchema;
+  };
+  /**
+   * @generated from rpc memoh.private.v1.ContainerService.StopContainer
+   */
+  stopContainer: {
+    methodKind: "unary";
+    input: typeof StopContainerRequestSchema;
+    output: typeof StopContainerResponseSchema;
+  };
+  /**
+   * @generated from rpc memoh.private.v1.ContainerService.RestartContainer
+   */
+  restartContainer: {
+    methodKind: "unary";
+    input: typeof RestartContainerRequestSchema;
+    output: typeof RestartContainerResponseSchema;
+  };
+  /**
+   * @generated from rpc memoh.private.v1.ContainerService.GetContainerLifecycle
+   */
+  getContainerLifecycle: {
+    methodKind: "unary";
+    input: typeof GetContainerLifecycleRequestSchema;
+    output: typeof GetContainerLifecycleResponseSchema;
+  };
+  /**
+   * @generated from rpc memoh.private.v1.ContainerService.StreamContainerLifecycle
+   */
+  streamContainerLifecycle: {
+    methodKind: "server_streaming";
+    input: typeof StreamContainerLifecycleRequestSchema;
+    output: typeof StreamContainerLifecycleResponseSchema;
+  };
+  /**
+   * @generated from rpc memoh.private.v1.ContainerService.GetContainerMetrics
+   */
+  getContainerMetrics: {
+    methodKind: "unary";
+    input: typeof GetContainerMetricsRequestSchema;
+    output: typeof GetContainerMetricsResponseSchema;
+  };
+  /**
+   * @generated from rpc memoh.private.v1.ContainerService.StreamContainerMetrics
+   */
+  streamContainerMetrics: {
+    methodKind: "server_streaming";
+    input: typeof StreamContainerMetricsRequestSchema;
+    output: typeof StreamContainerMetricsResponseSchema;
+  };
+  /**
+   * @generated from rpc memoh.private.v1.ContainerService.CreateContainerSnapshot
+   */
+  createContainerSnapshot: {
+    methodKind: "unary";
+    input: typeof CreateContainerSnapshotRequestSchema;
+    output: typeof CreateContainerSnapshotResponseSchema;
+  };
+  /**
+   * @generated from rpc memoh.private.v1.ContainerService.ListContainerSnapshots
+   */
+  listContainerSnapshots: {
+    methodKind: "unary";
+    input: typeof ListContainerSnapshotsRequestSchema;
+    output: typeof ListContainerSnapshotsResponseSchema;
+  };
+  /**
+   * @generated from rpc memoh.private.v1.ContainerService.RestoreContainerSnapshot
+   */
+  restoreContainerSnapshot: {
+    methodKind: "unary";
+    input: typeof RestoreContainerSnapshotRequestSchema;
+    output: typeof RestoreContainerSnapshotResponseSchema;
+  };
+  /**
+   * @generated from rpc memoh.private.v1.ContainerService.DeleteContainerSnapshot
+   */
+  deleteContainerSnapshot: {
+    methodKind: "unary";
+    input: typeof DeleteContainerSnapshotRequestSchema;
+    output: typeof DeleteContainerSnapshotResponseSchema;
+  };
+  /**
+   * @generated from rpc memoh.private.v1.ContainerService.ImportContainerData
+   */
+  importContainerData: {
+    methodKind: "unary";
+    input: typeof ImportContainerDataRequestSchema;
+    output: typeof ImportContainerDataResponseSchema;
+  };
+  /**
+   * @generated from rpc memoh.private.v1.ContainerService.ExportContainerData
+   */
+  exportContainerData: {
+    methodKind: "unary";
+    input: typeof ExportContainerDataRequestSchema;
+    output: typeof ExportContainerDataResponseSchema;
+  };
+  /**
+   * @generated from rpc memoh.private.v1.ContainerService.ListContainerFiles
+   */
+  listContainerFiles: {
+    methodKind: "unary";
+    input: typeof ListContainerFilesRequestSchema;
+    output: typeof ListContainerFilesResponseSchema;
+  };
+  /**
+   * @generated from rpc memoh.private.v1.ContainerService.ReadContainerFile
+   */
+  readContainerFile: {
+    methodKind: "unary";
+    input: typeof ReadContainerFileRequestSchema;
+    output: typeof ReadContainerFileResponseSchema;
+  };
+  /**
+   * @generated from rpc memoh.private.v1.ContainerService.WriteContainerFile
+   */
+  writeContainerFile: {
+    methodKind: "unary";
+    input: typeof WriteContainerFileRequestSchema;
+    output: typeof WriteContainerFileResponseSchema;
+  };
+  /**
+   * @generated from rpc memoh.private.v1.ContainerService.UploadContainerFile
+   */
+  uploadContainerFile: {
+    methodKind: "unary";
+    input: typeof UploadContainerFileRequestSchema;
+    output: typeof UploadContainerFileResponseSchema;
+  };
+  /**
+   * @generated from rpc memoh.private.v1.ContainerService.DownloadContainerFile
+   */
+  downloadContainerFile: {
+    methodKind: "unary";
+    input: typeof DownloadContainerFileRequestSchema;
+    output: typeof DownloadContainerFileResponseSchema;
+  };
+  /**
+   * @generated from rpc memoh.private.v1.ContainerService.MkdirContainerFile
+   */
+  mkdirContainerFile: {
+    methodKind: "unary";
+    input: typeof MkdirContainerFileRequestSchema;
+    output: typeof MkdirContainerFileResponseSchema;
+  };
+  /**
+   * @generated from rpc memoh.private.v1.ContainerService.RenameContainerFile
+   */
+  renameContainerFile: {
+    methodKind: "unary";
+    input: typeof RenameContainerFileRequestSchema;
+    output: typeof RenameContainerFileResponseSchema;
+  };
+  /**
+   * @generated from rpc memoh.private.v1.ContainerService.DeleteContainerFile
+   */
+  deleteContainerFile: {
+    methodKind: "unary";
+    input: typeof DeleteContainerFileRequestSchema;
+    output: typeof DeleteContainerFileResponseSchema;
   };
 }> /*@__PURE__*/ = serviceDesc(file_memoh_private_v1_streaming, 1);

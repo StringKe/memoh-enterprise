@@ -10,7 +10,8 @@ import { isTextFile, isImageFile } from "./utils";
 import type { FsFileInfo, FsReadResponse } from "./types";
 import { useChatStore } from "@/store/chat-list";
 import { storeToRefs } from "pinia";
-import { apiHttpUrl } from "@/lib/runtime-url";
+import { connectClients } from "@/lib/connect-client";
+import { bytesToBlob, bytesToText, downloadBytes } from "@/lib/connect-runtime";
 
 const props = defineProps<{
   botId: string;
@@ -36,33 +37,10 @@ const isText = computed(() => isTextFile(filename.value));
 const isImage = computed(() => isImageFile(filename.value));
 const isDirty = computed(() => content.value !== originalContent.value);
 
-function authHeaders(extra?: HeadersInit): HeadersInit {
-  const token = localStorage.getItem("token") || "";
-  return {
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    ...extra,
-  };
-}
-
-function fileApiUrl(path: string): string {
-  const query = new URLSearchParams({ path: filePath.value });
-  return `${apiHttpUrl(`/bots/${encodeURIComponent(props.botId)}${path}`)}?${query.toString()}`;
-}
-
-async function readJsonResponse<T>(response: Response): Promise<T> {
-  if (!response.ok) {
-    const message = await response.text();
-    throw new Error(message || `Request failed with status ${response.status}`);
-  }
-  return response.json() as Promise<T>;
-}
-
-async function readBlobResponse(response: Response): Promise<Blob> {
-  if (!response.ok) {
-    const message = await response.text();
-    throw new Error(message || `Request failed with status ${response.status}`);
-  }
-  return response.blob();
+function requireFilePath(): string {
+  const path = filePath.value.trim();
+  if (!path) throw new Error("path is required");
+  return path;
 }
 
 watch(
@@ -76,11 +54,13 @@ watch(
 async function loadTextContent() {
   loading.value = true;
   try {
-    const data = await readJsonResponse<FsReadResponse>(
-      await fetch(fileApiUrl("/container/fs/read"), {
-        headers: authHeaders(),
-      }),
-    );
+    const response = await connectClients.containers.readContainerFile({
+      botId: props.botId,
+      path: requireFilePath(),
+      offset: 0n,
+      maxBytes: 16_777_216n,
+    });
+    const data: FsReadResponse = { content: bytesToText(response.content) };
     content.value = data.content ?? "";
     originalContent.value = content.value;
   } catch (error) {
@@ -93,12 +73,11 @@ async function loadTextContent() {
 async function loadImageBlob() {
   loading.value = true;
   try {
-    const blob = await readBlobResponse(
-      await fetch(fileApiUrl("/container/fs/download"), {
-        headers: authHeaders(),
-      }),
-    );
-    imageUrl.value = URL.createObjectURL(blob);
+    const response = await connectClients.containers.downloadContainerFile({
+      botId: props.botId,
+      path: requireFilePath(),
+    });
+    imageUrl.value = URL.createObjectURL(bytesToBlob(response.content, response.mimeType));
   } catch (error) {
     toast.error(resolveApiErrorMessage(error, t("bots.files.readFailed")));
   } finally {
@@ -110,18 +89,12 @@ async function handleSave() {
   if (!isDirty.value || saving.value) return;
   saving.value = true;
   try {
-    const response = await fetch(
-      apiHttpUrl(`/bots/${encodeURIComponent(props.botId)}/container/fs/write`),
-      {
-        method: "POST",
-        headers: authHeaders({ "Content-Type": "application/json" }),
-        body: JSON.stringify({ path: filePath.value, content: content.value }),
-      },
-    );
-    if (!response.ok) {
-      const message = await response.text();
-      throw new Error(message || `Request failed with status ${response.status}`);
-    }
+    await connectClients.containers.writeContainerFile({
+      botId: props.botId,
+      path: requireFilePath(),
+      content: new TextEncoder().encode(content.value),
+      createParentDirs: true,
+    });
     originalContent.value = content.value;
     toast.success(t("bots.files.saveSuccess"));
     emit("saved");
@@ -132,16 +105,16 @@ async function handleSave() {
   }
 }
 
-function handleDownload() {
-  const token = localStorage.getItem("token") ?? "";
-  const query = new URLSearchParams({ path: filePath.value, token });
-  const url = `${apiHttpUrl(
-    `/bots/${encodeURIComponent(props.botId)}/container/fs/download`,
-  )}?${query.toString()}`;
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename.value;
-  a.click();
+async function handleDownload() {
+  try {
+    const response = await connectClients.containers.downloadContainerFile({
+      botId: props.botId,
+      path: requireFilePath(),
+    });
+    downloadBytes(response.content, response.filename || filename.value, response.mimeType);
+  } catch (error) {
+    toast.error(resolveApiErrorMessage(error, t("bots.files.readFailed")));
+  }
 }
 
 function cleanupImageUrl() {

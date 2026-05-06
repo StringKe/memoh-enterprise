@@ -1,14 +1,26 @@
 import {
   Code,
   ConnectError,
+  type Transport,
   type Interceptor,
   type UnaryRequest,
   type UnaryResponse,
 } from "@connectrpc/connect";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 
-import { createMemohAuthInterceptor, normalizeConnectError } from "./connect";
-import { connectQueryKey } from "./@pinia/colada.gen";
+import {
+  BotService,
+  BrowserService,
+  ConnectorEventService,
+  ConnectorService,
+  connectQueryKey,
+  createMemohAuthInterceptor,
+  createMemohConnectClients,
+  normalizeConnectError,
+  RunnerService,
+  RunnerSupportService,
+  WorkspaceExecutorService,
+} from "./connect";
 
 describe("createMemohAuthInterceptor", () => {
   it("attaches bearer token", async () => {
@@ -74,7 +86,34 @@ describe("normalizeConnectError", () => {
 });
 
 describe("connectQueryKey", () => {
-  it("keeps key parts stable", () => {
-    expect(connectQueryKey("bots", 1, true, null)).toEqual(["bots", 1, true, null]);
+  it("uses ConnectRPC service and method names", () => {
+    expect(connectQueryKey(BotService, "ListBots", { pageSize: 20 })).toEqual([
+      "connect",
+      "memoh.private.v1.BotService",
+      "ListBots",
+      { pageSize: 20 },
+    ]);
+  });
+});
+
+describe("createMemohConnectClients", () => {
+  it("exports protocol foundation clients", () => {
+    const clients = createMemohConnectClients({
+      baseUrl: "http://127.0.0.1:8080",
+      transport: {} as Transport,
+    });
+
+    expect(BrowserService.typeName).toBe("memoh.browser.v1.BrowserService");
+    expect(ConnectorService.typeName).toBe("memoh.connector.v1.ConnectorService");
+    expect(ConnectorEventService.typeName).toBe("memoh.connector.v1.ConnectorEventService");
+    expect(RunnerService.typeName).toBe("memoh.runner.v1.RunnerService");
+    expect(RunnerSupportService.typeName).toBe("memoh.runner.v1.RunnerSupportService");
+    expect(WorkspaceExecutorService.typeName).toBe("memoh.workspace.v1.WorkspaceExecutorService");
+    expect(typeof clients.browser.listCores).toBe("function");
+    expect(typeof clients.connectors.registerConnector).toBe("function");
+    expect(typeof clients.connectorEvents.streamOutboundCommands).toBe("function");
+    expect(typeof clients.runner.startRun).toBe("function");
+    expect(typeof clients.runnerSupport.resolveRunContext).toBe("function");
+    expect(typeof clients.workspaceExecutor.getWorkspaceInfo).toBe("function");
   });
 });

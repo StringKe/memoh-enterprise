@@ -2,7 +2,8 @@ import { computed, ref, type Ref } from "vue";
 import { storeToRefs } from "pinia";
 import { useQuery } from "@pinia/colada";
 import { useChatStore } from "@/store/chat-list";
-import { apiHttpUrl } from "@/lib/runtime-url";
+import { connectClients } from "@/lib/connect-client";
+import { recordValue } from "@/lib/connect-runtime";
 
 export interface SessionInfoResponse {
   context_usage?: {
@@ -10,6 +11,8 @@ export interface SessionInfoResponse {
     context_window?: number;
   };
   cache_stats?: {
+    cache_read_tokens?: number;
+    total_input_tokens?: number;
     cache_hit_rate?: number;
   };
   skills?: string[];
@@ -66,19 +69,57 @@ async function fetchSessionInfo(
   sessionId: string,
   modelId?: string,
 ): Promise<SessionInfoResponse> {
-  const query = new URLSearchParams();
-  if (modelId) query.set("model_id", modelId);
-  const queryString = query.toString();
-  const url = `${apiHttpUrl(
-    `/bots/${encodeURIComponent(botId)}/sessions/${encodeURIComponent(sessionId)}/status`,
-  )}${queryString ? `?${queryString}` : ""}`;
-  const token = localStorage.getItem("token") || "";
-  const response = await fetch(url, {
-    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+  void modelId;
+  const response = await connectClients.bots.readBotSessionHistory({
+    botId,
+    sessionId,
+    limit: 200,
+    beforeMessageId: "",
   });
-  if (!response.ok) {
-    const message = await response.text();
-    throw new Error(message || `Request failed with status ${response.status}`);
+
+  let usedTokens = 0;
+  let cacheReadTokens = 0;
+  let totalInputTokens = 0;
+  const skills = new Set<string>();
+
+  for (const message of response.messages) {
+    const payload = recordValue(message.payload);
+    const usage = recordValue(payload.usage);
+    const metadata = recordValue(payload.metadata);
+    const tokenValue = usage.total_tokens ?? usage.totalTokens ?? metadata.total_tokens;
+    if (typeof tokenValue === "number") {
+      usedTokens = tokenValue;
+    }
+    const cacheRead =
+      usage.cache_read_tokens ?? usage.cacheReadTokens ?? metadata.cache_read_tokens;
+    if (typeof cacheRead === "number") {
+      cacheReadTokens = cacheRead;
+    }
+    const totalInput =
+      usage.total_input_tokens ?? usage.totalInputTokens ?? metadata.total_input_tokens;
+    if (typeof totalInput === "number") {
+      totalInputTokens = totalInput;
+    }
+    const usedSkills = payload.skills ?? metadata.skills;
+    if (Array.isArray(usedSkills)) {
+      for (const item of usedSkills) {
+        if (typeof item === "string" && item.trim()) {
+          skills.add(item.trim());
+        }
+      }
+    }
   }
-  return response.json() as Promise<SessionInfoResponse>;
+
+  return {
+    message_count: response.messages.length,
+    context_usage: {
+      used_tokens: usedTokens,
+    },
+    cache_stats: {
+      cache_read_tokens: cacheReadTokens,
+      total_input_tokens: totalInputTokens,
+      cache_hit_rate: totalInputTokens > 0 ? (cacheReadTokens / totalInputTokens) * 100 : 0,
+    },
+    skills: [...skills],
+  };
 }

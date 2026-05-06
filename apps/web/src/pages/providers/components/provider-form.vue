@@ -373,6 +373,7 @@ import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 import { connectClients } from "@/lib/connect-client";
 import { resolveConnectErrorMessage } from "@/lib/connect-errors";
+import { recordValue } from "@/lib/connect-runtime";
 
 const { t } = useI18n();
 const { copyText } = useClipboard();
@@ -416,12 +417,6 @@ type ProviderOAuthStatus = {
   };
 };
 
-type ProviderOAuthAuthorizeResponse = {
-  mode?: string;
-  auth_url?: string;
-  device?: ProviderOAuthStatus["device"];
-};
-
 function getStoredSecret(config: Record<string, unknown> | undefined) {
   if (!config) return "";
   const apiKey = config.api_key;
@@ -461,7 +456,6 @@ const oauthStatusLoading = ref(false);
 const authorizeLoading = ref(false);
 const revokeLoading = ref(false);
 const pollTimer = ref<number | null>(null);
-const apiBase = import.meta.env.VITE_API_URL?.trim() || "/api";
 
 async function runTest() {
   if (!props.provider?.id) return;
@@ -644,11 +638,6 @@ const oauthExpired = computed(() =>
   Boolean(oauthStatus.value?.has_token && oauthStatus.value?.expired),
 );
 
-function authHeaders(): Record<string, string> {
-  const token = localStorage.getItem("token");
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
-
 function clearPollTimer() {
   if (pollTimer.value !== null) {
     window.clearTimeout(pollTimer.value);
@@ -656,15 +645,49 @@ function clearPollTimer() {
   }
 }
 
+function stringFromMetadata(metadata: Record<string, unknown>, key: string): string {
+  const value = metadata[key];
+  return typeof value === "string" ? value : "";
+}
+
+function providerOAuthStatusFromConnect(
+  value: Awaited<ReturnType<typeof connectClients.providers.getProviderOauthStatus>>,
+): ProviderOAuthStatus {
+  const metadata = recordValue(value.metadata);
+  const deviceMetadata = recordValue(metadata.device);
+  const hasDevice = Object.keys(deviceMetadata).length > 0;
+  const account = value.account.trim();
+  return {
+    configured: metadata.configured === true,
+    mode: stringFromMetadata(metadata, "mode"),
+    has_token: value.authorized,
+    expired: metadata.expired === true,
+    callback_url: stringFromMetadata(metadata, "callback_url"),
+    expires_at: stringFromMetadata(metadata, "expires_at"),
+    account: account ? { label: account } : undefined,
+    device: hasDevice
+      ? {
+          pending: deviceMetadata.pending === true,
+          user_code: stringFromMetadata(deviceMetadata, "user_code"),
+          verification_uri: stringFromMetadata(deviceMetadata, "verification_uri"),
+          expires_at: stringFromMetadata(deviceMetadata, "expires_at"),
+          interval_seconds:
+            typeof deviceMetadata.interval_seconds === "number"
+              ? deviceMetadata.interval_seconds
+              : undefined,
+        }
+      : undefined,
+  };
+}
+
 async function fetchOAuthStatus() {
   if (!props.provider?.id) return;
   oauthStatusLoading.value = true;
   try {
-    const response = await fetch(`${apiBase}/providers/${props.provider.id}/oauth/status`, {
-      headers: authHeaders(),
+    const response = await connectClients.providers.getProviderOauthStatus({
+      providerId: props.provider.id,
     });
-    if (!response.ok) throw new Error(t("provider.oauth.statusFailed"));
-    oauthStatus.value = (await response.json()) as ProviderOAuthStatus;
+    oauthStatus.value = providerOAuthStatusFromConnect(response);
   } catch (error) {
     oauthStatus.value = null;
     console.error("failed to load provider oauth status", error);
@@ -676,12 +699,20 @@ async function fetchOAuthStatus() {
 async function pollOAuthAuthorization(notifyOnSuccess = false) {
   if (!props.provider?.id || form.values.client_type !== "github-copilot") return;
   try {
-    const response = await fetch(`${apiBase}/providers/${props.provider.id}/oauth/poll`, {
-      method: "POST",
-      headers: authHeaders(),
+    const response = await connectClients.providers.pollProviderOauth({
+      providerId: props.provider.id,
+      state: oauthStatus.value?.device?.user_code ?? "",
     });
-    if (!response.ok) throw new Error(t("provider.oauth.authorizeFailed"));
-    const nextStatus = (await response.json()) as ProviderOAuthStatus;
+    const nextStatus = response.status
+      ? providerOAuthStatusFromConnect(response.status)
+      : {
+          ...(oauthStatus.value ?? {
+            configured: true,
+            mode: "device",
+            expired: false,
+          }),
+          has_token: response.complete,
+        };
     const becameAuthorized = !oauthStatus.value?.has_token && Boolean(nextStatus.has_token);
     oauthStatus.value = nextStatus;
     if (notifyOnSuccess && becameAuthorized) {
@@ -715,24 +746,29 @@ async function handleAuthorize() {
   if (!props.provider?.id) return;
   authorizeLoading.value = true;
   try {
-    const response = await fetch(`${apiBase}/providers/${props.provider.id}/oauth/authorize`, {
-      headers: authHeaders(),
+    const data = await connectClients.providers.startProviderOauth({
+      providerId: props.provider.id,
+      redirectUri: `${window.location.origin}/oauth/provider/callback`,
     });
-    if (!response.ok) throw new Error(t("provider.oauth.authorizeFailed"));
-    const data = (await response.json()) as ProviderOAuthAuthorizeResponse;
-    if (data.mode === "device") {
+    const authorizeUrl = data.authorizeUrl.trim();
+    if (form.values.client_type === "github-copilot") {
       oauthStatus.value = {
         configured: true,
         mode: "device",
         has_token: false,
         expired: false,
         callback_url: "",
-        device: data.device,
+        device: {
+          pending: true,
+          user_code: data.state,
+          verification_uri: authorizeUrl,
+          interval_seconds: 5,
+        },
       };
       return;
     }
-    if (!data.auth_url) throw new Error(t("provider.oauth.authorizeFailed"));
-    const popup = window.open(data.auth_url, "provider-oauth", "width=600,height=720");
+    if (!authorizeUrl) throw new Error(t("provider.oauth.authorizeFailed"));
+    const popup = window.open(authorizeUrl, "provider-oauth", "width=600,height=720");
     const listener = async (event: MessageEvent) => {
       if (event.data?.type !== "memoh-provider-oauth-success") return;
       window.removeEventListener("message", listener);
@@ -778,11 +814,7 @@ async function handleRevoke() {
   clearPollTimer();
   revokeLoading.value = true;
   try {
-    const response = await fetch(`${apiBase}/providers/${props.provider.id}/oauth/token`, {
-      method: "DELETE",
-      headers: authHeaders(),
-    });
-    if (!response.ok) throw new Error(t("provider.oauth.revokeFailed"));
+    await connectClients.providers.revokeProviderOauth({ providerId: props.provider.id });
     toast.success(t("provider.oauth.revokeSuccess"));
     await fetchOAuthStatus();
   } catch (error) {

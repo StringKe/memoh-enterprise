@@ -64,7 +64,21 @@ const INTERACTIVE_SELECTORS = [
   '[tabindex]:not([tabindex="-1"])',
 ].join(", ");
 
-async function executeAction(
+export async function captureScreenshot(
+  contextId: string,
+  fullPage = false,
+): Promise<{ data: Uint8Array; mimeType: string }> {
+  const entry = storage.get(contextId);
+  if (!entry) throw new Error(`Context ${contextId} not found`);
+
+  const page = getActivePage(entry) ?? (await entry.context.newPage());
+  if (!entry.activePage) entry.activePage = page;
+
+  const buffer = await page.screenshot({ fullPage });
+  return { data: new Uint8Array(buffer), mimeType: "image/png" };
+}
+
+export async function executeAction(
   contextId: string,
   req: ActionRequest,
 ): Promise<Record<string, unknown>> {
@@ -207,8 +221,8 @@ async function executeAction(
       return { unchecked: req.selector };
     }
     case "screenshot": {
-      const buffer = await page.screenshot({ fullPage: req.full_page ?? false });
-      return { screenshot: buffer.toString("base64"), mimeType: "image/png" };
+      const screenshot = await captureScreenshot(contextId, req.full_page ?? false);
+      return { screenshot: Buffer.from(screenshot.data).toString("base64"), mimeType: "image/png" };
     }
     case "screenshot_annotate": {
       type AnnotationEntry = { ref: number; tag: string; role: string; name: string };

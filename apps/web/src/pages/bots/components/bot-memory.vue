@@ -382,7 +382,7 @@ import { useI18n } from "vue-i18n";
 import ConfirmPopover from "@/components/confirm-popover/index.vue";
 import { useClipboard } from "@/composables/useClipboard";
 import { connectClients } from "@/lib/connect-client";
-import { apiHttpUrl } from "@/lib/runtime-url";
+import { timestampToISOString } from "@/lib/connect-runtime";
 import { formatDateTimeSeconds } from "@/utils/date-time";
 
 use([CanvasRenderer, LineChart, BarChart, GridComponent, TooltipComponent]);
@@ -406,12 +406,6 @@ interface Message {
   content: MessageContent;
   created_at?: string;
 }
-
-type HistoryMessage = {
-  role?: string;
-  content?: MessageContent;
-  created_at?: string;
-};
 
 function extractMessageText(content: MessageContent): string {
   if (typeof content === "string") return content;
@@ -947,21 +941,15 @@ function openNewMemoryDialog() {
 async function loadHistory() {
   historyLoading.value = true;
   try {
-    const response = await fetch(
-      apiHttpUrl(`/bots/${encodeURIComponent(props.botId)}/messages?limit=50`),
-      {
-        headers: authHeaders(),
-      },
-    );
-    if (!response.ok) {
-      const message = await response.text();
-      throw new Error(message || `Request failed with status ${response.status}`);
-    }
-    const data = (await response.json()) as { items?: HistoryMessage[] };
-    historyMessages.value = (data.items ?? []).map((item) => ({
+    const data = await connectClients.bots.listBotSessionMessages({
+      botId: props.botId,
+      sessionId: "",
+      page: { pageSize: 50, pageToken: "" },
+    });
+    historyMessages.value = data.messages.map((item) => ({
       role: item.role ?? "assistant",
-      content: item.content,
-      created_at: item.created_at,
+      content: item.payload ?? item.text,
+      created_at: timestampToISOString(item.createdAt),
     }));
   } catch (error) {
     console.error("Failed to load history:", error);
@@ -969,11 +957,6 @@ async function loadHistory() {
   } finally {
     historyLoading.value = false;
   }
-}
-
-function authHeaders(): HeadersInit {
-  const token = localStorage.getItem("token") || "";
-  return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
 function toggleMessageSelection(msg: Message) {

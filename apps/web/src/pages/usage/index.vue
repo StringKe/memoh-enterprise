@@ -294,7 +294,7 @@ const dateRange = computed(() => ({
 const {
   data: usageData,
   asyncStatus,
-  refetch,
+  refetch: refreshUsage,
 } = useQuery({
   key: () => ["connect-token-usage", selectedBotId.value, dateFrom.value, dateTo.value],
   query: () =>
@@ -385,7 +385,7 @@ watch(
 );
 
 function refreshAll() {
-  void refetch();
+  void refreshUsage();
   void refetchRecords();
 }
 

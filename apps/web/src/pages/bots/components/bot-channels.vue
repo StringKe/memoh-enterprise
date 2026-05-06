@@ -110,7 +110,7 @@
           :key="selectedType"
           :bot-id="botId"
           :channel-item="selectedItem"
-          @saved="refetch()"
+          @saved="refreshChannels()"
         />
       </ScrollArea>
     </div>
@@ -172,7 +172,7 @@ const botIdRef = computed(() => props.botId);
 const {
   data: channels,
   isLoading,
-  refetch,
+  refetch: refreshChannels,
 } = useQuery({
   key: () => ["bot-channels", botIdRef.value],
   query: async (): Promise<BotChannelItem[]> => {

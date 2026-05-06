@@ -1,4 +1,6 @@
-import { apiHttpUrl } from "@/lib/runtime-url";
+import type { StreamContainerProgressRequest } from "@stringke/sdk/connect";
+import { streamConnectContainerProgress } from "@/lib/connect-client";
+import { recordValue } from "@/lib/connect-runtime";
 
 export type ContainerCreateLayerStatus = {
   ref: string;
@@ -11,8 +13,6 @@ export type ContainerCreateResponse = {
   [key: string]: unknown;
 };
 
-// codesync(container-create-stream): keep these manual SSE payload types in sync
-// with internal/handlers/containerd.go.
 export type ContainerCreateStreamEvent =
   | { type: "pulling"; image: string }
   | { type: "pull_progress"; layers: ContainerCreateLayerStatus[] }
@@ -30,52 +30,48 @@ export type ContainerCreateStreamResult = {
 export type PostBotsByBotIdContainerStreamOptions = {
   path: { bot_id: string };
   body?: unknown;
-  headers?: Record<string, string>;
   signal?: AbortSignal;
   throwOnError?: boolean;
 };
 
-function isLayerStatus(value: unknown): value is ContainerCreateLayerStatus {
-  return (
-    !!value &&
-    typeof value === "object" &&
-    typeof (value as { ref?: unknown }).ref === "string" &&
-    typeof (value as { offset?: unknown }).offset === "number" &&
-    typeof (value as { total?: unknown }).total === "number"
-  );
+function layerStatusFromValue(value: unknown): ContainerCreateLayerStatus | null {
+  const item = recordValue(value);
+  const ref = typeof item.ref === "string" ? item.ref : "";
+  const offset = typeof item.offset === "number" ? item.offset : 0;
+  const total = typeof item.total === "number" ? item.total : 0;
+  return ref ? { ref, offset, total } : null;
 }
 
-function isContainerCreateStreamEvent(value: unknown): value is ContainerCreateStreamEvent {
-  if (!value || typeof value !== "object") return false;
-
-  const event = value as Record<string, unknown>;
-  switch (event.type) {
+function normalizeContainerProgressEvent(
+  type: string,
+  message: string,
+  payload: Record<string, unknown>,
+): ContainerCreateStreamEvent | null {
+  switch (type) {
     case "pulling":
-      return typeof event.image === "string";
+      return { type, image: String(payload.image ?? message ?? "") };
     case "pull_progress":
-      return Array.isArray(event.layers) && event.layers.every(isLayerStatus);
+      return {
+        type,
+        layers: Array.isArray(payload.layers)
+          ? payload.layers
+              .map(layerStatusFromValue)
+              .filter((item): item is ContainerCreateLayerStatus => !!item)
+          : [],
+      };
     case "pull_skipped":
     case "pull_delegated":
-      return (
-        typeof event.image === "string" &&
-        (event.message === undefined || typeof event.message === "string")
-      );
+      return { type, image: String(payload.image ?? ""), message };
     case "creating":
     case "restoring":
-      return true;
+      return { type };
     case "complete":
-      return !!event.container && typeof event.container === "object";
+      return { type, container: recordValue(payload.container ?? payload) };
     case "error":
-      return typeof event.message === "string";
+      return { type, message: message || String(payload.error ?? "Container operation failed") };
     default:
-      return false;
+      return null;
   }
-}
-
-function toError(error: unknown): Error {
-  if (error instanceof Error) return error;
-  if (typeof error === "string" && error.trim()) return new Error(error);
-  return new Error("Container create stream failed");
 }
 
 export async function postBotsByBotIdContainerStream(
@@ -84,72 +80,38 @@ export async function postBotsByBotIdContainerStream(
   const botID = options.path.bot_id.trim();
   if (!botID) throw new Error("bot id is required");
 
-  const response = await fetch(apiHttpUrl(`/bots/${encodeURIComponent(botID)}/container`), {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
-      Accept: "text/event-stream",
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
-    body: JSON.stringify(options.body ?? {}),
-    signal: options.signal,
-  });
-  if (!response.ok) {
-    throw new Error((await response.text()) || `request failed: ${response.status}`);
-  }
-  if (!response.body) throw new Error("No response body");
-
   return {
     stream: (async function* () {
-      for await (const event of readContainerSSE(response.body!)) {
-        if (!isContainerCreateStreamEvent(event)) {
-          throw new Error("Invalid container create stream event");
+      const controller = new AbortController();
+      const abort = () => controller.abort(options.signal?.reason);
+      if (options.signal?.aborted) {
+        abort();
+      } else {
+        options.signal?.addEventListener("abort", abort, { once: true });
+      }
+      try {
+        const stream = streamConnectContainerProgress(
+          {
+            $typeName: "memoh.private.v1.StreamContainerProgressRequest",
+            botId: botID,
+            operation: "create",
+            options: recordValue(options.body) as unknown as NonNullable<
+              StreamContainerProgressRequest["options"]
+            >,
+          },
+          controller.signal,
+        );
+        for await (const event of stream) {
+          const normalized = normalizeContainerProgressEvent(
+            event.type,
+            event.message,
+            recordValue(event.payload),
+          );
+          if (normalized) yield normalized;
         }
-        yield event;
+      } finally {
+        options.signal?.removeEventListener("abort", abort);
       }
     })(),
   };
-}
-
-async function* readContainerSSE(body: ReadableStream<Uint8Array>): AsyncGenerator<unknown> {
-  const reader = body.getReader();
-  const decoder = new TextDecoder();
-  let buffer = "";
-
-  try {
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-
-      const chunks = buffer.split("\n\n");
-      buffer = chunks.pop() ?? "";
-
-      for (const chunk of chunks) {
-        const event = parseContainerSSEChunk(chunk);
-        if (event !== undefined) yield event;
-      }
-    }
-
-    const event = parseContainerSSEChunk(buffer);
-    if (event !== undefined) yield event;
-  } finally {
-    reader.releaseLock();
-  }
-}
-
-function parseContainerSSEChunk(chunk: string): unknown {
-  for (const line of chunk.split("\n")) {
-    const trimmed = line.trim();
-    if (!trimmed.startsWith("data:")) continue;
-    const payload = trimmed.replace(/^data:\s*/, "").trim();
-    if (!payload || payload === "[DONE]") continue;
-    try {
-      return JSON.parse(payload);
-    } catch (error) {
-      throw toError(error);
-    }
-  }
-  return undefined;
 }

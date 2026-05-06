@@ -4,7 +4,11 @@
 
 import type { GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegenv2";
 import { fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
-import { file_google_protobuf_struct } from "@bufbuild/protobuf/wkt";
+import type { Timestamp } from "@bufbuild/protobuf/wkt";
+import {
+  file_google_protobuf_struct,
+  file_google_protobuf_timestamp,
+} from "@bufbuild/protobuf/wkt";
 import type { AuditFields, PageRequest, PageResponse, SettingsOverrideMask } from "./common_pb";
 import { file_memoh_private_v1_common } from "./common_pb";
 import type { JsonObject, Message } from "@bufbuild/protobuf";
@@ -13,8 +17,8 @@ import type { JsonObject, Message } from "@bufbuild/protobuf";
  * Describes the file memoh/private/v1/bots.proto.
  */
 export const file_memoh_private_v1_bots: GenFile /*@__PURE__*/ = fileDesc(
-  "ChttZW1vaC9wcml2YXRlL3YxL2JvdHMucHJvdG8SEG1lbW9oLnByaXZhdGUudjEi6gIKA0JvdBIKCgJpZBgBIAEoCRIVCg1vd25lcl91c2VyX2lkGAIgASgJEhAKCGdyb3VwX2lkGAMgASgJEhQKDGRpc3BsYXlfbmFtZRgEIAEoCRISCgphdmF0YXJfdXJsGAUgASgJEhAKCHRpbWV6b25lGAYgASgJEhEKCWlzX2FjdGl2ZRgHIAEoCBIOCgZzdGF0dXMYCCABKAkSEwoLY2hlY2tfc3RhdGUYCSABKAkSGQoRY2hlY2tfaXNzdWVfY291bnQYCiABKAUSRgoWc2V0dGluZ3Nfb3ZlcnJpZGVfbWFzaxgLIAEoCzImLm1lbW9oLnByaXZhdGUudjEuU2V0dGluZ3NPdmVycmlkZU1hc2sSKQoIbWV0YWRhdGEYDCABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0EiwKBWF1ZGl0GA0gASgLMh0ubWVtb2gucHJpdmF0ZS52MS5BdWRpdEZpZWxkcyLXAQoQQ3JlYXRlQm90UmVxdWVzdBIUCgxkaXNwbGF5X25hbWUYASABKAkSEAoIZ3JvdXBfaWQYAiABKAkSEgoKYXZhdGFyX3VybBgDIAEoCRIVCgh0aW1lem9uZRgEIAEoCUgAiAEBEhYKCWlzX2FjdGl2ZRgFIAEoCEgBiAEBEhIKCmFjbF9wcmVzZXQYBiABKAkSKQoIbWV0YWRhdGEYByABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0QgsKCV90aW1lem9uZUIMCgpfaXNfYWN0aXZlIjcKEUNyZWF0ZUJvdFJlc3BvbnNlEiIKA2JvdBgBIAEoCzIVLm1lbW9oLnByaXZhdGUudjEuQm90IhsKDUdldEJvdFJlcXVlc3QSCgoCaWQYASABKAkiNAoOR2V0Qm90UmVzcG9uc2USIgoDYm90GAEgASgLMhUubWVtb2gucHJpdmF0ZS52MS5Cb3QiPgoPTGlzdEJvdHNSZXF1ZXN0EisKBHBhZ2UYASABKAsyHS5tZW1vaC5wcml2YXRlLnYxLlBhZ2VSZXF1ZXN0ImUKEExpc3RCb3RzUmVzcG9uc2USIwoEYm90cxgBIAMoCzIVLm1lbW9oLnByaXZhdGUudjEuQm90EiwKBHBhZ2UYAiABKAsyHi5tZW1vaC5wcml2YXRlLnYxLlBhZ2VSZXNwb25zZSKLAgoQVXBkYXRlQm90UmVxdWVzdBIKCgJpZBgBIAEoCRIZCgxkaXNwbGF5X25hbWUYAiABKAlIAIgBARIVCghncm91cF9pZBgDIAEoCUgBiAEBEhcKCmF2YXRhcl91cmwYBCABKAlIAogBARIVCgh0aW1lem9uZRgFIAEoCUgDiAEBEhYKCWlzX2FjdGl2ZRgGIAEoCEgEiAEBEikKCG1ldGFkYXRhGAcgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdEIPCg1fZGlzcGxheV9uYW1lQgsKCV9ncm91cF9pZEINCgtfYXZhdGFyX3VybEILCglfdGltZXpvbmVCDAoKX2lzX2FjdGl2ZSI3ChFVcGRhdGVCb3RSZXNwb25zZRIiCgNib3QYASABKAsyFS5tZW1vaC5wcml2YXRlLnYxLkJvdCIeChBEZWxldGVCb3RSZXF1ZXN0EgoKAmlkGAEgASgJIhMKEURlbGV0ZUJvdFJlc3BvbnNlIqUBCghCb3RDaGVjaxIKCgJpZBgBIAEoCRIMCgR0eXBlGAIgASgJEhEKCXRpdGxlX2tleRgDIAEoCRIQCghzdWJ0aXRsZRgEIAEoCRIOCgZzdGF0dXMYBSABKAkSDwoHc3VtbWFyeRgGIAEoCRIOCgZkZXRhaWwYByABKAkSKQoIbWV0YWRhdGEYCCABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0IiYKFExpc3RCb3RDaGVja3NSZXF1ZXN0Eg4KBmJvdF9pZBgBIAEoCSJDChVMaXN0Qm90Q2hlY2tzUmVzcG9uc2USKgoGY2hlY2tzGAEgAygLMhoubWVtb2gucHJpdmF0ZS52MS5Cb3RDaGVjayI5ChVBc3NpZ25Cb3RHcm91cFJlcXVlc3QSDgoGYm90X2lkGAEgASgJEhAKCGdyb3VwX2lkGAIgASgJIjwKFkFzc2lnbkJvdEdyb3VwUmVzcG9uc2USIgoDYm90GAEgASgLMhUubWVtb2gucHJpdmF0ZS52MS5Cb3QiJgoUQ2xlYXJCb3RHcm91cFJlcXVlc3QSDgoGYm90X2lkGAEgASgJIjsKFUNsZWFyQm90R3JvdXBSZXNwb25zZRIiCgNib3QYASABKAsyFS5tZW1vaC5wcml2YXRlLnYxLkJvdDLXBQoKQm90U2VydmljZRJUCglDcmVhdGVCb3QSIi5tZW1vaC5wcml2YXRlLnYxLkNyZWF0ZUJvdFJlcXVlc3QaIy5tZW1vaC5wcml2YXRlLnYxLkNyZWF0ZUJvdFJlc3BvbnNlEksKBkdldEJvdBIfLm1lbW9oLnByaXZhdGUudjEuR2V0Qm90UmVxdWVzdBogLm1lbW9oLnByaXZhdGUudjEuR2V0Qm90UmVzcG9uc2USUQoITGlzdEJvdHMSIS5tZW1vaC5wcml2YXRlLnYxLkxpc3RCb3RzUmVxdWVzdBoiLm1lbW9oLnByaXZhdGUudjEuTGlzdEJvdHNSZXNwb25zZRJUCglVcGRhdGVCb3QSIi5tZW1vaC5wcml2YXRlLnYxLlVwZGF0ZUJvdFJlcXVlc3QaIy5tZW1vaC5wcml2YXRlLnYxLlVwZGF0ZUJvdFJlc3BvbnNlElQKCURlbGV0ZUJvdBIiLm1lbW9oLnByaXZhdGUudjEuRGVsZXRlQm90UmVxdWVzdBojLm1lbW9oLnByaXZhdGUudjEuRGVsZXRlQm90UmVzcG9uc2USYAoNTGlzdEJvdENoZWNrcxImLm1lbW9oLnByaXZhdGUudjEuTGlzdEJvdENoZWNrc1JlcXVlc3QaJy5tZW1vaC5wcml2YXRlLnYxLkxpc3RCb3RDaGVja3NSZXNwb25zZRJjCg5Bc3NpZ25Cb3RHcm91cBInLm1lbW9oLnByaXZhdGUudjEuQXNzaWduQm90R3JvdXBSZXF1ZXN0GigubWVtb2gucHJpdmF0ZS52MS5Bc3NpZ25Cb3RHcm91cFJlc3BvbnNlEmAKDUNsZWFyQm90R3JvdXASJi5tZW1vaC5wcml2YXRlLnYxLkNsZWFyQm90R3JvdXBSZXF1ZXN0GicubWVtb2gucHJpdmF0ZS52MS5DbGVhckJvdEdyb3VwUmVzcG9uc2VCTVpLZ2l0aHViLmNvbS9tZW1vaGFpL21lbW9oL2ludGVybmFsL2Nvbm5lY3RhcGkvZ2VuL21lbW9oL3ByaXZhdGUvdjE7cHJpdmF0ZXYxYgZwcm90bzM",
-  [file_google_protobuf_struct, file_memoh_private_v1_common],
+  "ChttZW1vaC9wcml2YXRlL3YxL2JvdHMucHJvdG8SEG1lbW9oLnByaXZhdGUudjEi6gIKA0JvdBIKCgJpZBgBIAEoCRIVCg1vd25lcl91c2VyX2lkGAIgASgJEhAKCGdyb3VwX2lkGAMgASgJEhQKDGRpc3BsYXlfbmFtZRgEIAEoCRISCgphdmF0YXJfdXJsGAUgASgJEhAKCHRpbWV6b25lGAYgASgJEhEKCWlzX2FjdGl2ZRgHIAEoCBIOCgZzdGF0dXMYCCABKAkSEwoLY2hlY2tfc3RhdGUYCSABKAkSGQoRY2hlY2tfaXNzdWVfY291bnQYCiABKAUSRgoWc2V0dGluZ3Nfb3ZlcnJpZGVfbWFzaxgLIAEoCzImLm1lbW9oLnByaXZhdGUudjEuU2V0dGluZ3NPdmVycmlkZU1hc2sSKQoIbWV0YWRhdGEYDCABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0EiwKBWF1ZGl0GA0gASgLMh0ubWVtb2gucHJpdmF0ZS52MS5BdWRpdEZpZWxkcyLXAQoQQ3JlYXRlQm90UmVxdWVzdBIUCgxkaXNwbGF5X25hbWUYASABKAkSEAoIZ3JvdXBfaWQYAiABKAkSEgoKYXZhdGFyX3VybBgDIAEoCRIVCgh0aW1lem9uZRgEIAEoCUgAiAEBEhYKCWlzX2FjdGl2ZRgFIAEoCEgBiAEBEhIKCmFjbF9wcmVzZXQYBiABKAkSKQoIbWV0YWRhdGEYByABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0QgsKCV90aW1lem9uZUIMCgpfaXNfYWN0aXZlIjcKEUNyZWF0ZUJvdFJlc3BvbnNlEiIKA2JvdBgBIAEoCzIVLm1lbW9oLnByaXZhdGUudjEuQm90IhsKDUdldEJvdFJlcXVlc3QSCgoCaWQYASABKAkiNAoOR2V0Qm90UmVzcG9uc2USIgoDYm90GAEgASgLMhUubWVtb2gucHJpdmF0ZS52MS5Cb3QiPgoPTGlzdEJvdHNSZXF1ZXN0EisKBHBhZ2UYASABKAsyHS5tZW1vaC5wcml2YXRlLnYxLlBhZ2VSZXF1ZXN0ImUKEExpc3RCb3RzUmVzcG9uc2USIwoEYm90cxgBIAMoCzIVLm1lbW9oLnByaXZhdGUudjEuQm90EiwKBHBhZ2UYAiABKAsyHi5tZW1vaC5wcml2YXRlLnYxLlBhZ2VSZXNwb25zZSKLAgoQVXBkYXRlQm90UmVxdWVzdBIKCgJpZBgBIAEoCRIZCgxkaXNwbGF5X25hbWUYAiABKAlIAIgBARIVCghncm91cF9pZBgDIAEoCUgBiAEBEhcKCmF2YXRhcl91cmwYBCABKAlIAogBARIVCgh0aW1lem9uZRgFIAEoCUgDiAEBEhYKCWlzX2FjdGl2ZRgGIAEoCEgEiAEBEikKCG1ldGFkYXRhGAcgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdEIPCg1fZGlzcGxheV9uYW1lQgsKCV9ncm91cF9pZEINCgtfYXZhdGFyX3VybEILCglfdGltZXpvbmVCDAoKX2lzX2FjdGl2ZSI3ChFVcGRhdGVCb3RSZXNwb25zZRIiCgNib3QYASABKAsyFS5tZW1vaC5wcml2YXRlLnYxLkJvdCIeChBEZWxldGVCb3RSZXF1ZXN0EgoKAmlkGAEgASgJIhMKEURlbGV0ZUJvdFJlc3BvbnNlIqUBCghCb3RDaGVjaxIKCgJpZBgBIAEoCRIMCgR0eXBlGAIgASgJEhEKCXRpdGxlX2tleRgDIAEoCRIQCghzdWJ0aXRsZRgEIAEoCRIOCgZzdGF0dXMYBSABKAkSDwoHc3VtbWFyeRgGIAEoCRIOCgZkZXRhaWwYByABKAkSKQoIbWV0YWRhdGEYCCABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0IiYKFExpc3RCb3RDaGVja3NSZXF1ZXN0Eg4KBmJvdF9pZBgBIAEoCSJDChVMaXN0Qm90Q2hlY2tzUmVzcG9uc2USKgoGY2hlY2tzGAEgAygLMhoubWVtb2gucHJpdmF0ZS52MS5Cb3RDaGVjayI5ChVBc3NpZ25Cb3RHcm91cFJlcXVlc3QSDgoGYm90X2lkGAEgASgJEhAKCGdyb3VwX2lkGAIgASgJIjwKFkFzc2lnbkJvdEdyb3VwUmVzcG9uc2USIgoDYm90GAEgASgLMhUubWVtb2gucHJpdmF0ZS52MS5Cb3QiJgoUQ2xlYXJCb3RHcm91cFJlcXVlc3QSDgoGYm90X2lkGAEgASgJIjsKFUNsZWFyQm90R3JvdXBSZXNwb25zZRIiCgNib3QYASABKAsyFS5tZW1vaC5wcml2YXRlLnYxLkJvdCK3AQoKQm90U2Vzc2lvbhIKCgJpZBgBIAEoCRIOCgZib3RfaWQYAiABKAkSDQoFdGl0bGUYAyABKAkSDgoGc3RhdHVzGAQgASgJEhUKDW1lc3NhZ2VfY291bnQYBSABKAUSKQoIbWV0YWRhdGEYBiABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0EiwKBWF1ZGl0GAcgASgLMh0ubWVtb2gucHJpdmF0ZS52MS5BdWRpdEZpZWxkcyK5AQoRQm90U2Vzc2lvbk1lc3NhZ2USCgoCaWQYASABKAkSEgoKc2Vzc2lvbl9pZBgCIAEoCRIOCgZib3RfaWQYAyABKAkSDAoEcm9sZRgEIAEoCRIMCgR0ZXh0GAUgASgJEigKB3BheWxvYWQYBiABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0Ei4KCmNyZWF0ZWRfYXQYByABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wImwKHFJlYWRCb3RTZXNzaW9uSGlzdG9yeVJlcXVlc3QSDgoGYm90X2lkGAEgASgJEhIKCnNlc3Npb25faWQYAiABKAkSDQoFbGltaXQYAyABKAUSGQoRYmVmb3JlX21lc3NhZ2VfaWQYBCABKAkiVgodUmVhZEJvdFNlc3Npb25IaXN0b3J5UmVzcG9uc2USNQoIbWVzc2FnZXMYASADKAsyIy5tZW1vaC5wcml2YXRlLnYxLkJvdFNlc3Npb25NZXNzYWdlIk4KGENvbXBhY3RCb3RTZXNzaW9uUmVxdWVzdBIOCgZib3RfaWQYASABKAkSEgoKc2Vzc2lvbl9pZBgCIAEoCRIOCgZyZWFzb24YAyABKAkicgoZQ29tcGFjdEJvdFNlc3Npb25SZXNwb25zZRISCgpzZXNzaW9uX2lkGAEgASgJEg8KB3N1bW1hcnkYAiABKAkSMAoMY29tcGFjdGVkX2F0GAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCJwCh1MaXN0Qm90U2Vzc2lvbk1lc3NhZ2VzUmVxdWVzdBIOCgZib3RfaWQYASABKAkSEgoKc2Vzc2lvbl9pZBgCIAEoCRIrCgRwYWdlGAMgASgLMh0ubWVtb2gucHJpdmF0ZS52MS5QYWdlUmVxdWVzdCKFAQoeTGlzdEJvdFNlc3Npb25NZXNzYWdlc1Jlc3BvbnNlEjUKCG1lc3NhZ2VzGAEgAygLMiMubWVtb2gucHJpdmF0ZS52MS5Cb3RTZXNzaW9uTWVzc2FnZRIsCgRwYWdlGAIgASgLMh4ubWVtb2gucHJpdmF0ZS52MS5QYWdlUmVzcG9uc2UyvAgKCkJvdFNlcnZpY2USVAoJQ3JlYXRlQm90EiIubWVtb2gucHJpdmF0ZS52MS5DcmVhdGVCb3RSZXF1ZXN0GiMubWVtb2gucHJpdmF0ZS52MS5DcmVhdGVCb3RSZXNwb25zZRJLCgZHZXRCb3QSHy5tZW1vaC5wcml2YXRlLnYxLkdldEJvdFJlcXVlc3QaIC5tZW1vaC5wcml2YXRlLnYxLkdldEJvdFJlc3BvbnNlElEKCExpc3RCb3RzEiEubWVtb2gucHJpdmF0ZS52MS5MaXN0Qm90c1JlcXVlc3QaIi5tZW1vaC5wcml2YXRlLnYxLkxpc3RCb3RzUmVzcG9uc2USVAoJVXBkYXRlQm90EiIubWVtb2gucHJpdmF0ZS52MS5VcGRhdGVCb3RSZXF1ZXN0GiMubWVtb2gucHJpdmF0ZS52MS5VcGRhdGVCb3RSZXNwb25zZRJUCglEZWxldGVCb3QSIi5tZW1vaC5wcml2YXRlLnYxLkRlbGV0ZUJvdFJlcXVlc3QaIy5tZW1vaC5wcml2YXRlLnYxLkRlbGV0ZUJvdFJlc3BvbnNlEmAKDUxpc3RCb3RDaGVja3MSJi5tZW1vaC5wcml2YXRlLnYxLkxpc3RCb3RDaGVja3NSZXF1ZXN0GicubWVtb2gucHJpdmF0ZS52MS5MaXN0Qm90Q2hlY2tzUmVzcG9uc2USYwoOQXNzaWduQm90R3JvdXASJy5tZW1vaC5wcml2YXRlLnYxLkFzc2lnbkJvdEdyb3VwUmVxdWVzdBooLm1lbW9oLnByaXZhdGUudjEuQXNzaWduQm90R3JvdXBSZXNwb25zZRJgCg1DbGVhckJvdEdyb3VwEiYubWVtb2gucHJpdmF0ZS52MS5DbGVhckJvdEdyb3VwUmVxdWVzdBonLm1lbW9oLnByaXZhdGUudjEuQ2xlYXJCb3RHcm91cFJlc3BvbnNlEngKFVJlYWRCb3RTZXNzaW9uSGlzdG9yeRIuLm1lbW9oLnByaXZhdGUudjEuUmVhZEJvdFNlc3Npb25IaXN0b3J5UmVxdWVzdBovLm1lbW9oLnByaXZhdGUudjEuUmVhZEJvdFNlc3Npb25IaXN0b3J5UmVzcG9uc2USbAoRQ29tcGFjdEJvdFNlc3Npb24SKi5tZW1vaC5wcml2YXRlLnYxLkNvbXBhY3RCb3RTZXNzaW9uUmVxdWVzdBorLm1lbW9oLnByaXZhdGUudjEuQ29tcGFjdEJvdFNlc3Npb25SZXNwb25zZRJ7ChZMaXN0Qm90U2Vzc2lvbk1lc3NhZ2VzEi8ubWVtb2gucHJpdmF0ZS52MS5MaXN0Qm90U2Vzc2lvbk1lc3NhZ2VzUmVxdWVzdBowLm1lbW9oLnByaXZhdGUudjEuTGlzdEJvdFNlc3Npb25NZXNzYWdlc1Jlc3BvbnNlQk1aS2dpdGh1Yi5jb20vbWVtb2hhaS9tZW1vaC9pbnRlcm5hbC9jb25uZWN0YXBpL2dlbi9tZW1vaC9wcml2YXRlL3YxO3ByaXZhdGV2MWIGcHJvdG8z",
+  [file_google_protobuf_struct, file_google_protobuf_timestamp, file_memoh_private_v1_common],
 );
 
 /**
@@ -505,6 +509,260 @@ export const ClearBotGroupResponseSchema: GenMessage<ClearBotGroupResponse> /*@_
   messageDesc(file_memoh_private_v1_bots, 17);
 
 /**
+ * @generated from message memoh.private.v1.BotSession
+ */
+export type BotSession = Message<"memoh.private.v1.BotSession"> & {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id: string;
+
+  /**
+   * @generated from field: string bot_id = 2;
+   */
+  botId: string;
+
+  /**
+   * @generated from field: string title = 3;
+   */
+  title: string;
+
+  /**
+   * @generated from field: string status = 4;
+   */
+  status: string;
+
+  /**
+   * @generated from field: int32 message_count = 5;
+   */
+  messageCount: number;
+
+  /**
+   * @generated from field: google.protobuf.Struct metadata = 6;
+   */
+  metadata?: JsonObject | undefined;
+
+  /**
+   * @generated from field: memoh.private.v1.AuditFields audit = 7;
+   */
+  audit?: AuditFields | undefined;
+};
+
+/**
+ * Describes the message memoh.private.v1.BotSession.
+ * Use `create(BotSessionSchema)` to create a new message.
+ */
+export const BotSessionSchema: GenMessage<BotSession> /*@__PURE__*/ = messageDesc(
+  file_memoh_private_v1_bots,
+  18,
+);
+
+/**
+ * @generated from message memoh.private.v1.BotSessionMessage
+ */
+export type BotSessionMessage = Message<"memoh.private.v1.BotSessionMessage"> & {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id: string;
+
+  /**
+   * @generated from field: string session_id = 2;
+   */
+  sessionId: string;
+
+  /**
+   * @generated from field: string bot_id = 3;
+   */
+  botId: string;
+
+  /**
+   * @generated from field: string role = 4;
+   */
+  role: string;
+
+  /**
+   * @generated from field: string text = 5;
+   */
+  text: string;
+
+  /**
+   * @generated from field: google.protobuf.Struct payload = 6;
+   */
+  payload?: JsonObject | undefined;
+
+  /**
+   * @generated from field: google.protobuf.Timestamp created_at = 7;
+   */
+  createdAt?: Timestamp | undefined;
+};
+
+/**
+ * Describes the message memoh.private.v1.BotSessionMessage.
+ * Use `create(BotSessionMessageSchema)` to create a new message.
+ */
+export const BotSessionMessageSchema: GenMessage<BotSessionMessage> /*@__PURE__*/ = messageDesc(
+  file_memoh_private_v1_bots,
+  19,
+);
+
+/**
+ * @generated from message memoh.private.v1.ReadBotSessionHistoryRequest
+ */
+export type ReadBotSessionHistoryRequest =
+  Message<"memoh.private.v1.ReadBotSessionHistoryRequest"> & {
+    /**
+     * @generated from field: string bot_id = 1;
+     */
+    botId: string;
+
+    /**
+     * @generated from field: string session_id = 2;
+     */
+    sessionId: string;
+
+    /**
+     * @generated from field: int32 limit = 3;
+     */
+    limit: number;
+
+    /**
+     * @generated from field: string before_message_id = 4;
+     */
+    beforeMessageId: string;
+  };
+
+/**
+ * Describes the message memoh.private.v1.ReadBotSessionHistoryRequest.
+ * Use `create(ReadBotSessionHistoryRequestSchema)` to create a new message.
+ */
+export const ReadBotSessionHistoryRequestSchema: GenMessage<ReadBotSessionHistoryRequest> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_bots, 20);
+
+/**
+ * @generated from message memoh.private.v1.ReadBotSessionHistoryResponse
+ */
+export type ReadBotSessionHistoryResponse =
+  Message<"memoh.private.v1.ReadBotSessionHistoryResponse"> & {
+    /**
+     * @generated from field: repeated memoh.private.v1.BotSessionMessage messages = 1;
+     */
+    messages: BotSessionMessage[];
+  };
+
+/**
+ * Describes the message memoh.private.v1.ReadBotSessionHistoryResponse.
+ * Use `create(ReadBotSessionHistoryResponseSchema)` to create a new message.
+ */
+export const ReadBotSessionHistoryResponseSchema: GenMessage<ReadBotSessionHistoryResponse> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_bots, 21);
+
+/**
+ * @generated from message memoh.private.v1.CompactBotSessionRequest
+ */
+export type CompactBotSessionRequest = Message<"memoh.private.v1.CompactBotSessionRequest"> & {
+  /**
+   * @generated from field: string bot_id = 1;
+   */
+  botId: string;
+
+  /**
+   * @generated from field: string session_id = 2;
+   */
+  sessionId: string;
+
+  /**
+   * @generated from field: string reason = 3;
+   */
+  reason: string;
+};
+
+/**
+ * Describes the message memoh.private.v1.CompactBotSessionRequest.
+ * Use `create(CompactBotSessionRequestSchema)` to create a new message.
+ */
+export const CompactBotSessionRequestSchema: GenMessage<CompactBotSessionRequest> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_bots, 22);
+
+/**
+ * @generated from message memoh.private.v1.CompactBotSessionResponse
+ */
+export type CompactBotSessionResponse = Message<"memoh.private.v1.CompactBotSessionResponse"> & {
+  /**
+   * @generated from field: string session_id = 1;
+   */
+  sessionId: string;
+
+  /**
+   * @generated from field: string summary = 2;
+   */
+  summary: string;
+
+  /**
+   * @generated from field: google.protobuf.Timestamp compacted_at = 3;
+   */
+  compactedAt?: Timestamp | undefined;
+};
+
+/**
+ * Describes the message memoh.private.v1.CompactBotSessionResponse.
+ * Use `create(CompactBotSessionResponseSchema)` to create a new message.
+ */
+export const CompactBotSessionResponseSchema: GenMessage<CompactBotSessionResponse> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_bots, 23);
+
+/**
+ * @generated from message memoh.private.v1.ListBotSessionMessagesRequest
+ */
+export type ListBotSessionMessagesRequest =
+  Message<"memoh.private.v1.ListBotSessionMessagesRequest"> & {
+    /**
+     * @generated from field: string bot_id = 1;
+     */
+    botId: string;
+
+    /**
+     * @generated from field: string session_id = 2;
+     */
+    sessionId: string;
+
+    /**
+     * @generated from field: memoh.private.v1.PageRequest page = 3;
+     */
+    page?: PageRequest | undefined;
+  };
+
+/**
+ * Describes the message memoh.private.v1.ListBotSessionMessagesRequest.
+ * Use `create(ListBotSessionMessagesRequestSchema)` to create a new message.
+ */
+export const ListBotSessionMessagesRequestSchema: GenMessage<ListBotSessionMessagesRequest> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_bots, 24);
+
+/**
+ * @generated from message memoh.private.v1.ListBotSessionMessagesResponse
+ */
+export type ListBotSessionMessagesResponse =
+  Message<"memoh.private.v1.ListBotSessionMessagesResponse"> & {
+    /**
+     * @generated from field: repeated memoh.private.v1.BotSessionMessage messages = 1;
+     */
+    messages: BotSessionMessage[];
+
+    /**
+     * @generated from field: memoh.private.v1.PageResponse page = 2;
+     */
+    page?: PageResponse | undefined;
+  };
+
+/**
+ * Describes the message memoh.private.v1.ListBotSessionMessagesResponse.
+ * Use `create(ListBotSessionMessagesResponseSchema)` to create a new message.
+ */
+export const ListBotSessionMessagesResponseSchema: GenMessage<ListBotSessionMessagesResponse> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_bots, 25);
+
+/**
  * @generated from service memoh.private.v1.BotService
  */
 export const BotService: GenService<{
@@ -571,5 +829,29 @@ export const BotService: GenService<{
     methodKind: "unary";
     input: typeof ClearBotGroupRequestSchema;
     output: typeof ClearBotGroupResponseSchema;
+  };
+  /**
+   * @generated from rpc memoh.private.v1.BotService.ReadBotSessionHistory
+   */
+  readBotSessionHistory: {
+    methodKind: "unary";
+    input: typeof ReadBotSessionHistoryRequestSchema;
+    output: typeof ReadBotSessionHistoryResponseSchema;
+  };
+  /**
+   * @generated from rpc memoh.private.v1.BotService.CompactBotSession
+   */
+  compactBotSession: {
+    methodKind: "unary";
+    input: typeof CompactBotSessionRequestSchema;
+    output: typeof CompactBotSessionResponseSchema;
+  };
+  /**
+   * @generated from rpc memoh.private.v1.BotService.ListBotSessionMessages
+   */
+  listBotSessionMessages: {
+    methodKind: "unary";
+    input: typeof ListBotSessionMessagesRequestSchema;
+    output: typeof ListBotSessionMessagesResponseSchema;
   };
 }> /*@__PURE__*/ = serviceDesc(file_memoh_private_v1_bots, 0);

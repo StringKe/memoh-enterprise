@@ -13,7 +13,7 @@ import type { JsonObject, Message } from "@bufbuild/protobuf";
  * Describes the file memoh/private/v1/acl.proto.
  */
 export const file_memoh_private_v1_acl: GenFile /*@__PURE__*/ = fileDesc(
-  "ChptZW1vaC9wcml2YXRlL3YxL2FjbC5wcm90bxIQbWVtb2gucHJpdmF0ZS52MSLGAQoHQWNsUnVsZRIKCgJpZBgBIAEoCRIOCgZib3RfaWQYAiABKAkSDwoHY2hhbm5lbBgDIAEoCRITCgtpZGVudGl0eV9pZBgEIAEoCRIOCgZlZmZlY3QYBSABKAkSEAoIcHJpb3JpdHkYBiABKAUSKQoIbWV0YWRhdGEYByABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0EiwKBWF1ZGl0GAggASgLMh0ubWVtb2gucHJpdmF0ZS52MS5BdWRpdEZpZWxkcyJyChJBY2xDaGFubmVsSWRlbnRpdHkSCgoCaWQYASABKAkSDwoHY2hhbm5lbBgCIAEoCRIUCgxkaXNwbGF5X25hbWUYAyABKAkSKQoIbWV0YWRhdGEYBCABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0IoUBChdBY2xPYnNlcnZlZENvbnZlcnNhdGlvbhIKCgJpZBgBIAEoCRIPCgdjaGFubmVsGAIgASgJEhMKC2lkZW50aXR5X2lkGAMgASgJEg0KBXRpdGxlGAQgASgJEikKCG1ldGFkYXRhGAUgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdCIlChNMaXN0QWNsUnVsZXNSZXF1ZXN0Eg4KBmJvdF9pZBgBIAEoCSJAChRMaXN0QWNsUnVsZXNSZXNwb25zZRIoCgVydWxlcxgBIAMoCzIZLm1lbW9oLnByaXZhdGUudjEuQWNsUnVsZSKHAQoUQ3JlYXRlQWNsUnVsZVJlcXVlc3QSDgoGYm90X2lkGAEgASgJEg8KB2NoYW5uZWwYAiABKAkSEwoLaWRlbnRpdHlfaWQYAyABKAkSDgoGZWZmZWN0GAQgASgJEikKCG1ldGFkYXRhGAUgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdCJAChVDcmVhdGVBY2xSdWxlUmVzcG9uc2USJwoEcnVsZRgBIAEoCzIZLm1lbW9oLnByaXZhdGUudjEuQWNsUnVsZSJtChRVcGRhdGVBY2xSdWxlUmVxdWVzdBIKCgJpZBgBIAEoCRITCgZlZmZlY3QYAiABKAlIAIgBARIpCghtZXRhZGF0YRgDIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3RCCQoHX2VmZmVjdCJAChVVcGRhdGVBY2xSdWxlUmVzcG9uc2USJwoEcnVsZRgBIAEoCzIZLm1lbW9oLnByaXZhdGUudjEuQWNsUnVsZSIiChREZWxldGVBY2xSdWxlUmVxdWVzdBIKCgJpZBgBIAEoCSIXChVEZWxldGVBY2xSdWxlUmVzcG9uc2UiOgoWUmVvcmRlckFjbFJ1bGVzUmVxdWVzdBIOCgZib3RfaWQYASABKAkSEAoIcnVsZV9pZHMYAiADKAkiQwoXUmVvcmRlckFjbFJ1bGVzUmVzcG9uc2USKAoFcnVsZXMYASADKAsyGS5tZW1vaC5wcml2YXRlLnYxLkFjbFJ1bGUiLAoaR2V0QWNsRGVmYXVsdEVmZmVjdFJlcXVlc3QSDgoGYm90X2lkGAEgASgJIi0KG0dldEFjbERlZmF1bHRFZmZlY3RSZXNwb25zZRIOCgZlZmZlY3QYASABKAkiPAoaU2V0QWNsRGVmYXVsdEVmZmVjdFJlcXVlc3QSDgoGYm90X2lkGAEgASgJEg4KBmVmZmVjdBgCIAEoCSItChtTZXRBY2xEZWZhdWx0RWZmZWN0UmVzcG9uc2USDgoGZWZmZWN0GAEgASgJIm8KIVNlYXJjaEFjbENoYW5uZWxJZGVudGl0aWVzUmVxdWVzdBIOCgZib3RfaWQYASABKAkSDQoFcXVlcnkYAiABKAkSKwoEcGFnZRgDIAEoCzIdLm1lbW9oLnByaXZhdGUudjEuUGFnZVJlcXVlc3QijAEKIlNlYXJjaEFjbENoYW5uZWxJZGVudGl0aWVzUmVzcG9uc2USOAoKaWRlbnRpdGllcxgBIAMoCzIkLm1lbW9oLnByaXZhdGUudjEuQWNsQ2hhbm5lbElkZW50aXR5EiwKBHBhZ2UYAiABKAsyHi5tZW1vaC5wcml2YXRlLnYxLlBhZ2VSZXNwb25zZSJ3CiNMaXN0QWNsT2JzZXJ2ZWRDb252ZXJzYXRpb25zUmVxdWVzdBIOCgZib3RfaWQYASABKAkSEwoLaWRlbnRpdHlfaWQYAiABKAkSKwoEcGFnZRgDIAEoCzIdLm1lbW9oLnByaXZhdGUudjEuUGFnZVJlcXVlc3QilgEKJExpc3RBY2xPYnNlcnZlZENvbnZlcnNhdGlvbnNSZXNwb25zZRJACg1jb252ZXJzYXRpb25zGAEgAygLMikubWVtb2gucHJpdmF0ZS52MS5BY2xPYnNlcnZlZENvbnZlcnNhdGlvbhIsCgRwYWdlGAIgASgLMh4ubWVtb2gucHJpdmF0ZS52MS5QYWdlUmVzcG9uc2UigAEKMExpc3RBY2xPYnNlcnZlZENvbnZlcnNhdGlvbnNCeUNoYW5uZWxUeXBlUmVxdWVzdBIOCgZib3RfaWQYASABKAkSDwoHY2hhbm5lbBgCIAEoCRIrCgRwYWdlGAMgASgLMh0ubWVtb2gucHJpdmF0ZS52MS5QYWdlUmVxdWVzdCKjAQoxTGlzdEFjbE9ic2VydmVkQ29udmVyc2F0aW9uc0J5Q2hhbm5lbFR5cGVSZXNwb25zZRJACg1jb252ZXJzYXRpb25zGAEgAygLMikubWVtb2gucHJpdmF0ZS52MS5BY2xPYnNlcnZlZENvbnZlcnNhdGlvbhIsCgRwYWdlGAIgASgLMh4ubWVtb2gucHJpdmF0ZS52MS5QYWdlUmVzcG9uc2UysgkKCkFjbFNlcnZpY2USXQoMTGlzdEFjbFJ1bGVzEiUubWVtb2gucHJpdmF0ZS52MS5MaXN0QWNsUnVsZXNSZXF1ZXN0GiYubWVtb2gucHJpdmF0ZS52MS5MaXN0QWNsUnVsZXNSZXNwb25zZRJgCg1DcmVhdGVBY2xSdWxlEiYubWVtb2gucHJpdmF0ZS52MS5DcmVhdGVBY2xSdWxlUmVxdWVzdBonLm1lbW9oLnByaXZhdGUudjEuQ3JlYXRlQWNsUnVsZVJlc3BvbnNlEmAKDVVwZGF0ZUFjbFJ1bGUSJi5tZW1vaC5wcml2YXRlLnYxLlVwZGF0ZUFjbFJ1bGVSZXF1ZXN0GicubWVtb2gucHJpdmF0ZS52MS5VcGRhdGVBY2xSdWxlUmVzcG9uc2USYAoNRGVsZXRlQWNsUnVsZRImLm1lbW9oLnByaXZhdGUudjEuRGVsZXRlQWNsUnVsZVJlcXVlc3QaJy5tZW1vaC5wcml2YXRlLnYxLkRlbGV0ZUFjbFJ1bGVSZXNwb25zZRJmCg9SZW9yZGVyQWNsUnVsZXMSKC5tZW1vaC5wcml2YXRlLnYxLlJlb3JkZXJBY2xSdWxlc1JlcXVlc3QaKS5tZW1vaC5wcml2YXRlLnYxLlJlb3JkZXJBY2xSdWxlc1Jlc3BvbnNlEnIKE0dldEFjbERlZmF1bHRFZmZlY3QSLC5tZW1vaC5wcml2YXRlLnYxLkdldEFjbERlZmF1bHRFZmZlY3RSZXF1ZXN0Gi0ubWVtb2gucHJpdmF0ZS52MS5HZXRBY2xEZWZhdWx0RWZmZWN0UmVzcG9uc2UScgoTU2V0QWNsRGVmYXVsdEVmZmVjdBIsLm1lbW9oLnByaXZhdGUudjEuU2V0QWNsRGVmYXVsdEVmZmVjdFJlcXVlc3QaLS5tZW1vaC5wcml2YXRlLnYxLlNldEFjbERlZmF1bHRFZmZlY3RSZXNwb25zZRKHAQoaU2VhcmNoQWNsQ2hhbm5lbElkZW50aXRpZXMSMy5tZW1vaC5wcml2YXRlLnYxLlNlYXJjaEFjbENoYW5uZWxJZGVudGl0aWVzUmVxdWVzdBo0Lm1lbW9oLnByaXZhdGUudjEuU2VhcmNoQWNsQ2hhbm5lbElkZW50aXRpZXNSZXNwb25zZRKNAQocTGlzdEFjbE9ic2VydmVkQ29udmVyc2F0aW9ucxI1Lm1lbW9oLnByaXZhdGUudjEuTGlzdEFjbE9ic2VydmVkQ29udmVyc2F0aW9uc1JlcXVlc3QaNi5tZW1vaC5wcml2YXRlLnYxLkxpc3RBY2xPYnNlcnZlZENvbnZlcnNhdGlvbnNSZXNwb25zZRK0AQopTGlzdEFjbE9ic2VydmVkQ29udmVyc2F0aW9uc0J5Q2hhbm5lbFR5cGUSQi5tZW1vaC5wcml2YXRlLnYxLkxpc3RBY2xPYnNlcnZlZENvbnZlcnNhdGlvbnNCeUNoYW5uZWxUeXBlUmVxdWVzdBpDLm1lbW9oLnByaXZhdGUudjEuTGlzdEFjbE9ic2VydmVkQ29udmVyc2F0aW9uc0J5Q2hhbm5lbFR5cGVSZXNwb25zZUJNWktnaXRodWIuY29tL21lbW9oYWkvbWVtb2gvaW50ZXJuYWwvY29ubmVjdGFwaS9nZW4vbWVtb2gvcHJpdmF0ZS92MTtwcml2YXRldjFiBnByb3RvMw",
+  "ChptZW1vaC9wcml2YXRlL3YxL2FjbC5wcm90bxIQbWVtb2gucHJpdmF0ZS52MSLGAQoHQWNsUnVsZRIKCgJpZBgBIAEoCRIOCgZib3RfaWQYAiABKAkSDwoHY2hhbm5lbBgDIAEoCRITCgtpZGVudGl0eV9pZBgEIAEoCRIOCgZlZmZlY3QYBSABKAkSEAoIcHJpb3JpdHkYBiABKAUSKQoIbWV0YWRhdGEYByABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0EiwKBWF1ZGl0GAggASgLMh0ubWVtb2gucHJpdmF0ZS52MS5BdWRpdEZpZWxkcyJyChJBY2xDaGFubmVsSWRlbnRpdHkSCgoCaWQYASABKAkSDwoHY2hhbm5lbBgCIAEoCRIUCgxkaXNwbGF5X25hbWUYAyABKAkSKQoIbWV0YWRhdGEYBCABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0IoUBChdBY2xPYnNlcnZlZENvbnZlcnNhdGlvbhIKCgJpZBgBIAEoCRIPCgdjaGFubmVsGAIgASgJEhMKC2lkZW50aXR5X2lkGAMgASgJEg0KBXRpdGxlGAQgASgJEikKCG1ldGFkYXRhGAUgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdCIlChNMaXN0QWNsUnVsZXNSZXF1ZXN0Eg4KBmJvdF9pZBgBIAEoCSJAChRMaXN0QWNsUnVsZXNSZXNwb25zZRIoCgVydWxlcxgBIAMoCzIZLm1lbW9oLnByaXZhdGUudjEuQWNsUnVsZSKHAQoUQ3JlYXRlQWNsUnVsZVJlcXVlc3QSDgoGYm90X2lkGAEgASgJEg8KB2NoYW5uZWwYAiABKAkSEwoLaWRlbnRpdHlfaWQYAyABKAkSDgoGZWZmZWN0GAQgASgJEikKCG1ldGFkYXRhGAUgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdCJAChVDcmVhdGVBY2xSdWxlUmVzcG9uc2USJwoEcnVsZRgBIAEoCzIZLm1lbW9oLnByaXZhdGUudjEuQWNsUnVsZSJtChRVcGRhdGVBY2xSdWxlUmVxdWVzdBIKCgJpZBgBIAEoCRITCgZlZmZlY3QYAiABKAlIAIgBARIpCghtZXRhZGF0YRgDIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3RCCQoHX2VmZmVjdCJAChVVcGRhdGVBY2xSdWxlUmVzcG9uc2USJwoEcnVsZRgBIAEoCzIZLm1lbW9oLnByaXZhdGUudjEuQWNsUnVsZSIiChREZWxldGVBY2xSdWxlUmVxdWVzdBIKCgJpZBgBIAEoCSIXChVEZWxldGVBY2xSdWxlUmVzcG9uc2UiOgoWUmVvcmRlckFjbFJ1bGVzUmVxdWVzdBIOCgZib3RfaWQYASABKAkSEAoIcnVsZV9pZHMYAiADKAkiQwoXUmVvcmRlckFjbFJ1bGVzUmVzcG9uc2USKAoFcnVsZXMYASADKAsyGS5tZW1vaC5wcml2YXRlLnYxLkFjbFJ1bGUiLAoaR2V0QWNsRGVmYXVsdEVmZmVjdFJlcXVlc3QSDgoGYm90X2lkGAEgASgJIi0KG0dldEFjbERlZmF1bHRFZmZlY3RSZXNwb25zZRIOCgZlZmZlY3QYASABKAkiPAoaU2V0QWNsRGVmYXVsdEVmZmVjdFJlcXVlc3QSDgoGYm90X2lkGAEgASgJEg4KBmVmZmVjdBgCIAEoCSItChtTZXRBY2xEZWZhdWx0RWZmZWN0UmVzcG9uc2USDgoGZWZmZWN0GAEgASgJIm8KIVNlYXJjaEFjbENoYW5uZWxJZGVudGl0aWVzUmVxdWVzdBIOCgZib3RfaWQYASABKAkSDQoFcXVlcnkYAiABKAkSKwoEcGFnZRgDIAEoCzIdLm1lbW9oLnByaXZhdGUudjEuUGFnZVJlcXVlc3QijAEKIlNlYXJjaEFjbENoYW5uZWxJZGVudGl0aWVzUmVzcG9uc2USOAoKaWRlbnRpdGllcxgBIAMoCzIkLm1lbW9oLnByaXZhdGUudjEuQWNsQ2hhbm5lbElkZW50aXR5EiwKBHBhZ2UYAiABKAsyHi5tZW1vaC5wcml2YXRlLnYxLlBhZ2VSZXNwb25zZSJ3CiNMaXN0QWNsT2JzZXJ2ZWRDb252ZXJzYXRpb25zUmVxdWVzdBIOCgZib3RfaWQYASABKAkSEwoLaWRlbnRpdHlfaWQYAiABKAkSKwoEcGFnZRgDIAEoCzIdLm1lbW9oLnByaXZhdGUudjEuUGFnZVJlcXVlc3QilgEKJExpc3RBY2xPYnNlcnZlZENvbnZlcnNhdGlvbnNSZXNwb25zZRJACg1jb252ZXJzYXRpb25zGAEgAygLMikubWVtb2gucHJpdmF0ZS52MS5BY2xPYnNlcnZlZENvbnZlcnNhdGlvbhIsCgRwYWdlGAIgASgLMh4ubWVtb2gucHJpdmF0ZS52MS5QYWdlUmVzcG9uc2UigAEKMExpc3RBY2xPYnNlcnZlZENvbnZlcnNhdGlvbnNCeUNoYW5uZWxUeXBlUmVxdWVzdBIOCgZib3RfaWQYASABKAkSDwoHY2hhbm5lbBgCIAEoCRIrCgRwYWdlGAMgASgLMh0ubWVtb2gucHJpdmF0ZS52MS5QYWdlUmVxdWVzdCKjAQoxTGlzdEFjbE9ic2VydmVkQ29udmVyc2F0aW9uc0J5Q2hhbm5lbFR5cGVSZXNwb25zZRJACg1jb252ZXJzYXRpb25zGAEgAygLMikubWVtb2gucHJpdmF0ZS52MS5BY2xPYnNlcnZlZENvbnZlcnNhdGlvbhIsCgRwYWdlGAIgASgLMh4ubWVtb2gucHJpdmF0ZS52MS5QYWdlUmVzcG9uc2UibwofTGlzdEFjbENoYW5uZWxJZGVudGl0aWVzUmVxdWVzdBIOCgZib3RfaWQYASABKAkSDwoHY2hhbm5lbBgCIAEoCRIrCgRwYWdlGAMgASgLMh0ubWVtb2gucHJpdmF0ZS52MS5QYWdlUmVxdWVzdCKKAQogTGlzdEFjbENoYW5uZWxJZGVudGl0aWVzUmVzcG9uc2USOAoKaWRlbnRpdGllcxgBIAMoCzIkLm1lbW9oLnByaXZhdGUudjEuQWNsQ2hhbm5lbElkZW50aXR5EiwKBHBhZ2UYAiABKAsyHi5tZW1vaC5wcml2YXRlLnYxLlBhZ2VSZXNwb25zZSIqChxHZXRBY2xDaGFubmVsSWRlbnRpdHlSZXF1ZXN0EgoKAmlkGAEgASgJIlcKHUdldEFjbENoYW5uZWxJZGVudGl0eVJlc3BvbnNlEjYKCGlkZW50aXR5GAEgASgLMiQubWVtb2gucHJpdmF0ZS52MS5BY2xDaGFubmVsSWRlbnRpdHkiiAEKH1Vwc2VydEFjbENoYW5uZWxJZGVudGl0eVJlcXVlc3QSDwoHY2hhbm5lbBgBIAEoCRITCgtpZGVudGl0eV9pZBgCIAEoCRIUCgxkaXNwbGF5X25hbWUYAyABKAkSKQoIbWV0YWRhdGEYBCABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0IloKIFVwc2VydEFjbENoYW5uZWxJZGVudGl0eVJlc3BvbnNlEjYKCGlkZW50aXR5GAEgASgLMiQubWVtb2gucHJpdmF0ZS52MS5BY2xDaGFubmVsSWRlbnRpdHkiLQofRGVsZXRlQWNsQ2hhbm5lbElkZW50aXR5UmVxdWVzdBIKCgJpZBgBIAEoCSIiCiBEZWxldGVBY2xDaGFubmVsSWRlbnRpdHlSZXNwb25zZTK4DQoKQWNsU2VydmljZRJdCgxMaXN0QWNsUnVsZXMSJS5tZW1vaC5wcml2YXRlLnYxLkxpc3RBY2xSdWxlc1JlcXVlc3QaJi5tZW1vaC5wcml2YXRlLnYxLkxpc3RBY2xSdWxlc1Jlc3BvbnNlEmAKDUNyZWF0ZUFjbFJ1bGUSJi5tZW1vaC5wcml2YXRlLnYxLkNyZWF0ZUFjbFJ1bGVSZXF1ZXN0GicubWVtb2gucHJpdmF0ZS52MS5DcmVhdGVBY2xSdWxlUmVzcG9uc2USYAoNVXBkYXRlQWNsUnVsZRImLm1lbW9oLnByaXZhdGUudjEuVXBkYXRlQWNsUnVsZVJlcXVlc3QaJy5tZW1vaC5wcml2YXRlLnYxLlVwZGF0ZUFjbFJ1bGVSZXNwb25zZRJgCg1EZWxldGVBY2xSdWxlEiYubWVtb2gucHJpdmF0ZS52MS5EZWxldGVBY2xSdWxlUmVxdWVzdBonLm1lbW9oLnByaXZhdGUudjEuRGVsZXRlQWNsUnVsZVJlc3BvbnNlEmYKD1Jlb3JkZXJBY2xSdWxlcxIoLm1lbW9oLnByaXZhdGUudjEuUmVvcmRlckFjbFJ1bGVzUmVxdWVzdBopLm1lbW9oLnByaXZhdGUudjEuUmVvcmRlckFjbFJ1bGVzUmVzcG9uc2UScgoTR2V0QWNsRGVmYXVsdEVmZmVjdBIsLm1lbW9oLnByaXZhdGUudjEuR2V0QWNsRGVmYXVsdEVmZmVjdFJlcXVlc3QaLS5tZW1vaC5wcml2YXRlLnYxLkdldEFjbERlZmF1bHRFZmZlY3RSZXNwb25zZRJyChNTZXRBY2xEZWZhdWx0RWZmZWN0EiwubWVtb2gucHJpdmF0ZS52MS5TZXRBY2xEZWZhdWx0RWZmZWN0UmVxdWVzdBotLm1lbW9oLnByaXZhdGUudjEuU2V0QWNsRGVmYXVsdEVmZmVjdFJlc3BvbnNlEocBChpTZWFyY2hBY2xDaGFubmVsSWRlbnRpdGllcxIzLm1lbW9oLnByaXZhdGUudjEuU2VhcmNoQWNsQ2hhbm5lbElkZW50aXRpZXNSZXF1ZXN0GjQubWVtb2gucHJpdmF0ZS52MS5TZWFyY2hBY2xDaGFubmVsSWRlbnRpdGllc1Jlc3BvbnNlEo0BChxMaXN0QWNsT2JzZXJ2ZWRDb252ZXJzYXRpb25zEjUubWVtb2gucHJpdmF0ZS52MS5MaXN0QWNsT2JzZXJ2ZWRDb252ZXJzYXRpb25zUmVxdWVzdBo2Lm1lbW9oLnByaXZhdGUudjEuTGlzdEFjbE9ic2VydmVkQ29udmVyc2F0aW9uc1Jlc3BvbnNlErQBCilMaXN0QWNsT2JzZXJ2ZWRDb252ZXJzYXRpb25zQnlDaGFubmVsVHlwZRJCLm1lbW9oLnByaXZhdGUudjEuTGlzdEFjbE9ic2VydmVkQ29udmVyc2F0aW9uc0J5Q2hhbm5lbFR5cGVSZXF1ZXN0GkMubWVtb2gucHJpdmF0ZS52MS5MaXN0QWNsT2JzZXJ2ZWRDb252ZXJzYXRpb25zQnlDaGFubmVsVHlwZVJlc3BvbnNlEoEBChhMaXN0QWNsQ2hhbm5lbElkZW50aXRpZXMSMS5tZW1vaC5wcml2YXRlLnYxLkxpc3RBY2xDaGFubmVsSWRlbnRpdGllc1JlcXVlc3QaMi5tZW1vaC5wcml2YXRlLnYxLkxpc3RBY2xDaGFubmVsSWRlbnRpdGllc1Jlc3BvbnNlEngKFUdldEFjbENoYW5uZWxJZGVudGl0eRIuLm1lbW9oLnByaXZhdGUudjEuR2V0QWNsQ2hhbm5lbElkZW50aXR5UmVxdWVzdBovLm1lbW9oLnByaXZhdGUudjEuR2V0QWNsQ2hhbm5lbElkZW50aXR5UmVzcG9uc2USgQEKGFVwc2VydEFjbENoYW5uZWxJZGVudGl0eRIxLm1lbW9oLnByaXZhdGUudjEuVXBzZXJ0QWNsQ2hhbm5lbElkZW50aXR5UmVxdWVzdBoyLm1lbW9oLnByaXZhdGUudjEuVXBzZXJ0QWNsQ2hhbm5lbElkZW50aXR5UmVzcG9uc2USgQEKGERlbGV0ZUFjbENoYW5uZWxJZGVudGl0eRIxLm1lbW9oLnByaXZhdGUudjEuRGVsZXRlQWNsQ2hhbm5lbElkZW50aXR5UmVxdWVzdBoyLm1lbW9oLnByaXZhdGUudjEuRGVsZXRlQWNsQ2hhbm5lbElkZW50aXR5UmVzcG9uc2VCTVpLZ2l0aHViLmNvbS9tZW1vaGFpL21lbW9oL2ludGVybmFsL2Nvbm5lY3RhcGkvZ2VuL21lbW9oL3ByaXZhdGUvdjE7cHJpdmF0ZXYxYgZwcm90bzM",
   [file_google_protobuf_struct, file_memoh_private_v1_common],
 );
 
@@ -573,6 +573,175 @@ export const ListAclObservedConversationsByChannelTypeResponseSchema: GenMessage
   messageDesc(file_memoh_private_v1_acl, 22);
 
 /**
+ * @generated from message memoh.private.v1.ListAclChannelIdentitiesRequest
+ */
+export type ListAclChannelIdentitiesRequest =
+  Message<"memoh.private.v1.ListAclChannelIdentitiesRequest"> & {
+    /**
+     * @generated from field: string bot_id = 1;
+     */
+    botId: string;
+
+    /**
+     * @generated from field: string channel = 2;
+     */
+    channel: string;
+
+    /**
+     * @generated from field: memoh.private.v1.PageRequest page = 3;
+     */
+    page?: PageRequest | undefined;
+  };
+
+/**
+ * Describes the message memoh.private.v1.ListAclChannelIdentitiesRequest.
+ * Use `create(ListAclChannelIdentitiesRequestSchema)` to create a new message.
+ */
+export const ListAclChannelIdentitiesRequestSchema: GenMessage<ListAclChannelIdentitiesRequest> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_acl, 23);
+
+/**
+ * @generated from message memoh.private.v1.ListAclChannelIdentitiesResponse
+ */
+export type ListAclChannelIdentitiesResponse =
+  Message<"memoh.private.v1.ListAclChannelIdentitiesResponse"> & {
+    /**
+     * @generated from field: repeated memoh.private.v1.AclChannelIdentity identities = 1;
+     */
+    identities: AclChannelIdentity[];
+
+    /**
+     * @generated from field: memoh.private.v1.PageResponse page = 2;
+     */
+    page?: PageResponse | undefined;
+  };
+
+/**
+ * Describes the message memoh.private.v1.ListAclChannelIdentitiesResponse.
+ * Use `create(ListAclChannelIdentitiesResponseSchema)` to create a new message.
+ */
+export const ListAclChannelIdentitiesResponseSchema: GenMessage<ListAclChannelIdentitiesResponse> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_acl, 24);
+
+/**
+ * @generated from message memoh.private.v1.GetAclChannelIdentityRequest
+ */
+export type GetAclChannelIdentityRequest =
+  Message<"memoh.private.v1.GetAclChannelIdentityRequest"> & {
+    /**
+     * @generated from field: string id = 1;
+     */
+    id: string;
+  };
+
+/**
+ * Describes the message memoh.private.v1.GetAclChannelIdentityRequest.
+ * Use `create(GetAclChannelIdentityRequestSchema)` to create a new message.
+ */
+export const GetAclChannelIdentityRequestSchema: GenMessage<GetAclChannelIdentityRequest> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_acl, 25);
+
+/**
+ * @generated from message memoh.private.v1.GetAclChannelIdentityResponse
+ */
+export type GetAclChannelIdentityResponse =
+  Message<"memoh.private.v1.GetAclChannelIdentityResponse"> & {
+    /**
+     * @generated from field: memoh.private.v1.AclChannelIdentity identity = 1;
+     */
+    identity?: AclChannelIdentity | undefined;
+  };
+
+/**
+ * Describes the message memoh.private.v1.GetAclChannelIdentityResponse.
+ * Use `create(GetAclChannelIdentityResponseSchema)` to create a new message.
+ */
+export const GetAclChannelIdentityResponseSchema: GenMessage<GetAclChannelIdentityResponse> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_acl, 26);
+
+/**
+ * @generated from message memoh.private.v1.UpsertAclChannelIdentityRequest
+ */
+export type UpsertAclChannelIdentityRequest =
+  Message<"memoh.private.v1.UpsertAclChannelIdentityRequest"> & {
+    /**
+     * @generated from field: string channel = 1;
+     */
+    channel: string;
+
+    /**
+     * @generated from field: string identity_id = 2;
+     */
+    identityId: string;
+
+    /**
+     * @generated from field: string display_name = 3;
+     */
+    displayName: string;
+
+    /**
+     * @generated from field: google.protobuf.Struct metadata = 4;
+     */
+    metadata?: JsonObject | undefined;
+  };
+
+/**
+ * Describes the message memoh.private.v1.UpsertAclChannelIdentityRequest.
+ * Use `create(UpsertAclChannelIdentityRequestSchema)` to create a new message.
+ */
+export const UpsertAclChannelIdentityRequestSchema: GenMessage<UpsertAclChannelIdentityRequest> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_acl, 27);
+
+/**
+ * @generated from message memoh.private.v1.UpsertAclChannelIdentityResponse
+ */
+export type UpsertAclChannelIdentityResponse =
+  Message<"memoh.private.v1.UpsertAclChannelIdentityResponse"> & {
+    /**
+     * @generated from field: memoh.private.v1.AclChannelIdentity identity = 1;
+     */
+    identity?: AclChannelIdentity | undefined;
+  };
+
+/**
+ * Describes the message memoh.private.v1.UpsertAclChannelIdentityResponse.
+ * Use `create(UpsertAclChannelIdentityResponseSchema)` to create a new message.
+ */
+export const UpsertAclChannelIdentityResponseSchema: GenMessage<UpsertAclChannelIdentityResponse> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_acl, 28);
+
+/**
+ * @generated from message memoh.private.v1.DeleteAclChannelIdentityRequest
+ */
+export type DeleteAclChannelIdentityRequest =
+  Message<"memoh.private.v1.DeleteAclChannelIdentityRequest"> & {
+    /**
+     * @generated from field: string id = 1;
+     */
+    id: string;
+  };
+
+/**
+ * Describes the message memoh.private.v1.DeleteAclChannelIdentityRequest.
+ * Use `create(DeleteAclChannelIdentityRequestSchema)` to create a new message.
+ */
+export const DeleteAclChannelIdentityRequestSchema: GenMessage<DeleteAclChannelIdentityRequest> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_acl, 29);
+
+/**
+ * @generated from message memoh.private.v1.DeleteAclChannelIdentityResponse
+ */
+export type DeleteAclChannelIdentityResponse =
+  Message<"memoh.private.v1.DeleteAclChannelIdentityResponse"> & {};
+
+/**
+ * Describes the message memoh.private.v1.DeleteAclChannelIdentityResponse.
+ * Use `create(DeleteAclChannelIdentityResponseSchema)` to create a new message.
+ */
+export const DeleteAclChannelIdentityResponseSchema: GenMessage<DeleteAclChannelIdentityResponse> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_acl, 30);
+
+/**
  * @generated from service memoh.private.v1.AclService
  */
 export const AclService: GenService<{
@@ -655,5 +824,37 @@ export const AclService: GenService<{
     methodKind: "unary";
     input: typeof ListAclObservedConversationsByChannelTypeRequestSchema;
     output: typeof ListAclObservedConversationsByChannelTypeResponseSchema;
+  };
+  /**
+   * @generated from rpc memoh.private.v1.AclService.ListAclChannelIdentities
+   */
+  listAclChannelIdentities: {
+    methodKind: "unary";
+    input: typeof ListAclChannelIdentitiesRequestSchema;
+    output: typeof ListAclChannelIdentitiesResponseSchema;
+  };
+  /**
+   * @generated from rpc memoh.private.v1.AclService.GetAclChannelIdentity
+   */
+  getAclChannelIdentity: {
+    methodKind: "unary";
+    input: typeof GetAclChannelIdentityRequestSchema;
+    output: typeof GetAclChannelIdentityResponseSchema;
+  };
+  /**
+   * @generated from rpc memoh.private.v1.AclService.UpsertAclChannelIdentity
+   */
+  upsertAclChannelIdentity: {
+    methodKind: "unary";
+    input: typeof UpsertAclChannelIdentityRequestSchema;
+    output: typeof UpsertAclChannelIdentityResponseSchema;
+  };
+  /**
+   * @generated from rpc memoh.private.v1.AclService.DeleteAclChannelIdentity
+   */
+  deleteAclChannelIdentity: {
+    methodKind: "unary";
+    input: typeof DeleteAclChannelIdentityRequestSchema;
+    output: typeof DeleteAclChannelIdentityResponseSchema;
   };
 }> /*@__PURE__*/ = serviceDesc(file_memoh_private_v1_acl, 0);

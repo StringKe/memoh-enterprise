@@ -4,15 +4,21 @@
 
 import type { GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegenv2";
 import { fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
-import { file_google_protobuf_struct } from "@bufbuild/protobuf/wkt";
+import type { Timestamp } from "@bufbuild/protobuf/wkt";
+import {
+  file_google_protobuf_struct,
+  file_google_protobuf_timestamp,
+} from "@bufbuild/protobuf/wkt";
+import type { PageRequest, PageResponse } from "./common_pb";
+import { file_memoh_private_v1_common } from "./common_pb";
 import type { JsonObject, Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file memoh/private/v1/tool_approval.proto.
  */
 export const file_memoh_private_v1_tool_approval: GenFile /*@__PURE__*/ = fileDesc(
-  "CiRtZW1vaC9wcml2YXRlL3YxL3Rvb2xfYXBwcm92YWwucHJvdG8SEG1lbW9oLnByaXZhdGUudjEiewoSQXBwcm92ZVRvb2xSZXF1ZXN0Eg4KBmJvdF9pZBgBIAEoCRIXCg9jb252ZXJzYXRpb25faWQYAiABKAkSEgoKcmVxdWVzdF9pZBgDIAEoCRIoCgdwYXlsb2FkGAQgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdCIVChNBcHByb3ZlVG9vbFJlc3BvbnNlImAKEVJlamVjdFRvb2xSZXF1ZXN0Eg4KBmJvdF9pZBgBIAEoCRIXCg9jb252ZXJzYXRpb25faWQYAiABKAkSEgoKcmVxdWVzdF9pZBgDIAEoCRIOCgZyZWFzb24YBCABKAkiFAoSUmVqZWN0VG9vbFJlc3BvbnNlMsoBChNUb29sQXBwcm92YWxTZXJ2aWNlEloKC0FwcHJvdmVUb29sEiQubWVtb2gucHJpdmF0ZS52MS5BcHByb3ZlVG9vbFJlcXVlc3QaJS5tZW1vaC5wcml2YXRlLnYxLkFwcHJvdmVUb29sUmVzcG9uc2USVwoKUmVqZWN0VG9vbBIjLm1lbW9oLnByaXZhdGUudjEuUmVqZWN0VG9vbFJlcXVlc3QaJC5tZW1vaC5wcml2YXRlLnYxLlJlamVjdFRvb2xSZXNwb25zZUJNWktnaXRodWIuY29tL21lbW9oYWkvbWVtb2gvaW50ZXJuYWwvY29ubmVjdGFwaS9nZW4vbWVtb2gvcHJpdmF0ZS92MTtwcml2YXRldjFiBnByb3RvMw",
-  [file_google_protobuf_struct],
+  "CiRtZW1vaC9wcml2YXRlL3YxL3Rvb2xfYXBwcm92YWwucHJvdG8SEG1lbW9oLnByaXZhdGUudjEiewoSQXBwcm92ZVRvb2xSZXF1ZXN0Eg4KBmJvdF9pZBgBIAEoCRIXCg9jb252ZXJzYXRpb25faWQYAiABKAkSEgoKcmVxdWVzdF9pZBgDIAEoCRIoCgdwYXlsb2FkGAQgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdCIVChNBcHByb3ZlVG9vbFJlc3BvbnNlImAKEVJlamVjdFRvb2xSZXF1ZXN0Eg4KBmJvdF9pZBgBIAEoCRIXCg9jb252ZXJzYXRpb25faWQYAiABKAkSEgoKcmVxdWVzdF9pZBgDIAEoCRIOCgZyZWFzb24YBCABKAkiFAoSUmVqZWN0VG9vbFJlc3BvbnNlIogCChBUb29sQXBwcm92YWxJdGVtEgoKAmlkGAEgASgJEg4KBmJvdF9pZBgCIAEoCRIXCg9jb252ZXJzYXRpb25faWQYAyABKAkSEgoKcmVxdWVzdF9pZBgEIAEoCRIRCgl0b29sX25hbWUYBSABKAkSDgoGc3RhdHVzGAYgASgJEigKB3BheWxvYWQYByABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0Ei4KCmNyZWF0ZWRfYXQYCCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi4KCmRlY2lkZWRfYXQYCSABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wIocBCh9MaXN0VG9vbEFwcHJvdmFsUmVxdWVzdHNSZXF1ZXN0Eg4KBmJvdF9pZBgBIAEoCRIXCg9jb252ZXJzYXRpb25faWQYAiABKAkSDgoGc3RhdHVzGAMgASgJEisKBHBhZ2UYBCABKAsyHS5tZW1vaC5wcml2YXRlLnYxLlBhZ2VSZXF1ZXN0IoYBCiBMaXN0VG9vbEFwcHJvdmFsUmVxdWVzdHNSZXNwb25zZRI0CghyZXF1ZXN0cxgBIAMoCzIiLm1lbW9oLnByaXZhdGUudjEuVG9vbEFwcHJvdmFsSXRlbRIsCgRwYWdlGAIgASgLMh4ubWVtb2gucHJpdmF0ZS52MS5QYWdlUmVzcG9uc2UiQwodR2V0VG9vbEFwcHJvdmFsUmVxdWVzdFJlcXVlc3QSDgoGYm90X2lkGAEgASgJEhIKCnJlcXVlc3RfaWQYAiABKAkiVQoeR2V0VG9vbEFwcHJvdmFsUmVxdWVzdFJlc3BvbnNlEjMKB3JlcXVlc3QYASABKAsyIi5tZW1vaC5wcml2YXRlLnYxLlRvb2xBcHByb3ZhbEl0ZW0ipQEKGlJlc3BvbmRUb29sQXBwcm92YWxSZXF1ZXN0Eg4KBmJvdF9pZBgBIAEoCRIXCg9jb252ZXJzYXRpb25faWQYAiABKAkSEgoKcmVxdWVzdF9pZBgDIAEoCRIQCghkZWNpc2lvbhgEIAEoCRIOCgZyZWFzb24YBSABKAkSKAoHcGF5bG9hZBgGIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QiUgobUmVzcG9uZFRvb2xBcHByb3ZhbFJlc3BvbnNlEjMKB3JlcXVlc3QYASABKAsyIi5tZW1vaC5wcml2YXRlLnYxLlRvb2xBcHByb3ZhbEl0ZW0yvwQKE1Rvb2xBcHByb3ZhbFNlcnZpY2USWgoLQXBwcm92ZVRvb2wSJC5tZW1vaC5wcml2YXRlLnYxLkFwcHJvdmVUb29sUmVxdWVzdBolLm1lbW9oLnByaXZhdGUudjEuQXBwcm92ZVRvb2xSZXNwb25zZRJXCgpSZWplY3RUb29sEiMubWVtb2gucHJpdmF0ZS52MS5SZWplY3RUb29sUmVxdWVzdBokLm1lbW9oLnByaXZhdGUudjEuUmVqZWN0VG9vbFJlc3BvbnNlEoEBChhMaXN0VG9vbEFwcHJvdmFsUmVxdWVzdHMSMS5tZW1vaC5wcml2YXRlLnYxLkxpc3RUb29sQXBwcm92YWxSZXF1ZXN0c1JlcXVlc3QaMi5tZW1vaC5wcml2YXRlLnYxLkxpc3RUb29sQXBwcm92YWxSZXF1ZXN0c1Jlc3BvbnNlEnsKFkdldFRvb2xBcHByb3ZhbFJlcXVlc3QSLy5tZW1vaC5wcml2YXRlLnYxLkdldFRvb2xBcHByb3ZhbFJlcXVlc3RSZXF1ZXN0GjAubWVtb2gucHJpdmF0ZS52MS5HZXRUb29sQXBwcm92YWxSZXF1ZXN0UmVzcG9uc2UScgoTUmVzcG9uZFRvb2xBcHByb3ZhbBIsLm1lbW9oLnByaXZhdGUudjEuUmVzcG9uZFRvb2xBcHByb3ZhbFJlcXVlc3QaLS5tZW1vaC5wcml2YXRlLnYxLlJlc3BvbmRUb29sQXBwcm92YWxSZXNwb25zZUJNWktnaXRodWIuY29tL21lbW9oYWkvbWVtb2gvaW50ZXJuYWwvY29ubmVjdGFwaS9nZW4vbWVtb2gvcHJpdmF0ZS92MTtwcml2YXRldjFiBnByb3RvMw",
+  [file_google_protobuf_struct, file_google_protobuf_timestamp, file_memoh_private_v1_common],
 );
 
 /**
@@ -112,6 +118,222 @@ export const RejectToolResponseSchema: GenMessage<RejectToolResponse> /*@__PURE_
 );
 
 /**
+ * @generated from message memoh.private.v1.ToolApprovalItem
+ */
+export type ToolApprovalItem = Message<"memoh.private.v1.ToolApprovalItem"> & {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id: string;
+
+  /**
+   * @generated from field: string bot_id = 2;
+   */
+  botId: string;
+
+  /**
+   * @generated from field: string conversation_id = 3;
+   */
+  conversationId: string;
+
+  /**
+   * @generated from field: string request_id = 4;
+   */
+  requestId: string;
+
+  /**
+   * @generated from field: string tool_name = 5;
+   */
+  toolName: string;
+
+  /**
+   * @generated from field: string status = 6;
+   */
+  status: string;
+
+  /**
+   * @generated from field: google.protobuf.Struct payload = 7;
+   */
+  payload?: JsonObject | undefined;
+
+  /**
+   * @generated from field: google.protobuf.Timestamp created_at = 8;
+   */
+  createdAt?: Timestamp | undefined;
+
+  /**
+   * @generated from field: google.protobuf.Timestamp decided_at = 9;
+   */
+  decidedAt?: Timestamp | undefined;
+};
+
+/**
+ * Describes the message memoh.private.v1.ToolApprovalItem.
+ * Use `create(ToolApprovalItemSchema)` to create a new message.
+ */
+export const ToolApprovalItemSchema: GenMessage<ToolApprovalItem> /*@__PURE__*/ = messageDesc(
+  file_memoh_private_v1_tool_approval,
+  4,
+);
+
+/**
+ * @generated from message memoh.private.v1.ListToolApprovalRequestsRequest
+ */
+export type ListToolApprovalRequestsRequest =
+  Message<"memoh.private.v1.ListToolApprovalRequestsRequest"> & {
+    /**
+     * @generated from field: string bot_id = 1;
+     */
+    botId: string;
+
+    /**
+     * @generated from field: string conversation_id = 2;
+     */
+    conversationId: string;
+
+    /**
+     * @generated from field: string status = 3;
+     */
+    status: string;
+
+    /**
+     * @generated from field: memoh.private.v1.PageRequest page = 4;
+     */
+    page?: PageRequest | undefined;
+  };
+
+/**
+ * Describes the message memoh.private.v1.ListToolApprovalRequestsRequest.
+ * Use `create(ListToolApprovalRequestsRequestSchema)` to create a new message.
+ */
+export const ListToolApprovalRequestsRequestSchema: GenMessage<ListToolApprovalRequestsRequest> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_tool_approval, 5);
+
+/**
+ * @generated from message memoh.private.v1.ListToolApprovalRequestsResponse
+ */
+export type ListToolApprovalRequestsResponse =
+  Message<"memoh.private.v1.ListToolApprovalRequestsResponse"> & {
+    /**
+     * @generated from field: repeated memoh.private.v1.ToolApprovalItem requests = 1;
+     */
+    requests: ToolApprovalItem[];
+
+    /**
+     * @generated from field: memoh.private.v1.PageResponse page = 2;
+     */
+    page?: PageResponse | undefined;
+  };
+
+/**
+ * Describes the message memoh.private.v1.ListToolApprovalRequestsResponse.
+ * Use `create(ListToolApprovalRequestsResponseSchema)` to create a new message.
+ */
+export const ListToolApprovalRequestsResponseSchema: GenMessage<ListToolApprovalRequestsResponse> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_tool_approval, 6);
+
+/**
+ * @generated from message memoh.private.v1.GetToolApprovalRequestRequest
+ */
+export type GetToolApprovalRequestRequest =
+  Message<"memoh.private.v1.GetToolApprovalRequestRequest"> & {
+    /**
+     * @generated from field: string bot_id = 1;
+     */
+    botId: string;
+
+    /**
+     * @generated from field: string request_id = 2;
+     */
+    requestId: string;
+  };
+
+/**
+ * Describes the message memoh.private.v1.GetToolApprovalRequestRequest.
+ * Use `create(GetToolApprovalRequestRequestSchema)` to create a new message.
+ */
+export const GetToolApprovalRequestRequestSchema: GenMessage<GetToolApprovalRequestRequest> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_tool_approval, 7);
+
+/**
+ * @generated from message memoh.private.v1.GetToolApprovalRequestResponse
+ */
+export type GetToolApprovalRequestResponse =
+  Message<"memoh.private.v1.GetToolApprovalRequestResponse"> & {
+    /**
+     * @generated from field: memoh.private.v1.ToolApprovalItem request = 1;
+     */
+    request?: ToolApprovalItem | undefined;
+  };
+
+/**
+ * Describes the message memoh.private.v1.GetToolApprovalRequestResponse.
+ * Use `create(GetToolApprovalRequestResponseSchema)` to create a new message.
+ */
+export const GetToolApprovalRequestResponseSchema: GenMessage<GetToolApprovalRequestResponse> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_tool_approval, 8);
+
+/**
+ * @generated from message memoh.private.v1.RespondToolApprovalRequest
+ */
+export type RespondToolApprovalRequest = Message<"memoh.private.v1.RespondToolApprovalRequest"> & {
+  /**
+   * @generated from field: string bot_id = 1;
+   */
+  botId: string;
+
+  /**
+   * @generated from field: string conversation_id = 2;
+   */
+  conversationId: string;
+
+  /**
+   * @generated from field: string request_id = 3;
+   */
+  requestId: string;
+
+  /**
+   * @generated from field: string decision = 4;
+   */
+  decision: string;
+
+  /**
+   * @generated from field: string reason = 5;
+   */
+  reason: string;
+
+  /**
+   * @generated from field: google.protobuf.Struct payload = 6;
+   */
+  payload?: JsonObject | undefined;
+};
+
+/**
+ * Describes the message memoh.private.v1.RespondToolApprovalRequest.
+ * Use `create(RespondToolApprovalRequestSchema)` to create a new message.
+ */
+export const RespondToolApprovalRequestSchema: GenMessage<RespondToolApprovalRequest> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_tool_approval, 9);
+
+/**
+ * @generated from message memoh.private.v1.RespondToolApprovalResponse
+ */
+export type RespondToolApprovalResponse =
+  Message<"memoh.private.v1.RespondToolApprovalResponse"> & {
+    /**
+     * @generated from field: memoh.private.v1.ToolApprovalItem request = 1;
+     */
+    request?: ToolApprovalItem | undefined;
+  };
+
+/**
+ * Describes the message memoh.private.v1.RespondToolApprovalResponse.
+ * Use `create(RespondToolApprovalResponseSchema)` to create a new message.
+ */
+export const RespondToolApprovalResponseSchema: GenMessage<RespondToolApprovalResponse> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_tool_approval, 10);
+
+/**
  * @generated from service memoh.private.v1.ToolApprovalService
  */
 export const ToolApprovalService: GenService<{
@@ -130,5 +352,29 @@ export const ToolApprovalService: GenService<{
     methodKind: "unary";
     input: typeof RejectToolRequestSchema;
     output: typeof RejectToolResponseSchema;
+  };
+  /**
+   * @generated from rpc memoh.private.v1.ToolApprovalService.ListToolApprovalRequests
+   */
+  listToolApprovalRequests: {
+    methodKind: "unary";
+    input: typeof ListToolApprovalRequestsRequestSchema;
+    output: typeof ListToolApprovalRequestsResponseSchema;
+  };
+  /**
+   * @generated from rpc memoh.private.v1.ToolApprovalService.GetToolApprovalRequest
+   */
+  getToolApprovalRequest: {
+    methodKind: "unary";
+    input: typeof GetToolApprovalRequestRequestSchema;
+    output: typeof GetToolApprovalRequestResponseSchema;
+  };
+  /**
+   * @generated from rpc memoh.private.v1.ToolApprovalService.RespondToolApproval
+   */
+  respondToolApproval: {
+    methodKind: "unary";
+    input: typeof RespondToolApprovalRequestSchema;
+    output: typeof RespondToolApprovalResponseSchema;
   };
 }> /*@__PURE__*/ = serviceDesc(file_memoh_private_v1_tool_approval, 0);

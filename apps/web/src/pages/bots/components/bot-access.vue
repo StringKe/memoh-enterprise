@@ -498,7 +498,8 @@ import {
 } from "@stringke/ui";
 import ConfirmPopover from "@/components/confirm-popover/index.vue";
 import SearchableSelectPopover from "@/components/searchable-select-popover/index.vue";
-import { apiHttpUrl } from "@/lib/runtime-url";
+import { connectClients } from "@/lib/connect-client";
+import { recordValue } from "@/lib/connect-runtime";
 import { resolveApiErrorMessage } from "@/utils/api-error";
 import { formatRelativeTime } from "@/utils/date-time";
 
@@ -536,18 +537,11 @@ interface AclObservedConversationCandidate {
 
 interface AclIdentityCandidate {
   id?: string;
+  channel?: string;
   display_name?: string;
   channel_subject_id?: string;
   avatar_url?: string;
   linked_username?: string;
-}
-
-interface AclListResponse<T> {
-  items?: T[];
-}
-
-interface AclDefaultEffectResponse {
-  default_effect?: string;
 }
 
 // ---- props ----
@@ -559,40 +553,99 @@ const props = defineProps<{
 const { t } = useI18n();
 const queryCache = useQueryCache();
 
-function authHeaders(extra?: HeadersInit): HeadersInit {
-  const headers = new Headers(extra);
-  const token = localStorage.getItem("token");
-  if (token) {
-    headers.set("Authorization", `Bearer ${token}`);
-  }
-  return headers;
+function stringFromRecord(value: Record<string, unknown>, key: string): string {
+  const raw = value[key];
+  return typeof raw === "string" ? raw : "";
 }
 
-function aclUrl(path: string, query?: URLSearchParams): string {
-  const url = apiHttpUrl(`/bots/${encodeURIComponent(props.botId)}/acl${path}`);
-  const queryString = query?.toString();
-  return queryString ? `${url}?${queryString}` : url;
+function boolFromRecord(value: Record<string, unknown>, key: string, fallback: boolean): boolean {
+  const raw = value[key];
+  return typeof raw === "boolean" ? raw : fallback;
 }
 
-async function readJsonResponse<T>(response: Response): Promise<T> {
-  if (!response.ok) {
-    let message = response.statusText;
-    try {
-      const body = (await response.json()) as { message?: string; error?: string; detail?: string };
-      message = body.message || body.error || body.detail || message;
-    } catch {
-      const text = await response.text();
-      message = text || message;
-    }
-    throw { message };
-  }
-  return (await response.json()) as T;
+function sourceScopeFromValue(value: unknown): AclSourceScope | undefined {
+  const record = recordValue(value);
+  const scope: AclSourceScope = {
+    channel: stringFromRecord(record, "channel"),
+    conversation_type: stringFromRecord(record, "conversation_type"),
+    conversation_id: stringFromRecord(record, "conversation_id"),
+    thread_id: stringFromRecord(record, "thread_id"),
+  };
+  return Object.values(scope).some(Boolean) ? scope : undefined;
 }
 
-async function ensureOk(response: Response): Promise<void> {
-  if (!response.ok) {
-    await readJsonResponse(response);
-  }
+function aclRuleFromConnect(
+  rule: Awaited<ReturnType<typeof connectClients.acl.listAclRules>>["rules"][number],
+): AclRule {
+  const metadata = recordValue(rule.metadata);
+  const subjectKind =
+    stringFromRecord(metadata, "subject_kind") ||
+    (rule.identityId ? "channel_identity" : rule.channel ? "channel_type" : "all");
+  return {
+    id: rule.id,
+    priority: rule.priority,
+    enabled: boolFromRecord(metadata, "enabled", true),
+    effect: rule.effect || stringFromRecord(metadata, "effect") || "deny",
+    subject_kind: subjectKind,
+    subject_channel_type: stringFromRecord(metadata, "subject_channel_type") || rule.channel,
+    channel_identity_id: stringFromRecord(metadata, "channel_identity_id") || rule.identityId,
+    channel_identity_display_name: stringFromRecord(metadata, "channel_identity_display_name"),
+    channel_subject_id: stringFromRecord(metadata, "channel_subject_id") || rule.identityId,
+    channel_type: stringFromRecord(metadata, "channel_type") || rule.channel,
+    source_scope: sourceScopeFromValue(metadata.source_scope),
+    description: stringFromRecord(metadata, "description"),
+  };
+}
+
+function identityFromConnect(
+  identity: Awaited<
+    ReturnType<typeof connectClients.acl.listAclChannelIdentities>
+  >["identities"][number],
+): AclIdentityCandidate {
+  const metadata = recordValue(identity.metadata);
+  return {
+    id: identity.id,
+    channel: identity.channel,
+    display_name: identity.displayName,
+    channel_subject_id: stringFromRecord(metadata, "channel_subject_id") || identity.id,
+    avatar_url: stringFromRecord(metadata, "avatar_url"),
+    linked_username: stringFromRecord(metadata, "linked_username"),
+  };
+}
+
+function observedConversationFromConnect(
+  conversation: Awaited<
+    ReturnType<typeof connectClients.acl.listAclObservedConversations>
+  >["conversations"][number],
+): AclObservedConversationCandidate {
+  const metadata = recordValue(conversation.metadata);
+  return {
+    route_id: conversation.id,
+    conversation_name: conversation.title,
+    conversation_id: stringFromRecord(metadata, "conversation_id") || conversation.id,
+    thread_id: stringFromRecord(metadata, "thread_id"),
+    channel: conversation.channel,
+    conversation_type: stringFromRecord(metadata, "conversation_type"),
+    last_observed_at: stringFromRecord(metadata, "last_observed_at"),
+  };
+}
+
+function ruleMetadataFromForm(): Record<string, unknown> {
+  return {
+    priority: editingRule.value?.id ? (editingRule.value.priority ?? 0) : nextRulePriority(),
+    enabled: ruleForm.enabled,
+    subject_kind: ruleForm.subjectKind,
+    subject_channel_type:
+      ruleForm.subjectKind === "channel_type"
+        ? ruleForm.subjectChannelType || undefined
+        : undefined,
+    channel_identity_id:
+      ruleForm.subjectKind === "channel_identity"
+        ? ruleForm.channelIdentityId || undefined
+        : undefined,
+    source_scope: buildSourceScope(),
+    description: ruleForm.description || undefined,
+  };
 }
 
 // ---- constants ----
@@ -616,10 +669,8 @@ const conversationTypes = computed(() => [
 const { data: rulesData, isLoading: isLoadingRules } = useQuery({
   key: () => ["bot-acl-rules", props.botId],
   query: async () => {
-    const response = await fetch(aclUrl("/rules"), {
-      headers: authHeaders(),
-    });
-    return readJsonResponse<AclListResponse<AclRule>>(response);
+    const response = await connectClients.acl.listAclRules({ botId: props.botId });
+    return response.rules.map(aclRuleFromConnect);
   },
   enabled: () => !!props.botId,
 });
@@ -627,10 +678,7 @@ const { data: rulesData, isLoading: isLoadingRules } = useQuery({
 const { data: defaultEffectData } = useQuery({
   key: () => ["bot-acl-default-effect", props.botId],
   query: async () => {
-    const response = await fetch(aclUrl("/default-effect"), {
-      headers: authHeaders(),
-    });
-    return readJsonResponse<AclDefaultEffectResponse>(response);
+    return await connectClients.acl.getAclDefaultEffect({ botId: props.botId });
   },
   enabled: () => !!props.botId,
 });
@@ -638,11 +686,12 @@ const { data: defaultEffectData } = useQuery({
 const { data: identityCandidates } = useQuery({
   key: () => ["bot-acl-identities", props.botId],
   query: async () => {
-    const query = new URLSearchParams({ limit: "100" });
-    const response = await fetch(aclUrl("/channel-identities", query), {
-      headers: authHeaders(),
+    const response = await connectClients.acl.listAclChannelIdentities({
+      botId: props.botId,
+      channel: "",
+      page: { pageSize: 100, pageToken: "" },
     });
-    return readJsonResponse<AclListResponse<AclIdentityCandidate>>(response);
+    return response.identities.map(identityFromConnect);
   },
   enabled: () => !!props.botId,
 });
@@ -688,11 +737,12 @@ const dialogChannelTypeTrimmed = computed(() =>
 const { data: observedByIdentityData, isLoading: isLoadingObservedIdentity } = useQuery({
   key: () => ["bot-acl-observed", props.botId, dialogIdentityId.value],
   query: async () => {
-    const response = await fetch(
-      aclUrl(`/channel-identities/${encodeURIComponent(dialogIdentityId.value)}/conversations`),
-      { headers: authHeaders() },
-    );
-    return readJsonResponse<AclListResponse<AclObservedConversationCandidate>>(response);
+    const response = await connectClients.acl.listAclObservedConversations({
+      botId: props.botId,
+      identityId: dialogIdentityId.value,
+      page: { pageSize: 100, pageToken: "" },
+    });
+    return response.conversations.map(observedConversationFromConnect);
   },
   enabled: () => !!props.botId && !!dialogIdentityId.value,
 });
@@ -700,11 +750,12 @@ const { data: observedByIdentityData, isLoading: isLoadingObservedIdentity } = u
 const { data: observedByChannelTypeData, isLoading: isLoadingObservedChannelType } = useQuery({
   key: () => ["bot-acl-observed-channel-type", props.botId, dialogChannelTypeTrimmed.value],
   query: async () => {
-    const response = await fetch(
-      aclUrl(`/channel-types/${encodeURIComponent(dialogChannelTypeTrimmed.value)}/conversations`),
-      { headers: authHeaders() },
-    );
-    return readJsonResponse<AclListResponse<AclObservedConversationCandidate>>(response);
+    const response = await connectClients.acl.listAclObservedConversationsByChannelType({
+      botId: props.botId,
+      channel: dialogChannelTypeTrimmed.value,
+      page: { pageSize: 100, pageToken: "" },
+    });
+    return response.conversations.map(observedConversationFromConnect);
   },
   enabled: () => !!props.botId && !!dialogChannelTypeTrimmed.value,
 });
@@ -746,8 +797,8 @@ const observedConversationEmptyText = computed(() => {
 
 // ---- derived ----
 
-const rules = computed(() => rulesData.value?.items ?? []);
-const identities = computed(() => identityCandidates.value?.items ?? []);
+const rules = computed(() => rulesData.value ?? []);
+const identities = computed(() => identityCandidates.value ?? []);
 
 const draggableRules = ref<AclRule[]>([]);
 const sortableListRef = ref<HTMLElement | null>(null);
@@ -788,18 +839,10 @@ async function handleRulesReorderEnd(evt: { oldIndex?: number; newIndex?: number
 
   isReordering.value = true;
   try {
-    await ensureOk(
-      await fetch(aclUrl("/rules/reorder"), {
-        method: "PUT",
-        headers: authHeaders({ "Content-Type": "application/json" }),
-        body: JSON.stringify({
-          items: reordered.map((r, i) => ({
-            id: r.id!,
-            priority: i * 10,
-          })),
-        }),
-      }),
-    );
+    await connectClients.acl.reorderAclRules({
+      botId: props.botId,
+      ruleIds: reordered.map((rule) => rule.id ?? "").filter(Boolean),
+    });
     queryCache.invalidateQueries({ key: ["bot-acl-rules", props.botId] });
     toast.success(t("bots.access.rulesReordered"));
   } catch (e) {
@@ -822,7 +865,7 @@ const identityOptions = computed(() =>
 );
 
 const observedConversationOptions = computed(() =>
-  (observedConversationsForRule.value?.items ?? []).map((c) => {
+  (observedConversationsForRule.value ?? []).map((c) => {
     const label = buildConversationLabel(c);
     const keywords = [
       c.conversation_name,
@@ -879,27 +922,24 @@ const isSavingDefaultEffect = ref(false);
 watch(
   defaultEffectData,
   (data) => {
-    if (data?.default_effect) {
-      defaultEffectDraft.value = data.default_effect;
+    if (data?.effect) {
+      defaultEffectDraft.value = data.effect;
     }
   },
   { immediate: true },
 );
 
 const hasDefaultEffectChanges = computed(
-  () => defaultEffectDraft.value !== (defaultEffectData.value?.default_effect ?? "allow"),
+  () => defaultEffectDraft.value !== (defaultEffectData.value?.effect ?? "allow"),
 );
 
 async function handleSaveDefaultEffect() {
   isSavingDefaultEffect.value = true;
   try {
-    await ensureOk(
-      await fetch(aclUrl("/default-effect"), {
-        method: "PUT",
-        headers: authHeaders({ "Content-Type": "application/json" }),
-        body: JSON.stringify({ default_effect: defaultEffectDraft.value }),
-      }),
-    );
+    await connectClients.acl.setAclDefaultEffect({
+      botId: props.botId,
+      effect: defaultEffectDraft.value,
+    });
     queryCache.invalidateQueries({ key: ["bot-acl-default-effect", props.botId] });
     toast.success(t("bots.access.defaultEffectSaved"));
   } catch (e) {
@@ -936,8 +976,8 @@ watch(
       ruleForm.subjectKind === "channel_type" && !!dialogChannelTypeTrimmed.value;
     if (!hasIdentity && !hasChannelType) return;
     const items = hasIdentity
-      ? (observedByIdentityData.value?.items ?? [])
-      : (observedByChannelTypeData.value?.items ?? []);
+      ? (observedByIdentityData.value ?? [])
+      : (observedByChannelTypeData.value ?? []);
     const match = items.find(
       (c) =>
         (c.conversation_type ?? "") === (ruleForm.sourceConversationType ?? "") &&
@@ -1032,9 +1072,7 @@ function clearScopeFields() {
 }
 
 function applyObservedConversation(routeId: string) {
-  const item = (observedConversationsForRule.value?.items ?? []).find(
-    (c) => c.route_id === routeId,
-  );
+  const item = (observedConversationsForRule.value ?? []).find((c) => c.route_id === routeId);
   if (!item) return;
   ruleForm.sourceConversationType = item.conversation_type ?? "";
   ruleForm.sourceConversationId = item.conversation_id ?? "";
@@ -1056,38 +1094,32 @@ async function handleSaveRule() {
   formError.value = "";
   isSavingRule.value = true;
   try {
-    const body = {
-      priority: editingRule.value?.id ? (editingRule.value.priority ?? 0) : nextRulePriority(),
-      enabled: ruleForm.enabled,
-      effect: ruleForm.effect,
-      subject_kind: ruleForm.subjectKind,
-      channel_identity_id:
-        ruleForm.subjectKind === "channel_identity"
-          ? ruleForm.channelIdentityId || undefined
-          : undefined,
-      subject_channel_type:
-        ruleForm.subjectKind === "channel_type"
-          ? ruleForm.subjectChannelType || undefined
-          : undefined,
-      source_scope: buildSourceScope(),
-      description: ruleForm.description || undefined,
-    };
+    const selectedIdentity = identities.value.find(
+      (item) => item.id === ruleForm.channelIdentityId,
+    );
+    const channel =
+      ruleForm.subjectKind === "channel_type"
+        ? ruleForm.subjectChannelType
+        : ruleForm.subjectKind === "channel_identity"
+          ? (selectedIdentity?.channel ?? "")
+          : "";
+    const identityId =
+      ruleForm.subjectKind === "channel_identity" ? ruleForm.channelIdentityId : "";
+    const metadata = ruleMetadataFromForm();
     if (editingRule.value?.id) {
-      await ensureOk(
-        await fetch(aclUrl(`/rules/${encodeURIComponent(editingRule.value.id)}`), {
-          method: "PUT",
-          headers: authHeaders({ "Content-Type": "application/json" }),
-          body: JSON.stringify(body),
-        }),
-      );
+      await connectClients.acl.updateAclRule({
+        id: editingRule.value.id,
+        effect: ruleForm.effect,
+        metadata,
+      });
     } else {
-      await ensureOk(
-        await fetch(aclUrl("/rules"), {
-          method: "POST",
-          headers: authHeaders({ "Content-Type": "application/json" }),
-          body: JSON.stringify(body),
-        }),
-      );
+      await connectClients.acl.createAclRule({
+        botId: props.botId,
+        channel,
+        identityId,
+        effect: ruleForm.effect,
+        metadata,
+      });
     }
     queryCache.invalidateQueries({ key: ["bot-acl-rules", props.botId] });
     toast.success(t("bots.access.ruleSaved"));
@@ -1101,12 +1133,7 @@ async function handleSaveRule() {
 
 async function handleDeleteRule(ruleId: string) {
   try {
-    await ensureOk(
-      await fetch(aclUrl(`/rules/${encodeURIComponent(ruleId)}`), {
-        method: "DELETE",
-        headers: authHeaders(),
-      }),
-    );
+    await connectClients.acl.deleteAclRule({ id: ruleId });
     queryCache.invalidateQueries({ key: ["bot-acl-rules", props.botId] });
     toast.success(t("bots.access.deleteSuccess"));
   } catch (e) {
@@ -1116,22 +1143,19 @@ async function handleDeleteRule(ruleId: string) {
 
 async function handleToggleEnabled(rule: AclRule, enabled: boolean) {
   try {
-    await ensureOk(
-      await fetch(aclUrl(`/rules/${encodeURIComponent(rule.id!)}`), {
-        method: "PUT",
-        headers: authHeaders({ "Content-Type": "application/json" }),
-        body: JSON.stringify({
-          priority: rule.priority ?? 0,
-          enabled,
-          effect: rule.effect ?? "deny",
-          subject_kind: rule.subject_kind ?? "all",
-          channel_identity_id: rule.channel_identity_id,
-          subject_channel_type: rule.subject_channel_type,
-          source_scope: rule.source_scope,
-          description: rule.description,
-        }),
-      }),
-    );
+    await connectClients.acl.updateAclRule({
+      id: rule.id!,
+      effect: rule.effect ?? "deny",
+      metadata: {
+        priority: rule.priority ?? 0,
+        enabled,
+        subject_kind: rule.subject_kind ?? "all",
+        channel_identity_id: rule.channel_identity_id,
+        subject_channel_type: rule.subject_channel_type,
+        source_scope: rule.source_scope,
+        description: rule.description,
+      },
+    });
     queryCache.invalidateQueries({ key: ["bot-acl-rules", props.botId] });
   } catch (e) {
     toast.error(resolveApiErrorMessage(e, t("bots.access.saveFailed")));

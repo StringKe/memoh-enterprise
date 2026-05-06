@@ -3,10 +3,8 @@ import { loadConfig } from "@stringke/config";
 import { corsMiddleware } from "./middlewares/cors";
 import { errorMiddleware } from "./middlewares/error";
 import { initBrowsers, browsers, closeAllBotBrowsers } from "./browser";
-import { contextModule } from "./modules/context";
-import { devicesModule } from "./modules/devices";
-import { coresModule } from "./modules/cores";
-import { sessionModule, closeAllSessions } from "./modules/session";
+import { createBrowserConnectFetchHandler } from "./connect/browser-service";
+import { closeAllSessions } from "./modules/session";
 
 const configuredPath = process.env.MEMOH_CONFIG_PATH?.trim() || process.env.CONFIG_PATH?.trim();
 const configPath =
@@ -17,16 +15,15 @@ await initBrowsers();
 
 export { browsers };
 
+const connectHandler = createBrowserConnectFetchHandler();
+
 const app = new Elysia()
   .use(corsMiddleware)
   .use(errorMiddleware)
   .get("/health", () => ({
     status: "ok",
   }))
-  .use(coresModule)
-  .use(contextModule)
-  .use(sessionModule)
-  .use(devicesModule)
+  .all("/memoh.browser.v1.BrowserService/:method", ({ request }) => connectHandler(request))
   .onStop(async () => {
     await closeAllSessions();
     await closeAllBotBrowsers();

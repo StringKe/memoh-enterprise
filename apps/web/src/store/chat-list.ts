@@ -3,6 +3,7 @@ import { computed, reactive, ref, watch } from "vue";
 import { useRetryingStream } from "@/composables/useRetryingStream";
 import { useUserStore } from "@/store/user";
 import { useChatSelectionStore } from "@/store/chat-selection";
+import { connectClients } from "@/lib/connect-client";
 import { shouldRefreshFromMessageCreated, upsertById } from "./chat-list.utils";
 import {
   createSession,
@@ -12,7 +13,6 @@ import {
   type SessionSummary,
   type MessageStreamEvent,
   type ChatAttachment,
-  type ChatWebSocket,
   type UIAttachment,
   type UIAttachmentsMessage,
   type UIMessage,
@@ -25,9 +25,8 @@ import {
   type UIStreamEvent,
   fetchBots,
   fetchMessagesUI,
-  sendLocalChannelMessage,
+  streamLocalChannelMessage,
   streamMessageEvents,
-  connectWebSocket,
 } from "@/composables/api/useChat";
 
 export type TextBlock = UITextMessage;
@@ -112,7 +111,6 @@ export const useChatStore = defineStore("chat", () => {
   let abortFn: (() => void) | null = null;
   let messageEventsSince = "";
   let pendingAssistantStream: PendingAssistantStream | null = null;
-  let activeWs: ChatWebSocket | null = null;
   let refreshTimer: ReturnType<typeof setTimeout> | null = null;
   let refreshPromise: Promise<void> | null = null;
   let suppressNextStartPlaceholder = false;
@@ -139,7 +137,6 @@ export const useChatStore = defineStore("chat", () => {
         void initialize();
       } else {
         stopMessageEvents();
-        stopWebSocket();
         rejectPendingAssistantStream(new Error("Bot stream stopped"));
         messageEventsSince = "";
         sessions.value = [];
@@ -359,7 +356,7 @@ export const useChatStore = defineStore("chat", () => {
     if (idx >= 0) messages.splice(idx, 1);
   }
 
-  function handleWSStreamEvent(event: UIStreamEvent) {
+  function handleChatStreamEvent(event: UIStreamEvent) {
     switch (event.type) {
       case "start":
         if (suppressNextStartPlaceholder) {
@@ -393,29 +390,6 @@ export const useChatStore = defineStore("chat", () => {
 
   function stopMessageEvents() {
     messageEventsStream.stop();
-  }
-
-  function stopWebSocket() {
-    if (activeWs) {
-      activeWs.close();
-      activeWs = null;
-    }
-  }
-
-  function startWebSocket(targetBotId: string) {
-    const bid = targetBotId.trim();
-    stopWebSocket();
-    if (!bid) return;
-    activeWs = connectWebSocket(bid, handleWSStreamEvent);
-  }
-
-  function ensureWebSocket(targetBotId: string): ChatWebSocket | null {
-    const bid = targetBotId.trim();
-    if (!bid) return null;
-    if (!activeWs) {
-      startWebSocket(bid);
-    }
-    return activeWs;
   }
 
   async function refreshCurrentSession(targetBotId?: string, targetSessionId?: string) {
@@ -508,9 +482,6 @@ export const useChatStore = defineStore("chat", () => {
   }
 
   function abort() {
-    if (activeWs?.connected) {
-      activeWs.abort();
-    }
     abortFn?.();
     abortFn = null;
     for (const message of messages) {
@@ -643,7 +614,6 @@ export const useChatStore = defineStore("chat", () => {
     initializing.value = true;
     loadingChats.value = true;
     stopMessageEvents();
-    stopWebSocket();
     try {
       const bid = await ensureBot();
       if (!bid) {
@@ -670,7 +640,6 @@ export const useChatStore = defineStore("chat", () => {
         await loadMessages(bid, activeSessionId);
       }
 
-      startWebSocket(bid);
       startMessageEvents(bid);
     } finally {
       loadingChats.value = false;
@@ -752,30 +721,29 @@ export const useChatStore = defineStore("chat", () => {
       const effort = overrideReasoningEffort.value;
       const reasoningEffort = effort && effort !== "off" ? effort : undefined;
 
-      const ws = ensureWebSocket(bid);
-      if (ws) {
-        const completion = createCompletionForAssistantTurn(assistantTurn);
-        abortFn = () => {
-          const abortError = new Error("aborted");
-          abortError.name = "AbortError";
-          ws.abort();
-          rejectPendingAssistantStream(abortError);
-        };
-        ws.send({
-          type: "message",
+      const controller = new AbortController();
+      const completion = createCompletionForAssistantTurn(assistantTurn);
+      abortFn = () => {
+        const abortError = new Error("aborted");
+        abortError.name = "AbortError";
+        controller.abort(abortError);
+        rejectPendingAssistantStream(abortError);
+      };
+      await streamLocalChannelMessage(
+        {
+          botId: bid,
+          sessionId: sid,
           text: trimmed,
-          session_id: sid,
           attachments,
-          model_id: modelId,
-          reasoning_effort: reasoningEffort,
-        });
-        await completion;
-        await refreshCurrentSession(bid, sid);
-      } else {
-        void createCompletionForAssistantTurn(assistantTurn).catch(() => {});
-        await sendLocalChannelMessage(bid, trimmed, attachments, { modelId, reasoningEffort });
-        await refreshCurrentSession(bid, sid);
-      }
+          overrides: { modelId, reasoningEffort },
+        },
+        controller.signal,
+        handleChatStreamEvent,
+      );
+      pruneEmptyAssistantTurnIfPending();
+      resolvePendingAssistantStream();
+      await completion;
+      await refreshCurrentSession(bid, sid);
 
       assistantTurn.streaming = false;
       streamingSessionId.value = null;
@@ -820,7 +788,6 @@ export const useChatStore = defineStore("chat", () => {
     const bid = currentBotId.value ?? "";
     const sid = sessionId.value ?? "";
     if (!bid || !sid || !approval.approval_id || streaming.value) return;
-    const ws = ensureWebSocket(bid);
     streamingSessionId.value = sid;
     loading.value = true;
     suppressNextStartPlaceholder = true;
@@ -841,19 +808,26 @@ export const useChatStore = defineStore("chat", () => {
     abortFn = () => {
       const abortError = new Error("aborted");
       abortError.name = "AbortError";
-      ws?.abort();
       rejectPendingAssistantStream(abortError);
       streamingSessionId.value = null;
       loading.value = false;
       abortFn = null;
     };
-    ws?.send({
-      type: "tool_approval_response",
-      session_id: sid,
-      approval_id: approval.approval_id,
-      short_id: approval.short_id,
-      decision,
-    });
+    try {
+      await connectClients.toolApproval.respondToolApproval({
+        botId: bid,
+        conversationId: sid,
+        requestId: approval.approval_id,
+        decision,
+        reason: "",
+        payload: { short_id: approval.short_id ?? 0 },
+      });
+      await refreshCurrentSession(bid, sid);
+    } finally {
+      streamingSessionId.value = null;
+      loading.value = false;
+      abortFn = null;
+    }
   }
 
   function clearMessages() {

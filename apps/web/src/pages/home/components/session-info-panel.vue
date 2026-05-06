@@ -111,7 +111,8 @@ import { ScrollArea } from "@stringke/ui";
 import { resolveApiErrorMessage } from "@/utils/api-error";
 import { openInFileManagerKey } from "../composables/useFileManagerProvider";
 import { useSessionInfo } from "../composables/useSessionInfo";
-import { apiHttpUrl } from "@/lib/runtime-url";
+import { connectClients } from "@/lib/connect-client";
+import { recordValue } from "@/lib/connect-runtime";
 
 const props = defineProps<{
   visible: boolean;
@@ -129,14 +130,6 @@ type SkillItem = {
   state?: string;
 };
 
-function authHeaders(extra?: HeadersInit): HeadersInit {
-  const token = localStorage.getItem("token") || "";
-  return {
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    ...extra,
-  };
-}
-
 const visibleRef = toRef(props, "visible");
 const overrideModelIdRef = computed(() => props.overrideModelId ?? "");
 
@@ -150,18 +143,24 @@ const { info, usedTokens, contextWindow, contextPercent, currentBotId, sessionId
 const { data: skillCatalog } = useQuery({
   key: () => ["bot-skills-catalog", currentBotId.value ?? ""],
   query: async () => {
-    const response = await fetch(
-      apiHttpUrl(`/bots/${encodeURIComponent(currentBotId.value!)}/container/skills`),
-      {
-        headers: authHeaders(),
-      },
-    );
-    if (!response.ok) {
-      const message = await response.text();
-      throw new Error(message || `Request failed with status ${response.status}`);
-    }
-    const data = (await response.json()) as { skills?: SkillItem[] };
-    return data.skills ?? [];
+    const response = await connectClients.skills.listBotContainerSkills({
+      botId: currentBotId.value!,
+      page: { pageSize: 200, pageToken: "" },
+    });
+    return response.skills.map((skill): SkillItem => {
+      const metadata = recordValue(skill.metadata);
+      return {
+        name: skill.name,
+        source_path: typeof metadata.source_path === "string" ? metadata.source_path : skill.source,
+        source_kind: typeof metadata.source_kind === "string" ? metadata.source_kind : "",
+        state:
+          typeof metadata.state === "string"
+            ? metadata.state
+            : skill.enabled
+              ? "effective"
+              : "disabled",
+      };
+    });
   },
   enabled: () => !!currentBotId.value && props.visible,
   refetchOnWindowFocus: false,
@@ -210,17 +209,11 @@ async function triggerCompact() {
 
   isCompacting.value = true;
   try {
-    const response = await fetch(
-      apiHttpUrl(`/bots/${encodeURIComponent(botId)}/sessions/${encodeURIComponent(sid)}/compact`),
-      {
-        method: "POST",
-        headers: authHeaders(),
-      },
-    );
-    if (!response.ok) {
-      const message = await response.text();
-      throw new Error(message || `Request failed with status ${response.status}`);
-    }
+    await connectClients.bots.compactBotSession({
+      botId,
+      sessionId: sid,
+      reason: "manual",
+    });
     toast.success(t("chat.compactSuccess"));
     queryCache.invalidateQueries({ key: ["session-status", botId, sid] });
   } catch (error) {

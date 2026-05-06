@@ -4,6 +4,7 @@ import { toast } from "vue-sonner";
 import { useI18n } from "vue-i18n";
 import { useRoute } from "vue-router";
 import { useQuery } from "@pinia/colada";
+import { Code, ConnectError } from "@connectrpc/connect";
 import { ChevronRight } from "lucide-vue-next";
 import {
   postBotsByBotIdContainerStream,
@@ -32,7 +33,13 @@ import { formatDateTime } from "@/utils/date-time";
 import { shortenImageRef } from "@/utils/image-ref";
 import { resolveApiErrorMessage } from "@/utils/api-error";
 import { connectClients } from "@/lib/connect-client";
-import { apiHttpUrl } from "@/lib/runtime-url";
+import {
+  downloadBytes,
+  fileToBytes,
+  int64ToNumber,
+  recordValue,
+  timestampToISOString,
+} from "@/lib/connect-runtime";
 
 const route = useRoute();
 const { t } = useI18n();
@@ -150,40 +157,83 @@ function resolveErrorMessage(error: unknown, fallback: string): string {
   return resolveApiErrorMessage(error, fallback);
 }
 
-function authHeaders(extra?: HeadersInit): HeadersInit {
-  const token = localStorage.getItem("token") || "";
+function containerInfoFromConnect(
+  value: Awaited<ReturnType<typeof connectClients.containers.getContainerLifecycle>>,
+): BotContainerInfo {
+  const metadata = recordValue(value.metadata);
   return {
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    ...extra,
+    ...metadata,
+    workspace_backend: value.backend,
+    container_id: String(metadata.container_id ?? value.workspaceId ?? ""),
+    status: value.status,
+    task_running: metadata.task_running === true,
+    namespace: typeof metadata.namespace === "string" ? metadata.namespace : "",
+    image: value.image,
+    cdi_devices: Array.isArray(metadata.cdi_devices)
+      ? metadata.cdi_devices.filter((item): item is string => typeof item === "string")
+      : [],
+    container_path: typeof metadata.container_path === "string" ? metadata.container_path : "",
+    data_restored: metadata.data_restored === true,
+    has_preserved_data: metadata.has_preserved_data === true,
+    legacy: metadata.legacy === true,
+    created_at:
+      (typeof metadata.created_at === "string" ? metadata.created_at : "") ||
+      timestampToISOString(value.startedAt),
+    updated_at:
+      (typeof metadata.updated_at === "string" ? metadata.updated_at : "") ||
+      timestampToISOString(value.startedAt),
   };
 }
 
-function botRuntimeUrl(path: string, query?: URLSearchParams): string {
-  const url = apiHttpUrl(`/bots/${encodeURIComponent(botId.value)}${path}`);
-  const queryString = query?.toString();
-  return queryString ? `${url}?${queryString}` : url;
+function containerMetricsFromConnect(
+  value: Awaited<ReturnType<typeof connectClients.containers.getContainerMetrics>>,
+): BotContainerMetrics {
+  return {
+    cpu_percent: value.cpuPercent,
+    memory_usage_bytes: int64ToNumber(value.memoryBytes),
+    memory_limit_bytes: int64ToNumber(value.memoryLimitBytes),
+    sampled_at: timestampToISOString(value.observedAt),
+    supported: true,
+  };
 }
 
-async function readJsonResponse<T>(response: Response): Promise<T> {
-  if (!response.ok) {
-    const message = await response.text();
-    throw new Error(message || `Request failed with status ${response.status}`);
+function containerSnapshotFromConnect(
+  value: Awaited<
+    ReturnType<typeof connectClients.containers.listContainerSnapshots>
+  >["snapshots"][number],
+): BotContainerSnapshot {
+  const metadata = recordValue(value.metadata);
+  const version = typeof metadata.version === "number" ? metadata.version : undefined;
+  return {
+    ...metadata,
+    id: value.snapshotId,
+    name: value.name,
+    display_name: typeof metadata.display_name === "string" ? metadata.display_name : value.name,
+    runtime_snapshot_name:
+      typeof metadata.runtime_snapshot_name === "string"
+        ? metadata.runtime_snapshot_name
+        : value.name,
+    version,
+    source: typeof metadata.source === "string" ? metadata.source : undefined,
+    parent_id: typeof metadata.parent_id === "string" ? metadata.parent_id : undefined,
+    managed: metadata.managed === true || version !== undefined,
+    created_at: timestampToISOString(value.createdAt),
+  };
+}
+
+async function runContainerProgressOperation(
+  operation: string,
+  options: Record<string, unknown> = {},
+) {
+  for await (const event of connectClients.containers.streamContainerProgress({
+    botId: botId.value,
+    operation,
+    options,
+  })) {
+    if (event.type === "error") {
+      throw new Error(event.message || "Container operation failed");
+    }
   }
-  return response.json() as Promise<T>;
-}
-
-async function readBlobResponse(response: Response): Promise<Blob> {
-  if (!response.ok) {
-    const message = await response.text();
-    throw new Error(message || `Request failed with status ${response.status}`);
-  }
-  return response.blob();
-}
-
-async function ensureOk(response: Response): Promise<void> {
-  if (response.ok) return;
-  const message = await response.text();
-  throw new Error(message || `Request failed with status ${response.status}`);
 }
 
 async function runContainerAction<T>(
@@ -211,18 +261,8 @@ async function loadContainerData(showLoadingToast: boolean) {
   await capabilitiesStore.load();
   containerLoading.value = true;
   try {
-    const response = await fetch(botRuntimeUrl("/container"), {
-      headers: authHeaders(),
-    });
-    if (response.status === 404) {
-      containerInfo.value = null;
-      containerMetrics.value = null;
-      containerMissing.value = true;
-      snapshots.value = [];
-      return;
-    }
-
-    containerInfo.value = await readJsonResponse<BotContainerInfo>(response);
+    const response = await connectClients.containers.getContainerLifecycle({ botId: botId.value });
+    containerInfo.value = containerInfoFromConnect(response);
     containerMissing.value = false;
 
     const metricsPromise = loadContainerMetrics(showLoadingToast);
@@ -234,6 +274,13 @@ async function loadContainerData(showLoadingToast: boolean) {
       await metricsPromise;
     }
   } catch (error) {
+    if (error instanceof ConnectError && error.code === Code.NotFound) {
+      containerInfo.value = null;
+      containerMetrics.value = null;
+      containerMissing.value = true;
+      snapshots.value = [];
+      return;
+    }
     if (showLoadingToast) {
       toast.error(resolveErrorMessage(error, t("bots.container.loadFailed")));
     }
@@ -245,11 +292,8 @@ async function loadContainerData(showLoadingToast: boolean) {
 async function loadContainerMetrics(showLoadingToast: boolean) {
   metricsLoading.value = true;
   try {
-    containerMetrics.value = await readJsonResponse<BotContainerMetrics>(
-      await fetch(botRuntimeUrl("/container/metrics"), {
-        headers: authHeaders(),
-      }),
-    );
+    const response = await connectClients.containers.getContainerMetrics({ botId: botId.value });
+    containerMetrics.value = containerMetricsFromConnect(response);
   } catch (error) {
     containerMetrics.value = null;
     if (showLoadingToast) {
@@ -268,12 +312,8 @@ async function loadSnapshots() {
 
   snapshotsLoading.value = true;
   try {
-    const data = await readJsonResponse<{ snapshots?: BotContainerSnapshot[] }>(
-      await fetch(botRuntimeUrl("/container/snapshots"), {
-        headers: authHeaders(),
-      }),
-    );
-    snapshots.value = data.snapshots ?? [];
+    const data = await connectClients.containers.listContainerSnapshots({ botId: botId.value });
+    snapshots.value = data.snapshots.map(containerSnapshotFromConnect);
   } catch (error) {
     snapshots.value = [];
     toast.error(resolveErrorMessage(error, t("bots.container.snapshotLoadFailed")));
@@ -465,12 +505,7 @@ async function handleRecreateContainer() {
   containerAction.value = "recreate";
   try {
     createProgress.value = { phase: "preserving" };
-    await ensureOk(
-      await fetch(botRuntimeUrl("/container", new URLSearchParams({ preserve_data: "true" })), {
-        method: "DELETE",
-        headers: authHeaders(),
-      }),
-    );
+    await runContainerProgressOperation("delete", { preserve_data: true });
 
     createProgress.value = { phase: "pulling" };
     await createContainerSSE({ restore_data: true });
@@ -490,12 +525,10 @@ async function handleStopContainer() {
   await runContainerAction(
     "stop",
     async () => {
-      await ensureOk(
-        await fetch(botRuntimeUrl("/container/stop"), {
-          method: "POST",
-          headers: authHeaders(),
-        }),
-      );
+      await connectClients.containers.stopContainer({
+        botId: botId.value,
+        reason: "user_requested",
+      });
       await loadContainerData(false);
     },
     t("bots.container.stopSuccess"),
@@ -508,12 +541,10 @@ async function handleStartContainer() {
   await runContainerAction(
     "start",
     async () => {
-      await ensureOk(
-        await fetch(botRuntimeUrl("/container/start"), {
-          method: "POST",
-          headers: authHeaders(),
-        }),
-      );
+      await connectClients.containers.startContainer({
+        botId: botId.value,
+        options: {},
+      });
       await loadContainerData(false);
     },
     t("bots.container.startSuccess"),
@@ -532,18 +563,7 @@ async function handleDeleteContainer(preserveData: boolean) {
   await runContainerAction(
     action,
     async () => {
-      await ensureOk(
-        await fetch(
-          botRuntimeUrl(
-            "/container",
-            preserveData ? new URLSearchParams({ preserve_data: "true" }) : undefined,
-          ),
-          {
-            method: "DELETE",
-            headers: authHeaders(),
-          },
-        ),
-      );
+      await runContainerProgressOperation("delete", { preserve_data: preserveData });
       containerInfo.value = null;
       containerMetrics.value = null;
       containerMissing.value = true;
@@ -561,28 +581,18 @@ function buildExportFilename() {
   return `bot-${botId.value}-data-${timestamp}.tar.gz`;
 }
 
-function downloadBlob(blob: Blob, filename: string) {
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = filename;
-  anchor.click();
-  window.setTimeout(() => URL.revokeObjectURL(url), 0);
-}
-
 async function handleExportData() {
   if (botLifecyclePending.value || !containerInfo.value) return;
 
   await runContainerAction(
     "export",
     async () => {
-      const blob = await readBlobResponse(
-        await fetch(botRuntimeUrl("/container/data/export"), {
-          method: "POST",
-          headers: authHeaders(),
-        }),
-      );
-      downloadBlob(blob, buildExportFilename());
+      const response = await connectClients.containers.exportContainerData({
+        botId: botId.value,
+        path: "/data",
+        options: {},
+      });
+      downloadBytes(response.data, response.filename || buildExportFilename(), response.mimeType);
     },
     t("bots.container.exportSuccess"),
   );
@@ -602,15 +612,15 @@ async function handleImportData(event: Event) {
   await runContainerAction(
     "import",
     async () => {
-      const body = new FormData();
-      body.set("file", file);
-      await ensureOk(
-        await fetch(botRuntimeUrl("/container/data/import"), {
-          method: "POST",
-          headers: authHeaders(),
-          body,
-        }),
-      );
+      await connectClients.containers.importContainerData({
+        botId: botId.value,
+        source: file.name,
+        data: await fileToBytes(file),
+        options: {
+          filename: file.name,
+          mime_type: file.type,
+        },
+      });
       await loadContainerData(false);
     },
     t("bots.container.importSuccess"),
@@ -625,12 +635,7 @@ async function handleRestorePreservedData() {
   await runContainerAction(
     "restore",
     async () => {
-      await ensureOk(
-        await fetch(botRuntimeUrl("/container/data/restore"), {
-          method: "POST",
-          headers: authHeaders(),
-        }),
-      );
+      await runContainerProgressOperation("restore_preserved_data");
       await loadContainerData(false);
     },
     t("bots.container.restoreSuccess"),
@@ -718,13 +723,14 @@ async function handleRollbackSnapshot(snapshot: BotContainerSnapshot) {
   await runContainerAction(
     "rollback",
     async () => {
-      await ensureOk(
-        await fetch(botRuntimeUrl("/container/snapshots/rollback"), {
-          method: "POST",
-          headers: authHeaders({ "Content-Type": "application/json" }),
-          body: JSON.stringify({ version: snapshot.version }),
-        }),
-      );
+      await connectClients.containers.restoreContainerSnapshot({
+        botId: botId.value,
+        snapshotId:
+          snapshot.id ||
+          snapshot.runtime_snapshot_name ||
+          snapshot.name ||
+          String(snapshot.version ?? ""),
+      });
       await loadContainerData(false);
     },
     t("bots.container.rollbackSuccess"),
@@ -739,13 +745,11 @@ async function handleCreateSnapshot() {
   await runContainerAction(
     "snapshot",
     async () => {
-      await ensureOk(
-        await fetch(botRuntimeUrl("/container/snapshots"), {
-          method: "POST",
-          headers: authHeaders({ "Content-Type": "application/json" }),
-          body: JSON.stringify({ snapshot_name: newSnapshotName.value.trim() }),
-        }),
-      );
+      await connectClients.containers.createContainerSnapshot({
+        botId: botId.value,
+        name: newSnapshotName.value.trim(),
+        metadata: {},
+      });
       newSnapshotName.value = "";
       await loadSnapshots();
     },

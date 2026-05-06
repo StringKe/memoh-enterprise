@@ -1,6 +1,12 @@
 import type { Interceptor, Transport } from "@connectrpc/connect";
 import { createConnectTransport } from "@connectrpc/connect-web";
 import { createMemohConnectClients } from "@stringke/sdk/connect";
+import type {
+  StreamChatRequest,
+  StreamContainerProgressRequest,
+  StreamTerminalRequest,
+} from "@stringke/sdk/connect";
+import { connectBaseUrl } from "./runtime-url";
 
 export function createAuthInterceptor(getToken = () => localStorage.getItem("token")): Interceptor {
   return (next) => async (req) => {
@@ -20,11 +26,26 @@ export function createMemohWebTransport(baseUrl: string): Transport {
   });
 }
 
-const connectBaseUrl = import.meta.env.VITE_CONNECT_URL?.trim() || "/connect";
+const connectUrl = connectBaseUrl();
 
-const transport = createMemohWebTransport(connectBaseUrl);
+const transport = createMemohWebTransport(connectUrl);
 
 export const connectClients = createMemohConnectClients({
-  baseUrl: connectBaseUrl,
+  baseUrl: connectUrl,
   transport,
 });
+
+export function streamConnectChat(input: StreamChatRequest, signal: AbortSignal) {
+  return connectClients.chat.streamChat(input, { signal });
+}
+
+export function streamConnectContainerProgress(
+  input: StreamContainerProgressRequest,
+  signal: AbortSignal,
+) {
+  return connectClients.containers.streamContainerProgress(input, { signal });
+}
+
+export function streamConnectTerminal(input: StreamTerminalRequest, signal: AbortSignal) {
+  return connectClients.containers.streamTerminal(input, { signal });
+}

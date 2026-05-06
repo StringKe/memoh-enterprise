@@ -92,7 +92,7 @@ import { Button, Spinner } from "@stringke/ui";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 import QRCode from "qrcode";
-import { apiHttpUrl } from "@/lib/runtime-url";
+import { connectClients } from "@/lib/connect-client";
 
 const props = defineProps<{
   botId: string;
@@ -108,12 +108,21 @@ type QRState = "idle" | "showing" | "success" | "error";
 
 const qrState = ref<QRState>("idle");
 const qrCode = ref("");
+const loginId = ref("");
 const qrImageDataUrl = ref("");
 const pollStatus = ref("");
 const isStarting = ref(false);
 const errorMessage = ref("");
 let pollTimer: ReturnType<typeof setTimeout> | null = null;
 let aborted = false;
+
+function bytesToDataUrl(bytes: Uint8Array, mimeType: string): string {
+  let binary = "";
+  for (const byte of bytes) {
+    binary += String.fromCharCode(byte);
+  }
+  return `data:${mimeType};base64,${btoa(binary)}`;
+}
 
 const statusText = computed(() => {
   switch (pollStatus.value) {
@@ -134,33 +143,25 @@ async function startLogin() {
   errorMessage.value = "";
   pollStatus.value = "";
   qrImageDataUrl.value = "";
+  loginId.value = "";
 
   try {
-    const resp = await fetch(
-      apiHttpUrl(`/bots/${encodeURIComponent(props.botId)}/channel/weixin/qr/start`),
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
-        },
-        body: JSON.stringify({}),
-      },
-    );
-
-    if (!resp.ok) {
-      const body = await resp.text();
-      throw new Error(body || `HTTP ${resp.status}`);
-    }
-
-    const data = (await resp.json()) as { qr_code_url: string; qr_code: string; message: string };
-    const qrContent = data.qr_code_url || data.qr_code || "";
+    const data = await connectClients.channels.startChannelQrLogin({
+      botId: props.botId,
+      channel: "weixin",
+      options: {},
+    });
+    const qrContent = data.qrUrl || data.loginId || "";
     if (!qrContent) {
       throw new Error("No QR code data returned");
     }
 
-    qrCode.value = data.qr_code || "";
-    qrImageDataUrl.value = await QRCode.toDataURL(qrContent, { width: 208, margin: 1 });
+    loginId.value = data.loginId;
+    qrCode.value = data.qrUrl || "";
+    qrImageDataUrl.value =
+      data.qrImage.length > 0
+        ? bytesToDataUrl(data.qrImage, data.mimeType || "image/png")
+        : await QRCode.toDataURL(qrContent, { width: 208, margin: 1 });
     qrState.value = "showing";
 
     startPolling();
@@ -181,26 +182,11 @@ async function pollOnce() {
   if (aborted || qrState.value !== "showing") return;
 
   try {
-    const resp = await fetch(
-      apiHttpUrl(`/bots/${encodeURIComponent(props.botId)}/channel/weixin/qr/poll`),
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
-        },
-        body: JSON.stringify({
-          qr_code: qrCode.value,
-        }),
-      },
-    );
-
-    if (!resp.ok) {
-      const body = await resp.text();
-      throw new Error(body || `HTTP ${resp.status}`);
-    }
-
-    const data = (await resp.json()) as { status: string; message: string };
+    const data = await connectClients.channels.pollChannelQrLogin({
+      botId: props.botId,
+      channel: "weixin",
+      loginId: loginId.value,
+    });
     pollStatus.value = data.status;
 
     switch (data.status) {
@@ -237,6 +223,7 @@ function cancel() {
   }
   qrState.value = "idle";
   qrCode.value = "";
+  loginId.value = "";
   qrImageDataUrl.value = "";
   pollStatus.value = "";
 }

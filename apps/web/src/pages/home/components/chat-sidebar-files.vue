@@ -163,7 +163,13 @@ import FileList from "@/components/file-manager/file-list.vue";
 import { useWorkspaceTabsStore } from "@/store/workspace-tabs";
 import { useChatStore } from "@/store/chat-list";
 import { storeToRefs } from "pinia";
-import { apiHttpUrl } from "@/lib/runtime-url";
+import { connectClients } from "@/lib/connect-client";
+import {
+  downloadBytes,
+  fileToBytes,
+  int64ToNumber,
+  timestampToISOString,
+} from "@/lib/connect-runtime";
 
 const props = defineProps<{
   botId: string;
@@ -177,45 +183,46 @@ const entries = ref<FsFileInfo[]>([]);
 const loading = ref(false);
 const uploadInputRef = ref<HTMLInputElement>();
 
-function authHeaders(extra?: HeadersInit): HeadersInit {
-  const token = localStorage.getItem("token") || "";
+function fileName(path: string): string {
+  const normalized = path.replace(/\/+$/, "");
+  const idx = normalized.lastIndexOf("/");
+  return idx >= 0 ? normalized.slice(idx + 1) : normalized;
+}
+
+function fsEntryFromProto(entry: {
+  path: string;
+  isDir: boolean;
+  size: bigint;
+  modifiedAt?: Parameters<typeof timestampToISOString>[0];
+}): FsFileInfo {
   return {
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    ...extra,
+    name: fileName(entry.path),
+    path: entry.path,
+    isDir: entry.isDir,
+    size: int64ToNumber(entry.size),
+    modTime: timestampToISOString(entry.modifiedAt),
   };
 }
 
-function containerFsUrl(path: string, query?: URLSearchParams): string {
-  const url = apiHttpUrl(`/bots/${encodeURIComponent(props.botId)}${path}`);
-  const queryString = query?.toString();
-  return queryString ? `${url}?${queryString}` : url;
-}
-
-async function readJsonResponse<T>(response: Response): Promise<T> {
-  if (!response.ok) {
-    const message = await response.text();
-    throw new Error(message || `Request failed with status ${response.status}`);
-  }
-  return response.json() as Promise<T>;
-}
-
-async function ensureOk(response: Response): Promise<void> {
-  if (response.ok) return;
-  const message = await response.text();
-  throw new Error(message || `Request failed with status ${response.status}`);
+function requirePath(path: string | undefined): string {
+  const value = path?.trim() ?? "";
+  if (!value) throw new Error("path is required");
+  return value;
 }
 
 async function loadDirectory(path: string) {
   if (!props.botId) return;
   loading.value = true;
   try {
-    const data = await readJsonResponse<{ entries?: FsFileInfo[]; path?: string }>(
-      await fetch(containerFsUrl("/container/fs/list", new URLSearchParams({ path })), {
-        headers: authHeaders(),
-      }),
-    );
-    entries.value = data.entries ?? [];
-    currentPath.value = data.path ?? path;
+    const data = await connectClients.containers.listContainerFiles({
+      botId: props.botId,
+      path,
+      recursive: false,
+      pageSize: 200,
+      pageToken: "",
+    });
+    entries.value = data.entries.map(fsEntryFromProto);
+    currentPath.value = path;
   } catch (error) {
     toast.error(resolveApiErrorMessage(error, t("bots.files.loadFailed")));
   } finally {
@@ -247,16 +254,12 @@ async function handleUpload(event: Event) {
 
   const destPath = joinPath(currentPath.value, file.name);
   try {
-    const body = new FormData();
-    body.set("path", destPath);
-    body.set("file", file);
-    await ensureOk(
-      await fetch(containerFsUrl("/container/fs/upload"), {
-        method: "POST",
-        headers: authHeaders(),
-        body,
-      }),
-    );
+    await connectClients.containers.uploadContainerFile({
+      botId: props.botId,
+      path: destPath,
+      content: await fileToBytes(file),
+      createParentDirs: true,
+    });
     toast.success(t("bots.files.uploadSuccess"));
     void loadDirectory(currentPath.value);
   } catch (error) {
@@ -281,13 +284,11 @@ async function handleMkdir() {
 
   mkdirLoading.value = true;
   try {
-    await ensureOk(
-      await fetch(containerFsUrl("/container/fs/mkdir"), {
-        method: "POST",
-        headers: authHeaders({ "Content-Type": "application/json" }),
-        body: JSON.stringify({ path: joinPath(currentPath.value, name) }),
-      }),
-    );
+    await connectClients.containers.mkdirContainerFile({
+      botId: props.botId,
+      path: joinPath(currentPath.value, name),
+      parents: true,
+    });
     mkdirDialogOpen.value = false;
     toast.success(t("bots.files.mkdirSuccess"));
     void loadDirectory(currentPath.value);
@@ -316,16 +317,12 @@ async function handleRename() {
 
   renameLoading.value = true;
   try {
-    await ensureOk(
-      await fetch(containerFsUrl("/container/fs/rename"), {
-        method: "POST",
-        headers: authHeaders({ "Content-Type": "application/json" }),
-        body: JSON.stringify({
-          oldPath: target.path,
-          newPath: joinPath(currentPath.value, newName),
-        }),
-      }),
-    );
+    await connectClients.containers.renameContainerFile({
+      botId: props.botId,
+      oldPath: requirePath(target.path),
+      newPath: joinPath(currentPath.value, newName),
+      overwrite: false,
+    });
     renameDialogOpen.value = false;
     toast.success(t("bots.files.renameSuccess"));
     void loadDirectory(currentPath.value);
@@ -351,13 +348,11 @@ async function handleDelete() {
 
   deleteLoading.value = true;
   try {
-    await ensureOk(
-      await fetch(containerFsUrl("/container/fs/delete"), {
-        method: "POST",
-        headers: authHeaders({ "Content-Type": "application/json" }),
-        body: JSON.stringify({ path: target.path, recursive: target.isDir }),
-      }),
-    );
+    await connectClients.containers.deleteContainerFile({
+      botId: props.botId,
+      path: requirePath(target.path),
+      recursive: !!target.isDir,
+    });
     deleteDialogOpen.value = false;
     toast.success(t("bots.files.deleteSuccess"));
     void loadDirectory(currentPath.value);
@@ -368,14 +363,16 @@ async function handleDelete() {
   }
 }
 
-function handleDownload(entry: FsFileInfo) {
-  const token = localStorage.getItem("token") ?? "";
-  const query = new URLSearchParams({ path: entry.path ?? "", token });
-  const url = containerFsUrl("/container/fs/download", query);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = entry.name ?? "file";
-  a.click();
+async function handleDownload(entry: FsFileInfo) {
+  try {
+    const response = await connectClients.containers.downloadContainerFile({
+      botId: props.botId,
+      path: requirePath(entry.path),
+    });
+    downloadBytes(response.content, response.filename || entry.name || "file", response.mimeType);
+  } catch (error) {
+    toast.error(resolveApiErrorMessage(error, t("bots.files.readFailed")));
+  }
 }
 
 watch(

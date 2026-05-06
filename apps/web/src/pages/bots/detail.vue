@@ -151,6 +151,7 @@ import { useRoute } from "vue-router";
 import { toast } from "vue-sonner";
 import { useI18n } from "vue-i18n";
 import { useMutation, useQueryCache } from "@pinia/colada";
+import { Code, ConnectError } from "@connectrpc/connect";
 import type { BotCheck } from "@stringke/sdk/connect";
 import { useCapabilitiesStore } from "@/store/capabilities";
 import LoadingButton from "@/components/loading-button/index.vue";
@@ -176,7 +177,7 @@ import { useBotStatusMeta } from "@/composables/useBotStatusMeta";
 import MasterDetailSidebarLayout from "@/components/master-detail-sidebar-layout/index.vue";
 import { connectClients } from "@/lib/connect-client";
 import { useConnectQuery } from "@/lib/connect-colada";
-import { apiHttpUrl } from "@/lib/runtime-url";
+import { recordValue, timestampToISOString } from "@/lib/connect-runtime";
 
 type BotContainerInfo = {
   workspace_backend?: string;
@@ -231,26 +232,6 @@ const isLocalWorkspace = computed(
     workspaceBackendFromMetadata(bot.value?.metadata) === "local" ||
     containerInfo.value?.workspace_backend === "local",
 );
-
-function authHeaders(extra?: HeadersInit): HeadersInit {
-  const token = localStorage.getItem("token") || "";
-  return {
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    ...extra,
-  };
-}
-
-function botRuntimeUrl(path: string): string {
-  return apiHttpUrl(`/bots/${encodeURIComponent(botId.value)}${path}`);
-}
-
-async function readJsonResponse<T>(response: Response): Promise<T> {
-  if (!response.ok) {
-    const message = await response.text();
-    throw new Error(message || `Request failed with status ${response.status}`);
-  }
-  return response.json() as Promise<T>;
-}
 
 const tabList = computed(() => {
   const bot_id = toValue(botId);
@@ -476,6 +457,49 @@ function resolveErrorMessage(error: unknown, fallback: string): string {
   return resolveApiErrorMessage(error, fallback);
 }
 
+function containerInfoFromConnect(
+  value: Awaited<ReturnType<typeof connectClients.containers.getContainerLifecycle>>,
+): BotContainerInfo {
+  const metadata = recordValue(value.metadata);
+  return {
+    ...metadata,
+    workspace_backend: value.backend,
+    container_id: String(metadata.container_id ?? value.workspaceId ?? ""),
+    status: value.status,
+    task_running: metadata.task_running === true,
+    namespace: typeof metadata.namespace === "string" ? metadata.namespace : "",
+    image: value.image,
+    cdi_devices: Array.isArray(metadata.cdi_devices)
+      ? metadata.cdi_devices.filter((item): item is string => typeof item === "string")
+      : [],
+    container_path: typeof metadata.container_path === "string" ? metadata.container_path : "",
+    data_restored: metadata.data_restored === true,
+    created_at:
+      (typeof metadata.created_at === "string" ? metadata.created_at : "") ||
+      timestampToISOString(value.startedAt),
+    updated_at:
+      (typeof metadata.updated_at === "string" ? metadata.updated_at : "") ||
+      timestampToISOString(value.startedAt),
+  };
+}
+
+function containerSnapshotFromConnect(
+  value: Awaited<
+    ReturnType<typeof connectClients.containers.listContainerSnapshots>
+  >["snapshots"][number],
+): BotContainerSnapshot {
+  const metadata = recordValue(value.metadata);
+  return {
+    ...metadata,
+    id: value.snapshotId,
+    name: value.name,
+    version: typeof metadata.version === "number" ? metadata.version : undefined,
+    source: typeof metadata.source === "string" ? metadata.source : undefined,
+    parent_id: typeof metadata.parent_id === "string" ? metadata.parent_id : undefined,
+    created_at: timestampToISOString(value.createdAt),
+  };
+}
+
 function handleEditAvatar() {
   if (!bot.value || botLifecyclePending.value) return;
   avatarDialogOpen.value = true;
@@ -529,21 +553,19 @@ async function loadContainerData(showLoadingToast: boolean) {
   await capabilitiesStore.load();
   containerLoading.value = true;
   try {
-    const response = await fetch(botRuntimeUrl("/container"), {
-      headers: authHeaders(),
-    });
-    if (response.status === 404) {
-      containerInfo.value = null;
-      containerMissing.value = true;
-      snapshots.value = [];
-      return;
-    }
-    containerInfo.value = await readJsonResponse<BotContainerInfo>(response);
+    const response = await connectClients.containers.getContainerLifecycle({ botId: botId.value });
+    containerInfo.value = containerInfoFromConnect(response);
     containerMissing.value = false;
     if (capabilitiesStore.snapshotSupported) {
       await loadSnapshots();
     }
   } catch (error) {
+    if (error instanceof ConnectError && error.code === Code.NotFound) {
+      containerInfo.value = null;
+      containerMissing.value = true;
+      snapshots.value = [];
+      return;
+    }
     if (showLoadingToast) {
       toast.error(resolveErrorMessage(error, t("bots.container.loadFailed")));
     }
@@ -559,12 +581,8 @@ async function loadSnapshots() {
   }
   snapshotsLoading.value = true;
   try {
-    const data = await readJsonResponse<{ snapshots?: BotContainerSnapshot[] }>(
-      await fetch(botRuntimeUrl("/container/snapshots"), {
-        headers: authHeaders(),
-      }),
-    );
-    snapshots.value = data.snapshots ?? [];
+    const data = await connectClients.containers.listContainerSnapshots({ botId: botId.value });
+    snapshots.value = data.snapshots.map(containerSnapshotFromConnect);
   } catch (error) {
     snapshots.value = [];
     toast.error(resolveErrorMessage(error, t("bots.container.snapshotLoadFailed")));

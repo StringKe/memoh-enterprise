@@ -21,6 +21,7 @@
         <thead class="bg-muted/50 text-left">
           <tr>
             <th class="px-3 py-2 font-medium">{{ $t("common.name") }}</th>
+            <th class="px-3 py-2 font-medium">{{ $t("botGroups.visibility") }}</th>
             <th class="px-3 py-2 font-medium">{{ $t("botGroups.description") }}</th>
             <th class="px-3 py-2 font-medium">{{ $t("botGroups.botCount") }}</th>
             <th class="px-3 py-2 font-medium text-right">{{ $t("common.operation") }}</th>
@@ -34,6 +35,9 @@
             @click="router.push({ name: 'bot-group-detail', params: { groupId: group.id } })"
           >
             <td class="px-3 py-2 font-medium">{{ group.name }}</td>
+            <td class="px-3 py-2 text-muted-foreground">
+              {{ visibilityLabel(group.visibility) }}
+            </td>
             <td class="px-3 py-2 text-muted-foreground">{{ group.description || "-" }}</td>
             <td class="px-3 py-2">{{ group.botCount.toString() }}</td>
             <td class="px-3 py-2 text-right">
@@ -53,10 +57,12 @@ import { computed } from "vue";
 import { Button } from "@stringke/ui";
 import { Plus, Trash2 } from "lucide-vue-next";
 import { useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 import { useConnectMutation, useConnectQuery } from "@/lib/connect-colada";
 import { connectClients } from "@/lib/connect-client";
 
 const router = useRouter();
+const { t } = useI18n();
 
 const {
   data: groupsData,
@@ -68,6 +74,12 @@ const {
 });
 
 const groups = computed(() => groupsData.value?.groups ?? []);
+
+function visibilityLabel(value: string) {
+  if (value === "organization") return t("botGroups.visibilityOrganization");
+  if (value === "public") return t("botGroups.visibilityPublic");
+  return t("botGroups.visibilityPrivate");
+}
 
 const { mutateAsync: deleteGroupMutation } = useConnectMutation({
   mutation: (id: string) => connectClients.botGroups.deleteBotGroup({ id }),

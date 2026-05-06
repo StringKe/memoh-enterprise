@@ -26,8 +26,8 @@ const sessions = new Map<string, RemotePlaywrightSession>();
 // Per-bot in-flight creation promises to prevent duplicate launches
 const inflightCreations = new Map<string, Promise<string>>();
 
-const SESSION_DEFAULT_TTL_MS = 30 * 60 * 1000; // 30 minutes
-const SESSION_MAX_TTL_MS = 2 * 60 * 60 * 1000; // 2 hours
+const SESSION_DEFAULT_TTL_MS = 30 * 60 * 1000;
+const SESSION_MAX_TTL_MS = 2 * 60 * 60 * 1000;
 
 function getPlaywrightVersion(): string {
   try {
@@ -90,6 +90,80 @@ async function getOrCreateRemoteServer(botId: string, core: BrowserCore): Promis
   return promise;
 }
 
+export interface CreateRemoteSessionInput {
+  botId: string;
+  core?: BrowserCore;
+  ttlMs?: number;
+  contextConfig?: Record<string, unknown>;
+}
+
+export interface CreateRemoteSessionResult {
+  id: string;
+  wsEndpoint: string;
+  sessionToken: string;
+  playwrightVersion: string;
+  core: BrowserCore;
+  contextConfig: Record<string, unknown>;
+  expiresAt: string;
+}
+
+export async function createRemoteSession({
+  botId,
+  core,
+  ttlMs,
+  contextConfig,
+}: CreateRemoteSessionInput): Promise<CreateRemoteSessionResult> {
+  const sessionCore = core ?? "chromium";
+  const wsEndpoint = await getOrCreateRemoteServer(botId, sessionCore);
+
+  const sessionId = crypto.randomUUID();
+  const sessionToken = generateToken();
+  const ttl = Math.min(ttlMs ?? SESSION_DEFAULT_TTL_MS, SESSION_MAX_TTL_MS);
+  const now = new Date();
+
+  const session: RemotePlaywrightSession = {
+    id: sessionId,
+    botId,
+    core: sessionCore,
+    wsEndpoint,
+    sessionToken,
+    playwrightVersion: getPlaywrightVersion(),
+    contextConfig,
+    createdAt: now,
+    expiresAt: new Date(now.getTime() + ttl),
+    lastSeenAt: now,
+    status: "active",
+  };
+
+  sessions.set(sessionId, session);
+
+  console.log(
+    `Created remote session ${sessionId} for bot ${botId} (core: ${sessionCore}, expires: ${session.expiresAt.toISOString()})`,
+  );
+
+  return {
+    id: sessionId,
+    wsEndpoint,
+    sessionToken,
+    playwrightVersion: session.playwrightVersion,
+    core: sessionCore,
+    contextConfig: contextConfig ?? {},
+    expiresAt: session.expiresAt.toISOString(),
+  };
+}
+
+export function closeRemoteSession(sessionId: string, token: string): boolean {
+  const session = validateSessionToken(sessionId, token);
+  if (!session) {
+    throw new Error("session not found or invalid token");
+  }
+
+  session.status = "closed";
+  sessions.delete(session.id);
+  console.log(`Closed remote session ${session.id} (bot: ${session.botId})`);
+  return true;
+}
+
 // --- Elysia module ---
 //
 // Remote sessions give the client a WS endpoint to a dedicated per-bot
@@ -103,45 +177,21 @@ export const sessionModule = new Elysia({ prefix: "/session" })
     "/",
     async ({ body, set }) => {
       const { bot_id, core, ttl_ms, context_config } = body;
-      const sessionCore = core ?? "chromium";
-
-      // Launch or reuse the bot's remote Playwright server (Node child process)
-      const wsEndpoint = await getOrCreateRemoteServer(bot_id, sessionCore);
-
-      const sessionId = crypto.randomUUID();
-      const sessionToken = generateToken();
-      const ttl = Math.min(ttl_ms ?? SESSION_DEFAULT_TTL_MS, SESSION_MAX_TTL_MS);
-      const now = new Date();
-
-      const session: RemotePlaywrightSession = {
-        id: sessionId,
+      const session = await createRemoteSession({
         botId: bot_id,
-        core: sessionCore,
-        wsEndpoint,
-        sessionToken,
-        playwrightVersion: getPlaywrightVersion(),
+        core,
+        ttlMs: ttl_ms,
         contextConfig: context_config,
-        createdAt: now,
-        expiresAt: new Date(now.getTime() + ttl),
-        lastSeenAt: now,
-        status: "active",
-      };
-
-      sessions.set(sessionId, session);
+      });
       set.status = 201;
-
-      console.log(
-        `Created remote session ${sessionId} for bot ${bot_id} (core: ${sessionCore}, expires: ${session.expiresAt.toISOString()})`,
-      );
-
       return {
-        id: sessionId,
-        ws_endpoint: wsEndpoint,
-        session_token: sessionToken,
+        id: session.id,
+        ws_endpoint: session.wsEndpoint,
+        session_token: session.sessionToken,
         playwright_version: session.playwrightVersion,
-        core: sessionCore,
-        context_config: context_config ?? {},
-        expires_at: session.expiresAt.toISOString(),
+        core: session.core,
+        context_config: session.contextConfig,
+        expires_at: session.expiresAt,
       };
     },
     {
@@ -185,17 +235,12 @@ export const sessionModule = new Elysia({ prefix: "/session" })
   .delete(
     "/:id",
     ({ params, query, set }) => {
-      const session = validateSessionToken(params.id, query.token ?? "");
-      if (!session) {
+      try {
+        return { success: closeRemoteSession(params.id, query.token ?? "") };
+      } catch (error) {
         set.status = 404;
-        return { error: "session not found or invalid token" };
+        return { error: error instanceof Error ? error.message : String(error) };
       }
-
-      session.status = "closed";
-      sessions.delete(session.id);
-
-      console.log(`Closed remote session ${session.id} (bot: ${session.botId})`);
-      return { success: true };
     },
     {
       query: z.object({ token: z.string().optional() }),

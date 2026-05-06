@@ -13,7 +13,7 @@ import type { JsonObject, Message } from "@bufbuild/protobuf";
  * Describes the file memoh/private/v1/skills.proto.
  */
 export const file_memoh_private_v1_skills: GenFile /*@__PURE__*/ = fileDesc(
-  "Ch1tZW1vaC9wcml2YXRlL3YxL3NraWxscy5wcm90bxIQbWVtb2gucHJpdmF0ZS52MSKCAQoFU2tpbGwSCgoCaWQYASABKAkSDAoEbmFtZRgCIAEoCRIOCgZzb3VyY2UYAyABKAkSEwoLZGVzY3JpcHRpb24YBCABKAkSDwoHZW5hYmxlZBgFIAEoCBIpCghtZXRhZGF0YRgGIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QiIwoRTGlzdFNraWxsc1JlcXVlc3QSDgoGYm90X2lkGAEgASgJIj0KEkxpc3RTa2lsbHNSZXNwb25zZRInCgZza2lsbHMYASADKAsyFy5tZW1vaC5wcml2YXRlLnYxLlNraWxsIk4KE1Vwc2VydFNraWxsc1JlcXVlc3QSDgoGYm90X2lkGAEgASgJEicKBnNraWxscxgCIAMoCzIXLm1lbW9oLnByaXZhdGUudjEuU2tpbGwiPwoUVXBzZXJ0U2tpbGxzUmVzcG9uc2USJwoGc2tpbGxzGAEgAygLMhcubWVtb2gucHJpdmF0ZS52MS5Ta2lsbCI4ChNEZWxldGVTa2lsbHNSZXF1ZXN0Eg4KBmJvdF9pZBgBIAEoCRIRCglza2lsbF9pZHMYAiADKAkiFgoURGVsZXRlU2tpbGxzUmVzcG9uc2UidQoXQXBwbHlTa2lsbEFjdGlvblJlcXVlc3QSDgoGYm90X2lkGAEgASgJEhAKCHNraWxsX2lkGAIgASgJEg4KBmFjdGlvbhgDIAEoCRIoCgdwYXlsb2FkGAQgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdCJrChhBcHBseVNraWxsQWN0aW9uUmVzcG9uc2USJgoFc2tpbGwYASABKAsyFy5tZW1vaC5wcml2YXRlLnYxLlNraWxsEicKBnJlc3VsdBgCIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QiVgoXTGlzdFNraWxsQ2F0YWxvZ1JlcXVlc3QSDgoGc291cmNlGAEgASgJEisKBHBhZ2UYAiABKAsyHS5tZW1vaC5wcml2YXRlLnYxLlBhZ2VSZXF1ZXN0InEKGExpc3RTa2lsbENhdGFsb2dSZXNwb25zZRInCgZza2lsbHMYASADKAsyFy5tZW1vaC5wcml2YXRlLnYxLlNraWxsEiwKBHBhZ2UYAiABKAsyHi5tZW1vaC5wcml2YXRlLnYxLlBhZ2VSZXNwb25zZSJHChNJbnN0YWxsU2tpbGxSZXF1ZXN0Eg4KBmJvdF9pZBgBIAEoCRIOCgZzb3VyY2UYAiABKAkSEAoIc2tpbGxfaWQYAyABKAkiPgoUSW5zdGFsbFNraWxsUmVzcG9uc2USJgoFc2tpbGwYASABKAsyFy5tZW1vaC5wcml2YXRlLnYxLlNraWxsMtoECgxTa2lsbFNlcnZpY2USVwoKTGlzdFNraWxscxIjLm1lbW9oLnByaXZhdGUudjEuTGlzdFNraWxsc1JlcXVlc3QaJC5tZW1vaC5wcml2YXRlLnYxLkxpc3RTa2lsbHNSZXNwb25zZRJdCgxVcHNlcnRTa2lsbHMSJS5tZW1vaC5wcml2YXRlLnYxLlVwc2VydFNraWxsc1JlcXVlc3QaJi5tZW1vaC5wcml2YXRlLnYxLlVwc2VydFNraWxsc1Jlc3BvbnNlEl0KDERlbGV0ZVNraWxscxIlLm1lbW9oLnByaXZhdGUudjEuRGVsZXRlU2tpbGxzUmVxdWVzdBomLm1lbW9oLnByaXZhdGUudjEuRGVsZXRlU2tpbGxzUmVzcG9uc2USaQoQQXBwbHlTa2lsbEFjdGlvbhIpLm1lbW9oLnByaXZhdGUudjEuQXBwbHlTa2lsbEFjdGlvblJlcXVlc3QaKi5tZW1vaC5wcml2YXRlLnYxLkFwcGx5U2tpbGxBY3Rpb25SZXNwb25zZRJpChBMaXN0U2tpbGxDYXRhbG9nEikubWVtb2gucHJpdmF0ZS52MS5MaXN0U2tpbGxDYXRhbG9nUmVxdWVzdBoqLm1lbW9oLnByaXZhdGUudjEuTGlzdFNraWxsQ2F0YWxvZ1Jlc3BvbnNlEl0KDEluc3RhbGxTa2lsbBIlLm1lbW9oLnByaXZhdGUudjEuSW5zdGFsbFNraWxsUmVxdWVzdBomLm1lbW9oLnByaXZhdGUudjEuSW5zdGFsbFNraWxsUmVzcG9uc2VCTVpLZ2l0aHViLmNvbS9tZW1vaGFpL21lbW9oL2ludGVybmFsL2Nvbm5lY3RhcGkvZ2VuL21lbW9oL3ByaXZhdGUvdjE7cHJpdmF0ZXYxYgZwcm90bzM",
+  "Ch1tZW1vaC9wcml2YXRlL3YxL3NraWxscy5wcm90bxIQbWVtb2gucHJpdmF0ZS52MSKCAQoFU2tpbGwSCgoCaWQYASABKAkSDAoEbmFtZRgCIAEoCRIOCgZzb3VyY2UYAyABKAkSEwoLZGVzY3JpcHRpb24YBCABKAkSDwoHZW5hYmxlZBgFIAEoCBIpCghtZXRhZGF0YRgGIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QiIwoRTGlzdFNraWxsc1JlcXVlc3QSDgoGYm90X2lkGAEgASgJIj0KEkxpc3RTa2lsbHNSZXNwb25zZRInCgZza2lsbHMYASADKAsyFy5tZW1vaC5wcml2YXRlLnYxLlNraWxsIk4KE1Vwc2VydFNraWxsc1JlcXVlc3QSDgoGYm90X2lkGAEgASgJEicKBnNraWxscxgCIAMoCzIXLm1lbW9oLnByaXZhdGUudjEuU2tpbGwiPwoUVXBzZXJ0U2tpbGxzUmVzcG9uc2USJwoGc2tpbGxzGAEgAygLMhcubWVtb2gucHJpdmF0ZS52MS5Ta2lsbCI4ChNEZWxldGVTa2lsbHNSZXF1ZXN0Eg4KBmJvdF9pZBgBIAEoCRIRCglza2lsbF9pZHMYAiADKAkiFgoURGVsZXRlU2tpbGxzUmVzcG9uc2UidQoXQXBwbHlTa2lsbEFjdGlvblJlcXVlc3QSDgoGYm90X2lkGAEgASgJEhAKCHNraWxsX2lkGAIgASgJEg4KBmFjdGlvbhgDIAEoCRIoCgdwYXlsb2FkGAQgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdCJrChhBcHBseVNraWxsQWN0aW9uUmVzcG9uc2USJgoFc2tpbGwYASABKAsyFy5tZW1vaC5wcml2YXRlLnYxLlNraWxsEicKBnJlc3VsdBgCIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QiVgoXTGlzdFNraWxsQ2F0YWxvZ1JlcXVlc3QSDgoGc291cmNlGAEgASgJEisKBHBhZ2UYAiABKAsyHS5tZW1vaC5wcml2YXRlLnYxLlBhZ2VSZXF1ZXN0InEKGExpc3RTa2lsbENhdGFsb2dSZXNwb25zZRInCgZza2lsbHMYASADKAsyFy5tZW1vaC5wcml2YXRlLnYxLlNraWxsEiwKBHBhZ2UYAiABKAsyHi5tZW1vaC5wcml2YXRlLnYxLlBhZ2VSZXNwb25zZSJHChNJbnN0YWxsU2tpbGxSZXF1ZXN0Eg4KBmJvdF9pZBgBIAEoCRIOCgZzb3VyY2UYAiABKAkSEAoIc2tpbGxfaWQYAyABKAkiPgoUSW5zdGFsbFNraWxsUmVzcG9uc2USJgoFc2tpbGwYASABKAsyFy5tZW1vaC5wcml2YXRlLnYxLlNraWxsIpoBChFCb3RDb250YWluZXJTa2lsbBIKCgJpZBgBIAEoCRIOCgZib3RfaWQYAiABKAkSDAoEbmFtZRgDIAEoCRIOCgZzb3VyY2UYBCABKAkSDwoHdmVyc2lvbhgFIAEoCRIPCgdlbmFibGVkGAYgASgIEikKCG1ldGFkYXRhGAcgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdCJcCh1MaXN0Qm90Q29udGFpbmVyU2tpbGxzUmVxdWVzdBIOCgZib3RfaWQYASABKAkSKwoEcGFnZRgCIAEoCzIdLm1lbW9oLnByaXZhdGUudjEuUGFnZVJlcXVlc3QigwEKHkxpc3RCb3RDb250YWluZXJTa2lsbHNSZXNwb25zZRIzCgZza2lsbHMYASADKAsyIy5tZW1vaC5wcml2YXRlLnYxLkJvdENvbnRhaW5lclNraWxsEiwKBHBhZ2UYAiABKAsyHi5tZW1vaC5wcml2YXRlLnYxLlBhZ2VSZXNwb25zZSKOAQofSW5zdGFsbEJvdENvbnRhaW5lclNraWxsUmVxdWVzdBIOCgZib3RfaWQYASABKAkSDgoGc291cmNlGAIgASgJEhAKCHNraWxsX2lkGAMgASgJEg8KB3ZlcnNpb24YBCABKAkSKAoHb3B0aW9ucxgFIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QiVgogSW5zdGFsbEJvdENvbnRhaW5lclNraWxsUmVzcG9uc2USMgoFc2tpbGwYASABKAsyIy5tZW1vaC5wcml2YXRlLnYxLkJvdENvbnRhaW5lclNraWxsIkIKHlJlbW92ZUJvdENvbnRhaW5lclNraWxsUmVxdWVzdBIOCgZib3RfaWQYASABKAkSEAoIc2tpbGxfaWQYAiABKAkiIQofUmVtb3ZlQm90Q29udGFpbmVyU2tpbGxSZXNwb25zZTLbBwoMU2tpbGxTZXJ2aWNlElcKCkxpc3RTa2lsbHMSIy5tZW1vaC5wcml2YXRlLnYxLkxpc3RTa2lsbHNSZXF1ZXN0GiQubWVtb2gucHJpdmF0ZS52MS5MaXN0U2tpbGxzUmVzcG9uc2USXQoMVXBzZXJ0U2tpbGxzEiUubWVtb2gucHJpdmF0ZS52MS5VcHNlcnRTa2lsbHNSZXF1ZXN0GiYubWVtb2gucHJpdmF0ZS52MS5VcHNlcnRTa2lsbHNSZXNwb25zZRJdCgxEZWxldGVTa2lsbHMSJS5tZW1vaC5wcml2YXRlLnYxLkRlbGV0ZVNraWxsc1JlcXVlc3QaJi5tZW1vaC5wcml2YXRlLnYxLkRlbGV0ZVNraWxsc1Jlc3BvbnNlEmkKEEFwcGx5U2tpbGxBY3Rpb24SKS5tZW1vaC5wcml2YXRlLnYxLkFwcGx5U2tpbGxBY3Rpb25SZXF1ZXN0GioubWVtb2gucHJpdmF0ZS52MS5BcHBseVNraWxsQWN0aW9uUmVzcG9uc2USaQoQTGlzdFNraWxsQ2F0YWxvZxIpLm1lbW9oLnByaXZhdGUudjEuTGlzdFNraWxsQ2F0YWxvZ1JlcXVlc3QaKi5tZW1vaC5wcml2YXRlLnYxLkxpc3RTa2lsbENhdGFsb2dSZXNwb25zZRJdCgxJbnN0YWxsU2tpbGwSJS5tZW1vaC5wcml2YXRlLnYxLkluc3RhbGxTa2lsbFJlcXVlc3QaJi5tZW1vaC5wcml2YXRlLnYxLkluc3RhbGxTa2lsbFJlc3BvbnNlEnsKFkxpc3RCb3RDb250YWluZXJTa2lsbHMSLy5tZW1vaC5wcml2YXRlLnYxLkxpc3RCb3RDb250YWluZXJTa2lsbHNSZXF1ZXN0GjAubWVtb2gucHJpdmF0ZS52MS5MaXN0Qm90Q29udGFpbmVyU2tpbGxzUmVzcG9uc2USgQEKGEluc3RhbGxCb3RDb250YWluZXJTa2lsbBIxLm1lbW9oLnByaXZhdGUudjEuSW5zdGFsbEJvdENvbnRhaW5lclNraWxsUmVxdWVzdBoyLm1lbW9oLnByaXZhdGUudjEuSW5zdGFsbEJvdENvbnRhaW5lclNraWxsUmVzcG9uc2USfgoXUmVtb3ZlQm90Q29udGFpbmVyU2tpbGwSMC5tZW1vaC5wcml2YXRlLnYxLlJlbW92ZUJvdENvbnRhaW5lclNraWxsUmVxdWVzdBoxLm1lbW9oLnByaXZhdGUudjEuUmVtb3ZlQm90Q29udGFpbmVyU2tpbGxSZXNwb25zZUJNWktnaXRodWIuY29tL21lbW9oYWkvbWVtb2gvaW50ZXJuYWwvY29ubmVjdGFwaS9nZW4vbWVtb2gvcHJpdmF0ZS92MTtwcml2YXRldjFiBnByb3RvMw",
   [file_google_protobuf_struct, file_memoh_private_v1_common],
 );
 
@@ -321,6 +321,193 @@ export const InstallSkillResponseSchema: GenMessage<InstallSkillResponse> /*@__P
   messageDesc(file_memoh_private_v1_skills, 12);
 
 /**
+ * @generated from message memoh.private.v1.BotContainerSkill
+ */
+export type BotContainerSkill = Message<"memoh.private.v1.BotContainerSkill"> & {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id: string;
+
+  /**
+   * @generated from field: string bot_id = 2;
+   */
+  botId: string;
+
+  /**
+   * @generated from field: string name = 3;
+   */
+  name: string;
+
+  /**
+   * @generated from field: string source = 4;
+   */
+  source: string;
+
+  /**
+   * @generated from field: string version = 5;
+   */
+  version: string;
+
+  /**
+   * @generated from field: bool enabled = 6;
+   */
+  enabled: boolean;
+
+  /**
+   * @generated from field: google.protobuf.Struct metadata = 7;
+   */
+  metadata?: JsonObject | undefined;
+};
+
+/**
+ * Describes the message memoh.private.v1.BotContainerSkill.
+ * Use `create(BotContainerSkillSchema)` to create a new message.
+ */
+export const BotContainerSkillSchema: GenMessage<BotContainerSkill> /*@__PURE__*/ = messageDesc(
+  file_memoh_private_v1_skills,
+  13,
+);
+
+/**
+ * @generated from message memoh.private.v1.ListBotContainerSkillsRequest
+ */
+export type ListBotContainerSkillsRequest =
+  Message<"memoh.private.v1.ListBotContainerSkillsRequest"> & {
+    /**
+     * @generated from field: string bot_id = 1;
+     */
+    botId: string;
+
+    /**
+     * @generated from field: memoh.private.v1.PageRequest page = 2;
+     */
+    page?: PageRequest | undefined;
+  };
+
+/**
+ * Describes the message memoh.private.v1.ListBotContainerSkillsRequest.
+ * Use `create(ListBotContainerSkillsRequestSchema)` to create a new message.
+ */
+export const ListBotContainerSkillsRequestSchema: GenMessage<ListBotContainerSkillsRequest> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_skills, 14);
+
+/**
+ * @generated from message memoh.private.v1.ListBotContainerSkillsResponse
+ */
+export type ListBotContainerSkillsResponse =
+  Message<"memoh.private.v1.ListBotContainerSkillsResponse"> & {
+    /**
+     * @generated from field: repeated memoh.private.v1.BotContainerSkill skills = 1;
+     */
+    skills: BotContainerSkill[];
+
+    /**
+     * @generated from field: memoh.private.v1.PageResponse page = 2;
+     */
+    page?: PageResponse | undefined;
+  };
+
+/**
+ * Describes the message memoh.private.v1.ListBotContainerSkillsResponse.
+ * Use `create(ListBotContainerSkillsResponseSchema)` to create a new message.
+ */
+export const ListBotContainerSkillsResponseSchema: GenMessage<ListBotContainerSkillsResponse> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_skills, 15);
+
+/**
+ * @generated from message memoh.private.v1.InstallBotContainerSkillRequest
+ */
+export type InstallBotContainerSkillRequest =
+  Message<"memoh.private.v1.InstallBotContainerSkillRequest"> & {
+    /**
+     * @generated from field: string bot_id = 1;
+     */
+    botId: string;
+
+    /**
+     * @generated from field: string source = 2;
+     */
+    source: string;
+
+    /**
+     * @generated from field: string skill_id = 3;
+     */
+    skillId: string;
+
+    /**
+     * @generated from field: string version = 4;
+     */
+    version: string;
+
+    /**
+     * @generated from field: google.protobuf.Struct options = 5;
+     */
+    options?: JsonObject | undefined;
+  };
+
+/**
+ * Describes the message memoh.private.v1.InstallBotContainerSkillRequest.
+ * Use `create(InstallBotContainerSkillRequestSchema)` to create a new message.
+ */
+export const InstallBotContainerSkillRequestSchema: GenMessage<InstallBotContainerSkillRequest> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_skills, 16);
+
+/**
+ * @generated from message memoh.private.v1.InstallBotContainerSkillResponse
+ */
+export type InstallBotContainerSkillResponse =
+  Message<"memoh.private.v1.InstallBotContainerSkillResponse"> & {
+    /**
+     * @generated from field: memoh.private.v1.BotContainerSkill skill = 1;
+     */
+    skill?: BotContainerSkill | undefined;
+  };
+
+/**
+ * Describes the message memoh.private.v1.InstallBotContainerSkillResponse.
+ * Use `create(InstallBotContainerSkillResponseSchema)` to create a new message.
+ */
+export const InstallBotContainerSkillResponseSchema: GenMessage<InstallBotContainerSkillResponse> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_skills, 17);
+
+/**
+ * @generated from message memoh.private.v1.RemoveBotContainerSkillRequest
+ */
+export type RemoveBotContainerSkillRequest =
+  Message<"memoh.private.v1.RemoveBotContainerSkillRequest"> & {
+    /**
+     * @generated from field: string bot_id = 1;
+     */
+    botId: string;
+
+    /**
+     * @generated from field: string skill_id = 2;
+     */
+    skillId: string;
+  };
+
+/**
+ * Describes the message memoh.private.v1.RemoveBotContainerSkillRequest.
+ * Use `create(RemoveBotContainerSkillRequestSchema)` to create a new message.
+ */
+export const RemoveBotContainerSkillRequestSchema: GenMessage<RemoveBotContainerSkillRequest> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_skills, 18);
+
+/**
+ * @generated from message memoh.private.v1.RemoveBotContainerSkillResponse
+ */
+export type RemoveBotContainerSkillResponse =
+  Message<"memoh.private.v1.RemoveBotContainerSkillResponse"> & {};
+
+/**
+ * Describes the message memoh.private.v1.RemoveBotContainerSkillResponse.
+ * Use `create(RemoveBotContainerSkillResponseSchema)` to create a new message.
+ */
+export const RemoveBotContainerSkillResponseSchema: GenMessage<RemoveBotContainerSkillResponse> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_skills, 19);
+
+/**
  * @generated from service memoh.private.v1.SkillService
  */
 export const SkillService: GenService<{
@@ -371,5 +558,29 @@ export const SkillService: GenService<{
     methodKind: "unary";
     input: typeof InstallSkillRequestSchema;
     output: typeof InstallSkillResponseSchema;
+  };
+  /**
+   * @generated from rpc memoh.private.v1.SkillService.ListBotContainerSkills
+   */
+  listBotContainerSkills: {
+    methodKind: "unary";
+    input: typeof ListBotContainerSkillsRequestSchema;
+    output: typeof ListBotContainerSkillsResponseSchema;
+  };
+  /**
+   * @generated from rpc memoh.private.v1.SkillService.InstallBotContainerSkill
+   */
+  installBotContainerSkill: {
+    methodKind: "unary";
+    input: typeof InstallBotContainerSkillRequestSchema;
+    output: typeof InstallBotContainerSkillResponseSchema;
+  };
+  /**
+   * @generated from rpc memoh.private.v1.SkillService.RemoveBotContainerSkill
+   */
+  removeBotContainerSkill: {
+    methodKind: "unary";
+    input: typeof RemoveBotContainerSkillRequestSchema;
+    output: typeof RemoveBotContainerSkillResponseSchema;
   };
 }> /*@__PURE__*/ = serviceDesc(file_memoh_private_v1_skills, 0);

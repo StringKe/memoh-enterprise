@@ -82,7 +82,8 @@ import { Sparkles, RefreshCw } from "lucide-vue-next";
 import { Button, ScrollArea, Badge } from "@stringke/ui";
 import { resolveApiErrorMessage } from "@/utils/api-error";
 import { openInFileManagerKey } from "../composables/useFileManagerProvider";
-import { apiHttpUrl } from "@/lib/runtime-url";
+import { connectClients } from "@/lib/connect-client";
+import { recordValue } from "@/lib/connect-runtime";
 
 const props = defineProps<{
   botId: string;
@@ -97,32 +98,35 @@ type SkillItem = {
   source_path?: string;
   source_kind?: string;
   state?: string;
+  description?: string;
 };
 
 const { data, isLoading, error } = useQuery({
   key: () => ["bot-skills-catalog", props.botId],
   query: async () => {
-    const response = await fetch(
-      apiHttpUrl(`/bots/${encodeURIComponent(props.botId)}/container/skills`),
-      {
-        headers: authHeaders(),
-      },
-    );
-    if (!response.ok) {
-      const message = await response.text();
-      throw new Error(message || `Request failed with status ${response.status}`);
-    }
-    const resp = (await response.json()) as { skills?: SkillItem[] };
-    return resp.skills ?? [];
+    const response = await connectClients.skills.listBotContainerSkills({
+      botId: props.botId,
+      page: { pageSize: 200, pageToken: "" },
+    });
+    return response.skills.map((skill): SkillItem => {
+      const metadata = recordValue(skill.metadata);
+      return {
+        name: skill.name,
+        source_path: typeof metadata.source_path === "string" ? metadata.source_path : skill.source,
+        source_kind: typeof metadata.source_kind === "string" ? metadata.source_kind : "",
+        state:
+          typeof metadata.state === "string"
+            ? metadata.state
+            : skill.enabled
+              ? "effective"
+              : "disabled",
+        description: typeof metadata.description === "string" ? metadata.description : undefined,
+      };
+    });
   },
   enabled: () => !!props.botId,
   refetchOnWindowFocus: false,
 });
-
-function authHeaders(): HeadersInit {
-  const token = localStorage.getItem("token") || "";
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
 
 const skills = computed<SkillItem[]>(() => data.value ?? []);
 

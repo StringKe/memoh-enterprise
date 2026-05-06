@@ -22,12 +22,17 @@ import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import { SerializeAddon } from "@xterm/addon-serialize";
 import { Button } from "@stringke/ui";
-import { apiWebSocketUrl } from "@/lib/runtime-url";
 import {
   readTerminalSnapshot,
   terminalCacheKey,
   writeTerminalSnapshot,
 } from "@/composables/useTerminalCache";
+import { connectClients, streamConnectTerminal } from "@/lib/connect-client";
+import {
+  createTerminalSize,
+  terminalClosedMessage,
+  terminalOutputData,
+} from "@/lib/connect-terminal";
 import "@xterm/xterm/css/xterm.css";
 
 const props = withDefaults(
@@ -62,7 +67,8 @@ const status = ref<"idle" | "connecting" | "connected" | "disconnected">("idle")
 let terminal: Terminal | null = null;
 let fitAddon: FitAddon | null = null;
 let serializeAddon: SerializeAddon | null = null;
-let ws: WebSocket | null = null;
+let terminalId = "";
+let streamController: AbortController | null = null;
 let resizeObserver: ResizeObserver | null = null;
 let fitTimer: ReturnType<typeof setTimeout> | null = null;
 let disposables: Array<{ dispose(): void }> = [];
@@ -85,26 +91,23 @@ function fitTerminal() {
   fitAddon?.fit();
 }
 
-function resolveTerminalWsUrl(cols: number, rows: number): string {
-  const token = localStorage.getItem("token") ?? "";
-  const path = `/bots/${encodeURIComponent(props.botId)}/container/terminal/ws`;
-  const query = `?token=${encodeURIComponent(token)}&cols=${cols}&rows=${rows}`;
-  return `${apiWebSocketUrl(path)}${query}`;
+function closeTerminalStream() {
+  streamController?.abort();
+  streamController = null;
 }
 
-function closeWs() {
-  if (ws) {
-    ws.onclose = null;
-    ws.onerror = null;
-    ws.onmessage = null;
-    ws.close();
-    ws = null;
+async function closeTerminalSession() {
+  const id = terminalId;
+  terminalId = "";
+  closeTerminalStream();
+  if (id) {
+    await connectClients.containers.closeTerminal({ botId: props.botId, terminalId: id });
   }
 }
 
-function connectWs() {
+async function connectTerminal() {
   if (!terminal) return;
-  closeWs();
+  await closeTerminalSession();
 
   fitTerminal();
 
@@ -112,51 +115,68 @@ function connectWs() {
   const rows = terminal.rows;
 
   status.value = "connecting";
-  const url = resolveTerminalWsUrl(cols, rows);
-  const socket = new WebSocket(url);
-  socket.binaryType = "arraybuffer";
-  ws = socket;
-
-  socket.onopen = () => {
+  try {
+    const opened = await connectClients.containers.openTerminal({
+      botId: props.botId,
+      sessionId: props.tabId,
+      command: "",
+      workDir: "/data",
+      env: [],
+      size: createTerminalSize(cols, rows),
+    });
+    terminalId = opened.terminalId;
+    const controller = new AbortController();
+    streamController = controller;
     status.value = "connected";
-  };
-
-  socket.onmessage = (event) => {
-    if (event.data instanceof ArrayBuffer) {
-      terminal?.write(new Uint8Array(event.data));
-    } else if (typeof event.data === "string") {
-      terminal?.write(event.data);
-    }
-  };
-
-  socket.onclose = () => {
+    void (async () => {
+      try {
+        for await (const event of streamConnectTerminal(
+          { botId: props.botId, terminalId: opened.terminalId },
+          controller.signal,
+        )) {
+          const output = terminalOutputData(event);
+          if (output) terminal?.write(output);
+          if (event.exited) {
+            status.value = "disconnected";
+            terminal?.write(terminalClosedMessage(event.exitCode));
+            break;
+          }
+        }
+      } catch {
+        if (!controller.signal.aborted) {
+          status.value = "disconnected";
+        }
+      }
+    })();
+  } catch {
     status.value = "disconnected";
-    terminal?.write("\r\n\x1b[31m[Connection closed]\x1b[0m\r\n");
-  };
-
-  socket.onerror = () => {
-    status.value = "disconnected";
-  };
+  }
 
   for (const d of disposables) d.dispose();
   disposables = [];
 
   disposables.push(
     terminal.onData((data) => {
-      if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.send(new TextEncoder().encode(data));
-      }
+      if (!terminalId) return;
+      void connectClients.containers.writeTerminalInput({
+        botId: props.botId,
+        terminalId,
+        data: new TextEncoder().encode(data),
+      });
     }),
     terminal.onResize(({ cols: c, rows: r }) => {
-      if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ type: "resize", cols: c, rows: r }));
-      }
+      if (!terminalId) return;
+      void connectClients.containers.resizeTerminal({
+        botId: props.botId,
+        terminalId,
+        size: createTerminalSize(c, r),
+      });
     }),
   );
 }
 
 function reconnect() {
-  connectWs();
+  void connectTerminal();
 }
 
 function setupResizeObserver() {
@@ -192,7 +212,7 @@ onMounted(() => {
   nextTick(() => {
     setupResizeObserver();
     fitTerminal();
-    if (props.active) connectWs();
+    if (props.active) void connectTerminal();
   });
 });
 
@@ -215,7 +235,7 @@ watch(
     }
     await nextTick();
     fitTerminal();
-    if (status.value === "idle") connectWs();
+    if (status.value === "idle") void connectTerminal();
   },
   { flush: "post" },
 );
@@ -228,7 +248,7 @@ onBeforeUnmount(() => {
   }
   resizeObserver?.disconnect();
   resizeObserver = null;
-  closeWs();
+  void closeTerminalSession();
   for (const d of disposables) d.dispose();
   disposables = [];
   terminal?.dispose();

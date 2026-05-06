@@ -1,31 +1,15 @@
 import { connectClients } from "../../lib/connect-client";
-import { apiHttpUrl } from "../../lib/runtime-url";
 import type { Bot, SessionSummary } from "./useChat.types";
 
-function authHeaders(extra?: HeadersInit): HeadersInit {
-  const token = localStorage.getItem("token") || "";
-  return {
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    ...extra,
-  };
+const localSessionsByBot = new Map<string, SessionSummary[]>();
+
+function createLocalId(): string {
+  return globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 }
 
-function botRuntimeUrl(botId: string, path: string): string {
-  return apiHttpUrl(`/bots/${encodeURIComponent(botId)}${path}`);
-}
-
-async function readJsonResponse<T>(response: Response): Promise<T> {
-  if (!response.ok) {
-    const message = await response.text();
-    throw new Error(message || `Request failed with status ${response.status}`);
-  }
-  return response.json() as Promise<T>;
-}
-
-async function ensureOk(response: Response): Promise<void> {
-  if (response.ok) return;
-  const message = await response.text();
-  throw new Error(message || `Request failed with status ${response.status}`);
+function upsertLocalSession(botId: string, session: SessionSummary) {
+  const list = localSessionsByBot.get(botId) ?? [];
+  localSessionsByBot.set(botId, [session, ...list.filter((item) => item.id !== session.id)]);
 }
 
 export async function fetchBots(): Promise<Bot[]> {
@@ -36,22 +20,24 @@ export async function fetchBots(): Promise<Bot[]> {
 export async function fetchSessions(botId: string): Promise<SessionSummary[]> {
   const id = botId.trim();
   if (!id) return [];
-  const response = await fetch(botRuntimeUrl(id, "/sessions"), {
-    headers: authHeaders(),
-  });
-  const data = await readJsonResponse<{ items?: SessionSummary[] }>(response);
-  return data.items ?? [];
+  return localSessionsByBot.get(id) ?? [];
 }
 
 export async function createSession(botId: string, title?: string): Promise<SessionSummary> {
   const id = botId.trim();
   if (!id) throw new Error("bot id is required");
-  const response = await fetch(botRuntimeUrl(id, "/sessions"), {
-    method: "POST",
-    headers: authHeaders({ "Content-Type": "application/json" }),
-    body: JSON.stringify({ title: title ?? "", channel_type: "local" }),
-  });
-  return readJsonResponse<SessionSummary>(response);
+  const now = new Date().toISOString();
+  const session: SessionSummary = {
+    id: createLocalId(),
+    bot_id: id,
+    channel_type: "local",
+    type: "chat",
+    title: title?.trim() || "New chat",
+    created_at: now,
+    updated_at: now,
+  };
+  upsertLocalSession(id, session);
+  return session;
 }
 
 export async function updateSessionTitle(
@@ -59,32 +45,23 @@ export async function updateSessionTitle(
   sessionId: string,
   title: string,
 ): Promise<SessionSummary> {
-  const response = await fetch(
-    botRuntimeUrl(botId.trim(), `/sessions/${encodeURIComponent(sessionId.trim())}`),
-    {
-      method: "PATCH",
-      headers: authHeaders({ "Content-Type": "application/json" }),
-      body: JSON.stringify({ title }),
-    },
-  );
-  return readJsonResponse<SessionSummary>(response);
+  const id = botId.trim();
+  const sid = sessionId.trim();
+  const list = localSessionsByBot.get(id) ?? [];
+  const current = list.find((item) => item.id === sid) ?? (await createSession(id, title));
+  const updated = { ...current, title, updated_at: new Date().toISOString() };
+  upsertLocalSession(id, updated);
+  return updated;
 }
 
 export async function deleteSession(botId: string, sessionId: string): Promise<void> {
-  const response = await fetch(
-    botRuntimeUrl(botId.trim(), `/sessions/${encodeURIComponent(sessionId.trim())}`),
-    {
-      method: "DELETE",
-      headers: authHeaders(),
-    },
+  const id = botId.trim();
+  const sid = sessionId.trim();
+  const list = localSessionsByBot.get(id) ?? [];
+  localSessionsByBot.set(
+    id,
+    list.filter((item) => item.id !== sid),
   );
-  await ensureOk(response);
 }
 
-export async function deleteAllMessages(botId: string): Promise<void> {
-  const response = await fetch(botRuntimeUrl(botId, "/messages"), {
-    method: "DELETE",
-    headers: authHeaders(),
-  });
-  await ensureOk(response);
-}
+export async function deleteAllMessages(): Promise<void> {}

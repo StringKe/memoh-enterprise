@@ -4,7 +4,11 @@
 
 import type { GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegenv2";
 import { fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
-import { file_google_protobuf_struct } from "@bufbuild/protobuf/wkt";
+import type { Timestamp } from "@bufbuild/protobuf/wkt";
+import {
+  file_google_protobuf_struct,
+  file_google_protobuf_timestamp,
+} from "@bufbuild/protobuf/wkt";
 import type { AuditFields, PageRequest, PageResponse } from "./common_pb";
 import { file_memoh_private_v1_common } from "./common_pb";
 import type { JsonObject, Message } from "@bufbuild/protobuf";
@@ -13,8 +17,8 @@ import type { JsonObject, Message } from "@bufbuild/protobuf";
  * Describes the file memoh/private/v1/providers.proto.
  */
 export const file_memoh_private_v1_providers: GenFile /*@__PURE__*/ = fileDesc(
-  "CiBtZW1vaC9wcml2YXRlL3YxL3Byb3ZpZGVycy5wcm90bxIQbWVtb2gucHJpdmF0ZS52MSLJAQoIUHJvdmlkZXISCgoCaWQYASABKAkSDAoEbmFtZRgCIAEoCRIUCgxkaXNwbGF5X25hbWUYAyABKAkSEAoIYmFzZV91cmwYBCABKAkSEwoLY2xpZW50X3R5cGUYBSABKAkSDwoHZW5hYmxlZBgGIAEoCBInCgZjb25maWcYByABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0EiwKBWF1ZGl0GAggASgLMh0ubWVtb2gucHJpdmF0ZS52MS5BdWRpdEZpZWxkcyKsAQoUUHJvdmlkZXJNb2RlbFN1bW1hcnkSCgoCaWQYASABKAkSEwoLcHJvdmlkZXJfaWQYAiABKAkSEAoIbW9kZWxfaWQYAyABKAkSFAoMZGlzcGxheV9uYW1lGAQgASgJEgwKBHR5cGUYBSABKAkSEgoKbW9kYWxpdGllcxgGIAMoCRIpCghtZXRhZGF0YRgHIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QirQEKFUNyZWF0ZVByb3ZpZGVyUmVxdWVzdBIMCgRuYW1lGAEgASgJEhQKDGRpc3BsYXlfbmFtZRgCIAEoCRIQCghiYXNlX3VybBgDIAEoCRIPCgdhcGlfa2V5GAQgASgJEhMKC2NsaWVudF90eXBlGAUgASgJEg8KB2VuYWJsZWQYBiABKAgSJwoGY29uZmlnGAcgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdCJGChZDcmVhdGVQcm92aWRlclJlc3BvbnNlEiwKCHByb3ZpZGVyGAEgASgLMhoubWVtb2gucHJpdmF0ZS52MS5Qcm92aWRlciJDChRMaXN0UHJvdmlkZXJzUmVxdWVzdBIrCgRwYWdlGAEgASgLMh0ubWVtb2gucHJpdmF0ZS52MS5QYWdlUmVxdWVzdCJ0ChVMaXN0UHJvdmlkZXJzUmVzcG9uc2USLQoJcHJvdmlkZXJzGAEgAygLMhoubWVtb2gucHJpdmF0ZS52MS5Qcm92aWRlchIsCgRwYWdlGAIgASgLMh4ubWVtb2gucHJpdmF0ZS52MS5QYWdlUmVzcG9uc2UiLgoSR2V0UHJvdmlkZXJSZXF1ZXN0EgoKAmlkGAEgASgJEgwKBG5hbWUYAiABKAkiQwoTR2V0UHJvdmlkZXJSZXNwb25zZRIsCghwcm92aWRlchgBIAEoCzIaLm1lbW9oLnByaXZhdGUudjEuUHJvdmlkZXIiigIKFVVwZGF0ZVByb3ZpZGVyUmVxdWVzdBIKCgJpZBgBIAEoCRIZCgxkaXNwbGF5X25hbWUYAiABKAlIAIgBARIVCghiYXNlX3VybBgDIAEoCUgBiAEBEhQKB2FwaV9rZXkYBCABKAlIAogBARIYCgtjbGllbnRfdHlwZRgFIAEoCUgDiAEBEhQKB2VuYWJsZWQYBiABKAhIBIgBARInCgZjb25maWcYByABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0Qg8KDV9kaXNwbGF5X25hbWVCCwoJX2Jhc2VfdXJsQgoKCF9hcGlfa2V5Qg4KDF9jbGllbnRfdHlwZUIKCghfZW5hYmxlZCJGChZVcGRhdGVQcm92aWRlclJlc3BvbnNlEiwKCHByb3ZpZGVyGAEgASgLMhoubWVtb2gucHJpdmF0ZS52MS5Qcm92aWRlciIjChVEZWxldGVQcm92aWRlclJlcXVlc3QSCgoCaWQYASABKAkiGAoWRGVsZXRlUHJvdmlkZXJSZXNwb25zZSIXChVDb3VudFByb3ZpZGVyc1JlcXVlc3QiJwoWQ291bnRQcm92aWRlcnNSZXNwb25zZRINCgVjb3VudBgBIAEoAyJdChlMaXN0UHJvdmlkZXJNb2RlbHNSZXF1ZXN0EhMKC3Byb3ZpZGVyX2lkGAEgASgJEisKBHBhZ2UYAiABKAsyHS5tZW1vaC5wcml2YXRlLnYxLlBhZ2VSZXF1ZXN0IoIBChpMaXN0UHJvdmlkZXJNb2RlbHNSZXNwb25zZRI2CgZtb2RlbHMYASADKAsyJi5tZW1vaC5wcml2YXRlLnYxLlByb3ZpZGVyTW9kZWxTdW1tYXJ5EiwKBHBhZ2UYAiABKAsyHi5tZW1vaC5wcml2YXRlLnYxLlBhZ2VSZXNwb25zZSIzChNUZXN0UHJvdmlkZXJSZXF1ZXN0EgoKAmlkGAEgASgJEhAKCG1vZGVsX2lkGAIgASgJIl4KFFRlc3RQcm92aWRlclJlc3BvbnNlEgoKAm9rGAEgASgIEg8KB21lc3NhZ2UYAiABKAkSKQoIbWV0YWRhdGEYAyABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0Ik0KG0ltcG9ydFByb3ZpZGVyTW9kZWxzUmVxdWVzdBIKCgJpZBgBIAEoCRIRCgltb2RlbF9pZHMYAiADKAkSDwoHZHJ5X3J1bhgDIAEoCCJWChxJbXBvcnRQcm92aWRlck1vZGVsc1Jlc3BvbnNlEjYKBm1vZGVscxgBIAMoCzImLm1lbW9oLnByaXZhdGUudjEuUHJvdmlkZXJNb2RlbFN1bW1hcnkiNAodR2V0UHJvdmlkZXJPYXV0aFN0YXR1c1JlcXVlc3QSEwoLcHJvdmlkZXJfaWQYASABKAkicAoeR2V0UHJvdmlkZXJPYXV0aFN0YXR1c1Jlc3BvbnNlEhIKCmF1dGhvcml6ZWQYASABKAgSDwoHYWNjb3VudBgCIAEoCRIpCghtZXRhZGF0YRgDIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QiRgoZU3RhcnRQcm92aWRlck9hdXRoUmVxdWVzdBITCgtwcm92aWRlcl9pZBgBIAEoCRIUCgxyZWRpcmVjdF91cmkYAiABKAkiQgoaU3RhcnRQcm92aWRlck9hdXRoUmVzcG9uc2USFQoNYXV0aG9yaXplX3VybBgBIAEoCRINCgVzdGF0ZRgCIAEoCSI+ChhQb2xsUHJvdmlkZXJPYXV0aFJlcXVlc3QSEwoLcHJvdmlkZXJfaWQYASABKAkSDQoFc3RhdGUYAiABKAkibwoZUG9sbFByb3ZpZGVyT2F1dGhSZXNwb25zZRIQCghjb21wbGV0ZRgBIAEoCBJACgZzdGF0dXMYAiABKAsyMC5tZW1vaC5wcml2YXRlLnYxLkdldFByb3ZpZGVyT2F1dGhTdGF0dXNSZXNwb25zZSIxChpSZXZva2VQcm92aWRlck9hdXRoUmVxdWVzdBITCgtwcm92aWRlcl9pZBgBIAEoCSIdChtSZXZva2VQcm92aWRlck9hdXRoUmVzcG9uc2Uy+goKD1Byb3ZpZGVyU2VydmljZRJjCg5DcmVhdGVQcm92aWRlchInLm1lbW9oLnByaXZhdGUudjEuQ3JlYXRlUHJvdmlkZXJSZXF1ZXN0GigubWVtb2gucHJpdmF0ZS52MS5DcmVhdGVQcm92aWRlclJlc3BvbnNlEmAKDUxpc3RQcm92aWRlcnMSJi5tZW1vaC5wcml2YXRlLnYxLkxpc3RQcm92aWRlcnNSZXF1ZXN0GicubWVtb2gucHJpdmF0ZS52MS5MaXN0UHJvdmlkZXJzUmVzcG9uc2USWgoLR2V0UHJvdmlkZXISJC5tZW1vaC5wcml2YXRlLnYxLkdldFByb3ZpZGVyUmVxdWVzdBolLm1lbW9oLnByaXZhdGUudjEuR2V0UHJvdmlkZXJSZXNwb25zZRJjCg5VcGRhdGVQcm92aWRlchInLm1lbW9oLnByaXZhdGUudjEuVXBkYXRlUHJvdmlkZXJSZXF1ZXN0GigubWVtb2gucHJpdmF0ZS52MS5VcGRhdGVQcm92aWRlclJlc3BvbnNlEmMKDkRlbGV0ZVByb3ZpZGVyEicubWVtb2gucHJpdmF0ZS52MS5EZWxldGVQcm92aWRlclJlcXVlc3QaKC5tZW1vaC5wcml2YXRlLnYxLkRlbGV0ZVByb3ZpZGVyUmVzcG9uc2USYwoOQ291bnRQcm92aWRlcnMSJy5tZW1vaC5wcml2YXRlLnYxLkNvdW50UHJvdmlkZXJzUmVxdWVzdBooLm1lbW9oLnByaXZhdGUudjEuQ291bnRQcm92aWRlcnNSZXNwb25zZRJvChJMaXN0UHJvdmlkZXJNb2RlbHMSKy5tZW1vaC5wcml2YXRlLnYxLkxpc3RQcm92aWRlck1vZGVsc1JlcXVlc3QaLC5tZW1vaC5wcml2YXRlLnYxLkxpc3RQcm92aWRlck1vZGVsc1Jlc3BvbnNlEl0KDFRlc3RQcm92aWRlchIlLm1lbW9oLnByaXZhdGUudjEuVGVzdFByb3ZpZGVyUmVxdWVzdBomLm1lbW9oLnByaXZhdGUudjEuVGVzdFByb3ZpZGVyUmVzcG9uc2USdQoUSW1wb3J0UHJvdmlkZXJNb2RlbHMSLS5tZW1vaC5wcml2YXRlLnYxLkltcG9ydFByb3ZpZGVyTW9kZWxzUmVxdWVzdBouLm1lbW9oLnByaXZhdGUudjEuSW1wb3J0UHJvdmlkZXJNb2RlbHNSZXNwb25zZRJ7ChZHZXRQcm92aWRlck9hdXRoU3RhdHVzEi8ubWVtb2gucHJpdmF0ZS52MS5HZXRQcm92aWRlck9hdXRoU3RhdHVzUmVxdWVzdBowLm1lbW9oLnByaXZhdGUudjEuR2V0UHJvdmlkZXJPYXV0aFN0YXR1c1Jlc3BvbnNlEm8KElN0YXJ0UHJvdmlkZXJPYXV0aBIrLm1lbW9oLnByaXZhdGUudjEuU3RhcnRQcm92aWRlck9hdXRoUmVxdWVzdBosLm1lbW9oLnByaXZhdGUudjEuU3RhcnRQcm92aWRlck9hdXRoUmVzcG9uc2USbAoRUG9sbFByb3ZpZGVyT2F1dGgSKi5tZW1vaC5wcml2YXRlLnYxLlBvbGxQcm92aWRlck9hdXRoUmVxdWVzdBorLm1lbW9oLnByaXZhdGUudjEuUG9sbFByb3ZpZGVyT2F1dGhSZXNwb25zZRJyChNSZXZva2VQcm92aWRlck9hdXRoEiwubWVtb2gucHJpdmF0ZS52MS5SZXZva2VQcm92aWRlck9hdXRoUmVxdWVzdBotLm1lbW9oLnByaXZhdGUudjEuUmV2b2tlUHJvdmlkZXJPYXV0aFJlc3BvbnNlQk1aS2dpdGh1Yi5jb20vbWVtb2hhaS9tZW1vaC9pbnRlcm5hbC9jb25uZWN0YXBpL2dlbi9tZW1vaC9wcml2YXRlL3YxO3ByaXZhdGV2MWIGcHJvdG8z",
-  [file_google_protobuf_struct, file_memoh_private_v1_common],
+  "CiBtZW1vaC9wcml2YXRlL3YxL3Byb3ZpZGVycy5wcm90bxIQbWVtb2gucHJpdmF0ZS52MSLJAQoIUHJvdmlkZXISCgoCaWQYASABKAkSDAoEbmFtZRgCIAEoCRIUCgxkaXNwbGF5X25hbWUYAyABKAkSEAoIYmFzZV91cmwYBCABKAkSEwoLY2xpZW50X3R5cGUYBSABKAkSDwoHZW5hYmxlZBgGIAEoCBInCgZjb25maWcYByABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0EiwKBWF1ZGl0GAggASgLMh0ubWVtb2gucHJpdmF0ZS52MS5BdWRpdEZpZWxkcyKsAQoUUHJvdmlkZXJNb2RlbFN1bW1hcnkSCgoCaWQYASABKAkSEwoLcHJvdmlkZXJfaWQYAiABKAkSEAoIbW9kZWxfaWQYAyABKAkSFAoMZGlzcGxheV9uYW1lGAQgASgJEgwKBHR5cGUYBSABKAkSEgoKbW9kYWxpdGllcxgGIAMoCRIpCghtZXRhZGF0YRgHIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QirQEKFUNyZWF0ZVByb3ZpZGVyUmVxdWVzdBIMCgRuYW1lGAEgASgJEhQKDGRpc3BsYXlfbmFtZRgCIAEoCRIQCghiYXNlX3VybBgDIAEoCRIPCgdhcGlfa2V5GAQgASgJEhMKC2NsaWVudF90eXBlGAUgASgJEg8KB2VuYWJsZWQYBiABKAgSJwoGY29uZmlnGAcgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdCJGChZDcmVhdGVQcm92aWRlclJlc3BvbnNlEiwKCHByb3ZpZGVyGAEgASgLMhoubWVtb2gucHJpdmF0ZS52MS5Qcm92aWRlciJDChRMaXN0UHJvdmlkZXJzUmVxdWVzdBIrCgRwYWdlGAEgASgLMh0ubWVtb2gucHJpdmF0ZS52MS5QYWdlUmVxdWVzdCJ0ChVMaXN0UHJvdmlkZXJzUmVzcG9uc2USLQoJcHJvdmlkZXJzGAEgAygLMhoubWVtb2gucHJpdmF0ZS52MS5Qcm92aWRlchIsCgRwYWdlGAIgASgLMh4ubWVtb2gucHJpdmF0ZS52MS5QYWdlUmVzcG9uc2UiLgoSR2V0UHJvdmlkZXJSZXF1ZXN0EgoKAmlkGAEgASgJEgwKBG5hbWUYAiABKAkiQwoTR2V0UHJvdmlkZXJSZXNwb25zZRIsCghwcm92aWRlchgBIAEoCzIaLm1lbW9oLnByaXZhdGUudjEuUHJvdmlkZXIiigIKFVVwZGF0ZVByb3ZpZGVyUmVxdWVzdBIKCgJpZBgBIAEoCRIZCgxkaXNwbGF5X25hbWUYAiABKAlIAIgBARIVCghiYXNlX3VybBgDIAEoCUgBiAEBEhQKB2FwaV9rZXkYBCABKAlIAogBARIYCgtjbGllbnRfdHlwZRgFIAEoCUgDiAEBEhQKB2VuYWJsZWQYBiABKAhIBIgBARInCgZjb25maWcYByABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0Qg8KDV9kaXNwbGF5X25hbWVCCwoJX2Jhc2VfdXJsQgoKCF9hcGlfa2V5Qg4KDF9jbGllbnRfdHlwZUIKCghfZW5hYmxlZCJGChZVcGRhdGVQcm92aWRlclJlc3BvbnNlEiwKCHByb3ZpZGVyGAEgASgLMhoubWVtb2gucHJpdmF0ZS52MS5Qcm92aWRlciIjChVEZWxldGVQcm92aWRlclJlcXVlc3QSCgoCaWQYASABKAkiGAoWRGVsZXRlUHJvdmlkZXJSZXNwb25zZSIXChVDb3VudFByb3ZpZGVyc1JlcXVlc3QiJwoWQ291bnRQcm92aWRlcnNSZXNwb25zZRINCgVjb3VudBgBIAEoAyJdChlMaXN0UHJvdmlkZXJNb2RlbHNSZXF1ZXN0EhMKC3Byb3ZpZGVyX2lkGAEgASgJEisKBHBhZ2UYAiABKAsyHS5tZW1vaC5wcml2YXRlLnYxLlBhZ2VSZXF1ZXN0IoIBChpMaXN0UHJvdmlkZXJNb2RlbHNSZXNwb25zZRI2CgZtb2RlbHMYASADKAsyJi5tZW1vaC5wcml2YXRlLnYxLlByb3ZpZGVyTW9kZWxTdW1tYXJ5EiwKBHBhZ2UYAiABKAsyHi5tZW1vaC5wcml2YXRlLnYxLlBhZ2VSZXNwb25zZSIzChNUZXN0UHJvdmlkZXJSZXF1ZXN0EgoKAmlkGAEgASgJEhAKCG1vZGVsX2lkGAIgASgJIl4KFFRlc3RQcm92aWRlclJlc3BvbnNlEgoKAm9rGAEgASgIEg8KB21lc3NhZ2UYAiABKAkSKQoIbWV0YWRhdGEYAyABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0Ik0KG0ltcG9ydFByb3ZpZGVyTW9kZWxzUmVxdWVzdBIKCgJpZBgBIAEoCRIRCgltb2RlbF9pZHMYAiADKAkSDwoHZHJ5X3J1bhgDIAEoCCJWChxJbXBvcnRQcm92aWRlck1vZGVsc1Jlc3BvbnNlEjYKBm1vZGVscxgBIAMoCzImLm1lbW9oLnByaXZhdGUudjEuUHJvdmlkZXJNb2RlbFN1bW1hcnkiNAodR2V0UHJvdmlkZXJPYXV0aFN0YXR1c1JlcXVlc3QSEwoLcHJvdmlkZXJfaWQYASABKAkicAoeR2V0UHJvdmlkZXJPYXV0aFN0YXR1c1Jlc3BvbnNlEhIKCmF1dGhvcml6ZWQYASABKAgSDwoHYWNjb3VudBgCIAEoCRIpCghtZXRhZGF0YRgDIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QiRgoZU3RhcnRQcm92aWRlck9hdXRoUmVxdWVzdBITCgtwcm92aWRlcl9pZBgBIAEoCRIUCgxyZWRpcmVjdF91cmkYAiABKAkiQgoaU3RhcnRQcm92aWRlck9hdXRoUmVzcG9uc2USFQoNYXV0aG9yaXplX3VybBgBIAEoCRINCgVzdGF0ZRgCIAEoCSI+ChhQb2xsUHJvdmlkZXJPYXV0aFJlcXVlc3QSEwoLcHJvdmlkZXJfaWQYASABKAkSDQoFc3RhdGUYAiABKAkibwoZUG9sbFByb3ZpZGVyT2F1dGhSZXNwb25zZRIQCghjb21wbGV0ZRgBIAEoCBJACgZzdGF0dXMYAiABKAsyMC5tZW1vaC5wcml2YXRlLnYxLkdldFByb3ZpZGVyT2F1dGhTdGF0dXNSZXNwb25zZSIxChpSZXZva2VQcm92aWRlck9hdXRoUmVxdWVzdBITCgtwcm92aWRlcl9pZBgBIAEoCSIdChtSZXZva2VQcm92aWRlck9hdXRoUmVzcG9uc2UiWgodQXV0aG9yaXplUHJvdmlkZXJPYXV0aFJlcXVlc3QSEwoLcHJvdmlkZXJfaWQYASABKAkSFAoMcmVkaXJlY3RfdXJpGAIgASgJEg4KBnNjb3BlcxgDIAMoCSJGCh5BdXRob3JpemVQcm92aWRlck9hdXRoUmVzcG9uc2USFQoNYXV0aG9yaXplX3VybBgBIAEoCRINCgVzdGF0ZRgCIAEoCSJrCiFFeGNoYW5nZVByb3ZpZGVyT2F1dGhUb2tlblJlcXVlc3QSEwoLcHJvdmlkZXJfaWQYASABKAkSDAoEY29kZRgCIAEoCRINCgVzdGF0ZRgDIAEoCRIUCgxyZWRpcmVjdF91cmkYBCABKAkipAEKIkV4Y2hhbmdlUHJvdmlkZXJPYXV0aFRva2VuUmVzcG9uc2USEgoKYXV0aG9yaXplZBgBIAEoCBIPCgdhY2NvdW50GAIgASgJEi4KCmV4cGlyZXNfYXQYAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEikKCG1ldGFkYXRhGAQgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdCIzChxHZXRQcm92aWRlck9hdXRoVG9rZW5SZXF1ZXN0EhMKC3Byb3ZpZGVyX2lkGAEgASgJIoYBCh1HZXRQcm92aWRlck9hdXRoVG9rZW5SZXNwb25zZRIRCglhdmFpbGFibGUYASABKAgSEgoKdG9rZW5fdHlwZRgCIAEoCRIuCgpleHBpcmVzX2F0GAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIOCgZzY29wZXMYBCADKAky+w0KD1Byb3ZpZGVyU2VydmljZRJjCg5DcmVhdGVQcm92aWRlchInLm1lbW9oLnByaXZhdGUudjEuQ3JlYXRlUHJvdmlkZXJSZXF1ZXN0GigubWVtb2gucHJpdmF0ZS52MS5DcmVhdGVQcm92aWRlclJlc3BvbnNlEmAKDUxpc3RQcm92aWRlcnMSJi5tZW1vaC5wcml2YXRlLnYxLkxpc3RQcm92aWRlcnNSZXF1ZXN0GicubWVtb2gucHJpdmF0ZS52MS5MaXN0UHJvdmlkZXJzUmVzcG9uc2USWgoLR2V0UHJvdmlkZXISJC5tZW1vaC5wcml2YXRlLnYxLkdldFByb3ZpZGVyUmVxdWVzdBolLm1lbW9oLnByaXZhdGUudjEuR2V0UHJvdmlkZXJSZXNwb25zZRJjCg5VcGRhdGVQcm92aWRlchInLm1lbW9oLnByaXZhdGUudjEuVXBkYXRlUHJvdmlkZXJSZXF1ZXN0GigubWVtb2gucHJpdmF0ZS52MS5VcGRhdGVQcm92aWRlclJlc3BvbnNlEmMKDkRlbGV0ZVByb3ZpZGVyEicubWVtb2gucHJpdmF0ZS52MS5EZWxldGVQcm92aWRlclJlcXVlc3QaKC5tZW1vaC5wcml2YXRlLnYxLkRlbGV0ZVByb3ZpZGVyUmVzcG9uc2USYwoOQ291bnRQcm92aWRlcnMSJy5tZW1vaC5wcml2YXRlLnYxLkNvdW50UHJvdmlkZXJzUmVxdWVzdBooLm1lbW9oLnByaXZhdGUudjEuQ291bnRQcm92aWRlcnNSZXNwb25zZRJvChJMaXN0UHJvdmlkZXJNb2RlbHMSKy5tZW1vaC5wcml2YXRlLnYxLkxpc3RQcm92aWRlck1vZGVsc1JlcXVlc3QaLC5tZW1vaC5wcml2YXRlLnYxLkxpc3RQcm92aWRlck1vZGVsc1Jlc3BvbnNlEl0KDFRlc3RQcm92aWRlchIlLm1lbW9oLnByaXZhdGUudjEuVGVzdFByb3ZpZGVyUmVxdWVzdBomLm1lbW9oLnByaXZhdGUudjEuVGVzdFByb3ZpZGVyUmVzcG9uc2USdQoUSW1wb3J0UHJvdmlkZXJNb2RlbHMSLS5tZW1vaC5wcml2YXRlLnYxLkltcG9ydFByb3ZpZGVyTW9kZWxzUmVxdWVzdBouLm1lbW9oLnByaXZhdGUudjEuSW1wb3J0UHJvdmlkZXJNb2RlbHNSZXNwb25zZRJ7ChZHZXRQcm92aWRlck9hdXRoU3RhdHVzEi8ubWVtb2gucHJpdmF0ZS52MS5HZXRQcm92aWRlck9hdXRoU3RhdHVzUmVxdWVzdBowLm1lbW9oLnByaXZhdGUudjEuR2V0UHJvdmlkZXJPYXV0aFN0YXR1c1Jlc3BvbnNlEm8KElN0YXJ0UHJvdmlkZXJPYXV0aBIrLm1lbW9oLnByaXZhdGUudjEuU3RhcnRQcm92aWRlck9hdXRoUmVxdWVzdBosLm1lbW9oLnByaXZhdGUudjEuU3RhcnRQcm92aWRlck9hdXRoUmVzcG9uc2USbAoRUG9sbFByb3ZpZGVyT2F1dGgSKi5tZW1vaC5wcml2YXRlLnYxLlBvbGxQcm92aWRlck9hdXRoUmVxdWVzdBorLm1lbW9oLnByaXZhdGUudjEuUG9sbFByb3ZpZGVyT2F1dGhSZXNwb25zZRJyChNSZXZva2VQcm92aWRlck9hdXRoEiwubWVtb2gucHJpdmF0ZS52MS5SZXZva2VQcm92aWRlck9hdXRoUmVxdWVzdBotLm1lbW9oLnByaXZhdGUudjEuUmV2b2tlUHJvdmlkZXJPYXV0aFJlc3BvbnNlEnsKFkF1dGhvcml6ZVByb3ZpZGVyT2F1dGgSLy5tZW1vaC5wcml2YXRlLnYxLkF1dGhvcml6ZVByb3ZpZGVyT2F1dGhSZXF1ZXN0GjAubWVtb2gucHJpdmF0ZS52MS5BdXRob3JpemVQcm92aWRlck9hdXRoUmVzcG9uc2UShwEKGkV4Y2hhbmdlUHJvdmlkZXJPYXV0aFRva2VuEjMubWVtb2gucHJpdmF0ZS52MS5FeGNoYW5nZVByb3ZpZGVyT2F1dGhUb2tlblJlcXVlc3QaNC5tZW1vaC5wcml2YXRlLnYxLkV4Y2hhbmdlUHJvdmlkZXJPYXV0aFRva2VuUmVzcG9uc2USeAoVR2V0UHJvdmlkZXJPYXV0aFRva2VuEi4ubWVtb2gucHJpdmF0ZS52MS5HZXRQcm92aWRlck9hdXRoVG9rZW5SZXF1ZXN0Gi8ubWVtb2gucHJpdmF0ZS52MS5HZXRQcm92aWRlck9hdXRoVG9rZW5SZXNwb25zZUJNWktnaXRodWIuY29tL21lbW9oYWkvbWVtb2gvaW50ZXJuYWwvY29ubmVjdGFwaS9nZW4vbWVtb2gvcHJpdmF0ZS92MTtwcml2YXRldjFiBnByb3RvMw",
+  [file_google_protobuf_struct, file_google_protobuf_timestamp, file_memoh_private_v1_common],
 );
 
 /**
@@ -692,6 +696,174 @@ export const RevokeProviderOauthResponseSchema: GenMessage<RevokeProviderOauthRe
   messageDesc(file_memoh_private_v1_providers, 27);
 
 /**
+ * @generated from message memoh.private.v1.AuthorizeProviderOauthRequest
+ */
+export type AuthorizeProviderOauthRequest =
+  Message<"memoh.private.v1.AuthorizeProviderOauthRequest"> & {
+    /**
+     * @generated from field: string provider_id = 1;
+     */
+    providerId: string;
+
+    /**
+     * @generated from field: string redirect_uri = 2;
+     */
+    redirectUri: string;
+
+    /**
+     * @generated from field: repeated string scopes = 3;
+     */
+    scopes: string[];
+  };
+
+/**
+ * Describes the message memoh.private.v1.AuthorizeProviderOauthRequest.
+ * Use `create(AuthorizeProviderOauthRequestSchema)` to create a new message.
+ */
+export const AuthorizeProviderOauthRequestSchema: GenMessage<AuthorizeProviderOauthRequest> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_providers, 28);
+
+/**
+ * @generated from message memoh.private.v1.AuthorizeProviderOauthResponse
+ */
+export type AuthorizeProviderOauthResponse =
+  Message<"memoh.private.v1.AuthorizeProviderOauthResponse"> & {
+    /**
+     * @generated from field: string authorize_url = 1;
+     */
+    authorizeUrl: string;
+
+    /**
+     * @generated from field: string state = 2;
+     */
+    state: string;
+  };
+
+/**
+ * Describes the message memoh.private.v1.AuthorizeProviderOauthResponse.
+ * Use `create(AuthorizeProviderOauthResponseSchema)` to create a new message.
+ */
+export const AuthorizeProviderOauthResponseSchema: GenMessage<AuthorizeProviderOauthResponse> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_providers, 29);
+
+/**
+ * @generated from message memoh.private.v1.ExchangeProviderOauthTokenRequest
+ */
+export type ExchangeProviderOauthTokenRequest =
+  Message<"memoh.private.v1.ExchangeProviderOauthTokenRequest"> & {
+    /**
+     * @generated from field: string provider_id = 1;
+     */
+    providerId: string;
+
+    /**
+     * @generated from field: string code = 2;
+     */
+    code: string;
+
+    /**
+     * @generated from field: string state = 3;
+     */
+    state: string;
+
+    /**
+     * @generated from field: string redirect_uri = 4;
+     */
+    redirectUri: string;
+  };
+
+/**
+ * Describes the message memoh.private.v1.ExchangeProviderOauthTokenRequest.
+ * Use `create(ExchangeProviderOauthTokenRequestSchema)` to create a new message.
+ */
+export const ExchangeProviderOauthTokenRequestSchema: GenMessage<ExchangeProviderOauthTokenRequest> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_providers, 30);
+
+/**
+ * @generated from message memoh.private.v1.ExchangeProviderOauthTokenResponse
+ */
+export type ExchangeProviderOauthTokenResponse =
+  Message<"memoh.private.v1.ExchangeProviderOauthTokenResponse"> & {
+    /**
+     * @generated from field: bool authorized = 1;
+     */
+    authorized: boolean;
+
+    /**
+     * @generated from field: string account = 2;
+     */
+    account: string;
+
+    /**
+     * @generated from field: google.protobuf.Timestamp expires_at = 3;
+     */
+    expiresAt?: Timestamp | undefined;
+
+    /**
+     * @generated from field: google.protobuf.Struct metadata = 4;
+     */
+    metadata?: JsonObject | undefined;
+  };
+
+/**
+ * Describes the message memoh.private.v1.ExchangeProviderOauthTokenResponse.
+ * Use `create(ExchangeProviderOauthTokenResponseSchema)` to create a new message.
+ */
+export const ExchangeProviderOauthTokenResponseSchema: GenMessage<ExchangeProviderOauthTokenResponse> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_providers, 31);
+
+/**
+ * @generated from message memoh.private.v1.GetProviderOauthTokenRequest
+ */
+export type GetProviderOauthTokenRequest =
+  Message<"memoh.private.v1.GetProviderOauthTokenRequest"> & {
+    /**
+     * @generated from field: string provider_id = 1;
+     */
+    providerId: string;
+  };
+
+/**
+ * Describes the message memoh.private.v1.GetProviderOauthTokenRequest.
+ * Use `create(GetProviderOauthTokenRequestSchema)` to create a new message.
+ */
+export const GetProviderOauthTokenRequestSchema: GenMessage<GetProviderOauthTokenRequest> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_providers, 32);
+
+/**
+ * @generated from message memoh.private.v1.GetProviderOauthTokenResponse
+ */
+export type GetProviderOauthTokenResponse =
+  Message<"memoh.private.v1.GetProviderOauthTokenResponse"> & {
+    /**
+     * @generated from field: bool available = 1;
+     */
+    available: boolean;
+
+    /**
+     * @generated from field: string token_type = 2;
+     */
+    tokenType: string;
+
+    /**
+     * @generated from field: google.protobuf.Timestamp expires_at = 3;
+     */
+    expiresAt?: Timestamp | undefined;
+
+    /**
+     * @generated from field: repeated string scopes = 4;
+     */
+    scopes: string[];
+  };
+
+/**
+ * Describes the message memoh.private.v1.GetProviderOauthTokenResponse.
+ * Use `create(GetProviderOauthTokenResponseSchema)` to create a new message.
+ */
+export const GetProviderOauthTokenResponseSchema: GenMessage<GetProviderOauthTokenResponse> /*@__PURE__*/ =
+  messageDesc(file_memoh_private_v1_providers, 33);
+
+/**
  * @generated from service memoh.private.v1.ProviderService
  */
 export const ProviderService: GenService<{
@@ -798,5 +970,29 @@ export const ProviderService: GenService<{
     methodKind: "unary";
     input: typeof RevokeProviderOauthRequestSchema;
     output: typeof RevokeProviderOauthResponseSchema;
+  };
+  /**
+   * @generated from rpc memoh.private.v1.ProviderService.AuthorizeProviderOauth
+   */
+  authorizeProviderOauth: {
+    methodKind: "unary";
+    input: typeof AuthorizeProviderOauthRequestSchema;
+    output: typeof AuthorizeProviderOauthResponseSchema;
+  };
+  /**
+   * @generated from rpc memoh.private.v1.ProviderService.ExchangeProviderOauthToken
+   */
+  exchangeProviderOauthToken: {
+    methodKind: "unary";
+    input: typeof ExchangeProviderOauthTokenRequestSchema;
+    output: typeof ExchangeProviderOauthTokenResponseSchema;
+  };
+  /**
+   * @generated from rpc memoh.private.v1.ProviderService.GetProviderOauthToken
+   */
+  getProviderOauthToken: {
+    methodKind: "unary";
+    input: typeof GetProviderOauthTokenRequestSchema;
+    output: typeof GetProviderOauthTokenResponseSchema;
   };
 }> /*@__PURE__*/ = serviceDesc(file_memoh_private_v1_providers, 0);

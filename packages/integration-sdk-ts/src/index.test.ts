@@ -16,7 +16,12 @@ import {
   type Envelope,
 } from "@stringke/sdk/gen/memoh/integration/v1/envelope_pb";
 
-import { MemohIntegrationClient, MemohIntegrationError, type WebSocketLike } from "./index";
+import {
+  MemohIntegrationClient,
+  MemohIntegrationError,
+  type WebSocketFactoryInit,
+  type WebSocketLike,
+} from "./index";
 
 class FakeWebSocket implements WebSocketLike {
   readyState = 0;
@@ -97,6 +102,49 @@ describe("MemohIntegrationClient", () => {
     expect(client.info?.integrationId).toBe("token-1");
   });
 
+  it("passes auth headers and client credentials to the websocket factory", async () => {
+    const socket = new FakeWebSocket();
+    let init: WebSocketFactoryInit | null = null;
+    const client = new MemohIntegrationClient({
+      url: "ws://localhost/integration/v1/ws",
+      token: "memoh_it_test",
+      clientId: "client-1",
+      clientSecret: "secret-1",
+      headers: { "x-extra": "value" },
+      requestTimeoutMs: 500,
+      webSocketFactory: (_url, factoryInit) => {
+        init = factoryInit;
+        return socket;
+      },
+      idFactory: () => "id-1",
+    });
+    const connected = client.connect();
+
+    socket.open();
+    await flushMicrotasks();
+    socket.emit(
+      create(EnvelopeSchema, {
+        payload: {
+          case: "authResponse",
+          value: create(AuthResponseSchema, {
+            integrationId: "token-1",
+            scopeType: "global",
+          }),
+        },
+      }),
+    );
+    await connected;
+
+    expect(init).not.toBeNull();
+    const headers = (init as unknown as WebSocketFactoryInit).headers;
+    expect(headers.authorization).toBe("Bearer memoh_it_test");
+    expect(headers["x-memoh-client-id"]).toBe("client-1");
+    expect(headers["x-memoh-client-secret"]).toBe("secret-1");
+    expect(headers["x-extra"]).toBe("value");
+    expect(socket.sent[0]?.payload.case).toBe("authRequest");
+    client.close();
+  });
+
   it("subscribes with request correlation", async () => {
     const socket = new FakeWebSocket();
     const client = makeClient(socket);
@@ -161,6 +209,40 @@ describe("MemohIntegrationClient", () => {
       }),
     );
     await expect(pong).resolves.toBeUndefined();
+  });
+
+  it("sends heartbeat pings when configured", async () => {
+    const socket = new FakeWebSocket();
+    const client = new MemohIntegrationClient({
+      url: "ws://localhost/integration/v1/ws",
+      token: "memoh_it_test",
+      requestTimeoutMs: 500,
+      heartbeatIntervalMs: 1,
+      webSocketFactory: () => socket,
+      idFactory: stableIdFactory(),
+    });
+    const connected = client.connect();
+    socket.open();
+    await flushMicrotasks();
+    socket.emit(
+      create(EnvelopeSchema, {
+        payload: { case: "authResponse", value: create(AuthResponseSchema) },
+      }),
+    );
+    await connected;
+
+    await sleep(5);
+    const heartbeat = socket.sent.find((item) => item.payload.case === "ping");
+    expect(heartbeat?.correlationId).toBe(heartbeat?.messageId);
+    if (heartbeat?.correlationId) {
+      socket.emit(
+        create(EnvelopeSchema, {
+          correlationId: heartbeat.correlationId,
+          payload: { case: "pong", value: create(PongSchema) },
+        }),
+      );
+    }
+    client.close();
   });
 
   it("sends bot messages and manages sessions", async () => {
@@ -403,3 +485,8 @@ describe("MemohIntegrationClient", () => {
     await expect(reconnected).resolves.toMatchObject({ integrationId: "token-2" });
   });
 });
+
+function stableIdFactory(): () => string {
+  let nextID = 0;
+  return () => `id-${++nextID}`;
+}

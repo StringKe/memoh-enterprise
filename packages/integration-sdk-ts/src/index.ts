@@ -33,14 +33,24 @@ export type WebSocketLike = {
   close(code?: number, reason?: string): void;
 };
 
+export type WebSocketFactoryInit = {
+  protocols?: string | string[];
+  headers: Record<string, string>;
+};
+
 export type MemohIntegrationClientOptions = {
   url: string;
   token: string;
+  clientId?: string;
+  clientSecret?: string;
+  headers?: Record<string, string>;
+  protocols?: string | string[];
   protocolVersion?: string;
   requestTimeoutMs?: number;
+  heartbeatIntervalMs?: number;
   reconnectBackoffMs?: number;
   maxReconnectAttempts?: number;
-  webSocketFactory?: (url: string) => WebSocketLike;
+  webSocketFactory?: (url: string, init: WebSocketFactoryInit) => WebSocketLike;
   idFactory?: () => string;
 };
 
@@ -117,11 +127,13 @@ export class MemohIntegrationError extends Error {
 export class MemohIntegrationClient {
   private readonly protocolVersion: string;
   private readonly requestTimeoutMs: number;
+  private readonly heartbeatIntervalMs: number;
   private readonly reconnectBackoffMs: number;
   private readonly maxReconnectAttempts: number;
-  private readonly webSocketFactory: (url: string) => WebSocketLike;
+  private readonly webSocketFactory: (url: string, init: WebSocketFactoryInit) => WebSocketLike;
   private readonly idFactory: () => string;
   private socket: WebSocketLike | null = null;
+  private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
   private connectionInfo: ConnectionInfo | null = null;
   private authWaiter: PendingRequest<AuthResponse> | null = null;
   private pending = new Map<string, PendingRequest<unknown>>();
@@ -133,15 +145,16 @@ export class MemohIntegrationClient {
   constructor(private readonly options: MemohIntegrationClientOptions) {
     this.protocolVersion = options.protocolVersion ?? "2026-05-05";
     this.requestTimeoutMs = options.requestTimeoutMs ?? 10_000;
+    this.heartbeatIntervalMs = options.heartbeatIntervalMs ?? 0;
     this.reconnectBackoffMs = options.reconnectBackoffMs ?? 500;
     this.maxReconnectAttempts = options.maxReconnectAttempts ?? 0;
     this.webSocketFactory =
       options.webSocketFactory ??
-      ((url) => {
+      ((url, init) => {
         if (typeof WebSocket === "undefined") {
           throw new Error("WebSocket is not available in this runtime");
         }
-        return new WebSocket(url);
+        return init.protocols ? new WebSocket(url, init.protocols) : new WebSocket(url);
       });
     this.idFactory = options.idFactory ?? defaultIdFactory;
   }
@@ -152,7 +165,8 @@ export class MemohIntegrationClient {
 
   async connect(): Promise<ConnectionInfo> {
     this.closed = false;
-    const socket = this.webSocketFactory(this.options.url);
+    this.stopHeartbeat();
+    const socket = this.webSocketFactory(this.options.url, this.webSocketInit());
     this.socket = socket;
 
     await new Promise<void>((resolve, reject) => {
@@ -171,6 +185,7 @@ export class MemohIntegrationClient {
       scopeBotId: info.scopeBotId,
       scopeBotGroupId: info.scopeBotGroupId,
     };
+    this.startHeartbeat();
     return this.connectionInfo;
   }
 
@@ -279,6 +294,7 @@ export class MemohIntegrationClient {
 
   close(code = 1000, reason = "client closed"): void {
     this.closed = true;
+    this.stopHeartbeat();
     this.socket?.close(code, reason);
     this.socket = null;
     this.rejectAll(new Error("integration websocket closed"));
@@ -382,6 +398,7 @@ export class MemohIntegrationClient {
   }
 
   private handleClose(): void {
+    this.stopHeartbeat();
     if (this.closed) {
       this.resolveEventDone();
       return;
@@ -459,6 +476,42 @@ export class MemohIntegrationClient {
       waiter.reject(reason);
     }
   }
+
+  private webSocketInit(): WebSocketFactoryInit {
+    const headers: Record<string, string> = { ...this.options.headers };
+    if (!hasHeader(headers, "authorization")) {
+      headers.authorization = `Bearer ${this.options.token}`;
+    }
+    if (this.options.clientId) {
+      headers["x-memoh-client-id"] = this.options.clientId;
+    }
+    if (this.options.clientSecret) {
+      headers["x-memoh-client-secret"] = this.options.clientSecret;
+    }
+    return {
+      protocols: this.options.protocols,
+      headers,
+    };
+  }
+
+  private startHeartbeat(): void {
+    if (this.heartbeatIntervalMs <= 0 || this.heartbeatTimer) {
+      return;
+    }
+    this.heartbeatTimer = setInterval(() => {
+      void this.ping().catch(() => {
+        this.close(4000, "heartbeat failed");
+      });
+    }, this.heartbeatIntervalMs);
+  }
+
+  private stopHeartbeat(): void {
+    if (!this.heartbeatTimer) {
+      return;
+    }
+    clearInterval(this.heartbeatTimer);
+    this.heartbeatTimer = null;
+  }
 }
 
 function defaultIdFactory(): string {
@@ -470,6 +523,11 @@ function defaultIdFactory(): string {
 
 async function sleep(ms: number): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function hasHeader(headers: Record<string, string>, name: string): boolean {
+  const normalized = name.toLowerCase();
+  return Object.keys(headers).some((key) => key.toLowerCase() === normalized);
 }
 
 export type {

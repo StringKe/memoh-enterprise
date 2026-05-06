@@ -17,6 +17,7 @@ func newRootCommand() *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use:   "memoh",
 		Short: "Memoh terminal operator CLI",
+		Long:  "Memoh CLI is for local server operations, migration, installation, container runtime inspection, and break-glass administration.",
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			return cmd.Help()
 		},
@@ -37,9 +38,10 @@ func newRootCommand() *cobra.Command {
 
 	rootCmd.AddCommand(newMigrateCommand())
 	rootCmd.AddCommand(newInstallCommand())
-	rootCmd.AddCommand(newLoginCommand(ctx))
-	rootCmd.AddCommand(newChatCommand(ctx))
-	rootCmd.AddCommand(newBotsCommand(ctx))
+	rootCmd.AddCommand(newServeCommand())
+	rootCmd.AddCommand(newContainerdCommand())
+	rootCmd.AddCommand(newAdminCommand())
+	rootCmd.AddCommand(newSupportCommand())
 	rootCmd.AddCommand(newComposeCommands()...)
 	rootCmd.AddCommand(&cobra.Command{
 		Use:   "version",

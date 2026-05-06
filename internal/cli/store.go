@@ -7,19 +7,15 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 )
 
 const (
-	DefaultProdServerURL = "http://127.0.0.1:8080"
-	DefaultDevServerURL  = "http://127.0.0.1:18080"
+	DefaultProdServerURL = "http://127.0.0.1:26810"
+	DefaultDevServerURL  = "http://127.0.0.1:26810"
 )
 
 type State struct {
-	ServerURL string    `json:"server_url"`
-	Token     string    `json:"token,omitempty"`
-	Username  string    `json:"username,omitempty"`
-	ExpiresAt time.Time `json:"expires_at,omitempty"`
+	ServerURL string `json:"server_url"`
 }
 
 func DefaultState() State {

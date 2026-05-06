@@ -1,8 +1,13 @@
 import { defineStore, storeToRefs } from "pinia";
-import { computed, ref, watch } from "vue";
+import { computed, nextTick, ref, watch } from "vue";
 import { useStorage } from "@vueuse/core";
 import { useChatStore } from "@/store/chat-list";
 import { useChatSelectionStore } from "@/store/chat-selection";
+import {
+  clearTerminalSnapshotsForBot,
+  deleteTerminalSnapshot,
+  terminalCacheKey,
+} from "@/composables/useTerminalCache";
 
 export type WorkspaceTab =
   | { id: string; type: "chat"; sessionId: string; title: string }
@@ -98,6 +103,16 @@ export const useWorkspaceTabsStore = defineStore("workspace-tabs", () => {
         dirtyFileTabs: { ...state.dirtyFileTabs },
       },
     };
+  }
+
+  function discardTerminalSnapshots(botId: string, tabsToDiscard: WorkspaceTab[]) {
+    const terminalTabs = tabsToDiscard.filter((tab) => tab.type === "terminal");
+    if (!botId || terminalTabs.length === 0) return;
+    void nextTick(() => {
+      for (const tab of terminalTabs) {
+        deleteTerminalSnapshot(terminalCacheKey(botId, tab.id));
+      }
+    });
   }
 
   function setActive(id: string | null) {
@@ -228,8 +243,10 @@ export const useWorkspaceTabsStore = defineStore("workspace-tabs", () => {
   function closeTab(id: string) {
     const state = ensureBot(currentBotId.value);
     if (!state) return;
+    const botId = (currentBotId.value ?? "").trim();
     const idx = state.tabs.findIndex((t) => t.id === id);
     if (idx < 0) return;
+    const closedTab = state.tabs[idx]!;
     const nextTabs = state.tabs.filter((t) => t.id !== id);
     let nextActive = state.activeId;
     if (state.activeId === id) {
@@ -244,6 +261,7 @@ export const useWorkspaceTabsStore = defineStore("workspace-tabs", () => {
     delete nextDirty[id];
 
     commit({ ...state, tabs: nextTabs, activeId: nextActive, dirtyFileTabs: nextDirty });
+    discardTerminalSnapshots(botId, [closedTab]);
 
     if (nextActive) {
       const tab = nextTabs.find((t) => t.id === nextActive);
@@ -262,7 +280,10 @@ export const useWorkspaceTabsStore = defineStore("workspace-tabs", () => {
   function closeAll() {
     const state = ensureBot(currentBotId.value);
     if (!state) return;
+    const botId = (currentBotId.value ?? "").trim();
+    const closedTabs = state.tabs;
     commit({ ...state, tabs: [], activeId: null, dirtyFileTabs: {} });
+    discardTerminalSnapshots(botId, closedTabs);
   }
 
   function isTabBusy(tab: WorkspaceTab, dirty: Record<string, boolean>): boolean {
@@ -281,6 +302,8 @@ export const useWorkspaceTabsStore = defineStore("workspace-tabs", () => {
     const state = ensureBot(currentBotId.value);
     if (!state) return;
     const remaining = state.tabs.filter((tab) => isTabBusy(tab, state.dirtyFileTabs));
+    const removed = state.tabs.filter((tab) => !remaining.some((t) => t.id === tab.id));
+    const botId = (currentBotId.value ?? "").trim();
     let nextActive = state.activeId;
     if (nextActive && !remaining.some((t) => t.id === nextActive)) {
       nextActive = remaining[0]?.id ?? null;
@@ -290,6 +313,7 @@ export const useWorkspaceTabsStore = defineStore("workspace-tabs", () => {
       if (state.dirtyFileTabs[tab.id]) nextDirty[tab.id] = true;
     }
     commit({ ...state, tabs: remaining, activeId: nextActive, dirtyFileTabs: nextDirty });
+    discardTerminalSnapshots(botId, removed);
 
     if (nextActive) {
       const tab = remaining.find((t) => t.id === nextActive);
@@ -325,6 +349,7 @@ export const useWorkspaceTabsStore = defineStore("workspace-tabs", () => {
     const next = { ...storage.value };
     delete next[bid];
     storage.value = next;
+    void nextTick(() => clearTerminalSnapshotsForBot(bid));
   }
 
   // When the active tab is a chat tab, keep chat-store selection in sync.

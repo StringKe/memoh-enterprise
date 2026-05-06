@@ -31,7 +31,7 @@ Remove or do not reintroduce:
 
 | Service | Tech Stack | Port | Description |
 |---------|-----------|------|-------------|
-| **Server** | Go + Echo | 8080 | REST API, auth, database, container management, in-process AI agent |
+| **Server** | Go + Echo + ConnectRPC | 8080 | ConnectRPC management API, auth, database, container management, in-process AI agent |
 | **Web** | Vue 3 + Vite+ | 8082 | Web management UI for bots, models, providers, channels, memory, browser contexts, and usage |
 | **Browser Gateway** | Bun + Elysia + Playwright | 8083 | Browser automation service for agent tools |
 
@@ -56,7 +56,7 @@ Infrastructure dependencies:
 | `mise run dev:restart -- server` | Restart a dev service |
 | `mise run setup` | Install dependencies + workspace toolkit |
 | `mise run sqlc-generate` | Regenerate PostgreSQL sqlc code |
-| `mise run swagger-generate` | Generate Swagger/OpenAPI docs |
+| `mise run proto-generate` | Generate ConnectRPC protobuf code |
 | `mise run db-up` | Initialize and migrate PostgreSQL |
 | `mise run db-down` | Drop PostgreSQL |
 | `mise run docs` | Start documentation dev server |
@@ -83,14 +83,14 @@ apps/browser/       Browser Gateway
 apps/web/           Web management UI
 packages/config/    Shared TypeScript config reader used by Browser Gateway and Web
 packages/ui/        Shared Web UI components
-packages/sdk/       TypeScript SDK generated from OpenAPI
+packages/sdk/       TypeScript ConnectRPC SDK
 packages/icons/     Web provider/channel icon package
 db/postgres/        PostgreSQL migrations and sqlc queries
 conf/               Configuration templates
 deploy/compose/dev/ Development compose environment
 deploy/docker/      Docker build resources and workspace toolkit
 deploy/kubernetes/  Kubernetes kustomize base and overlays
-api/openapi/        Generated OpenAPI artifacts
+proto/              ConnectRPC protobuf contracts
 docs/               Documentation
 ```
 

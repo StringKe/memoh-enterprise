@@ -8,6 +8,7 @@ Memoh(/ˈmemoʊ/) is a multi-member, structured long-memory, containerized AI ag
 - **[Docker Installation](/installation/docker)** — Recommended deployment path.
 - **[Providers And Models](/getting-started/provider-and-model)** — Set up providers, client types, and model roles.
 - **[Bot Setup](/getting-started/bot)** — Create a bot and configure its main tabs.
+- **[Bot Groups](/getting-started/bot-groups)** — Share defaults and manage per-field inheritance.
 - **[Sessions](/getting-started/sessions)** — Understand chat vs discuss sessions, status panels, and routing.
 - **[Slash Commands](/getting-started/slash-commands)** — Learn the command model and daily control surface.
 
@@ -20,3 +21,4 @@ Memoh(/ˈmemoʊ/) is a multi-member, structured long-memory, containerized AI ag
 - **[MCP](/getting-started/mcp)** — Configure tool servers, OAuth, probing, import/export.
 - **[Memory](/getting-started/memory)** — Long-term memory providers and memory compaction.
 - **[Context Compaction](/getting-started/compaction)** — Reduce active session context size without changing stored memory.
+- **[Integration WebSocket](/getting-started/integration-websocket)** — Build enterprise integrations with scoped API tokens and SDKs.

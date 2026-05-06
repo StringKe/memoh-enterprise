@@ -53,7 +53,7 @@ git log --oneline "$(cat .parent-commit)"..upstream/main
 
 同步时按 enterprise scope 过滤上游变化：
 
-- 接收：Go server、agent、MCP、memory、schedule、providers、models、channels、email、workspace、container runtime、Browser Gateway、Web 管理后台、PostgreSQL、OpenAPI 后端文档、TypeScript SDK、非交互 CLI。
+- 接收：Go server、agent、MCP、memory、schedule、providers、models、channels、email、workspace、container runtime、Browser Gateway、Web 管理后台、PostgreSQL、ConnectRPC proto、TypeScript SDK、非交互 CLI。
 - 接收：Docker Engine 和 containerd 相关修复。
 - 接收：`apps/web`、`packages/ui`、`packages/sdk`、`packages/icons`、`packages/config` 中服务 Web 管理后台和 Browser Gateway 的改动。
 - 接收：`web-ui` 配置字段。

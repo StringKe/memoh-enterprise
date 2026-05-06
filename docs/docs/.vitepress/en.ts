@@ -37,6 +37,10 @@ export const en = [
         link: '/getting-started/bot.md'
       },
       {
+        text: 'Bot Groups',
+        link: '/getting-started/bot-groups.md'
+      },
+      {
         text: 'Sessions',
         link: '/getting-started/sessions.md'
       },
@@ -99,6 +103,10 @@ export const en = [
       {
         text: 'Slash Commands',
         link: '/getting-started/slash-commands.md'
+      },
+      {
+        text: 'Integration WebSocket',
+        link: '/getting-started/integration-websocket.md'
       },
     ]
   },

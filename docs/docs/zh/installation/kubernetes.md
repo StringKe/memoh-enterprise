@@ -65,10 +65,10 @@ kubectl -n memoh rollout status daemonset/memoh-runtime-installer
 本地访问：
 
 ```bash
-kubectl -n memoh port-forward svc/memoh-server 8080:8080
+kubectl -n memoh port-forward svc/memoh-server 26810:8080
 ```
 
-API 地址是 `http://localhost:8080`。
+API 地址是 `http://localhost:26810`。
 
 如果本地集群能直接使用本地构建的镜像，可以用这个 overlay：
 

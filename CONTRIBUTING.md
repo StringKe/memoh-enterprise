@@ -32,7 +32,7 @@ The default local workflow is macOS arm64 first:
 OrbStack is supported as the Docker-compatible engine on macOS. OrbStack Linux machines are optional and are not required for the default workflow.
 
 The dev stack uses `deploy/config/dev/app.dev.toml` directly and no longer overwrites the repo root `config.toml`.
-Default host ports are shifted away from the production compose stack: API `18731` for host-run local server, Postgres `15432`, Qdrant `16333`/`16334`, Sparse `18085`, and Browser Gateway `18083`.
+Default host ports start at `26810`: API `26810`, Web UI `26811`, Browser Gateway `26812`, Postgres `26813`, Qdrant HTTP `26814`, Qdrant gRPC `26815`, Sparse `26816`, and OAuth callback/server alternate `26817`.
 
 ## Daily Development
 
@@ -70,7 +70,7 @@ mise run bridge:build:selinux  # Rebuild bridge binary on SELinux hosts
 | `mise run setup` | Install deps and prepare local tooling |
 | `mise run db-up` | Run database migrations |
 | `mise run db-down` | Roll back database migrations |
-| `mise run swagger-generate` | Generate Swagger documentation |
+| `mise run proto-generate` | Generate ConnectRPC protobuf code |
 | `mise run sqlc-generate` | Generate SQL code |
 | `mise run e2e:smoke` | Smoke-test a running deployment |
 
@@ -86,5 +86,5 @@ apps/       — Application services (Browser Gateway, etc.)
 packages/   — Frontend monorepo (web, ui, sdk, config)
 db/         — Database migrations and queries
 scripts/    — Utility scripts
-api/        — OpenAPI generated artifacts
+proto/      — ConnectRPC protobuf contracts
 ```

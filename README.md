@@ -8,7 +8,7 @@ Supported runtime targets: Linux `amd64` and Linux `arm64`. macOS remains suppor
 
 Kept:
 
-- Go server and REST API.
+- Go server with ConnectRPC management API.
 - Non-interactive `memoh` CLI.
 - PostgreSQL as the only relational database backend.
 - Docker Engine and containerd workspace backends.
@@ -36,11 +36,11 @@ Enable optional services:
 docker compose --profile qdrant --profile browser --profile sparse up -d
 ```
 
-API: `http://localhost:8080`
+API: `http://localhost:26810`
 
-Web UI: `http://localhost:8082`
+Web UI: `http://localhost:26811`
 
-Browser Gateway: `http://localhost:8083` when the `browser` profile is enabled.
+Browser Gateway: `http://localhost:26812` when the `browser` profile is enabled.
 
 Default admin account in templates: `admin` / `admin123`. Change it before production use.
 
@@ -61,7 +61,7 @@ mise run dev
 mise run dev:infra
 mise run e2e:smoke
 mise run sqlc-generate
-mise run swagger-generate
+mise run proto-generate
 mise run sdk-generate
 mise run build-unified
 go test ./cmd/... ./internal/...

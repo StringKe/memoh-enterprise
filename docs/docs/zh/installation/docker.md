@@ -26,7 +26,9 @@ docker compose up -d
 docker compose --profile qdrant --profile browser --profile sparse up -d
 ```
 
-API 监听 `http://localhost:8080`。Web 管理后台监听 `http://localhost:8082`。启用 `browser` profile 后，Browser Gateway 监听 `http://localhost:8083`。
+server 监听 `http://localhost:26810`。Web 管理后台监听 `http://localhost:26811`。启用 `browser` profile 后，Browser Gateway 监听 `http://localhost:26812`。
+
+Web UI 前置反向代理必须把 `/connect/*` 转发到 server，且关闭响应缓冲；`/integration/v1/ws` 必须保留 WebSocket upgrade headers。
 
 ## 配置
 

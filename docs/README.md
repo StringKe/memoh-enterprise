@@ -16,7 +16,7 @@ vp install
 vp run --filter @stringke/docs dev
 ```
 
-文档将在 `http://localhost:5173` 运行。
+文档将在 `http://localhost:26818` 运行。
 
 ## 构建
 

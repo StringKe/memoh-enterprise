@@ -65,10 +65,10 @@ kubectl -n memoh rollout status daemonset/memoh-runtime-installer
 For local access:
 
 ```bash
-kubectl -n memoh port-forward svc/memoh-server 8080:8080
+kubectl -n memoh port-forward svc/memoh-server 26810:8080
 ```
 
-The API is available at `http://localhost:8080`.
+The API is available at `http://localhost:26810`.
 
 For local clusters that can see locally built images, use the included overlay:
 

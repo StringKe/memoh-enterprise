@@ -27,8 +27,8 @@ Optional services:
 
 ## Access
 
-- API: `http://localhost:8080`
-- Browser Gateway: `http://localhost:8083` with the `browser` profile
+- API: `http://localhost:26810`
+- Browser Gateway: `http://localhost:26812` with the `browser` profile
 
 ## Configuration
 

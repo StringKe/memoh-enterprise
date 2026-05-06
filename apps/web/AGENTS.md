@@ -357,12 +357,12 @@ toast.error(resolveApiErrorMessage(error, 'Failed'))
 
 ## Data Fetching
 
-### API Client Setup (`lib/api-client.ts`)
+### API Client Setup
 
-- SDK: `@stringke/sdk` auto-generated from OpenAPI via `@hey-api/openapi-ts`
-- Base URL: `VITE_API_URL` env var (defaults to `/api`, proxied by Vite dev server to backend)
-- Auth: Request interceptor attaches `Authorization: Bearer ${token}` from localStorage
-- 401 handling: Response interceptor removes token and redirects to `/login`
+- Primary API surface: `@stringke/sdk/connect` ConnectRPC clients from `src/lib/connect-client.ts`
+- Connect base URL: `VITE_CONNECT_URL` env var (defaults to `/connect`)
+- Runtime REST/SSE fallback base URL: `VITE_API_URL` env var (defaults to `/api`) through `src/lib/runtime-url.ts`
+- Auth: Connect interceptor and native runtime fetch helpers attach `Authorization: Bearer ${token}` from localStorage
 
 ### Pinia Colada (Server State)
 
@@ -454,8 +454,8 @@ Chat supports two transport modes: **Server-Sent Events (SSE)** and **WebSocket*
 
 ## Vite Configuration
 
-- Dev server port: 8082 (from `config.toml`)
-- Proxy: `/api` → backend (default `http://localhost:8080`)
+- Dev server port: 26811 (from `config.toml`)
+- Proxy: `/api` → backend (default `http://localhost:26810`)
 - Aliases: `@` → `./src`, `#` → `../ui/src`
 - Config: reads from `MEMOH_CONFIG_PATH` / `CONFIG_PATH` when provided, otherwise `../../config.toml`, via `@stringke/config`
 

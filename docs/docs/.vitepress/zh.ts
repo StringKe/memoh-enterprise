@@ -17,6 +17,7 @@ export const zh = [
     items: [
       { text: '供应商与模型', link: '/zh/getting-started/provider-and-model.md' },
       { text: '机器人', link: '/zh/getting-started/bot.md' },
+      { text: 'Bot Group', link: '/zh/getting-started/bot-groups.md' },
       { text: '会话', link: '/zh/getting-started/sessions.md' },
       { text: '访问控制', link: '/zh/getting-started/access.md' },
       { text: '容器', link: '/zh/getting-started/container.md' },
@@ -33,6 +34,7 @@ export const zh = [
       { text: '搜索提供方', link: '/zh/getting-started/search-provider.md' },
       { text: '邮件', link: '/zh/getting-started/email.md' },
       { text: '斜杠命令', link: '/zh/getting-started/slash-commands.md' },
+      { text: 'Integration WebSocket', link: '/zh/getting-started/integration-websocket.md' },
     ],
   },
   {

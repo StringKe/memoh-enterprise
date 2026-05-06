@@ -10,10 +10,10 @@
 
 将项目收敛为企业版平台：
 
-- 保留 Go server、REST API、Web 管理后台、Browser Gateway、agent tools、MCP、memory、schedule、providers、models、channels、email、workspace 和 containers。
+- 保留 Go server、ConnectRPC 管理 API、Web 管理后台、Browser Gateway、agent tools、MCP、memory、schedule、providers、models、channels、email、workspace 和 containers。
 - 保留 `apps/web`，它是企业版管理后台，不属于 Desktop GUI。
 - 保留 `packages/ui`、`packages/sdk`、`packages/icons`、`packages/config`，它们服务 Web 管理后台和 Browser Gateway。
-- 保留 OpenAPI 和 TypeScript SDK 生成链路。
+- 保留 ConnectRPC protobuf 和 TypeScript SDK 生成链路。
 - 保留 PostgreSQL，且 PostgreSQL 是唯一关系数据库后端。
 - 保留 Docker Engine、containerd、Kubernetes runtime 相关能力。
 - 保留非交互 CLI。
@@ -64,9 +64,9 @@
 - 保留 `apps/web/`。
 - 保留 Vue、Vite+、Tailwind、Pinia、Pinia Colada、i18n、Web routes、Web build/dev 任务。
 - 保留 `packages/ui/`、`packages/sdk/`、`packages/icons/`、`packages/config/`。
-- 保留 `openapi-ts.config.ts` 和 `mise run sdk-generate`。
+- 保留 `proto/`、`buf.gen.ts.yaml` 和 ConnectRPC `mise run sdk-generate`。
 - 保留生产 Web image `ghcr.io/stringke/web`。
-- Web 管理后台监听 `8082`。
+- Web 管理后台监听 `26811`。
 
 ### PostgreSQL
 
@@ -102,10 +102,10 @@
 - 保留以下明确子命令：
   - `memoh migrate`
   - `memoh install`
-  - `memoh login`
-  - `memoh chat`
-  - `memoh bots`
-  - `memoh compose ...`
+  - `memoh serve`
+  - `memoh docker ...`
+  - `memoh admin ...`
+  - `memoh support ...`
   - `memoh version`
 - CLI 不提供 GUI/TUI 交互界面。
 
@@ -121,6 +121,7 @@
 - `apps/web` 是保留对象。
 - `apps/desktop`、`internal/tui`、`db/sqlite`、`internal/db/sqlite` 是删除对象。
 - 上游对 `apps/web` 的管理后台功能改动需要评估并同步。
+- 上游 OpenAPI 管理 API 改动同步时需要转写到 ConnectRPC proto、Connect handler 和 `packages/sdk`。
 - 上游对 Desktop、TUI、SQLite、Windows、Docker Hub、npmjs、CN 特化的改动继续拒绝。
 
 ## 验收标准

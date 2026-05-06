@@ -26,7 +26,9 @@ Enable optional services:
 docker compose --profile qdrant --profile browser --profile sparse up -d
 ```
 
-The API listens on `http://localhost:8080`. The Web management UI listens on `http://localhost:8082`. Browser Gateway listens on `http://localhost:8083` when the `browser` profile is enabled.
+The server listens on `http://localhost:26810`. The Web management UI listens on `http://localhost:26811`. Browser Gateway listens on `http://localhost:26812` when the `browser` profile is enabled.
+
+Reverse proxies in front of the Web UI must route `/connect/*` to the server without response buffering and must preserve WebSocket upgrade headers for `/integration/v1/ws`.
 
 ## Configuration
 

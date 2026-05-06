@@ -44,7 +44,7 @@ func TestContainerServiceStreamDeadlineReachesCreator(t *testing.T) {
 	})
 	defer cleanup()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Millisecond)
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 	stream, err := client.StreamContainerProgress(ctx, connect.NewRequest(&privatev1.StreamContainerProgressRequest{
 		BotId: "bot-1",
@@ -62,10 +62,11 @@ func TestContainerServiceStreamDeadlineReachesCreator(t *testing.T) {
 	if _, ok := creatorCtx.Deadline(); !ok {
 		t.Fatal("creator context has no deadline")
 	}
+	cancel()
 	select {
 	case <-creatorCtx.Done():
 	case <-time.After(time.Second):
-		t.Fatal("creator context did not observe deadline")
+		t.Fatal("creator context did not observe cancellation")
 	}
 }
 

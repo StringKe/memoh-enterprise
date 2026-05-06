@@ -15,16 +15,18 @@ import (
 	memprovider "github.com/memohai/memoh/internal/memory/adapters"
 	messagepkg "github.com/memohai/memoh/internal/message"
 	"github.com/memohai/memoh/internal/providers"
+	"github.com/memohai/memoh/internal/structureddata"
 	"github.com/memohai/memoh/internal/toolapproval"
 )
 
 type RunnerSupportBackendDeps struct {
-	Queries       RunnerSupportBackendQueries
-	Messages      messagepkg.Service
-	Memory        *memprovider.Registry
-	Providers     *providers.Service
-	ToolApprovals *toolapproval.Service
-	ChannelSender interface {
+	Queries        RunnerSupportBackendQueries
+	Messages       messagepkg.Service
+	Memory         *memprovider.Registry
+	Providers      *providers.Service
+	ToolApprovals  *toolapproval.Service
+	StructuredData *structureddata.Service
+	ChannelSender  interface {
 		Send(ctx context.Context, botID string, channelType channel.ChannelType, req channel.SendRequest) error
 	}
 }
@@ -38,12 +40,13 @@ type RunnerSupportBackendQueries interface {
 }
 
 type RunnerSupportBackend struct {
-	queries       RunnerSupportBackendQueries
-	messages      messagepkg.Service
-	memory        *memprovider.Registry
-	providers     *providers.Service
-	toolApprovals *toolapproval.Service
-	channelSender channelSender
+	queries        RunnerSupportBackendQueries
+	messages       messagepkg.Service
+	memory         *memprovider.Registry
+	providers      *providers.Service
+	toolApprovals  *toolapproval.Service
+	structuredData *structureddata.Service
+	channelSender  channelSender
 }
 
 type channelSender interface {
@@ -52,12 +55,13 @@ type channelSender interface {
 
 func NewRunnerSupportBackend(deps RunnerSupportBackendDeps) *RunnerSupportBackend {
 	return &RunnerSupportBackend{
-		queries:       deps.Queries,
-		messages:      deps.Messages,
-		memory:        deps.Memory,
-		providers:     deps.Providers,
-		toolApprovals: deps.ToolApprovals,
-		channelSender: deps.ChannelSender,
+		queries:        deps.Queries,
+		messages:       deps.Messages,
+		memory:         deps.Memory,
+		providers:      deps.Providers,
+		toolApprovals:  deps.ToolApprovals,
+		structuredData: deps.StructuredData,
+		channelSender:  deps.ChannelSender,
 	}
 }
 
@@ -356,6 +360,34 @@ func (b *RunnerSupportBackend) RequestToolApproval(ctx context.Context, req Requ
 		return RequestToolApprovalResponse{}, err
 	}
 	return RequestToolApprovalResponse{RequestID: created.ID}, nil
+}
+
+func (b *RunnerSupportBackend) ListStructuredDataSpaces(ctx context.Context, req ListStructuredDataSpacesRequest) (ListStructuredDataSpacesResponse, error) {
+	if b == nil || b.structuredData == nil {
+		return ListStructuredDataSpacesResponse{}, ErrRunnerSupportDependencyMissing
+	}
+	spaces, err := b.structuredData.ListSpacesForBot(ctx, req.Lease.BotID)
+	if err != nil {
+		return ListStructuredDataSpacesResponse{}, err
+	}
+	return ListStructuredDataSpacesResponse{Spaces: spaces}, nil
+}
+
+func (b *RunnerSupportBackend) ExecuteStructuredDataSQL(ctx context.Context, req ExecuteStructuredDataSQLRequest) (ExecuteStructuredDataSQLResponse, error) {
+	if b == nil || b.structuredData == nil {
+		return ExecuteStructuredDataSQLResponse{}, ErrRunnerSupportDependencyMissing
+	}
+	result, err := b.structuredData.ExecuteForBot(ctx, structureddata.ExecuteInput{
+		SpaceID:    req.SpaceID,
+		Owner:      structureddata.OwnerRef{Type: structureddata.OwnerType(req.OwnerType), BotID: req.OwnerBotID, BotGroupID: req.OwnerBotGroupID},
+		ActorBotID: req.Lease.BotID,
+		SQL:        req.SQL,
+		MaxRows:    req.MaxRows,
+	})
+	if err != nil {
+		return ExecuteStructuredDataSQLResponse{}, err
+	}
+	return ExecuteStructuredDataSQLResponse{Result: result}, nil
 }
 
 func (b *RunnerSupportBackend) resolveProvider(ctx context.Context, value string) (dbsqlc.Provider, error) {

@@ -85,6 +85,7 @@ import (
 	"github.com/memohai/memoh/internal/storage/providers/containerfs"
 	"github.com/memohai/memoh/internal/storage/providers/fallback"
 	"github.com/memohai/memoh/internal/storage/providers/localfs"
+	"github.com/memohai/memoh/internal/structureddata"
 	"github.com/memohai/memoh/internal/toolapproval"
 	"github.com/memohai/memoh/internal/version"
 	"github.com/memohai/memoh/internal/workspace"
@@ -288,15 +289,16 @@ func provideInternalAuthService(signer *serviceauth.Signer, cfg config.Config, q
 	return connectapi.NewInternalAuthService(signer, registration, kubernetes, connectapi.SQLRunLeaseResolver{Queries: queries})
 }
 
-func provideRunnerSupportService(queries dbstore.Queries, internalAuth *connectapi.InternalAuthService, msgService *message.DBService, memoryRegistry *memprovider.Registry, providersService *providers.Service, toolApprovals *toolapproval.Service, channelManager *channel.Manager) *connectapi.RunnerSupportService {
+func provideRunnerSupportService(queries dbstore.Queries, internalAuth *connectapi.InternalAuthService, msgService *message.DBService, memoryRegistry *memprovider.Registry, providersService *providers.Service, toolApprovals *toolapproval.Service, structuredData *structureddata.Service, channelManager *channel.Manager) *connectapi.RunnerSupportService {
 	service := connectapi.NewRunnerSupportService(connectapi.SQLRunLeaseResolver{Queries: queries}, internalAuth)
 	backend := connectapi.NewRunnerSupportBackend(connectapi.RunnerSupportBackendDeps{
-		Queries:       queries,
-		Messages:      msgService,
-		Memory:        memoryRegistry,
-		Providers:     providersService,
-		ToolApprovals: toolApprovals,
-		ChannelSender: channelManager,
+		Queries:        queries,
+		Messages:       msgService,
+		Memory:         memoryRegistry,
+		Providers:      providersService,
+		ToolApprovals:  toolApprovals,
+		StructuredData: structuredData,
+		ChannelSender:  channelManager,
 	})
 	service.SetRunContextResolver(backend)
 	service.SetSessionHistoryReader(backend)
@@ -307,6 +309,7 @@ func provideRunnerSupportService(queries dbstore.Queries, internalAuth *connecta
 	service.SetSecretSupport(backend)
 	service.SetProviderCredentialSupport(backend)
 	service.SetToolApprovalSupport(backend)
+	service.SetStructuredDataSupport(backend)
 	return service
 }
 

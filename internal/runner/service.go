@@ -18,29 +18,31 @@ import (
 )
 
 type ServiceDeps struct {
-	SupportClient runnerv1connect.RunnerSupportServiceClient
-	ContextClient *ContextClient
-	Workspace     *WorkspaceClient
-	Provider      *ProviderClient
-	Memory        *MemoryClient
-	ToolApproval  *ToolApprovalClient
-	Browser       *BrowserClient
-	Executor      Executor
-	Logger        *slog.Logger
-	Clock         func() time.Time
+	SupportClient  runnerv1connect.RunnerSupportServiceClient
+	ContextClient  *ContextClient
+	Workspace      *WorkspaceClient
+	Provider       *ProviderClient
+	Memory         *MemoryClient
+	ToolApproval   *ToolApprovalClient
+	Browser        *BrowserClient
+	StructuredData *StructuredDataClient
+	Executor       Executor
+	Logger         *slog.Logger
+	Clock          func() time.Time
 }
 
 type Service struct {
-	support      runnerv1connect.RunnerSupportServiceClient
-	context      *ContextClient
-	workspace    *WorkspaceClient
-	provider     *ProviderClient
-	memory       *MemoryClient
-	toolApproval *ToolApprovalClient
-	browser      *BrowserClient
-	executor     Executor
-	logger       *slog.Logger
-	clock        func() time.Time
+	support        runnerv1connect.RunnerSupportServiceClient
+	context        *ContextClient
+	workspace      *WorkspaceClient
+	provider       *ProviderClient
+	memory         *MemoryClient
+	toolApproval   *ToolApprovalClient
+	browser        *BrowserClient
+	structuredData *StructuredDataClient
+	executor       Executor
+	logger         *slog.Logger
+	clock          func() time.Time
 
 	mu   sync.Mutex
 	runs map[string]*runState
@@ -66,26 +68,28 @@ func NewService(deps ServiceDeps) *Service {
 	executor := deps.Executor
 	if executor == nil {
 		executor = NewAgentExecutor(AgentExecutorDeps{
-			Logger:       logger,
-			Workspace:    deps.Workspace,
-			Provider:     deps.Provider,
-			Memory:       deps.Memory,
-			ToolApproval: deps.ToolApproval,
-			Browser:      deps.Browser,
+			Logger:         logger,
+			Workspace:      deps.Workspace,
+			Provider:       deps.Provider,
+			Memory:         deps.Memory,
+			ToolApproval:   deps.ToolApproval,
+			Browser:        deps.Browser,
+			StructuredData: deps.StructuredData,
 		})
 	}
 	return &Service{
-		support:      deps.SupportClient,
-		context:      firstContextClient(deps.ContextClient, deps.SupportClient),
-		workspace:    deps.Workspace,
-		provider:     deps.Provider,
-		memory:       deps.Memory,
-		toolApproval: deps.ToolApproval,
-		browser:      deps.Browser,
-		executor:     executor,
-		logger:       logger,
-		clock:        clock,
-		runs:         make(map[string]*runState),
+		support:        deps.SupportClient,
+		context:        firstContextClient(deps.ContextClient, deps.SupportClient),
+		workspace:      deps.Workspace,
+		provider:       deps.Provider,
+		memory:         deps.Memory,
+		toolApproval:   deps.ToolApproval,
+		browser:        deps.Browser,
+		structuredData: deps.StructuredData,
+		executor:       executor,
+		logger:         logger,
+		clock:          clock,
+		runs:           make(map[string]*runState),
 	}
 }
 

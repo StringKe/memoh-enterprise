@@ -45,13 +45,14 @@ func run(parent context.Context) error {
 
 	mux := http.NewServeMux()
 	path, handler := runnerv1connect.NewRunnerServiceHandler(runner.NewService(runner.ServiceDeps{
-		SupportClient: support,
-		ContextClient: runner.NewContextClient(support),
-		Workspace:     runner.NewWorkspaceClient(support, http.DefaultClient),
-		Provider:      runner.NewProviderClient(support),
-		Memory:        runner.NewMemoryClient(support),
-		ToolApproval:  runner.NewToolApprovalClient(support),
-		Browser:       browser,
+		SupportClient:  support,
+		ContextClient:  runner.NewContextClient(support),
+		Workspace:      runner.NewWorkspaceClient(support, http.DefaultClient),
+		Provider:       runner.NewProviderClient(support),
+		Memory:         runner.NewMemoryClient(support),
+		ToolApproval:   runner.NewToolApprovalClient(support),
+		Browser:        browser,
+		StructuredData: runner.NewStructuredDataClient(support),
 	}))
 	mux.Handle(path, handler)
 	mux.HandleFunc("/health", func(w http.ResponseWriter, _ *http.Request) {

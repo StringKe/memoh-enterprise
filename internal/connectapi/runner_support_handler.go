@@ -12,9 +12,11 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	privatev1 "github.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1"
 	runnerv1 "github.com/memohai/memoh/internal/connectapi/gen/memoh/runner/v1"
 	"github.com/memohai/memoh/internal/connectapi/gen/memoh/runner/v1/runnerv1connect"
 	"github.com/memohai/memoh/internal/serviceauth"
+	"github.com/memohai/memoh/internal/structureddata"
 )
 
 type runnerSupportHandler struct {
@@ -312,6 +314,44 @@ func (h *runnerSupportHandler) RequestToolApproval(ctx context.Context, req *con
 	}), nil
 }
 
+func (h *runnerSupportHandler) ListStructuredDataSpaces(ctx context.Context, req *connect.Request[runnerv1.ListStructuredDataSpacesRequest]) (*connect.Response[runnerv1.ListStructuredDataSpacesResponse], error) {
+	if h == nil || h.service == nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrRunnerSupportDependencyMissing)
+	}
+	resp, err := h.service.ListStructuredDataSpaces(ctx, ListStructuredDataSpacesRequest{
+		Lease: runSupportRefFromProto(req.Msg.GetRef()),
+	})
+	if err != nil {
+		return nil, runnerSupportConnectError(err)
+	}
+	spaces := make([]*privatev1.StructuredDataSpace, 0, len(resp.Spaces))
+	for _, space := range resp.Spaces {
+		spaces = append(spaces, structuredDataSpaceToProto(space))
+	}
+	return connect.NewResponse(&runnerv1.ListStructuredDataSpacesResponse{Spaces: spaces}), nil
+}
+
+func (h *runnerSupportHandler) ExecuteStructuredDataSql(ctx context.Context, req *connect.Request[runnerv1.ExecuteStructuredDataSqlRequest]) (*connect.Response[runnerv1.ExecuteStructuredDataSqlResponse], error) {
+	if h == nil || h.service == nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrRunnerSupportDependencyMissing)
+	}
+	resp, err := h.service.ExecuteStructuredDataSQL(ctx, ExecuteStructuredDataSQLRequest{
+		Lease:           runSupportRefFromProto(req.Msg.GetRef()),
+		SpaceID:         req.Msg.GetSpaceId(),
+		OwnerType:       req.Msg.GetOwnerType(),
+		OwnerBotID:      req.Msg.GetOwnerBotId(),
+		OwnerBotGroupID: req.Msg.GetOwnerBotGroupId(),
+		SQL:             req.Msg.GetSql(),
+		MaxRows:         req.Msg.GetMaxRows(),
+	})
+	if err != nil {
+		return nil, runnerSupportConnectError(err)
+	}
+	return connect.NewResponse(&runnerv1.ExecuteStructuredDataSqlResponse{
+		Result: structuredDataSQLResultToProto(resp.Result),
+	}), nil
+}
+
 func runSupportRefFromProto(ref *runnerv1.RunSupportRef) RunLeaseRef {
 	if ref == nil {
 		return RunLeaseRef{}
@@ -375,6 +415,12 @@ func runnerSupportConnectError(err error) error {
 		return connect.NewError(connect.CodeUnauthenticated, err)
 	case errors.Is(err, serviceauth.ErrPermissionDenied):
 		return connect.NewError(connect.CodePermissionDenied, err)
+	case errors.Is(err, structureddata.ErrAccessDenied):
+		return connect.NewError(connect.CodePermissionDenied, err)
+	case errors.Is(err, structureddata.ErrDependencyMissing):
+		return connect.NewError(connect.CodeInternal, err)
+	case errors.Is(err, structureddata.ErrInvalidOwner), errors.Is(err, structureddata.ErrInvalidTarget), errors.Is(err, structureddata.ErrInvalidPrivilege), errors.Is(err, structureddata.ErrSQLRequired):
+		return connect.NewError(connect.CodeInvalidArgument, err)
 	case errors.Is(err, ErrRunnerSupportDependencyMissing):
 		return connect.NewError(connect.CodeInternal, err)
 	default:

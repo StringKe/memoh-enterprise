@@ -10,6 +10,7 @@ import (
 
 	dbsqlc "github.com/memohai/memoh/internal/db/postgres/sqlc"
 	"github.com/memohai/memoh/internal/serviceauth"
+	"github.com/memohai/memoh/internal/structureddata"
 )
 
 var ErrRunnerSupportDependencyMissing = errors.New("runner support dependency is not configured")
@@ -65,6 +66,7 @@ type RunnerSupportService struct {
 	secrets         SecretSupport
 	providers       ProviderCredentialSupport
 	toolApprovals   ToolApprovalSupport
+	structuredData  StructuredDataSupport
 }
 
 func NewRunnerSupportService(leases RunLeaseResolver, internalAuth *InternalAuthService) *RunnerSupportService {
@@ -105,6 +107,10 @@ func (s *RunnerSupportService) SetProviderCredentialSupport(providers ProviderCr
 
 func (s *RunnerSupportService) SetToolApprovalSupport(approvals ToolApprovalSupport) {
 	s.toolApprovals = approvals
+}
+
+func (s *RunnerSupportService) SetStructuredDataSupport(data StructuredDataSupport) {
+	s.structuredData = data
 }
 
 func (s *RunnerSupportService) ValidateRunLease(ctx context.Context, req ValidateRunLeaseRequest) (serviceauth.RunLease, error) {
@@ -284,6 +290,30 @@ func (s *RunnerSupportService) RequestToolApproval(ctx context.Context, req Requ
 	return s.toolApprovals.RequestToolApproval(ctx, req)
 }
 
+func (s *RunnerSupportService) ListStructuredDataSpaces(ctx context.Context, req ListStructuredDataSpacesRequest) (ListStructuredDataSpacesResponse, error) {
+	lease, err := s.requireLease(ctx, req.Lease)
+	if err != nil {
+		return ListStructuredDataSpacesResponse{}, err
+	}
+	if s.structuredData == nil {
+		return ListStructuredDataSpacesResponse{}, ErrRunnerSupportDependencyMissing
+	}
+	req.Lease = runLeaseRefFromServiceAuth(lease)
+	return s.structuredData.ListStructuredDataSpaces(ctx, req)
+}
+
+func (s *RunnerSupportService) ExecuteStructuredDataSQL(ctx context.Context, req ExecuteStructuredDataSQLRequest) (ExecuteStructuredDataSQLResponse, error) {
+	lease, err := s.requireLease(ctx, req.Lease)
+	if err != nil {
+		return ExecuteStructuredDataSQLResponse{}, err
+	}
+	if s.structuredData == nil {
+		return ExecuteStructuredDataSQLResponse{}, ErrRunnerSupportDependencyMissing
+	}
+	req.Lease = runLeaseRefFromServiceAuth(lease)
+	return s.structuredData.ExecuteStructuredDataSQL(ctx, req)
+}
+
 func (s *RunnerSupportService) requireLease(ctx context.Context, ref RunLeaseRef) (serviceauth.RunLease, error) {
 	if s == nil || s.leases == nil {
 		return serviceauth.RunLease{}, ErrRunnerSupportDependencyMissing
@@ -440,6 +470,28 @@ type RequestToolApprovalResponse struct {
 	RequestID string
 }
 
+type ListStructuredDataSpacesRequest struct {
+	Lease RunLeaseRef
+}
+
+type ListStructuredDataSpacesResponse struct {
+	Spaces []dbsqlc.StructuredDataSpace
+}
+
+type ExecuteStructuredDataSQLRequest struct {
+	Lease           RunLeaseRef
+	SpaceID         string
+	OwnerType       string
+	OwnerBotID      string
+	OwnerBotGroupID string
+	SQL             string
+	MaxRows         int32
+}
+
+type ExecuteStructuredDataSQLResponse struct {
+	Result structureddata.SQLResult
+}
+
 type RunContextResolver interface {
 	ResolveRunContext(ctx context.Context, req ResolveRunContextRequest) (ResolveRunContextResponse, error)
 }
@@ -477,6 +529,11 @@ type ProviderCredentialSupport interface {
 type ToolApprovalSupport interface {
 	EvaluateToolApprovalPolicy(ctx context.Context, req EvaluateToolApprovalPolicyRequest) (EvaluateToolApprovalPolicyResponse, error)
 	RequestToolApproval(ctx context.Context, req RequestToolApprovalRequest) (RequestToolApprovalResponse, error)
+}
+
+type StructuredDataSupport interface {
+	ListStructuredDataSpaces(ctx context.Context, req ListStructuredDataSpacesRequest) (ListStructuredDataSpacesResponse, error)
+	ExecuteStructuredDataSQL(ctx context.Context, req ExecuteStructuredDataSQLRequest) (ExecuteStructuredDataSQLResponse, error)
 }
 
 func runLeaseFromSQL(row dbsqlc.AgentRunLease) serviceauth.RunLease {

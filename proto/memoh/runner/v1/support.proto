@@ -5,6 +5,7 @@ package memoh.runner.v1;
 import "google/protobuf/struct.proto";
 import "google/protobuf/timestamp.proto";
 import "memoh/event/v1/events.proto";
+import "memoh/private/v1/structured_data.proto";
 import "memoh/runner/v1/run.proto";
 
 option go_package = "github.com/memohai/memoh/internal/connectapi/gen/memoh/runner/v1;runnerv1";
@@ -24,6 +25,8 @@ service RunnerSupportService {
   rpc ResolveProviderCredentials(ResolveProviderCredentialsRequest) returns (ResolveProviderCredentialsResponse);
   rpc EvaluateToolApprovalPolicy(EvaluateToolApprovalPolicyRequest) returns (EvaluateToolApprovalPolicyResponse);
   rpc RequestToolApproval(RequestToolApprovalRequest) returns (RequestToolApprovalResponse);
+  rpc ListStructuredDataSpaces(ListStructuredDataSpacesRequest) returns (ListStructuredDataSpacesResponse);
+  rpc ExecuteStructuredDataSql(ExecuteStructuredDataSqlRequest) returns (ExecuteStructuredDataSqlResponse);
 }
 
 message RunSupportRef {
@@ -213,4 +216,26 @@ message RequestToolApprovalRequest {
 message RequestToolApprovalResponse {
   string approval_request_id = 1;
   string status = 2;
+}
+
+message ListStructuredDataSpacesRequest {
+  RunSupportRef ref = 1;
+}
+
+message ListStructuredDataSpacesResponse {
+  repeated memoh.private.v1.StructuredDataSpace spaces = 1;
+}
+
+message ExecuteStructuredDataSqlRequest {
+  RunSupportRef ref = 1;
+  string space_id = 2;
+  string owner_type = 3;
+  string owner_bot_id = 4;
+  string owner_bot_group_id = 5;
+  string sql = 6;
+  int32 max_rows = 7;
+}
+
+message ExecuteStructuredDataSqlResponse {
+  memoh.private.v1.StructuredDataSqlResult result = 1;
 }

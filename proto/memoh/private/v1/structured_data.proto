@@ -1,0 +1,130 @@
+syntax = "proto3";
+
+package memoh.private.v1;
+
+import "google/protobuf/struct.proto";
+import "memoh/private/v1/common.proto";
+
+option go_package = "github.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1;privatev1";
+
+message StructuredDataSpace {
+  string id = 1;
+  string owner_type = 2;
+  string owner_bot_id = 3;
+  string owner_bot_group_id = 4;
+  string schema_name = 5;
+  string role_name = 6;
+  string display_name = 7;
+  google.protobuf.Struct metadata = 8;
+  AuditFields audit = 9;
+}
+
+message StructuredDataGrant {
+  string id = 1;
+  string space_id = 2;
+  string target_type = 3;
+  string target_bot_id = 4;
+  string target_bot_group_id = 5;
+  repeated string privileges = 6;
+  string created_by_user_id = 7;
+  AuditFields audit = 8;
+}
+
+message StructuredDataColumn {
+  string name = 1;
+  string type = 2;
+  bool nullable = 3;
+  string default_value = 4;
+}
+
+message StructuredDataTable {
+  string schema_name = 1;
+  string name = 2;
+  repeated StructuredDataColumn columns = 3;
+}
+
+message StructuredDataSqlResult {
+  repeated string columns = 1;
+  repeated google.protobuf.Struct rows = 2;
+  int64 row_count = 3;
+  string command_tag = 4;
+  bool truncated = 5;
+  string schema_name = 6;
+}
+
+message EnsureStructuredDataSpaceRequest {
+  string owner_type = 1;
+  string owner_bot_id = 2;
+  string owner_bot_group_id = 3;
+}
+
+message EnsureStructuredDataSpaceResponse {
+  StructuredDataSpace space = 1;
+}
+
+message ListStructuredDataSpacesRequest {
+  string owner_type = 1;
+  string owner_bot_id = 2;
+  string owner_bot_group_id = 3;
+}
+
+message ListStructuredDataSpacesResponse {
+  repeated StructuredDataSpace spaces = 1;
+  PageResponse page = 2;
+}
+
+message DescribeStructuredDataSpaceRequest {
+  string space_id = 1;
+}
+
+message DescribeStructuredDataSpaceResponse {
+  StructuredDataSpace space = 1;
+  repeated StructuredDataTable tables = 2;
+}
+
+message ExecuteStructuredDataSqlRequest {
+  string space_id = 1;
+  string sql = 2;
+  int32 max_rows = 3;
+}
+
+message ExecuteStructuredDataSqlResponse {
+  StructuredDataSqlResult result = 1;
+}
+
+message ListStructuredDataGrantsRequest {
+  string space_id = 1;
+}
+
+message ListStructuredDataGrantsResponse {
+  repeated StructuredDataGrant grants = 1;
+  PageResponse page = 2;
+}
+
+message UpsertStructuredDataGrantRequest {
+  string space_id = 1;
+  string target_type = 2;
+  string target_bot_id = 3;
+  string target_bot_group_id = 4;
+  repeated string privileges = 5;
+}
+
+message UpsertStructuredDataGrantResponse {
+  StructuredDataGrant grant = 1;
+}
+
+message DeleteStructuredDataGrantRequest {
+  string grant_id = 1;
+}
+
+message DeleteStructuredDataGrantResponse {}
+
+service StructuredDataService {
+  rpc EnsureStructuredDataSpace(EnsureStructuredDataSpaceRequest) returns (EnsureStructuredDataSpaceResponse);
+  rpc ListStructuredDataSpaces(ListStructuredDataSpacesRequest) returns (ListStructuredDataSpacesResponse);
+  rpc DescribeStructuredDataSpace(DescribeStructuredDataSpaceRequest) returns (DescribeStructuredDataSpaceResponse);
+  rpc ExecuteStructuredDataSql(ExecuteStructuredDataSqlRequest) returns (ExecuteStructuredDataSqlResponse);
+  rpc ListStructuredDataGrants(ListStructuredDataGrantsRequest) returns (ListStructuredDataGrantsResponse);
+  rpc UpsertStructuredDataGrant(UpsertStructuredDataGrantRequest) returns (UpsertStructuredDataGrantResponse);
+  rpc DeleteStructuredDataGrant(DeleteStructuredDataGrantRequest) returns (DeleteStructuredDataGrantResponse);
+}

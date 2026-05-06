@@ -75,6 +75,12 @@ const (
 	// RunnerSupportServiceRequestToolApprovalProcedure is the fully-qualified name of the
 	// RunnerSupportService's RequestToolApproval RPC.
 	RunnerSupportServiceRequestToolApprovalProcedure = "/memoh.runner.v1.RunnerSupportService/RequestToolApproval"
+	// RunnerSupportServiceListStructuredDataSpacesProcedure is the fully-qualified name of the
+	// RunnerSupportService's ListStructuredDataSpaces RPC.
+	RunnerSupportServiceListStructuredDataSpacesProcedure = "/memoh.runner.v1.RunnerSupportService/ListStructuredDataSpaces"
+	// RunnerSupportServiceExecuteStructuredDataSqlProcedure is the fully-qualified name of the
+	// RunnerSupportService's ExecuteStructuredDataSql RPC.
+	RunnerSupportServiceExecuteStructuredDataSqlProcedure = "/memoh.runner.v1.RunnerSupportService/ExecuteStructuredDataSql"
 )
 
 // RunnerSupportServiceClient is a client for the memoh.runner.v1.RunnerSupportService service.
@@ -93,6 +99,8 @@ type RunnerSupportServiceClient interface {
 	ResolveProviderCredentials(context.Context, *connect.Request[v1.ResolveProviderCredentialsRequest]) (*connect.Response[v1.ResolveProviderCredentialsResponse], error)
 	EvaluateToolApprovalPolicy(context.Context, *connect.Request[v1.EvaluateToolApprovalPolicyRequest]) (*connect.Response[v1.EvaluateToolApprovalPolicyResponse], error)
 	RequestToolApproval(context.Context, *connect.Request[v1.RequestToolApprovalRequest]) (*connect.Response[v1.RequestToolApprovalResponse], error)
+	ListStructuredDataSpaces(context.Context, *connect.Request[v1.ListStructuredDataSpacesRequest]) (*connect.Response[v1.ListStructuredDataSpacesResponse], error)
+	ExecuteStructuredDataSql(context.Context, *connect.Request[v1.ExecuteStructuredDataSqlRequest]) (*connect.Response[v1.ExecuteStructuredDataSqlResponse], error)
 }
 
 // NewRunnerSupportServiceClient constructs a client for the memoh.runner.v1.RunnerSupportService
@@ -190,6 +198,18 @@ func NewRunnerSupportServiceClient(httpClient connect.HTTPClient, baseURL string
 			connect.WithSchema(runnerSupportServiceMethods.ByName("RequestToolApproval")),
 			connect.WithClientOptions(opts...),
 		),
+		listStructuredDataSpaces: connect.NewClient[v1.ListStructuredDataSpacesRequest, v1.ListStructuredDataSpacesResponse](
+			httpClient,
+			baseURL+RunnerSupportServiceListStructuredDataSpacesProcedure,
+			connect.WithSchema(runnerSupportServiceMethods.ByName("ListStructuredDataSpaces")),
+			connect.WithClientOptions(opts...),
+		),
+		executeStructuredDataSql: connect.NewClient[v1.ExecuteStructuredDataSqlRequest, v1.ExecuteStructuredDataSqlResponse](
+			httpClient,
+			baseURL+RunnerSupportServiceExecuteStructuredDataSqlProcedure,
+			connect.WithSchema(runnerSupportServiceMethods.ByName("ExecuteStructuredDataSql")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -209,6 +229,8 @@ type runnerSupportServiceClient struct {
 	resolveProviderCredentials *connect.Client[v1.ResolveProviderCredentialsRequest, v1.ResolveProviderCredentialsResponse]
 	evaluateToolApprovalPolicy *connect.Client[v1.EvaluateToolApprovalPolicyRequest, v1.EvaluateToolApprovalPolicyResponse]
 	requestToolApproval        *connect.Client[v1.RequestToolApprovalRequest, v1.RequestToolApprovalResponse]
+	listStructuredDataSpaces   *connect.Client[v1.ListStructuredDataSpacesRequest, v1.ListStructuredDataSpacesResponse]
+	executeStructuredDataSql   *connect.Client[v1.ExecuteStructuredDataSqlRequest, v1.ExecuteStructuredDataSqlResponse]
 }
 
 // ResolveRunContext calls memoh.runner.v1.RunnerSupportService.ResolveRunContext.
@@ -281,6 +303,16 @@ func (c *runnerSupportServiceClient) RequestToolApproval(ctx context.Context, re
 	return c.requestToolApproval.CallUnary(ctx, req)
 }
 
+// ListStructuredDataSpaces calls memoh.runner.v1.RunnerSupportService.ListStructuredDataSpaces.
+func (c *runnerSupportServiceClient) ListStructuredDataSpaces(ctx context.Context, req *connect.Request[v1.ListStructuredDataSpacesRequest]) (*connect.Response[v1.ListStructuredDataSpacesResponse], error) {
+	return c.listStructuredDataSpaces.CallUnary(ctx, req)
+}
+
+// ExecuteStructuredDataSql calls memoh.runner.v1.RunnerSupportService.ExecuteStructuredDataSql.
+func (c *runnerSupportServiceClient) ExecuteStructuredDataSql(ctx context.Context, req *connect.Request[v1.ExecuteStructuredDataSqlRequest]) (*connect.Response[v1.ExecuteStructuredDataSqlResponse], error) {
+	return c.executeStructuredDataSql.CallUnary(ctx, req)
+}
+
 // RunnerSupportServiceHandler is an implementation of the memoh.runner.v1.RunnerSupportService
 // service.
 type RunnerSupportServiceHandler interface {
@@ -298,6 +330,8 @@ type RunnerSupportServiceHandler interface {
 	ResolveProviderCredentials(context.Context, *connect.Request[v1.ResolveProviderCredentialsRequest]) (*connect.Response[v1.ResolveProviderCredentialsResponse], error)
 	EvaluateToolApprovalPolicy(context.Context, *connect.Request[v1.EvaluateToolApprovalPolicyRequest]) (*connect.Response[v1.EvaluateToolApprovalPolicyResponse], error)
 	RequestToolApproval(context.Context, *connect.Request[v1.RequestToolApprovalRequest]) (*connect.Response[v1.RequestToolApprovalResponse], error)
+	ListStructuredDataSpaces(context.Context, *connect.Request[v1.ListStructuredDataSpacesRequest]) (*connect.Response[v1.ListStructuredDataSpacesResponse], error)
+	ExecuteStructuredDataSql(context.Context, *connect.Request[v1.ExecuteStructuredDataSqlRequest]) (*connect.Response[v1.ExecuteStructuredDataSqlResponse], error)
 }
 
 // NewRunnerSupportServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -391,6 +425,18 @@ func NewRunnerSupportServiceHandler(svc RunnerSupportServiceHandler, opts ...con
 		connect.WithSchema(runnerSupportServiceMethods.ByName("RequestToolApproval")),
 		connect.WithHandlerOptions(opts...),
 	)
+	runnerSupportServiceListStructuredDataSpacesHandler := connect.NewUnaryHandler(
+		RunnerSupportServiceListStructuredDataSpacesProcedure,
+		svc.ListStructuredDataSpaces,
+		connect.WithSchema(runnerSupportServiceMethods.ByName("ListStructuredDataSpaces")),
+		connect.WithHandlerOptions(opts...),
+	)
+	runnerSupportServiceExecuteStructuredDataSqlHandler := connect.NewUnaryHandler(
+		RunnerSupportServiceExecuteStructuredDataSqlProcedure,
+		svc.ExecuteStructuredDataSql,
+		connect.WithSchema(runnerSupportServiceMethods.ByName("ExecuteStructuredDataSql")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/memoh.runner.v1.RunnerSupportService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case RunnerSupportServiceResolveRunContextProcedure:
@@ -421,6 +467,10 @@ func NewRunnerSupportServiceHandler(svc RunnerSupportServiceHandler, opts ...con
 			runnerSupportServiceEvaluateToolApprovalPolicyHandler.ServeHTTP(w, r)
 		case RunnerSupportServiceRequestToolApprovalProcedure:
 			runnerSupportServiceRequestToolApprovalHandler.ServeHTTP(w, r)
+		case RunnerSupportServiceListStructuredDataSpacesProcedure:
+			runnerSupportServiceListStructuredDataSpacesHandler.ServeHTTP(w, r)
+		case RunnerSupportServiceExecuteStructuredDataSqlProcedure:
+			runnerSupportServiceExecuteStructuredDataSqlHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -484,4 +534,12 @@ func (UnimplementedRunnerSupportServiceHandler) EvaluateToolApprovalPolicy(conte
 
 func (UnimplementedRunnerSupportServiceHandler) RequestToolApproval(context.Context, *connect.Request[v1.RequestToolApprovalRequest]) (*connect.Response[v1.RequestToolApprovalResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.runner.v1.RunnerSupportService.RequestToolApproval is not implemented"))
+}
+
+func (UnimplementedRunnerSupportServiceHandler) ListStructuredDataSpaces(context.Context, *connect.Request[v1.ListStructuredDataSpacesRequest]) (*connect.Response[v1.ListStructuredDataSpacesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.runner.v1.RunnerSupportService.ListStructuredDataSpaces is not implemented"))
+}
+
+func (UnimplementedRunnerSupportServiceHandler) ExecuteStructuredDataSql(context.Context, *connect.Request[v1.ExecuteStructuredDataSqlRequest]) (*connect.Response[v1.ExecuteStructuredDataSqlResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.runner.v1.RunnerSupportService.ExecuteStructuredDataSql is not implemented"))
 }

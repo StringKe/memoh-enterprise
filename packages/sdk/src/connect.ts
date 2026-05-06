@@ -39,6 +39,7 @@ import { SettingsService } from "./gen/memoh/private/v1/settings_pb";
 import { SkillService } from "./gen/memoh/private/v1/skills_pb";
 import { SpeechService } from "./gen/memoh/private/v1/speech_pb";
 import { ChatService, ContainerService } from "./gen/memoh/private/v1/streaming_pb";
+import { StructuredDataService } from "./gen/memoh/private/v1/structured_data_pb";
 import { SupermarketService } from "./gen/memoh/private/v1/supermarket_pb";
 import { ToolApprovalService } from "./gen/memoh/private/v1/tool_approval_pb";
 import { UsageService } from "./gen/memoh/private/v1/usage_pb";
@@ -79,6 +80,7 @@ export type MemohConnectClients = {
   settings: Client<typeof SettingsService>;
   skills: Client<typeof SkillService>;
   speech: Client<typeof SpeechService>;
+  structuredData: Client<typeof StructuredDataService>;
   supermarket: Client<typeof SupermarketService>;
   toolApproval: Client<typeof ToolApprovalService>;
   usage: Client<typeof UsageService>;
@@ -254,6 +256,7 @@ export function createMemohConnectClients(
     settings: createClient(SettingsService, transport),
     skills: createClient(SkillService, transport),
     speech: createClient(SpeechService, transport),
+    structuredData: createClient(StructuredDataService, transport),
     supermarket: createClient(SupermarketService, transport),
     toolApproval: createClient(ToolApprovalService, transport),
     usage: createClient(UsageService, transport),
@@ -324,6 +327,7 @@ export * from "./gen/memoh/private/v1/settings_pb";
 export * from "./gen/memoh/private/v1/skills_pb";
 export * from "./gen/memoh/private/v1/speech_pb";
 export * from "./gen/memoh/private/v1/streaming_pb";
+export * from "./gen/memoh/private/v1/structured_data_pb";
 export * from "./gen/memoh/private/v1/supermarket_pb";
 export * from "./gen/memoh/private/v1/tool_approval_pb";
 export * from "./gen/memoh/private/v1/usage_pb";

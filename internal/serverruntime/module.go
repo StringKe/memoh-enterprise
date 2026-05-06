@@ -33,6 +33,7 @@ import (
 	"github.com/memohai/memoh/internal/schedule"
 	"github.com/memohai/memoh/internal/searchproviders"
 	"github.com/memohai/memoh/internal/settings"
+	"github.com/memohai/memoh/internal/structureddata"
 	"github.com/memohai/memoh/internal/toolapproval"
 	"github.com/memohai/memoh/internal/workspace"
 )
@@ -62,6 +63,7 @@ func options() fx.Option {
 			memprovider.NewService,
 			botgroups.NewService,
 			integrations.NewService,
+			structureddata.NewService,
 			provideMemoryProviderRegistry,
 			models.NewService,
 			bots.NewService,
@@ -120,6 +122,7 @@ func options() fx.Option {
 			connectapi.NewUserService,
 			provideConnectBotService,
 			connectapi.NewBotGroupService,
+			connectapi.NewStructuredDataService,
 			connectapi.NewIntegrationAdminService,
 			connectapi.NewIntegrationGatewayService,
 			connectapi.NewSettingsService,
@@ -148,6 +151,7 @@ func options() fx.Option {
 			provideServerHandler(connectapi.NewUserHandler),
 			provideServerHandler(connectapi.NewBotHandler),
 			provideServerHandler(connectapi.NewBotGroupHandler),
+			provideServerHandler(connectapi.NewStructuredDataHandler),
 			provideServerHandler(connectapi.NewIntegrationAdminHandler),
 			provideServerHandler(connectapi.NewIntegrationGatewayHandler),
 			provideServerHandler(connectapi.NewSettingsHandler),

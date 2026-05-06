@@ -43,23 +43,25 @@ type ExecutionResult struct {
 }
 
 type AgentExecutorDeps struct {
-	Logger       *slog.Logger
-	Workspace    *WorkspaceClient
-	Provider     *ProviderClient
-	Memory       *MemoryClient
-	ToolApproval *ToolApprovalClient
-	Browser      *BrowserClient
-	HTTPClient   *http.Client
+	Logger         *slog.Logger
+	Workspace      *WorkspaceClient
+	Provider       *ProviderClient
+	Memory         *MemoryClient
+	ToolApproval   *ToolApprovalClient
+	Browser        *BrowserClient
+	StructuredData *StructuredDataClient
+	HTTPClient     *http.Client
 }
 
 type AgentExecutor struct {
-	logger       *slog.Logger
-	workspace    *WorkspaceClient
-	provider     *ProviderClient
-	memory       *MemoryClient
-	toolApproval *ToolApprovalClient
-	browser      *BrowserClient
-	httpClient   *http.Client
+	logger         *slog.Logger
+	workspace      *WorkspaceClient
+	provider       *ProviderClient
+	memory         *MemoryClient
+	toolApproval   *ToolApprovalClient
+	browser        *BrowserClient
+	structuredData *StructuredDataClient
+	httpClient     *http.Client
 }
 
 func NewAgentExecutor(deps AgentExecutorDeps) *AgentExecutor {
@@ -72,13 +74,14 @@ func NewAgentExecutor(deps AgentExecutorDeps) *AgentExecutor {
 		httpClient = models.NewProviderHTTPClient(0)
 	}
 	return &AgentExecutor{
-		logger:       logger,
-		workspace:    deps.Workspace,
-		provider:     deps.Provider,
-		memory:       deps.Memory,
-		toolApproval: deps.ToolApproval,
-		browser:      deps.Browser,
-		httpClient:   httpClient,
+		logger:         logger,
+		workspace:      deps.Workspace,
+		provider:       deps.Provider,
+		memory:         deps.Memory,
+		toolApproval:   deps.ToolApproval,
+		browser:        deps.Browser,
+		structuredData: deps.StructuredData,
+		httpClient:     httpClient,
 	}
 }
 
@@ -95,7 +98,7 @@ func (e *AgentExecutor) Execute(ctx context.Context, input ExecutionInput) (Exec
 		Logger:                    e.logger,
 		WorkspaceExecutorProvider: workspaceProvider,
 	})
-	agent.SetToolProviders(e.toolProviders(workspaceProvider))
+	agent.SetToolProviders(e.toolProviders(workspaceProvider, input.Request.Lease))
 	var assistant strings.Builder
 	for event := range agent.Stream(ctx, cfg) {
 		if event.Type == agentpkg.EventTextDelta {
@@ -192,12 +195,15 @@ func (e *AgentExecutor) buildRunConfig(ctx context.Context, input ExecutionInput
 	}, nil
 }
 
-func (e *AgentExecutor) toolProviders(workspaceProvider executorclient.Provider) []agenttools.ToolProvider {
+func (e *AgentExecutor) toolProviders(workspaceProvider executorclient.Provider, lease RunLease) []agenttools.ToolProvider {
 	providers := []agenttools.ToolProvider{
 		agenttools.NewContainerProvider(e.logger, workspaceProvider, nil, ""),
 	}
 	if e.browser != nil {
 		providers = append(providers, browserToolProvider{client: e.browser})
+	}
+	if e.structuredData != nil {
+		providers = append(providers, agenttools.NewStructuredDataProvider(e.structuredData.Runtime(lease)))
 	}
 	return providers
 }

@@ -54,6 +54,7 @@ func options() fx.Option {
 			provideDBConn,
 			providePostgresStore,
 			provideDBQueries,
+			provideEventProducerQueries,
 			provideAccountStore,
 			provideWorkspaceManager,
 			provideWorkspaceExecutorProvider,

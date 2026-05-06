@@ -175,6 +175,10 @@ func provideDBQueries(postgresStore *postgresstore.Store) (dbstore.Queries, erro
 	return postgresstore.NewQueries(postgresStore.SQLC()), nil
 }
 
+func provideEventProducerQueries(queries dbstore.Queries) eventbus.ProducerQueries {
+	return queries
+}
+
 func provideAccountStore(postgresStore *postgresstore.Store) (dbstore.AccountStore, error) {
 	if postgresStore == nil {
 		return nil, errors.New("postgres account store not configured")

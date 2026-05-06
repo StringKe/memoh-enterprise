@@ -20,6 +20,46 @@ services:
         - COMMIT_HASH=${MEMOH_COMMIT:-unknown}
         - BUILD_TIME=${MEMOH_BUILD_TIME:-unknown}
 
+  agent-runner:
+    image: ghcr.io/stringke/agent-runner:${AGENT_RUNNER_TAG:-latest}
+    build:
+      context: ../../..
+      dockerfile: deploy/docker/production/Dockerfile.agent-runner
+      args:
+        - VERSION=${MEMOH_VERSION:-dev}
+        - COMMIT_HASH=${MEMOH_COMMIT:-unknown}
+        - BUILD_TIME=${MEMOH_BUILD_TIME:-unknown}
+
+  connector:
+    image: ghcr.io/stringke/connector:${CONNECTOR_TAG:-latest}
+    build:
+      context: ../../..
+      dockerfile: deploy/docker/production/Dockerfile.connector
+      args:
+        - VERSION=${MEMOH_VERSION:-dev}
+        - COMMIT_HASH=${MEMOH_COMMIT:-unknown}
+        - BUILD_TIME=${MEMOH_BUILD_TIME:-unknown}
+
+  integration-gateway:
+    image: ghcr.io/stringke/integration-gateway:${INTEGRATION_GATEWAY_TAG:-latest}
+    build:
+      context: ../../..
+      dockerfile: deploy/docker/production/Dockerfile.integration-gateway
+      args:
+        - VERSION=${MEMOH_VERSION:-dev}
+        - COMMIT_HASH=${MEMOH_COMMIT:-unknown}
+        - BUILD_TIME=${MEMOH_BUILD_TIME:-unknown}
+
+  worker:
+    image: ghcr.io/stringke/worker:${WORKER_TAG:-latest}
+    build:
+      context: ../../..
+      dockerfile: deploy/docker/production/Dockerfile.worker
+      args:
+        - VERSION=${MEMOH_VERSION:-dev}
+        - COMMIT_HASH=${MEMOH_COMMIT:-unknown}
+        - BUILD_TIME=${MEMOH_BUILD_TIME:-unknown}
+
   web:
     image: ghcr.io/stringke/web:${WEB_TAG:-latest}
     build:

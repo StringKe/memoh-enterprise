@@ -20,6 +20,24 @@ jwt_expires_in = "168h"
 
 timezone = "UTC"
 
+[internal_auth]
+active_key_id = "dev"
+bootstrap_token = "CHANGE-ME-INTERNAL-BOOTSTRAP"
+
+[internal_auth.private_keys]
+dev = ""
+
+[internal_auth.public_keys]
+dev = ""
+
+[internal_auth.previous_public_keys]
+
+[internal_services]
+agent_runner_addr = "http://127.0.0.1:26813"
+connector_addr = "local"
+integration_gateway_addr = "http://127.0.0.1:26815"
+worker_name = "memoh-worker"
+
 [database]
 # PostgreSQL is the only supported relational database backend.
 driver = "postgres"
@@ -99,19 +117,19 @@ allow_absolute_paths = true
 
 [postgres]
 host = "127.0.0.1"
-port = 26813
+port = 26817
 user = "memoh"
 password = "memoh123"
 database = "memoh"
 sslmode = "disable"
 
 [qdrant]
-base_url = "http://127.0.0.1:26815"
+base_url = "http://127.0.0.1:26819"
 api_key = ""
 timeout_seconds = 10
 
 [sparse]
-base_url = "http://127.0.0.1:26816"
+base_url = "http://127.0.0.1:26820"
 
 [registry]
 providers_dir = "conf/providers"

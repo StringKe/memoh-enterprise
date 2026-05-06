@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: memoh-integration-gateway
+  namespace: memoh
+spec:
+  selector:
+    app.kubernetes.io/name: memoh-integration-gateway
+  ports:
+    - name: http
+      port: 26815
+      targetPort: 26815
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: memoh-integration-gateway
+  namespace: memoh
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: memoh-integration-gateway
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: memoh-integration-gateway
+    spec:
+      containers:
+        - name: integration-gateway
+          image: ghcr.io/stringke/integration-gateway:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: MEMOH_INTEGRATION_GATEWAY_ADDR
+              value: ":26815"
+            - name: MEMOH_SERVER_INTERNAL_URL
+              value: "http://memoh-server:8080"
+          ports:
+            - name: http
+              containerPort: 26815
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 26815
+            initialDelaySeconds: 10
+            periodSeconds: 10

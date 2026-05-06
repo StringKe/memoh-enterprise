@@ -275,27 +275,17 @@ missing_command() {
 }
 
 validate_dry_run_runtime_or_exit() {
-  missing=""
-  missing="$missing$(missing_command git)"
   case "$DEPLOY_RUNTIME" in
     containerd)
-      missing="$missing$(missing_command containerd)"
-      missing="$missing$(missing_command nerdctl)"
-      if ! command -v buildctl >/dev/null 2>&1 && ! command -v buildkitd >/dev/null 2>&1; then
-        missing="$missing buildkit"
-      fi
+      RUNTIME_PREREQUISITES="git, containerd, nerdctl, buildkit"
       ;;
     docker)
-      missing="$missing$(missing_command docker)"
+      RUNTIME_PREREQUISITES="git, docker"
       ;;
     podman)
-      missing="$missing$(missing_command podman)"
+      RUNTIME_PREREQUISITES="git, podman, podman-compose"
       ;;
   esac
-  if [ -n "$missing" ]; then
-    echo "${RED}Error: dry-run prerequisite check failed. Missing:${missing}${NC}" >&2
-    exit 1
-  fi
 }
 
 print_runtime_plan() {
@@ -303,6 +293,7 @@ print_runtime_plan() {
   echo "  version: ${MEMOH_DOCKER_VERSION}"
   echo "  image registry: ghcr.io/stringke"
   echo "  deployment runtime: ${DEPLOY_RUNTIME}"
+  echo "  runtime prerequisites: ${RUNTIME_PREREQUISITES}"
   echo "  workspace backend: ${CONTAINER_BACKEND}"
   echo "  database backend: postgres"
   echo ""
@@ -315,7 +306,9 @@ print_runtime_plan() {
   echo "    integration-gateway: 26815"
   echo "    worker:              26816"
   echo "    postgres:            26817"
-  echo "    qdrant:              26818"
+  echo "    qdrant-http:         26818"
+  echo "    qdrant-grpc:         26819"
+  echo "    sparse:              26820"
 }
 
 escape_toml_string() {

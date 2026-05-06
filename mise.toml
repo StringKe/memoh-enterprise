@@ -5,7 +5,7 @@ config_roots = ["cmd/agent"]
 
 [tools]
 # Go version from go.mod
-go = "1.25.7"
+go = "1.26.1"
 # Node.js for frontend packages
 node = "25"
 # Bun for browser gateway
@@ -17,7 +17,7 @@ sqlc = "latest"
 # protobuf and ConnectRPC generation
 buf = "latest"
 # golangci-lint for Go linting
-"golangci-lint" = "2.10.1"
+"golangci-lint" = "2.12.2"
 
 [task_config]
 dir = "{{cwd}}"
@@ -248,11 +248,11 @@ depends = [
 
 [tasks."lint:go"]
 description = "Run Go linter"
-run = "golangci-lint run ./..."
+run = "env -u GOROOT \"$(mise which golangci-lint)\" run ./..."
 
 [tasks."lint:go:fix"]
 description = "Run Go linter with auto-fix"
-run = "golangci-lint run --fix ./..."
+run = "env -u GOROOT \"$(mise which golangci-lint)\" run --fix ./..."
 
 [tasks."lint:es"]
 description = "Run Vite+ check"

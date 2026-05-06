@@ -19,6 +19,24 @@ jwt_expires_in = "168h"
 
 timezone = "UTC"
 
+[internal_auth]
+active_key_id = "dev"
+bootstrap_token = "DEV-INTERNAL-BOOTSTRAP"
+
+[internal_auth.private_keys]
+dev = ""
+
+[internal_auth.public_keys]
+dev = ""
+
+[internal_auth.previous_public_keys]
+
+[internal_services]
+agent_runner_addr = "http://agent-runner:26813"
+connector_addr = "connector"
+integration_gateway_addr = "http://integration-gateway:26815"
+worker_name = "worker"
+
 [database]
 # PostgreSQL is the only supported relational database backend.
 driver = "postgres"

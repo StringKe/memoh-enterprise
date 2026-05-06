@@ -9,5 +9,9 @@ resources:
   - postgres.yaml
   - qdrant.yaml
   - server.yaml
+  - agent-runner.yaml
+  - connector.yaml
+  - integration-gateway.yaml
+  - worker.yaml
   - browser.yaml
   - ingress.yaml

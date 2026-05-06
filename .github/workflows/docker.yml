@@ -42,6 +42,10 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       server: ${{ steps.filter.outputs.server }}
+      agent_runner: ${{ steps.filter.outputs.agent_runner }}
+      connector: ${{ steps.filter.outputs.connector }}
+      integration_gateway: ${{ steps.filter.outputs.integration_gateway }}
+      worker: ${{ steps.filter.outputs.worker }}
       web: ${{ steps.filter.outputs.web }}
       browser: ${{ steps.filter.outputs.browser }}
       sparse: ${{ steps.filter.outputs.sparse }}
@@ -67,6 +71,46 @@ jobs:
               - 'deploy/docker/production/server-entrypoint.sh'
               - 'deploy/docker/toolkit/**'
               - 'conf/providers/**'
+            agent_runner:
+              - '**/*.go'
+              - 'go.mod'
+              - 'go.sum'
+              - 'proto/**'
+              - 'buf.gen.go.yaml'
+              - 'buf.yaml'
+              - 'cmd/agent-runner/**'
+              - 'internal/**'
+              - 'deploy/docker/production/Dockerfile.agent-runner'
+            connector:
+              - '**/*.go'
+              - 'go.mod'
+              - 'go.sum'
+              - 'proto/**'
+              - 'buf.gen.go.yaml'
+              - 'buf.yaml'
+              - 'cmd/connector/**'
+              - 'internal/**'
+              - 'deploy/docker/production/Dockerfile.connector'
+            integration_gateway:
+              - '**/*.go'
+              - 'go.mod'
+              - 'go.sum'
+              - 'proto/**'
+              - 'buf.gen.go.yaml'
+              - 'buf.yaml'
+              - 'cmd/integration-gateway/**'
+              - 'internal/**'
+              - 'deploy/docker/production/Dockerfile.integration-gateway'
+            worker:
+              - '**/*.go'
+              - 'go.mod'
+              - 'go.sum'
+              - 'proto/**'
+              - 'buf.gen.go.yaml'
+              - 'buf.yaml'
+              - 'cmd/worker/**'
+              - 'internal/**'
+              - 'deploy/docker/production/Dockerfile.worker'
             web:
               - 'apps/web/**'
               - 'packages/icons/**'
@@ -94,12 +138,20 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image: [server, web, browser, sparse]
+        image: [server, agent-runner, connector, integration-gateway, worker, web, browser, sparse]
         platform: [linux/amd64, linux/arm64]
         variant: [""]
         include:
           - image: server
             dockerfile: deploy/docker/production/Dockerfile.server
+          - image: agent-runner
+            dockerfile: deploy/docker/production/Dockerfile.agent-runner
+          - image: connector
+            dockerfile: deploy/docker/production/Dockerfile.connector
+          - image: integration-gateway
+            dockerfile: deploy/docker/production/Dockerfile.integration-gateway
+          - image: worker
+            dockerfile: deploy/docker/production/Dockerfile.worker
           - image: web
             dockerfile: deploy/docker/production/Dockerfile.web
           - image: browser
@@ -146,6 +198,10 @@ jobs:
           CHANGED="false"
           case "$IMAGE" in
             server)  CHANGED="${{ needs.detect-changes.outputs.server }}" ;;
+            agent-runner) CHANGED="${{ needs.detect-changes.outputs.agent_runner }}" ;;
+            connector) CHANGED="${{ needs.detect-changes.outputs.connector }}" ;;
+            integration-gateway) CHANGED="${{ needs.detect-changes.outputs.integration_gateway }}" ;;
+            worker) CHANGED="${{ needs.detect-changes.outputs.worker }}" ;;
             web)     CHANGED="${{ needs.detect-changes.outputs.web }}" ;;
             browser) CHANGED="${{ needs.detect-changes.outputs.browser }}" ;;
             sparse)  CHANGED="${{ needs.detect-changes.outputs.sparse }}" ;;
@@ -154,7 +210,7 @@ jobs:
             echo "skip=false" >> "$GITHUB_OUTPUT"
           else
             echo "skip=true" >> "$GITHUB_OUTPUT"
-            echo "Skipping $IMAGE build — no relevant files changed"
+            echo "Skipping $IMAGE build - no relevant files changed"
           fi
 
       - name: Checkout
@@ -166,14 +222,14 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Set up Go
-        if: steps.should-build.outputs.skip != 'true' && matrix.image == 'server'
+        if: steps.should-build.outputs.skip != 'true' && (matrix.image == 'server' || matrix.image == 'agent-runner' || matrix.image == 'connector' || matrix.image == 'integration-gateway' || matrix.image == 'worker')
         uses: actions/setup-go@v5
         with:
-          go-version: '1.25'
+          go-version: '1.26.1'
           cache: true
 
       - name: Pre-warm Go mod cache
-        if: steps.should-build.outputs.skip != 'true' && matrix.image == 'server'
+        if: steps.should-build.outputs.skip != 'true' && (matrix.image == 'server' || matrix.image == 'agent-runner' || matrix.image == 'connector' || matrix.image == 'integration-gateway' || matrix.image == 'worker')
         run: |
           mkdir -p .go-cache
           GOMODCACHE=$(pwd)/.go-cache go mod download
@@ -207,7 +263,7 @@ jobs:
           file: ${{ matrix.dockerfile }}
           platforms: ${{ matrix.platform }}
           outputs: ${{ env.PUSH == 'true' && format('type=image,"name={0}/{1}/{2}",push-by-digest=true,name-canonical=true,push=true,compression=zstd', env.REGISTRY, env.GHCR_NAMESPACE, matrix.image) || '' }}
-          build-contexts: ${{ matrix.image == 'server' && format('gomodcache={0}/.go-cache', github.workspace) || '' }}
+          build-contexts: ${{ (matrix.image == 'server' || matrix.image == 'agent-runner' || matrix.image == 'connector' || matrix.image == 'integration-gateway' || matrix.image == 'worker') && format('gomodcache={0}/.go-cache', github.workspace) || '' }}
           build-args: |
             VERSION=${{ github.ref_name }}
             COMMIT_HASH=${{ github.sha }}
@@ -246,6 +302,18 @@ jobs:
           - image: server
             artifact_key: server
             variant: ""
+          - image: agent-runner
+            artifact_key: agent-runner
+            variant: ""
+          - image: connector
+            artifact_key: connector
+            variant: ""
+          - image: integration-gateway
+            artifact_key: integration-gateway
+            variant: ""
+          - image: worker
+            artifact_key: worker
+            variant: ""
           - image: web
             artifact_key: web
             variant: ""
@@ -275,6 +343,10 @@ jobs:
           CHANGED="false"
           case "$IMAGE" in
             server)  CHANGED="${{ needs.detect-changes.outputs.server }}" ;;
+            agent-runner) CHANGED="${{ needs.detect-changes.outputs.agent_runner }}" ;;
+            connector) CHANGED="${{ needs.detect-changes.outputs.connector }}" ;;
+            integration-gateway) CHANGED="${{ needs.detect-changes.outputs.integration_gateway }}" ;;
+            worker) CHANGED="${{ needs.detect-changes.outputs.worker }}" ;;
             web)     CHANGED="${{ needs.detect-changes.outputs.web }}" ;;
             browser) CHANGED="${{ needs.detect-changes.outputs.browser }}" ;;
             sparse)  CHANGED="${{ needs.detect-changes.outputs.sparse }}" ;;
@@ -283,7 +355,7 @@ jobs:
             echo "skip=false" >> "$GITHUB_OUTPUT"
           else
             echo "skip=true" >> "$GITHUB_OUTPUT"
-            echo "Skipping $IMAGE publish — no relevant files changed"
+            echo "Skipping $IMAGE publish - no relevant files changed"
           fi
 
       - name: Download digests

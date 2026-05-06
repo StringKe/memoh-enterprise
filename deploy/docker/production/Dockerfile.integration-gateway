@@ -1,0 +1,31 @@
+# syntax=docker/dockerfile:1
+
+FROM --platform=$BUILDPLATFORM golang:1.26-alpine AS builder
+WORKDIR /build
+RUN apk add --no-cache git
+COPY go.mod go.sum ./
+RUN --mount=type=cache,target=/go/pkg/mod go mod download
+COPY . .
+ARG VERSION=dev
+ARG COMMIT_HASH=unknown
+ARG BUILD_TIME=unknown
+ARG TARGETOS
+ARG TARGETARCH
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH:-amd64} \
+    go build -trimpath \
+    -ldflags "-s -w \
+      -X github.com/memohai/memoh/internal/version.Version=${VERSION} \
+      -X github.com/memohai/memoh/internal/version.CommitHash=${COMMIT_HASH} \
+      -X github.com/memohai/memoh/internal/version.BuildTime=${BUILD_TIME}" \
+    -o /out/memoh-integration-gateway ./cmd/integration-gateway
+
+FROM alpine:latest
+WORKDIR /app
+RUN apk add --no-cache ca-certificates tzdata
+COPY --from=builder /out/memoh-integration-gateway /app/memoh-integration-gateway
+EXPOSE 26815
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:26815/health || exit 1
+ENTRYPOINT ["/app/memoh-integration-gateway"]

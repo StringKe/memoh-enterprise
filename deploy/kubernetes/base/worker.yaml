@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: memoh-worker
+  namespace: memoh
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: memoh-worker
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: memoh-worker
+    spec:
+      containers:
+        - name: worker
+          image: ghcr.io/stringke/worker:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: CONFIG_PATH
+              value: /app/config.toml
+          volumeMounts:
+            - name: config
+              mountPath: /app/config.toml
+              subPath: config.toml
+              readOnly: true
+      volumes:
+        - name: config
+          secret:
+            secretName: memoh-config

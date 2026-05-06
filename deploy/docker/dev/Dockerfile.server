@@ -4,7 +4,7 @@
 # Toolkit (Node.js, uv) is NOT baked in — it is volume-mounted from the host.
 # Run ./deploy/docker/toolkit/install.sh once before first use.
 
-FROM golang:1.25-alpine
+FROM golang:1.26-alpine
 
 WORKDIR /workspace
 

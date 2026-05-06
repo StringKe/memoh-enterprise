@@ -26,11 +26,14 @@ run_dry_run() {
     > "$output"
 
   grep -q "deployment runtime: ${runtime}" "$output"
+  grep -q "runtime prerequisites:" "$output"
   grep -q "image registry: ghcr.io/stringke" "$output"
   grep -q "server:              26810" "$output"
   grep -q "worker:              26816" "$output"
   grep -q "postgres:            26817" "$output"
-  grep -q "qdrant:              26818" "$output"
+  grep -q "qdrant-http:         26818" "$output"
+  grep -q "qdrant-grpc:         26819" "$output"
+  grep -q "sparse:              26820" "$output"
   if grep -Eiq 'docker hub|dockerhub|npmjs|registry\.npmjs\.org|china|cn mirror' "$output"; then
     echo "dry-run output contains removed registry or regional optimization text" >&2
     cat "$output" >&2
@@ -41,5 +44,10 @@ run_dry_run() {
 run_dry_run containerd
 run_dry_run docker
 run_dry_run podman
+
+PATH="/usr/bin:/bin" MEMOH_ALLOW_ROOT_INSTALL=true \
+  sh "$ROOT/scripts/install.sh" --yes --dry-run --runtime podman --container-backend podman --version latest \
+  > "$TMPDIR/podman-missing-tools.out"
+grep -q "runtime prerequisites: git, podman, podman-compose" "$TMPDIR/podman-missing-tools.out"
 
 echo "install dry-run tests passed"

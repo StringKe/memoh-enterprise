@@ -34,7 +34,16 @@ func NewServer(log *slog.Logger, addr string, jwtSecret string,
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},
 		AllowMethods: []string{echo.GET, echo.HEAD, echo.POST, echo.PUT, echo.PATCH, echo.DELETE, echo.OPTIONS},
-		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization},
+		AllowHeaders: []string{
+			echo.HeaderOrigin,
+			echo.HeaderContentType,
+			echo.HeaderAccept,
+			echo.HeaderAuthorization,
+			"Connect-Protocol-Version",
+			"Connect-Timeout-Ms",
+			"X-Request-Id",
+		},
+		ExposeHeaders: []string{"Grpc-Status", "Grpc-Message", "Grpc-Status-Details-Bin"},
 	}))
 	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
 		LogStatus: true,
@@ -77,7 +86,10 @@ func (s *Server) Stop(ctx context.Context) error {
 }
 
 func shouldSkipJWT(path string) bool {
-	if path == "/" || path == "/ping" || path == "/health" || path == "/api/swagger.json" || path == "/auth/login" {
+	if path == "/" || path == "/ping" || path == "/health" || path == "/auth/login" {
+		return true
+	}
+	if path == "/connect/memoh.private.v1.AuthService/Login" || path == "/connect/memoh.private.v1.AuthService/ExchangeSsoCode" {
 		return true
 	}
 	if path == "/auth/sso/providers" || path == "/auth/sso/exchange" || strings.HasPrefix(path, "/auth/sso/") {
@@ -86,7 +98,7 @@ func shouldSkipJWT(path string) bool {
 	if strings.HasPrefix(path, "/assets/") {
 		return true
 	}
-	if strings.HasPrefix(path, "/api/docs") {
+	if strings.HasPrefix(path, "/api/docs") || strings.HasPrefix(path, "/api/swagger") || strings.HasPrefix(path, "/swagger") {
 		return true
 	}
 	if isPublicChannelWebhookPath(path) {
@@ -102,6 +114,9 @@ func shouldSkipJWT(path string) bool {
 		return true
 	}
 	if strings.HasPrefix(path, "/auth/callback") {
+		return true
+	}
+	if path == "/integration/v1/ws" {
 		return true
 	}
 	return false

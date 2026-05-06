@@ -33,6 +33,9 @@ var (
 )
 
 func NewService(log *slog.Logger, queries dbstore.Queries, aclService *acl.Service, networkService *netctl.Service) *Service {
+	if log == nil {
+		log = slog.Default()
+	}
 	return &Service{
 		queries: queries,
 		acl:     aclService,
@@ -46,11 +49,29 @@ func (s *Service) GetBot(ctx context.Context, botID string) (Settings, error) {
 	if err != nil {
 		return Settings{}, err
 	}
+	botRow, err := s.queries.GetBotByID(ctx, pgID)
+	if err != nil {
+		return Settings{}, err
+	}
 	row, err := s.queries.GetSettingsByBotID(ctx, pgID)
 	if err != nil {
 		return Settings{}, err
 	}
 	settings := normalizeBotSettingsReadRow(row)
+	mask := decodeOverrideMask(botRow.SettingsOverrideMask)
+	settings.OverrideMask = mask
+	if botRow.GroupID.Valid {
+		settings.GroupID = botRow.GroupID.String()
+		if groupRow, err := s.queries.GetBotGroupSettings(ctx, botRow.GroupID); err == nil {
+			settings = applyGroupDefaults(settings, groupRow, mask)
+		} else if !errors.Is(err, pgx.ErrNoRows) {
+			return Settings{}, err
+		} else {
+			settings = applySystemFallbackSources(settings, mask)
+		}
+	} else {
+		settings = applySystemFallbackSources(settings, mask)
+	}
 	aclDefaultEffect, err := s.getDefaultEffect(ctx, botID)
 	if err != nil {
 		return Settings{}, err
@@ -92,10 +113,11 @@ func (s *Service) UpsertBot(ctx context.Context, botID string, req UpsertRequest
 	current.OverlayEnabled = overlayBindingRow.OverlayEnabled
 	current.OverlayProvider = strings.TrimSpace(overlayBindingRow.OverlayProvider)
 	current.OverlayConfig = normalizeJSONObject(overlayBindingRow.OverlayConfig)
-	if strings.TrimSpace(req.Language) != "" {
-		current.Language = strings.TrimSpace(req.Language)
+	if req.Language != nil && strings.TrimSpace(*req.Language) != "" {
+		current.Language = strings.TrimSpace(*req.Language)
 	}
-	if effect := strings.TrimSpace(req.AclDefaultEffect); effect != "" {
+	if req.AclDefaultEffect != nil && strings.TrimSpace(*req.AclDefaultEffect) != "" {
+		effect := strings.TrimSpace(*req.AclDefaultEffect)
 		current.AclDefaultEffect = effect
 	}
 	if req.ReasoningEnabled != nil {
@@ -109,6 +131,9 @@ func (s *Service) UpsertBot(ctx context.Context, botID string, req UpsertRequest
 	}
 	if req.HeartbeatInterval != nil && *req.HeartbeatInterval > 0 {
 		current.HeartbeatInterval = *req.HeartbeatInterval
+	}
+	if req.HeartbeatPrompt != nil {
+		current.HeartbeatPrompt = *req.HeartbeatPrompt
 	}
 	if req.CompactionEnabled != nil {
 		current.CompactionEnabled = *req.CompactionEnabled
@@ -129,6 +154,7 @@ func (s *Service) UpsertBot(ctx context.Context, botID string, req UpsertRequest
 		current.ToolApprovalConfig = NormalizeToolApprovalConfig(*req.ToolApprovalConfig)
 	}
 	timezoneValue := pgtype.Text{}
+	timezonePresent := req.Timezone != nil
 	if req.Timezone != nil {
 		normalized, err := normalizeOptionalTimezone(*req.Timezone)
 		if err != nil {
@@ -146,7 +172,9 @@ func (s *Service) UpsertBot(ctx context.Context, botID string, req UpsertRequest
 		current.OverlayConfig = req.OverlayConfig
 	}
 	chatModelUUID := pgtype.UUID{}
-	if value := strings.TrimSpace(req.ChatModelID); value != "" {
+	chatModelPresent := req.ChatModelID != nil
+	if req.ChatModelID != nil && strings.TrimSpace(*req.ChatModelID) != "" {
+		value := strings.TrimSpace(*req.ChatModelID)
 		modelID, err := s.resolveModelUUID(ctx, value)
 		if err != nil {
 			return Settings{}, err
@@ -154,7 +182,9 @@ func (s *Service) UpsertBot(ctx context.Context, botID string, req UpsertRequest
 		chatModelUUID = modelID
 	}
 	heartbeatModelUUID := pgtype.UUID{}
-	if value := strings.TrimSpace(req.HeartbeatModelID); value != "" {
+	heartbeatModelPresent := req.HeartbeatModelID != nil
+	if req.HeartbeatModelID != nil && strings.TrimSpace(*req.HeartbeatModelID) != "" {
+		value := strings.TrimSpace(*req.HeartbeatModelID)
 		modelID, err := s.resolveModelUUID(ctx, value)
 		if err != nil {
 			return Settings{}, err
@@ -162,6 +192,7 @@ func (s *Service) UpsertBot(ctx context.Context, botID string, req UpsertRequest
 		heartbeatModelUUID = modelID
 	}
 	compactionModelUUID := pgtype.UUID{}
+	compactionModelPresent := req.CompactionModelID != nil
 	if req.CompactionModelID != nil {
 		if value := strings.TrimSpace(*req.CompactionModelID); value != "" {
 			modelID, err := s.resolveModelUUID(ctx, value)
@@ -172,7 +203,9 @@ func (s *Service) UpsertBot(ctx context.Context, botID string, req UpsertRequest
 		}
 	}
 	titleModelUUID := pgtype.UUID{}
-	if value := strings.TrimSpace(req.TitleModelID); value != "" {
+	titleModelPresent := req.TitleModelID != nil
+	if req.TitleModelID != nil && strings.TrimSpace(*req.TitleModelID) != "" {
+		value := strings.TrimSpace(*req.TitleModelID)
 		modelID, err := s.resolveModelUUID(ctx, value)
 		if err != nil {
 			return Settings{}, err
@@ -180,7 +213,9 @@ func (s *Service) UpsertBot(ctx context.Context, botID string, req UpsertRequest
 		titleModelUUID = modelID
 	}
 	imageModelUUID := pgtype.UUID{}
-	if value := strings.TrimSpace(req.ImageModelID); value != "" {
+	imageModelPresent := req.ImageModelID != nil
+	if req.ImageModelID != nil && strings.TrimSpace(*req.ImageModelID) != "" {
+		value := strings.TrimSpace(*req.ImageModelID)
 		modelID, err := s.resolveModelUUID(ctx, value)
 		if err != nil {
 			return Settings{}, err
@@ -188,7 +223,9 @@ func (s *Service) UpsertBot(ctx context.Context, botID string, req UpsertRequest
 		imageModelUUID = modelID
 	}
 	searchProviderUUID := pgtype.UUID{}
-	if value := strings.TrimSpace(req.SearchProviderID); value != "" {
+	searchProviderPresent := req.SearchProviderID != nil
+	if req.SearchProviderID != nil && strings.TrimSpace(*req.SearchProviderID) != "" {
+		value := strings.TrimSpace(*req.SearchProviderID)
 		providerID, err := db.ParseUUID(value)
 		if err != nil {
 			return Settings{}, err
@@ -196,7 +233,9 @@ func (s *Service) UpsertBot(ctx context.Context, botID string, req UpsertRequest
 		searchProviderUUID = providerID
 	}
 	memoryProviderUUID := pgtype.UUID{}
-	if value := strings.TrimSpace(req.MemoryProviderID); value != "" {
+	memoryProviderPresent := req.MemoryProviderID != nil
+	if req.MemoryProviderID != nil && strings.TrimSpace(*req.MemoryProviderID) != "" {
+		value := strings.TrimSpace(*req.MemoryProviderID)
 		providerID, err := db.ParseUUID(value)
 		if err != nil {
 			return Settings{}, err
@@ -204,7 +243,9 @@ func (s *Service) UpsertBot(ctx context.Context, botID string, req UpsertRequest
 		memoryProviderUUID = providerID
 	}
 	ttsModelUUID := pgtype.UUID{}
-	if value := strings.TrimSpace(req.TtsModelID); value != "" {
+	ttsModelPresent := req.TtsModelID != nil
+	if req.TtsModelID != nil && strings.TrimSpace(*req.TtsModelID) != "" {
+		value := strings.TrimSpace(*req.TtsModelID)
 		modelID, err := db.ParseUUID(value)
 		if err != nil {
 			return Settings{}, err
@@ -212,7 +253,9 @@ func (s *Service) UpsertBot(ctx context.Context, botID string, req UpsertRequest
 		ttsModelUUID = modelID
 	}
 	transcriptionModelUUID := pgtype.UUID{}
-	if value := strings.TrimSpace(req.TranscriptionModelID); value != "" {
+	transcriptionModelPresent := req.TranscriptionModelID != nil
+	if req.TranscriptionModelID != nil && strings.TrimSpace(*req.TranscriptionModelID) != "" {
+		value := strings.TrimSpace(*req.TranscriptionModelID)
 		modelID, err := db.ParseUUID(value)
 		if err != nil {
 			return Settings{}, err
@@ -220,7 +263,9 @@ func (s *Service) UpsertBot(ctx context.Context, botID string, req UpsertRequest
 		transcriptionModelUUID = modelID
 	}
 	browserContextUUID := pgtype.UUID{}
-	if value := strings.TrimSpace(req.BrowserContextID); value != "" {
+	browserContextPresent := req.BrowserContextID != nil
+	if req.BrowserContextID != nil && strings.TrimSpace(*req.BrowserContextID) != "" {
+		value := strings.TrimSpace(*req.BrowserContextID)
 		ctxID, err := db.ParseUUID(value)
 		if err != nil {
 			return Settings{}, err
@@ -259,36 +304,46 @@ func (s *Service) UpsertBot(ctx context.Context, botID string, req UpsertRequest
 	if err != nil {
 		return Settings{}, rollbackNetworkChange(fmt.Errorf("marshal network config: %w", err))
 	}
-	updated, err := s.queries.UpsertBotSettings(ctx, sqlc.UpsertBotSettingsParams{
-		ID:                     pgID,
-		Timezone:               timezoneValue,
-		Language:               current.Language,
-		ReasoningEnabled:       current.ReasoningEnabled,
-		ReasoningEffort:        current.ReasoningEffort,
-		HeartbeatEnabled:       current.HeartbeatEnabled,
-		HeartbeatInterval:      int32(current.HeartbeatInterval), //nolint:gosec // bounded by positive-only setter above
-		HeartbeatPrompt:        "",
-		CompactionEnabled:      current.CompactionEnabled,
-		CompactionThreshold:    int32(current.CompactionThreshold), //nolint:gosec // bounded by non-negative setter above
-		CompactionRatio:        int32(current.CompactionRatio),     //nolint:gosec // bounded 1-100 above
-		ChatModelID:            chatModelUUID,
-		HeartbeatModelID:       heartbeatModelUUID,
-		CompactionModelID:      compactionModelUUID,
-		TitleModelID:           titleModelUUID,
-		ImageModelID:           imageModelUUID,
-		SearchProviderID:       searchProviderUUID,
-		MemoryProviderID:       memoryProviderUUID,
-		TtsModelID:             ttsModelUUID,
-		TranscriptionModelID:   transcriptionModelUUID,
-		BrowserContextID:       browserContextUUID,
-		PersistFullToolResults: current.PersistFullToolResults,
-		ShowToolCallsInIm:      current.ShowToolCallsInIM,
-		ToolApprovalConfig:     toolApprovalConfig,
-		OverlayProvider:        normalizedNetwork.OverlayProvider,
-		OverlayEnabled:         normalizedNetwork.OverlayEnabled,
-		OverlayConfig:          overlayConfigJSON,
-	})
-	if err != nil {
+	if _, err := s.queries.UpsertBotSettings(ctx, sqlc.UpsertBotSettingsParams{
+		ID:                          pgID,
+		Timezone:                    timezoneValue,
+		TimezonePresent:             timezonePresent,
+		Language:                    current.Language,
+		ReasoningEnabled:            current.ReasoningEnabled,
+		ReasoningEffort:             current.ReasoningEffort,
+		HeartbeatEnabled:            current.HeartbeatEnabled,
+		HeartbeatInterval:           int32(current.HeartbeatInterval), //nolint:gosec // bounded by positive-only setter above
+		HeartbeatPrompt:             current.HeartbeatPrompt,
+		CompactionEnabled:           current.CompactionEnabled,
+		CompactionThreshold:         int32(current.CompactionThreshold), //nolint:gosec // bounded by non-negative setter above
+		CompactionRatio:             int32(current.CompactionRatio),     //nolint:gosec // bounded 1-100 above
+		ChatModelID:                 chatModelUUID,
+		ChatModelIDPresent:          chatModelPresent,
+		HeartbeatModelID:            heartbeatModelUUID,
+		HeartbeatModelIDPresent:     heartbeatModelPresent,
+		CompactionModelID:           compactionModelUUID,
+		CompactionModelIDPresent:    compactionModelPresent,
+		TitleModelID:                titleModelUUID,
+		TitleModelIDPresent:         titleModelPresent,
+		ImageModelID:                imageModelUUID,
+		ImageModelIDPresent:         imageModelPresent,
+		SearchProviderID:            searchProviderUUID,
+		SearchProviderIDPresent:     searchProviderPresent,
+		MemoryProviderID:            memoryProviderUUID,
+		MemoryProviderIDPresent:     memoryProviderPresent,
+		TtsModelID:                  ttsModelUUID,
+		TtsModelIDPresent:           ttsModelPresent,
+		TranscriptionModelID:        transcriptionModelUUID,
+		TranscriptionModelIDPresent: transcriptionModelPresent,
+		BrowserContextID:            browserContextUUID,
+		BrowserContextIDPresent:     browserContextPresent,
+		PersistFullToolResults:      current.PersistFullToolResults,
+		ShowToolCallsInIm:           current.ShowToolCallsInIM,
+		ToolApprovalConfig:          toolApprovalConfig,
+		OverlayProvider:             normalizedNetwork.OverlayProvider,
+		OverlayEnabled:              normalizedNetwork.OverlayEnabled,
+		OverlayConfig:               overlayConfigJSON,
+	}); err != nil {
 		return Settings{}, rollbackNetworkChange(err)
 	}
 	createdByUserID := ""
@@ -299,9 +354,12 @@ func (s *Service) UpsertBot(ctx context.Context, botID string, req UpsertRequest
 	if err := s.setDefaultEffect(ctx, botID, current.AclDefaultEffect); err != nil {
 		return Settings{}, err
 	}
-	settings := normalizeBotSettingsWriteRow(updated)
-	settings.AclDefaultEffect = current.AclDefaultEffect
-	return settings, nil
+	if req.OverrideMask != nil {
+		if err := s.writeOverrideMask(ctx, pgID, *req.OverrideMask); err != nil {
+			return Settings{}, err
+		}
+	}
+	return s.GetBot(ctx, botID)
 }
 
 func (s *Service) Delete(ctx context.Context, botID string) error {
@@ -316,6 +374,55 @@ func (s *Service) Delete(ctx context.Context, botID string) error {
 		return err
 	}
 	return nil
+}
+
+func (s *Service) RestoreInheritance(ctx context.Context, botID string, fields []string) (Settings, error) {
+	if s.queries == nil {
+		return Settings{}, errors.New("settings queries not configured")
+	}
+	pgID, err := db.ParseUUID(botID)
+	if err != nil {
+		return Settings{}, err
+	}
+	botRow, err := s.queries.GetBotByID(ctx, pgID)
+	if err != nil {
+		return Settings{}, err
+	}
+	mask := decodeOverrideMask(botRow.SettingsOverrideMask)
+	if len(fields) == 0 {
+		fields = InheritableFields
+	}
+	valid := inheritableFieldSet()
+	for _, field := range fields {
+		field = strings.TrimSpace(field)
+		if !valid[field] {
+			return Settings{}, fmt.Errorf("unknown inheritable field: %s", field)
+		}
+		mask[field] = false
+	}
+	if err := s.writeOverrideMask(ctx, pgID, mask); err != nil {
+		return Settings{}, err
+	}
+	return s.GetBot(ctx, botID)
+}
+
+func (s *Service) writeOverrideMask(ctx context.Context, botID pgtype.UUID, mask OverrideMask) error {
+	payload, err := json.Marshal(mask)
+	if err != nil {
+		return err
+	}
+	return s.queries.UpdateBotSettingsOverrideMask(ctx, sqlc.UpdateBotSettingsOverrideMaskParams{
+		ID:                   botID,
+		SettingsOverrideMask: payload,
+	})
+}
+
+func inheritableFieldSet() map[string]bool {
+	out := make(map[string]bool, len(InheritableFields))
+	for _, field := range InheritableFields {
+		out[field] = true
+	}
+	return out
 }
 
 func normalizeBotSetting(language string, aclDefaultEffect string, reasoningEnabled bool, reasoningEffort string, heartbeatEnabled bool, heartbeatInterval int32, compactionEnabled bool, compactionThreshold int32, compactionRatio int32) Settings {
@@ -369,36 +476,7 @@ func normalizeBotSettingsReadRow(row sqlc.GetSettingsByBotIDRow) Settings {
 		row.ReasoningEffort,
 		row.HeartbeatEnabled,
 		row.HeartbeatInterval,
-		row.CompactionEnabled,
-		row.CompactionThreshold,
-		row.CompactionRatio,
-		row.Timezone,
-		row.ChatModelID,
-		row.HeartbeatModelID,
-		row.CompactionModelID,
-		row.TitleModelID,
-		row.ImageModelID,
-		row.SearchProviderID,
-		row.MemoryProviderID,
-		row.TtsModelID,
-		row.TranscriptionModelID,
-		row.BrowserContextID,
-		row.PersistFullToolResults,
-		row.ShowToolCallsInIm,
-		row.ToolApprovalConfig,
-		row.OverlayProvider,
-		row.OverlayEnabled,
-		row.OverlayConfig,
-	)
-}
-
-func normalizeBotSettingsWriteRow(row sqlc.UpsertBotSettingsRow) Settings {
-	return normalizeBotSettingsFields(
-		row.Language,
-		row.ReasoningEnabled,
-		row.ReasoningEffort,
-		row.HeartbeatEnabled,
-		row.HeartbeatInterval,
+		row.HeartbeatPrompt,
 		row.CompactionEnabled,
 		row.CompactionThreshold,
 		row.CompactionRatio,
@@ -428,6 +506,7 @@ func normalizeBotSettingsFields(
 	reasoningEffort string,
 	heartbeatEnabled bool,
 	heartbeatInterval int32,
+	heartbeatPrompt string,
 	compactionEnabled bool,
 	compactionThreshold int32,
 	compactionRatio int32,
@@ -450,6 +529,7 @@ func normalizeBotSettingsFields(
 	overlayConfig []byte,
 ) Settings {
 	settings := normalizeBotSetting(language, "", reasoningEnabled, reasoningEffort, heartbeatEnabled, heartbeatInterval, compactionEnabled, compactionThreshold, compactionRatio)
+	settings.HeartbeatPrompt = strings.TrimSpace(heartbeatPrompt)
 	if timezone.Valid {
 		settings.Timezone = timezone.String
 	}

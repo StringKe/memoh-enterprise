@@ -1,0 +1,129 @@
+syntax = "proto3";
+
+package memoh.integration.v1;
+
+import "memoh/integration/v1/events.proto";
+
+option go_package = "github.com/memohai/memoh/internal/connectapi/gen/memoh/integration/v1;integrationv1";
+
+message Envelope {
+  string version = 1;
+  string message_id = 2;
+  string correlation_id = 3;
+  oneof payload {
+    AuthRequest auth_request = 10;
+    AuthResponse auth_response = 11;
+    SubscribeRequest subscribe_request = 12;
+    SubscribeResponse subscribe_response = 13;
+    AckRequest ack_request = 14;
+    AckResponse ack_response = 15;
+    Ping ping = 16;
+    Pong pong = 17;
+    Error error = 18;
+    SendBotMessageRequest send_bot_message_request = 19;
+    SendBotMessageResponse send_bot_message_response = 20;
+    CreateSessionRequest create_session_request = 21;
+    CreateSessionResponse create_session_response = 22;
+    GetSessionStatusRequest get_session_status_request = 23;
+    GetSessionStatusResponse get_session_status_response = 24;
+    GetBotStatusRequest get_bot_status_request = 25;
+    GetBotStatusResponse get_bot_status_response = 26;
+    RequestActionRequest request_action_request = 27;
+    RequestActionResponse request_action_response = 28;
+    IntegrationEvent event = 29;
+  }
+}
+
+message AuthRequest {
+  string token = 1;
+}
+
+message AuthResponse {
+  string integration_id = 1;
+  string scope_type = 2;
+  string scope_bot_id = 3;
+  string scope_bot_group_id = 4;
+}
+
+message SubscribeRequest {
+  repeated string event_types = 1;
+  repeated string bot_ids = 2;
+  repeated string bot_group_ids = 3;
+}
+
+message SubscribeResponse {
+  repeated string event_types = 1;
+}
+
+message AckRequest {
+  string event_id = 1;
+}
+
+message AckResponse {
+  string event_id = 1;
+}
+
+message Ping {}
+
+message Pong {}
+
+message Error {
+  string code = 1;
+  string message = 2;
+}
+
+message SendBotMessageRequest {
+  string bot_id = 1;
+  string session_id = 2;
+  string text = 3;
+  map<string, string> metadata = 4;
+}
+
+message SendBotMessageResponse {
+  string message_id = 1;
+  string session_id = 2;
+}
+
+message CreateSessionRequest {
+  string bot_id = 1;
+  string external_session_id = 2;
+  map<string, string> metadata = 3;
+}
+
+message CreateSessionResponse {
+  string session_id = 1;
+  string bot_id = 2;
+}
+
+message GetSessionStatusRequest {
+  string session_id = 1;
+}
+
+message GetSessionStatusResponse {
+  string session_id = 1;
+  string bot_id = 2;
+  string status = 3;
+}
+
+message GetBotStatusRequest {
+  string bot_id = 1;
+}
+
+message GetBotStatusResponse {
+  string bot_id = 1;
+  string status = 2;
+}
+
+message RequestActionRequest {
+  string bot_id = 1;
+  string action_type = 2;
+  string payload_json = 3;
+  map<string, string> metadata = 4;
+}
+
+message RequestActionResponse {
+  string action_id = 1;
+  string bot_id = 2;
+  string action_type = 3;
+  string status = 4;
+}

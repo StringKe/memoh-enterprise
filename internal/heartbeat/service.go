@@ -88,7 +88,7 @@ func (s *Service) Reschedule(ctx context.Context, botID string) error {
 	if err != nil {
 		return err
 	}
-	bot, err := s.queries.GetBotByID(ctx, pgID)
+	bot, err := s.queries.GetBotHeartbeatConfig(ctx, pgID)
 	if err != nil {
 		return fmt.Errorf("get bot: %w", err)
 	}

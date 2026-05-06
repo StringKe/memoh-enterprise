@@ -1,0 +1,68 @@
+syntax = "proto3";
+
+package memoh.private.v1;
+
+import "google/protobuf/struct.proto";
+
+option go_package = "github.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1;privatev1";
+
+message NetworkMeta {
+  string action_id = 1;
+  string display_name = 2;
+  google.protobuf.Struct schema = 3;
+}
+
+message BotNetworkStatus {
+  string bot_id = 1;
+  string status = 2;
+  string message = 3;
+  google.protobuf.Struct metadata = 4;
+}
+
+message BotNetworkNode {
+  string id = 1;
+  string bot_id = 2;
+  string kind = 3;
+  string status = 4;
+  google.protobuf.Struct metadata = 5;
+}
+
+message ListNetworkMetaRequest {}
+
+message ListNetworkMetaResponse {
+  repeated NetworkMeta actions = 1;
+}
+
+message GetBotNetworkStatusRequest {
+  string bot_id = 1;
+}
+
+message GetBotNetworkStatusResponse {
+  BotNetworkStatus status = 1;
+}
+
+message ListBotNetworkNodesRequest {
+  string bot_id = 1;
+}
+
+message ListBotNetworkNodesResponse {
+  repeated BotNetworkNode nodes = 1;
+}
+
+message ExecuteBotNetworkActionRequest {
+  string bot_id = 1;
+  string action_id = 2;
+  google.protobuf.Struct payload = 3;
+}
+
+message ExecuteBotNetworkActionResponse {
+  BotNetworkStatus status = 1;
+  google.protobuf.Struct result = 2;
+}
+
+service NetworkService {
+  rpc ListNetworkMeta(ListNetworkMetaRequest) returns (ListNetworkMetaResponse);
+  rpc GetBotNetworkStatus(GetBotNetworkStatusRequest) returns (GetBotNetworkStatusResponse);
+  rpc ListBotNetworkNodes(ListBotNetworkNodesRequest) returns (ListBotNetworkNodesResponse);
+  rpc ExecuteBotNetworkAction(ExecuteBotNetworkActionRequest) returns (ExecuteBotNetworkActionResponse);
+}

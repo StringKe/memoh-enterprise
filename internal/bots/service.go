@@ -39,10 +39,16 @@ const (
 	botLifecycleOperationTimeout = 5 * time.Minute
 )
 
+var defaultSettingsOverrideMask = []byte(`{"timezone":true,"language":true,"reasoning_enabled":true,"reasoning_effort":true,"chat_model_id":true,"search_provider_id":true,"memory_provider_id":true,"heartbeat_enabled":true,"heartbeat_interval":true,"heartbeat_prompt":true,"heartbeat_model_id":true,"compaction_enabled":true,"compaction_threshold":true,"compaction_ratio":true,"compaction_model_id":true,"title_model_id":true,"image_model_id":true,"discuss_probe_model_id":true,"tts_model_id":true,"transcription_model_id":true,"browser_context_id":true,"persist_full_tool_results":true,"show_tool_calls_in_im":true,"tool_approval_config":true,"overlay_provider":true,"overlay_enabled":true,"overlay_config":true}`)
+
+var inheritedSettingsOverrideMask = []byte(`{"timezone":false,"language":false,"reasoning_enabled":false,"reasoning_effort":false,"chat_model_id":false,"search_provider_id":false,"memory_provider_id":false,"heartbeat_enabled":false,"heartbeat_interval":false,"heartbeat_prompt":false,"heartbeat_model_id":false,"compaction_enabled":false,"compaction_threshold":false,"compaction_ratio":false,"compaction_model_id":false,"title_model_id":false,"image_model_id":false,"discuss_probe_model_id":false,"tts_model_id":false,"transcription_model_id":false,"browser_context_id":false,"persist_full_tool_results":false,"show_tool_calls_in_im":false,"tool_approval_config":false,"overlay_provider":false,"overlay_enabled":false,"overlay_config":false}`)
+
 var (
-	ErrBotNotFound       = errors.New("bot not found")
-	ErrBotAccessDenied   = errors.New("bot access denied")
-	ErrOwnerUserNotFound = errors.New("owner user not found")
+	ErrBotNotFound        = errors.New("bot not found")
+	ErrBotAccessDenied    = errors.New("bot access denied")
+	ErrOwnerUserNotFound  = errors.New("owner user not found")
+	ErrBotGroupNotFound   = errors.New("bot group not found")
+	ErrBotGroupNotAllowed = errors.New("bot group access denied")
 )
 
 // NewService creates a new bot service.
@@ -134,6 +140,17 @@ func (s *Service) Create(ctx context.Context, ownerUserID string, req CreateBotR
 	if err != nil {
 		return Bot{}, err
 	}
+	groupID, err := normalizeOptionalUUID(req.GroupID)
+	if err != nil {
+		return Bot{}, fmt.Errorf("invalid group id: %w", err)
+	}
+	if err := s.ensureGroupBelongsToOwner(ctx, ownerUUID, groupID); err != nil {
+		return Bot{}, err
+	}
+	settingsOverrideMask, err := createSettingsOverrideMask(groupID.Valid, timezoneValue.Valid)
+	if err != nil {
+		return Bot{}, err
+	}
 	metadata := req.Metadata
 	if metadata == nil {
 		metadata = map[string]any{}
@@ -143,13 +160,15 @@ func (s *Service) Create(ctx context.Context, ownerUserID string, req CreateBotR
 		return Bot{}, err
 	}
 	row, err := s.queries.CreateBot(ctx, sqlc.CreateBotParams{
-		OwnerUserID: ownerUUID,
-		DisplayName: pgtype.Text{String: displayName, Valid: displayName != ""},
-		AvatarUrl:   pgtype.Text{String: avatarURL, Valid: avatarURL != ""},
-		Timezone:    timezoneValue,
-		IsActive:    isActive,
-		Metadata:    payload,
-		Status:      BotStatusCreating,
+		OwnerUserID:          ownerUUID,
+		GroupID:              groupID,
+		DisplayName:          pgtype.Text{String: displayName, Valid: displayName != ""},
+		AvatarUrl:            pgtype.Text{String: avatarURL, Valid: avatarURL != ""},
+		Timezone:             timezoneValue,
+		IsActive:             isActive,
+		Metadata:             payload,
+		Status:               BotStatusCreating,
+		SettingsOverrideMask: settingsOverrideMask,
 	})
 	if err != nil {
 		return Bot{}, err
@@ -277,6 +296,16 @@ func (s *Service) Update(ctx context.Context, botID string, req UpdateBotRequest
 	if req.Metadata != nil {
 		metadata = req.Metadata
 	}
+	groupID := existing.GroupID
+	if req.GroupID != nil {
+		groupID, err = normalizeOptionalUUID(*req.GroupID)
+		if err != nil {
+			return Bot{}, fmt.Errorf("invalid group id: %w", err)
+		}
+		if err := s.ensureGroupBelongsToOwner(ctx, existing.OwnerUserID, groupID); err != nil {
+			return Bot{}, err
+		}
+	}
 	if displayName == "" {
 		displayName = "bot-" + uuid.NewString()
 	}
@@ -290,6 +319,7 @@ func (s *Service) Update(ctx context.Context, botID string, req UpdateBotRequest
 		AvatarUrl:   pgtype.Text{String: avatarURL, Valid: avatarURL != ""},
 		Timezone:    timezoneValue,
 		IsActive:    isActive,
+		GroupID:     groupID,
 		Metadata:    payload,
 	})
 	if err != nil {
@@ -303,6 +333,57 @@ func (s *Service) Update(ctx context.Context, botID string, req UpdateBotRequest
 		return Bot{}, err
 	}
 	return bot, nil
+}
+
+func (s *Service) AssignGroup(ctx context.Context, userID, botID, groupID string) (Bot, error) {
+	if s.queries == nil {
+		return Bot{}, errors.New("bot queries not configured")
+	}
+	allowed, err := s.hasBotPermission(ctx, userID, botID, rbac.PermissionBotUpdate)
+	if err != nil {
+		return Bot{}, err
+	}
+	if !allowed {
+		return Bot{}, ErrBotAccessDenied
+	}
+	botUUID, err := db.ParseUUID(botID)
+	if err != nil {
+		return Bot{}, err
+	}
+	existing, err := s.queries.GetBotByID(ctx, botUUID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return Bot{}, ErrBotNotFound
+		}
+		return Bot{}, err
+	}
+	targetGroupID, err := normalizeOptionalUUID(groupID)
+	if err != nil {
+		return Bot{}, fmt.Errorf("invalid group id: %w", err)
+	}
+	if !targetGroupID.Valid {
+		return Bot{}, errors.New("group id is required")
+	}
+	if err := s.ensureGroupBelongsToOwner(ctx, existing.OwnerUserID, targetGroupID); err != nil {
+		return Bot{}, err
+	}
+	normalized := targetGroupID.String()
+	return s.Update(ctx, botID, UpdateBotRequest{GroupID: &normalized})
+}
+
+func (s *Service) ClearGroup(ctx context.Context, userID, botID string) (Bot, error) {
+	if s.queries == nil {
+		return Bot{}, errors.New("bot queries not configured")
+	}
+	allowed, err := s.hasBotPermission(ctx, userID, botID, rbac.PermissionBotUpdate)
+	if err != nil {
+		return Bot{}, err
+	}
+	if !allowed {
+		return Bot{}, ErrBotAccessDenied
+	}
+	empty := ""
+	return s.Update(ctx, botID, UpdateBotRequest{GroupID: &empty})
 }
 
 // TransferOwner transfers bot ownership to another user.
@@ -532,20 +613,37 @@ func (s *Service) ensureUserExists(ctx context.Context, userID pgtype.UUID) erro
 	return nil
 }
 
+func (s *Service) ensureGroupBelongsToOwner(ctx context.Context, ownerID pgtype.UUID, groupID pgtype.UUID) error {
+	if !groupID.Valid {
+		return nil
+	}
+	_, err := s.queries.GetBotGroupByOwnerAndID(ctx, sqlc.GetBotGroupByOwnerAndIDParams{
+		OwnerUserID: ownerID,
+		ID:          groupID,
+	})
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return ErrBotGroupNotAllowed
+		}
+		return err
+	}
+	return nil
+}
+
 func asSQLCBot(v any) sqlc.Bot {
 	switch r := v.(type) {
 	case sqlc.Bot:
 		return r
 	case sqlc.CreateBotRow:
-		return sqlc.Bot{ID: r.ID, OwnerUserID: r.OwnerUserID, DisplayName: r.DisplayName, AvatarUrl: r.AvatarUrl, Timezone: r.Timezone, IsActive: r.IsActive, Status: r.Status, Language: r.Language, ReasoningEnabled: r.ReasoningEnabled, ReasoningEffort: r.ReasoningEffort, ChatModelID: r.ChatModelID, SearchProviderID: r.SearchProviderID, MemoryProviderID: r.MemoryProviderID, HeartbeatEnabled: r.HeartbeatEnabled, HeartbeatInterval: r.HeartbeatInterval, HeartbeatPrompt: r.HeartbeatPrompt, Metadata: r.Metadata, CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt}
+		return sqlc.Bot{ID: r.ID, OwnerUserID: r.OwnerUserID, GroupID: r.GroupID, DisplayName: r.DisplayName, AvatarUrl: r.AvatarUrl, Timezone: r.Timezone, IsActive: r.IsActive, Status: r.Status, Language: r.Language, ReasoningEnabled: r.ReasoningEnabled, ReasoningEffort: r.ReasoningEffort, ChatModelID: r.ChatModelID, SearchProviderID: r.SearchProviderID, MemoryProviderID: r.MemoryProviderID, HeartbeatEnabled: r.HeartbeatEnabled, HeartbeatInterval: r.HeartbeatInterval, HeartbeatPrompt: r.HeartbeatPrompt, SettingsOverrideMask: r.SettingsOverrideMask, Metadata: r.Metadata, CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt}
 	case sqlc.GetBotByIDRow:
-		return sqlc.Bot{ID: r.ID, OwnerUserID: r.OwnerUserID, DisplayName: r.DisplayName, AvatarUrl: r.AvatarUrl, Timezone: r.Timezone, IsActive: r.IsActive, Status: r.Status, Language: r.Language, ReasoningEnabled: r.ReasoningEnabled, ReasoningEffort: r.ReasoningEffort, ChatModelID: r.ChatModelID, SearchProviderID: r.SearchProviderID, MemoryProviderID: r.MemoryProviderID, HeartbeatEnabled: r.HeartbeatEnabled, HeartbeatInterval: r.HeartbeatInterval, HeartbeatPrompt: r.HeartbeatPrompt, CompactionEnabled: r.CompactionEnabled, CompactionThreshold: r.CompactionThreshold, CompactionModelID: r.CompactionModelID, Metadata: r.Metadata, CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt}
+		return sqlc.Bot{ID: r.ID, OwnerUserID: r.OwnerUserID, GroupID: r.GroupID, DisplayName: r.DisplayName, AvatarUrl: r.AvatarUrl, Timezone: r.Timezone, IsActive: r.IsActive, Status: r.Status, Language: r.Language, ReasoningEnabled: r.ReasoningEnabled, ReasoningEffort: r.ReasoningEffort, ChatModelID: r.ChatModelID, SearchProviderID: r.SearchProviderID, MemoryProviderID: r.MemoryProviderID, HeartbeatEnabled: r.HeartbeatEnabled, HeartbeatInterval: r.HeartbeatInterval, HeartbeatPrompt: r.HeartbeatPrompt, CompactionEnabled: r.CompactionEnabled, CompactionThreshold: r.CompactionThreshold, CompactionModelID: r.CompactionModelID, SettingsOverrideMask: r.SettingsOverrideMask, Metadata: r.Metadata, CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt}
 	case sqlc.ListBotsByOwnerRow:
-		return sqlc.Bot{ID: r.ID, OwnerUserID: r.OwnerUserID, DisplayName: r.DisplayName, AvatarUrl: r.AvatarUrl, Timezone: r.Timezone, IsActive: r.IsActive, Status: r.Status, Language: r.Language, ReasoningEnabled: r.ReasoningEnabled, ReasoningEffort: r.ReasoningEffort, ChatModelID: r.ChatModelID, SearchProviderID: r.SearchProviderID, MemoryProviderID: r.MemoryProviderID, HeartbeatEnabled: r.HeartbeatEnabled, HeartbeatInterval: r.HeartbeatInterval, HeartbeatPrompt: r.HeartbeatPrompt, Metadata: r.Metadata, CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt}
+		return sqlc.Bot{ID: r.ID, OwnerUserID: r.OwnerUserID, GroupID: r.GroupID, DisplayName: r.DisplayName, AvatarUrl: r.AvatarUrl, Timezone: r.Timezone, IsActive: r.IsActive, Status: r.Status, Language: r.Language, ReasoningEnabled: r.ReasoningEnabled, ReasoningEffort: r.ReasoningEffort, ChatModelID: r.ChatModelID, SearchProviderID: r.SearchProviderID, MemoryProviderID: r.MemoryProviderID, HeartbeatEnabled: r.HeartbeatEnabled, HeartbeatInterval: r.HeartbeatInterval, HeartbeatPrompt: r.HeartbeatPrompt, SettingsOverrideMask: r.SettingsOverrideMask, Metadata: r.Metadata, CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt}
 	case sqlc.UpdateBotProfileRow:
-		return sqlc.Bot{ID: r.ID, OwnerUserID: r.OwnerUserID, DisplayName: r.DisplayName, AvatarUrl: r.AvatarUrl, Timezone: r.Timezone, IsActive: r.IsActive, Status: r.Status, Language: r.Language, ReasoningEnabled: r.ReasoningEnabled, ReasoningEffort: r.ReasoningEffort, ChatModelID: r.ChatModelID, SearchProviderID: r.SearchProviderID, MemoryProviderID: r.MemoryProviderID, HeartbeatEnabled: r.HeartbeatEnabled, HeartbeatInterval: r.HeartbeatInterval, HeartbeatPrompt: r.HeartbeatPrompt, Metadata: r.Metadata, CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt}
+		return sqlc.Bot{ID: r.ID, OwnerUserID: r.OwnerUserID, GroupID: r.GroupID, DisplayName: r.DisplayName, AvatarUrl: r.AvatarUrl, Timezone: r.Timezone, IsActive: r.IsActive, Status: r.Status, Language: r.Language, ReasoningEnabled: r.ReasoningEnabled, ReasoningEffort: r.ReasoningEffort, ChatModelID: r.ChatModelID, SearchProviderID: r.SearchProviderID, MemoryProviderID: r.MemoryProviderID, HeartbeatEnabled: r.HeartbeatEnabled, HeartbeatInterval: r.HeartbeatInterval, HeartbeatPrompt: r.HeartbeatPrompt, SettingsOverrideMask: r.SettingsOverrideMask, Metadata: r.Metadata, CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt}
 	case sqlc.UpdateBotOwnerRow:
-		return sqlc.Bot{ID: r.ID, OwnerUserID: r.OwnerUserID, DisplayName: r.DisplayName, AvatarUrl: r.AvatarUrl, Timezone: r.Timezone, IsActive: r.IsActive, Status: r.Status, Language: r.Language, ReasoningEnabled: r.ReasoningEnabled, ReasoningEffort: r.ReasoningEffort, ChatModelID: r.ChatModelID, SearchProviderID: r.SearchProviderID, MemoryProviderID: r.MemoryProviderID, HeartbeatEnabled: r.HeartbeatEnabled, HeartbeatInterval: r.HeartbeatInterval, HeartbeatPrompt: r.HeartbeatPrompt, Metadata: r.Metadata, CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt}
+		return sqlc.Bot{ID: r.ID, OwnerUserID: r.OwnerUserID, GroupID: r.GroupID, DisplayName: r.DisplayName, AvatarUrl: r.AvatarUrl, Timezone: r.Timezone, IsActive: r.IsActive, Status: r.Status, Language: r.Language, ReasoningEnabled: r.ReasoningEnabled, ReasoningEffort: r.ReasoningEffort, ChatModelID: r.ChatModelID, SearchProviderID: r.SearchProviderID, MemoryProviderID: r.MemoryProviderID, HeartbeatEnabled: r.HeartbeatEnabled, HeartbeatInterval: r.HeartbeatInterval, HeartbeatPrompt: r.HeartbeatPrompt, SettingsOverrideMask: r.SettingsOverrideMask, Metadata: r.Metadata, CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt}
 	default:
 		return sqlc.Bot{}
 	}
@@ -568,6 +666,14 @@ func toBot(row sqlc.Bot) (Bot, error) {
 	if err != nil {
 		return Bot{}, err
 	}
+	overrideMask, err := decodeOverrideMask(row.SettingsOverrideMask)
+	if err != nil {
+		return Bot{}, err
+	}
+	groupID := ""
+	if row.GroupID.Valid {
+		groupID = row.GroupID.String()
+	}
 	createdAt := time.Time{}
 	if row.CreatedAt.Valid {
 		createdAt = row.CreatedAt.Time
@@ -577,19 +683,58 @@ func toBot(row sqlc.Bot) (Bot, error) {
 		updatedAt = row.UpdatedAt.Time
 	}
 	return Bot{
-		ID:              row.ID.String(),
-		OwnerUserID:     row.OwnerUserID.String(),
-		DisplayName:     displayName,
-		AvatarURL:       avatarURL,
-		Timezone:        timezoneName,
-		IsActive:        row.IsActive,
-		Status:          strings.TrimSpace(row.Status),
-		CheckState:      BotCheckStateUnknown,
-		CheckIssueCount: 0,
-		Metadata:        metadata,
-		CreatedAt:       createdAt,
-		UpdatedAt:       updatedAt,
+		ID:                   row.ID.String(),
+		OwnerUserID:          row.OwnerUserID.String(),
+		GroupID:              groupID,
+		DisplayName:          displayName,
+		AvatarURL:            avatarURL,
+		Timezone:             timezoneName,
+		IsActive:             row.IsActive,
+		Status:               strings.TrimSpace(row.Status),
+		CheckState:           BotCheckStateUnknown,
+		CheckIssueCount:      0,
+		SettingsOverrideMask: overrideMask,
+		Metadata:             metadata,
+		CreatedAt:            createdAt,
+		UpdatedAt:            updatedAt,
 	}, nil
+}
+
+func decodeOverrideMask(payload []byte) (map[string]bool, error) {
+	if len(payload) == 0 {
+		return map[string]bool{}, nil
+	}
+	var data map[string]bool
+	if err := json.Unmarshal(payload, &data); err != nil {
+		return nil, err
+	}
+	if data == nil {
+		data = map[string]bool{}
+	}
+	return data, nil
+}
+
+func createSettingsOverrideMask(hasGroup bool, hasExplicitTimezone bool) ([]byte, error) {
+	if !hasGroup {
+		return defaultSettingsOverrideMask, nil
+	}
+	if !hasExplicitTimezone {
+		return inheritedSettingsOverrideMask, nil
+	}
+	var mask map[string]bool
+	if err := json.Unmarshal(inheritedSettingsOverrideMask, &mask); err != nil {
+		return nil, err
+	}
+	mask["timezone"] = true
+	return json.Marshal(mask)
+}
+
+func normalizeOptionalUUID(raw string) (pgtype.UUID, error) {
+	normalized := strings.TrimSpace(raw)
+	if normalized == "" {
+		return pgtype.UUID{}, nil
+	}
+	return db.ParseUUID(normalized)
 }
 
 func decodeMetadata(payload []byte) (map[string]any, error) {

@@ -264,35 +264,6 @@ func (h *ContainerdHandler) CreateContainer(c echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
-	// Image override lets administrators specify a custom base image.
-	// NOTE(saas): if this becomes a multi-tenant SaaS, image override must be
-	// validated against an allowlist to prevent SSRF and resource abuse.
-	ctx := c.Request().Context()
-	imageOverride := strings.TrimSpace(req.Image)
-	image, err := h.manager.ResolveWorkspaceImage(ctx, botID)
-	if err != nil {
-		h.logger.Error("resolve workspace image failed",
-			slog.String("bot_id", botID), slog.Any("error", err))
-		return nil
-	}
-	gpu, err := h.manager.ResolveWorkspaceGPU(ctx, botID)
-	if err != nil {
-		h.logger.Error("resolve workspace gpu failed",
-			slog.String("bot_id", botID), slog.Any("error", err))
-		return nil
-	}
-	if imageOverride != "" {
-		image = config.NormalizeImageRef(imageOverride)
-	}
-	if req.GPU != nil {
-		gpu = workspace.WorkspaceGPUConfig{Devices: req.GPU.Devices}
-	}
-
-	snapshotter := strings.TrimSpace(req.Snapshotter)
-	if snapshotter == "" {
-		snapshotter = h.cfg.Snapshotter
-	}
-
 	flusher, ok := c.Response().Writer.(http.Flusher)
 	if !ok {
 		return echo.NewHTTPError(http.StatusInternalServerError, "streaming not supported")
@@ -315,8 +286,44 @@ func (h *ContainerdHandler) CreateContainer(c echo.Context) error {
 		_ = writeSSEData(writer, flusher, string(data))
 	}
 
+	return h.CreateContainerStream(c.Request().Context(), botID, req, send)
+}
+
+// CreateContainerStream creates a bot workspace container and reports progress
+// events to send. Callers must authorize bot access before invoking this method.
+func (h *ContainerdHandler) CreateContainerStream(ctx context.Context, botID string, req CreateContainerRequest, send func(any)) error {
 	sendError := func(msg string) {
 		send(createContainerErrorEvent{Type: "error", Message: msg})
+	}
+
+	// Image override lets administrators specify a custom base image.
+	// NOTE(saas): if this becomes a multi-tenant SaaS, image override must be
+	// validated against an allowlist to prevent SSRF and resource abuse.
+	imageOverride := strings.TrimSpace(req.Image)
+	image, err := h.manager.ResolveWorkspaceImage(ctx, botID)
+	if err != nil {
+		h.logger.Error("resolve workspace image failed",
+			slog.String("bot_id", botID), slog.Any("error", err))
+		sendError("resolve workspace image failed: " + err.Error())
+		return nil
+	}
+	gpu, err := h.manager.ResolveWorkspaceGPU(ctx, botID)
+	if err != nil {
+		h.logger.Error("resolve workspace gpu failed",
+			slog.String("bot_id", botID), slog.Any("error", err))
+		sendError("resolve workspace gpu failed: " + err.Error())
+		return nil
+	}
+	if imageOverride != "" {
+		image = config.NormalizeImageRef(imageOverride)
+	}
+	if req.GPU != nil {
+		gpu = workspace.WorkspaceGPUConfig{Devices: req.GPU.Devices}
+	}
+
+	snapshotter := strings.TrimSpace(req.Snapshotter)
+	if snapshotter == "" {
+		snapshotter = h.cfg.Snapshotter
 	}
 
 	workspaceBackend := strings.ToLower(strings.TrimSpace(req.WorkspaceBackend))

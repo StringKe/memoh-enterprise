@@ -1,0 +1,188 @@
+syntax = "proto3";
+
+package memoh.private.v1;
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+import "memoh/private/v1/common.proto";
+
+option go_package = "github.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1;privatev1";
+
+message ScheduleTask {
+  string id = 1;
+  string bot_id = 2;
+  string name = 3;
+  string cron = 4;
+  string timezone = 5;
+  bool enabled = 6;
+  string prompt = 7;
+  google.protobuf.Struct metadata = 8;
+  AuditFields audit = 9;
+}
+
+message ScheduleLog {
+  string id = 1;
+  string schedule_id = 2;
+  string bot_id = 3;
+  string status = 4;
+  string message = 5;
+  google.protobuf.Timestamp started_at = 6;
+  google.protobuf.Timestamp finished_at = 7;
+  google.protobuf.Struct metadata = 8;
+}
+
+message HeartbeatLog {
+  string id = 1;
+  string bot_id = 2;
+  string session_id = 3;
+  string status = 4;
+  string result_text = 5;
+  string error_message = 6;
+  google.protobuf.Struct usage = 7;
+  google.protobuf.Timestamp started_at = 8;
+  google.protobuf.Timestamp completed_at = 9;
+}
+
+message CompactionLog {
+  string id = 1;
+  string bot_id = 2;
+  string session_id = 3;
+  string status = 4;
+  string summary = 5;
+  int32 message_count = 6;
+  string error_message = 7;
+  google.protobuf.Struct usage = 8;
+  string model_id = 9;
+  google.protobuf.Timestamp started_at = 10;
+  google.protobuf.Timestamp completed_at = 11;
+}
+
+message CreateScheduleRequest {
+  string bot_id = 1;
+  string name = 2;
+  string cron = 3;
+  string timezone = 4;
+  bool enabled = 5;
+  string prompt = 6;
+  google.protobuf.Struct metadata = 7;
+}
+
+message CreateScheduleResponse {
+  ScheduleTask schedule = 1;
+}
+
+message ListSchedulesRequest {
+  string bot_id = 1;
+  PageRequest page = 2;
+}
+
+message ListSchedulesResponse {
+  repeated ScheduleTask schedules = 1;
+  PageResponse page = 2;
+}
+
+message GetScheduleRequest {
+  string id = 1;
+}
+
+message GetScheduleResponse {
+  ScheduleTask schedule = 1;
+}
+
+message UpdateScheduleRequest {
+  string id = 1;
+  optional string name = 2;
+  optional string cron = 3;
+  optional string timezone = 4;
+  optional bool enabled = 5;
+  optional string prompt = 6;
+  google.protobuf.Struct metadata = 7;
+}
+
+message UpdateScheduleResponse {
+  ScheduleTask schedule = 1;
+}
+
+message DeleteScheduleRequest {
+  string id = 1;
+}
+
+message DeleteScheduleResponse {}
+
+message ListScheduleLogsRequest {
+  string bot_id = 1;
+  PageRequest page = 2;
+}
+
+message ListScheduleLogsResponse {
+  repeated ScheduleLog logs = 1;
+  PageResponse page = 2;
+}
+
+message ListScheduleLogsByScheduleRequest {
+  string schedule_id = 1;
+  PageRequest page = 2;
+}
+
+message ListScheduleLogsByScheduleResponse {
+  repeated ScheduleLog logs = 1;
+  PageResponse page = 2;
+}
+
+message DeleteScheduleLogsRequest {
+  string bot_id = 1;
+  string schedule_id = 2;
+}
+
+message DeleteScheduleLogsResponse {
+  int32 deleted_count = 1;
+}
+
+message ListHeartbeatLogsRequest {
+  string bot_id = 1;
+  PageRequest page = 2;
+}
+
+message ListHeartbeatLogsResponse {
+  repeated HeartbeatLog logs = 1;
+  PageResponse page = 2;
+  int32 total_count = 3;
+}
+
+message DeleteHeartbeatLogsRequest {
+  string bot_id = 1;
+}
+
+message DeleteHeartbeatLogsResponse {}
+
+message ListCompactionLogsRequest {
+  string bot_id = 1;
+  PageRequest page = 2;
+}
+
+message ListCompactionLogsResponse {
+  repeated CompactionLog logs = 1;
+  PageResponse page = 2;
+  int32 total_count = 3;
+}
+
+message DeleteCompactionLogsRequest {
+  string bot_id = 1;
+}
+
+message DeleteCompactionLogsResponse {}
+
+service ScheduleService {
+  rpc CreateSchedule(CreateScheduleRequest) returns (CreateScheduleResponse);
+  rpc ListSchedules(ListSchedulesRequest) returns (ListSchedulesResponse);
+  rpc GetSchedule(GetScheduleRequest) returns (GetScheduleResponse);
+  rpc UpdateSchedule(UpdateScheduleRequest) returns (UpdateScheduleResponse);
+  rpc DeleteSchedule(DeleteScheduleRequest) returns (DeleteScheduleResponse);
+  rpc ListScheduleLogs(ListScheduleLogsRequest) returns (ListScheduleLogsResponse);
+  rpc ListScheduleLogsBySchedule(ListScheduleLogsByScheduleRequest) returns (ListScheduleLogsByScheduleResponse);
+  rpc DeleteScheduleLogs(DeleteScheduleLogsRequest) returns (DeleteScheduleLogsResponse);
+  rpc ListHeartbeatLogs(ListHeartbeatLogsRequest) returns (ListHeartbeatLogsResponse);
+  rpc DeleteHeartbeatLogs(DeleteHeartbeatLogsRequest) returns (DeleteHeartbeatLogsResponse);
+  rpc ListCompactionLogs(ListCompactionLogsRequest) returns (ListCompactionLogsResponse);
+  rpc DeleteCompactionLogs(DeleteCompactionLogsRequest) returns (DeleteCompactionLogsResponse);
+}

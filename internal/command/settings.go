@@ -52,10 +52,10 @@ func (h *Handler) buildSettingsGroup() *CommandGroup {
 				switch args[i] {
 				case "--language":
 					i++
-					req.Language = args[i]
+					req.Language = &args[i]
 				case "--acl_default_effect":
 					i++
-					req.AclDefaultEffect = args[i]
+					req.AclDefaultEffect = &args[i]
 				case "--reasoning_enabled":
 					i++
 					v := strings.ToLower(args[i]) == "true"
@@ -76,10 +76,10 @@ func (h *Handler) buildSettingsGroup() *CommandGroup {
 					req.HeartbeatInterval = &val
 				case "--chat_model_id":
 					i++
-					req.ChatModelID = args[i]
+					req.ChatModelID = &args[i]
 				case "--heartbeat_model_id":
 					i++
-					req.HeartbeatModelID = args[i]
+					req.HeartbeatModelID = &args[i]
 				default:
 					return fmt.Sprintf("Unknown option: %s\n\n%s", args[i], settingsUpdateUsage()), nil
 				}

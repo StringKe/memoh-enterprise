@@ -1,0 +1,122 @@
+syntax = "proto3";
+
+package memoh.private.v1;
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+import "memoh/private/v1/common.proto";
+
+option go_package = "github.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1;privatev1";
+
+message Channel {
+  string id = 1;
+  string display_name = 2;
+  bool supports_webhook = 3;
+  bool supports_identity_config = 4;
+  google.protobuf.Struct metadata = 5;
+}
+
+message ChannelIdentityConfig {
+  string channel = 1;
+  string identity_id = 2;
+  google.protobuf.Struct config = 3;
+  AuditFields audit = 4;
+}
+
+message BotChannelConfig {
+  string id = 1;
+  string bot_id = 2;
+  string channel = 3;
+  google.protobuf.Struct credentials = 4;
+  string external_identity = 5;
+  google.protobuf.Struct self_identity = 6;
+  google.protobuf.Struct routing = 7;
+  bool disabled = 8;
+  google.protobuf.Timestamp verified_at = 9;
+  AuditFields audit = 10;
+}
+
+message ListChannelsRequest {}
+
+message ListChannelsResponse {
+  repeated Channel channels = 1;
+}
+
+message GetChannelRequest {
+  string id = 1;
+}
+
+message GetChannelResponse {
+  Channel channel = 1;
+}
+
+message GetChannelIdentityConfigRequest {
+  string channel = 1;
+  string identity_id = 2;
+}
+
+message GetChannelIdentityConfigResponse {
+  ChannelIdentityConfig config = 1;
+}
+
+message UpsertChannelIdentityConfigRequest {
+  string channel = 1;
+  string identity_id = 2;
+  google.protobuf.Struct config = 3;
+}
+
+message UpsertChannelIdentityConfigResponse {
+  ChannelIdentityConfig config = 1;
+}
+
+message GetBotChannelConfigRequest {
+  string bot_id = 1;
+  string channel = 2;
+}
+
+message GetBotChannelConfigResponse {
+  BotChannelConfig config = 1;
+}
+
+message UpsertBotChannelConfigRequest {
+  string bot_id = 1;
+  string channel = 2;
+  google.protobuf.Struct credentials = 3;
+  string external_identity = 4;
+  google.protobuf.Struct self_identity = 5;
+  google.protobuf.Struct routing = 6;
+  optional bool disabled = 7;
+  google.protobuf.Timestamp verified_at = 8;
+}
+
+message UpsertBotChannelConfigResponse {
+  BotChannelConfig config = 1;
+}
+
+message UpdateBotChannelStatusRequest {
+  string bot_id = 1;
+  string channel = 2;
+  bool disabled = 3;
+}
+
+message UpdateBotChannelStatusResponse {
+  BotChannelConfig config = 1;
+}
+
+message DeleteBotChannelConfigRequest {
+  string bot_id = 1;
+  string channel = 2;
+}
+
+message DeleteBotChannelConfigResponse {}
+
+service ChannelService {
+  rpc ListChannels(ListChannelsRequest) returns (ListChannelsResponse);
+  rpc GetChannel(GetChannelRequest) returns (GetChannelResponse);
+  rpc GetChannelIdentityConfig(GetChannelIdentityConfigRequest) returns (GetChannelIdentityConfigResponse);
+  rpc UpsertChannelIdentityConfig(UpsertChannelIdentityConfigRequest) returns (UpsertChannelIdentityConfigResponse);
+  rpc GetBotChannelConfig(GetBotChannelConfigRequest) returns (GetBotChannelConfigResponse);
+  rpc UpsertBotChannelConfig(UpsertBotChannelConfigRequest) returns (UpsertBotChannelConfigResponse);
+  rpc UpdateBotChannelStatus(UpdateBotChannelStatusRequest) returns (UpdateBotChannelStatusResponse);
+  rpc DeleteBotChannelConfig(DeleteBotChannelConfigRequest) returns (DeleteBotChannelConfigResponse);
+}

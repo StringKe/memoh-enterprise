@@ -21,7 +21,7 @@ func TestParseHTTPProxyConfigExtractsCredentialsFromURL(t *testing.T) {
 }
 
 func TestNewHTTPClientExplicitProxyOverridesEnvironment(t *testing.T) {
-	t.Setenv("HTTPS_PROXY", "http://env-proxy:18080")
+	t.Setenv("HTTPS_PROXY", "http://env-proxy:3128")
 
 	client, err := NewHTTPClient(0, HTTPProxyConfig{
 		URL: "http://memoh:" + "secret" + "@config-proxy:3128",
@@ -58,7 +58,7 @@ func TestNewHTTPClientExplicitProxyOverridesEnvironment(t *testing.T) {
 }
 
 func TestNewHTTPClientFallsBackToEnvironmentProxy(t *testing.T) {
-	t.Setenv("HTTPS_PROXY", "http://env-proxy:18080")
+	t.Setenv("HTTPS_PROXY", "http://env-proxy:3128")
 
 	client, err := NewHTTPClient(0, HTTPProxyConfig{})
 	if err != nil {
@@ -76,7 +76,7 @@ func TestNewHTTPClientFallsBackToEnvironmentProxy(t *testing.T) {
 	if err != nil {
 		t.Fatalf("transport.Proxy() error = %v", err)
 	}
-	if proxyURL == nil || proxyURL.Host != "env-proxy:18080" {
+	if proxyURL == nil || proxyURL.Host != "env-proxy:3128" {
 		t.Fatalf("expected env proxy, got %#v", proxyURL)
 	}
 }

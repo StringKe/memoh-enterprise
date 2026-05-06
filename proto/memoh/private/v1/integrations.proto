@@ -1,0 +1,73 @@
+syntax = "proto3";
+
+package memoh.private.v1;
+
+import "google/protobuf/timestamp.proto";
+import "memoh/private/v1/common.proto";
+
+option go_package = "github.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1;privatev1";
+
+message IntegrationApiToken {
+  string id = 1;
+  string name = 2;
+  string scope_type = 3;
+  string scope_bot_id = 4;
+  string scope_bot_group_id = 5;
+  repeated string allowed_event_types = 6;
+  repeated string allowed_action_types = 7;
+  google.protobuf.Timestamp expires_at = 8;
+  google.protobuf.Timestamp disabled_at = 9;
+  google.protobuf.Timestamp last_used_at = 10;
+  string created_by_user_id = 11;
+  AuditFields audit = 12;
+}
+
+message CreateIntegrationApiTokenRequest {
+  string name = 1;
+  string scope_type = 2;
+  string scope_bot_id = 3;
+  string scope_bot_group_id = 4;
+  repeated string allowed_event_types = 5;
+  repeated string allowed_action_types = 6;
+  google.protobuf.Timestamp expires_at = 7;
+}
+
+message CreateIntegrationApiTokenResponse {
+  IntegrationApiToken token = 1;
+  string raw_token = 2;
+}
+
+message ListIntegrationApiTokensRequest {
+  PageRequest page = 1;
+}
+
+message ListIntegrationApiTokensResponse {
+  repeated IntegrationApiToken tokens = 1;
+  PageResponse page = 2;
+}
+
+message DisableIntegrationApiTokenRequest {
+  string id = 1;
+}
+
+message DisableIntegrationApiTokenResponse {
+  IntegrationApiToken token = 1;
+}
+
+message DeleteIntegrationApiTokenRequest {
+  string id = 1;
+}
+
+message DeleteIntegrationApiTokenResponse {}
+
+message DisableAllIntegrationApiTokensRequest {}
+
+message DisableAllIntegrationApiTokensResponse {}
+
+service IntegrationAdminService {
+  rpc CreateIntegrationApiToken(CreateIntegrationApiTokenRequest) returns (CreateIntegrationApiTokenResponse);
+  rpc ListIntegrationApiTokens(ListIntegrationApiTokensRequest) returns (ListIntegrationApiTokensResponse);
+  rpc DisableIntegrationApiToken(DisableIntegrationApiTokenRequest) returns (DisableIntegrationApiTokenResponse);
+  rpc DeleteIntegrationApiToken(DeleteIntegrationApiTokenRequest) returns (DeleteIntegrationApiTokenResponse);
+  rpc DisableAllIntegrationApiTokens(DisableAllIntegrationApiTokensRequest) returns (DisableAllIntegrationApiTokensResponse);
+}

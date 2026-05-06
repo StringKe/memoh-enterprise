@@ -7,6 +7,7 @@ const (
 )
 
 type Settings struct {
+	GroupID                string             `json:"group_id,omitempty"`
 	ChatModelID            string             `json:"chat_model_id"`
 	ImageModelID           string             `json:"image_model_id"`
 	SearchProviderID       string             `json:"search_provider_id"`
@@ -21,6 +22,7 @@ type Settings struct {
 	ReasoningEffort        string             `json:"reasoning_effort"`
 	HeartbeatEnabled       bool               `json:"heartbeat_enabled"`
 	HeartbeatInterval      int                `json:"heartbeat_interval"`
+	HeartbeatPrompt        string             `json:"heartbeat_prompt"`
 	HeartbeatModelID       string             `json:"heartbeat_model_id"`
 	TitleModelID           string             `json:"title_model_id"`
 	CompactionEnabled      bool               `json:"compaction_enabled"`
@@ -34,36 +36,48 @@ type Settings struct {
 	OverlayEnabled         bool               `json:"overlay_enabled"`
 	OverlayProvider        string             `json:"overlay_provider,omitempty"`
 	OverlayConfig          map[string]any     `json:"overlay_config,omitempty"`
+	OverrideMask           OverrideMask       `json:"override_mask,omitempty"`
+	Sources                []FieldSource      `json:"sources,omitempty"`
+}
+
+type OverrideMask map[string]bool
+
+type FieldSource struct {
+	Field    string `json:"field"`
+	Source   string `json:"source"`
+	SourceID string `json:"source_id,omitempty"`
 }
 
 type UpsertRequest struct {
-	ChatModelID            string              `json:"chat_model_id,omitempty"`
-	ImageModelID           string              `json:"image_model_id,omitempty"`
-	SearchProviderID       string              `json:"search_provider_id,omitempty"`
-	MemoryProviderID       string              `json:"memory_provider_id,omitempty"`
-	TtsModelID             string              `json:"tts_model_id,omitempty"`
-	TranscriptionModelID   string              `json:"transcription_model_id,omitempty"`
-	BrowserContextID       string              `json:"browser_context_id,omitempty"`
-	Language               string              `json:"language,omitempty"`
-	AclDefaultEffect       string              `json:"acl_default_effect,omitempty"`
+	ChatModelID            *string             `json:"chat_model_id,omitempty"`
+	ImageModelID           *string             `json:"image_model_id,omitempty"`
+	SearchProviderID       *string             `json:"search_provider_id,omitempty"`
+	MemoryProviderID       *string             `json:"memory_provider_id,omitempty"`
+	TtsModelID             *string             `json:"tts_model_id,omitempty"`
+	TranscriptionModelID   *string             `json:"transcription_model_id,omitempty"`
+	BrowserContextID       *string             `json:"browser_context_id,omitempty"`
+	Language               *string             `json:"language,omitempty"`
+	AclDefaultEffect       *string             `json:"acl_default_effect,omitempty"`
 	Timezone               *string             `json:"timezone,omitempty"`
 	ReasoningEnabled       *bool               `json:"reasoning_enabled,omitempty"`
 	ReasoningEffort        *string             `json:"reasoning_effort,omitempty"`
 	HeartbeatEnabled       *bool               `json:"heartbeat_enabled,omitempty"`
 	HeartbeatInterval      *int                `json:"heartbeat_interval,omitempty"`
-	HeartbeatModelID       string              `json:"heartbeat_model_id,omitempty"`
-	TitleModelID           string              `json:"title_model_id,omitempty"`
+	HeartbeatModelID       *string             `json:"heartbeat_model_id,omitempty"`
+	HeartbeatPrompt        *string             `json:"heartbeat_prompt,omitempty"`
+	TitleModelID           *string             `json:"title_model_id,omitempty"`
 	CompactionEnabled      *bool               `json:"compaction_enabled,omitempty"`
 	CompactionThreshold    *int                `json:"compaction_threshold,omitempty"`
 	CompactionRatio        *int                `json:"compaction_ratio,omitempty"`
 	CompactionModelID      *string             `json:"compaction_model_id,omitempty"`
-	DiscussProbeModelID    string              `json:"discuss_probe_model_id,omitempty"`
+	DiscussProbeModelID    *string             `json:"discuss_probe_model_id,omitempty"`
 	PersistFullToolResults *bool               `json:"persist_full_tool_results,omitempty"`
 	ShowToolCallsInIM      *bool               `json:"show_tool_calls_in_im,omitempty"`
 	ToolApprovalConfig     *ToolApprovalConfig `json:"tool_approval_config,omitempty"`
 	OverlayEnabled         *bool               `json:"overlay_enabled,omitempty"`
 	OverlayProvider        *string             `json:"overlay_provider,omitempty"`
 	OverlayConfig          map[string]any      `json:"overlay_config,omitempty"`
+	OverrideMask           *OverrideMask       `json:"override_mask,omitempty"`
 }
 
 type ToolApprovalConfig struct {

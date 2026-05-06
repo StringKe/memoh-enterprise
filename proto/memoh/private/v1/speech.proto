@@ -1,0 +1,222 @@
+syntax = "proto3";
+
+package memoh.private.v1;
+
+import "google/protobuf/struct.proto";
+import "memoh/private/v1/common.proto";
+
+option go_package = "github.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1;privatev1";
+
+message SpeechProvider {
+  string id = 1;
+  string name = 2;
+  string type = 3;
+  bool enabled = 4;
+  google.protobuf.Struct config = 5;
+  AuditFields audit = 6;
+}
+
+message SpeechModel {
+  string id = 1;
+  string provider_id = 2;
+  string model_id = 3;
+  string display_name = 4;
+  bool enabled = 5;
+  google.protobuf.Struct capabilities = 6;
+  google.protobuf.Struct metadata = 7;
+  AuditFields audit = 8;
+}
+
+message SpeechProviderMeta {
+  string type = 1;
+  string display_name = 2;
+  google.protobuf.Struct schema = 3;
+}
+
+message ListSpeechProvidersRequest {}
+
+message ListSpeechProvidersResponse {
+  repeated SpeechProvider providers = 1;
+}
+
+message GetSpeechProviderRequest {
+  string id = 1;
+}
+
+message GetSpeechProviderResponse {
+  SpeechProvider provider = 1;
+}
+
+message ListSpeechProviderMetaRequest {}
+
+message ListSpeechProviderMetaResponse {
+  repeated SpeechProviderMeta providers = 1;
+}
+
+message ImportSpeechProviderModelsRequest {
+  string provider_id = 1;
+  repeated string model_ids = 2;
+}
+
+message ImportSpeechProviderModelsResponse {
+  repeated SpeechModel models = 1;
+}
+
+message ListSpeechModelsRequest {
+  string provider_id = 1;
+}
+
+message ListSpeechModelsResponse {
+  repeated SpeechModel models = 1;
+}
+
+message GetSpeechModelRequest {
+  string id = 1;
+}
+
+message GetSpeechModelResponse {
+  SpeechModel model = 1;
+}
+
+message UpdateSpeechModelRequest {
+  string id = 1;
+  optional string display_name = 2;
+  optional bool enabled = 3;
+  google.protobuf.Struct metadata = 4;
+}
+
+message UpdateSpeechModelResponse {
+  SpeechModel model = 1;
+}
+
+message GetSpeechModelCapabilitiesRequest {
+  string id = 1;
+}
+
+message GetSpeechModelCapabilitiesResponse {
+  google.protobuf.Struct capabilities = 1;
+}
+
+message TestSpeechModelRequest {
+  string id = 1;
+  string text = 2;
+}
+
+message TestSpeechModelResponse {
+  bool ok = 1;
+  string message = 2;
+}
+
+message ListTranscriptionProvidersRequest {}
+
+message ListTranscriptionProvidersResponse {
+  repeated SpeechProvider providers = 1;
+}
+
+message GetTranscriptionProviderRequest {
+  string id = 1;
+}
+
+message GetTranscriptionProviderResponse {
+  SpeechProvider provider = 1;
+}
+
+message ListTranscriptionProviderMetaRequest {}
+
+message ListTranscriptionProviderMetaResponse {
+  repeated SpeechProviderMeta providers = 1;
+}
+
+message ImportTranscriptionProviderModelsRequest {
+  string provider_id = 1;
+  repeated string model_ids = 2;
+}
+
+message ImportTranscriptionProviderModelsResponse {
+  repeated SpeechModel models = 1;
+}
+
+message ListTranscriptionModelsRequest {
+  string provider_id = 1;
+}
+
+message ListTranscriptionModelsResponse {
+  repeated SpeechModel models = 1;
+}
+
+message GetTranscriptionModelRequest {
+  string id = 1;
+}
+
+message GetTranscriptionModelResponse {
+  SpeechModel model = 1;
+}
+
+message UpdateTranscriptionModelRequest {
+  string id = 1;
+  optional string display_name = 2;
+  optional bool enabled = 3;
+  google.protobuf.Struct metadata = 4;
+}
+
+message UpdateTranscriptionModelResponse {
+  SpeechModel model = 1;
+}
+
+message GetTranscriptionModelCapabilitiesRequest {
+  string id = 1;
+}
+
+message GetTranscriptionModelCapabilitiesResponse {
+  google.protobuf.Struct capabilities = 1;
+}
+
+message TestTranscriptionModelRequest {
+  string id = 1;
+  bytes audio = 2;
+  string filename = 3;
+  string content_type = 4;
+  google.protobuf.Struct config = 5;
+}
+
+message TestTranscriptionModelResponse {
+  bool ok = 1;
+  string message = 2;
+  string text = 3;
+  string language = 4;
+  double duration_seconds = 5;
+  google.protobuf.Struct metadata = 6;
+}
+
+message SynthesizeBotSpeechRequest {
+  string bot_id = 1;
+  string text = 2;
+  string model_id = 3;
+}
+
+message SynthesizeBotSpeechResponse {
+  string content_type = 1;
+  bytes audio = 2;
+}
+
+service SpeechService {
+  rpc ListSpeechProviders(ListSpeechProvidersRequest) returns (ListSpeechProvidersResponse);
+  rpc GetSpeechProvider(GetSpeechProviderRequest) returns (GetSpeechProviderResponse);
+  rpc ListSpeechProviderMeta(ListSpeechProviderMetaRequest) returns (ListSpeechProviderMetaResponse);
+  rpc ImportSpeechProviderModels(ImportSpeechProviderModelsRequest) returns (ImportSpeechProviderModelsResponse);
+  rpc ListSpeechModels(ListSpeechModelsRequest) returns (ListSpeechModelsResponse);
+  rpc GetSpeechModel(GetSpeechModelRequest) returns (GetSpeechModelResponse);
+  rpc UpdateSpeechModel(UpdateSpeechModelRequest) returns (UpdateSpeechModelResponse);
+  rpc GetSpeechModelCapabilities(GetSpeechModelCapabilitiesRequest) returns (GetSpeechModelCapabilitiesResponse);
+  rpc TestSpeechModel(TestSpeechModelRequest) returns (TestSpeechModelResponse);
+  rpc ListTranscriptionProviders(ListTranscriptionProvidersRequest) returns (ListTranscriptionProvidersResponse);
+  rpc GetTranscriptionProvider(GetTranscriptionProviderRequest) returns (GetTranscriptionProviderResponse);
+  rpc ListTranscriptionProviderMeta(ListTranscriptionProviderMetaRequest) returns (ListTranscriptionProviderMetaResponse);
+  rpc ImportTranscriptionProviderModels(ImportTranscriptionProviderModelsRequest) returns (ImportTranscriptionProviderModelsResponse);
+  rpc ListTranscriptionModels(ListTranscriptionModelsRequest) returns (ListTranscriptionModelsResponse);
+  rpc GetTranscriptionModel(GetTranscriptionModelRequest) returns (GetTranscriptionModelResponse);
+  rpc UpdateTranscriptionModel(UpdateTranscriptionModelRequest) returns (UpdateTranscriptionModelResponse);
+  rpc GetTranscriptionModelCapabilities(GetTranscriptionModelCapabilitiesRequest) returns (GetTranscriptionModelCapabilitiesResponse);
+  rpc TestTranscriptionModel(TestTranscriptionModelRequest) returns (TestTranscriptionModelResponse);
+  rpc SynthesizeBotSpeech(SynthesizeBotSpeechRequest) returns (SynthesizeBotSpeechResponse);
+}

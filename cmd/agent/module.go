@@ -11,6 +11,7 @@ import (
 	audiopkg "github.com/memohai/memoh/internal/audio"
 	"github.com/memohai/memoh/internal/bind"
 	"github.com/memohai/memoh/internal/boot"
+	"github.com/memohai/memoh/internal/botgroups"
 	"github.com/memohai/memoh/internal/bots"
 	"github.com/memohai/memoh/internal/browsercontexts"
 	"github.com/memohai/memoh/internal/channel"
@@ -18,10 +19,12 @@ import (
 	"github.com/memohai/memoh/internal/channel/adapters/weixin"
 	"github.com/memohai/memoh/internal/channel/identities"
 	"github.com/memohai/memoh/internal/compaction"
+	"github.com/memohai/memoh/internal/connectapi"
 	"github.com/memohai/memoh/internal/conversation"
 	emailpkg "github.com/memohai/memoh/internal/email"
 	"github.com/memohai/memoh/internal/handlers"
 	"github.com/memohai/memoh/internal/heartbeat"
+	"github.com/memohai/memoh/internal/integrations"
 	"github.com/memohai/memoh/internal/mcp"
 	memprovider "github.com/memohai/memoh/internal/memory/adapters"
 	"github.com/memohai/memoh/internal/message/event"
@@ -31,6 +34,7 @@ import (
 	"github.com/memohai/memoh/internal/searchproviders"
 	"github.com/memohai/memoh/internal/settings"
 	"github.com/memohai/memoh/internal/toolapproval"
+	"github.com/memohai/memoh/internal/workspace"
 )
 
 func runServe() {
@@ -55,6 +59,8 @@ func options() fx.Option {
 			provideBridgeProvider,
 			provideMemoryLLM,
 			memprovider.NewService,
+			botgroups.NewService,
+			integrations.NewService,
 			provideMemoryProviderRegistry,
 			models.NewService,
 			bots.NewService,
@@ -104,8 +110,65 @@ func options() fx.Option {
 			provideHeartbeatTriggerer,
 			heartbeat.NewService,
 			compaction.NewService,
+			connectapi.NewAuthService,
+			connectapi.NewUserService,
+			connectapi.NewBotService,
+			connectapi.NewBotGroupService,
+			connectapi.NewIntegrationAdminService,
+			connectapi.NewSettingsService,
+			connectapi.NewProviderService,
+			connectapi.NewModelService,
+			connectapi.NewSearchProviderService,
+			connectapi.NewBrowserContextService,
+			connectapi.NewMemoryProviderService,
+			connectapi.NewMemoryService,
+			connectapi.NewChannelService,
+			connectapi.NewNetworkService,
+			connectapi.NewEmailProviderService,
+			connectapi.NewEmailBindingService,
+			connectapi.NewEmailOutboxService,
+			connectapi.NewHealthService,
+			connectapi.NewChatService,
+			connectapi.NewContainerService,
+			connectapi.NewMcpService,
+			connectapi.NewScheduleService,
+			connectapi.NewSkillService,
+			connectapi.NewSpeechService,
+			connectapi.NewSupermarketService,
+			connectapi.NewToolApprovalService,
+			connectapi.NewUsageService,
+			provideServerHandler(connectapi.NewAuthHandler),
+			provideServerHandler(connectapi.NewUserHandler),
+			provideServerHandler(connectapi.NewBotHandler),
+			provideServerHandler(connectapi.NewBotGroupHandler),
+			provideServerHandler(connectapi.NewIntegrationAdminHandler),
+			provideServerHandler(connectapi.NewSettingsHandler),
+			provideServerHandler(connectapi.NewProviderHandler),
+			provideServerHandler(connectapi.NewModelHandler),
+			provideServerHandler(connectapi.NewSearchProviderHandler),
+			provideServerHandler(connectapi.NewBrowserContextHandler),
+			provideServerHandler(connectapi.NewMemoryProviderHandler),
+			provideServerHandler(connectapi.NewMemoryHandler),
+			provideServerHandler(connectapi.NewChannelHandler),
+			provideServerHandler(connectapi.NewNetworkHandler),
+			provideServerHandler(connectapi.NewEmailProviderHandler),
+			provideServerHandler(connectapi.NewEmailBindingHandler),
+			provideServerHandler(connectapi.NewEmailOutboxHandler),
+			provideServerHandler(connectapi.NewHealthHandler),
+			provideServerHandler(connectapi.NewChatHandler),
+			provideServerHandler(connectapi.NewContainerHandler),
+			provideServerHandler(connectapi.NewMcpHandler),
+			provideServerHandler(connectapi.NewScheduleHandler),
+			provideServerHandler(connectapi.NewSkillHandler),
+			provideServerHandler(connectapi.NewSpeechHandler),
+			provideServerHandler(connectapi.NewSupermarketHandler),
+			provideServerHandler(connectapi.NewToolApprovalHandler),
+			provideServerHandler(connectapi.NewUsageHandler),
+			provideServerHandler(integrations.NewWebSocketHandler),
 			provideContainerdHandler,
 			provideFederationGateway,
+			provideConnectMcpFederationGateway,
+			provideConnectSkillRootResolver,
 			provideToolGatewayService,
 			provideBackgroundManager,
 			provideToolProviders,
@@ -114,7 +177,6 @@ func options() fx.Option {
 			provideServerHandler(provideMemoryHandler),
 			provideServerHandler(provideMessageHandler),
 			provideServerHandler(provideSessionHandler),
-			provideServerHandler(handlers.NewSwaggerHandler),
 			provideServerHandler(handlers.NewProvidersHandler),
 			provideServerHandler(handlers.NewProviderOAuthHandler),
 			provideServerHandler(handlers.NewSearchProvidersHandler),
@@ -170,4 +232,12 @@ func options() fx.Option {
 			return &fxevent.SlogLogger{Logger: logger.With(slog.String("component", "fx"))}
 		}),
 	)
+}
+
+func provideConnectMcpFederationGateway(gateway *handlers.MCPFederationGateway) connectapi.McpFederationGateway {
+	return gateway
+}
+
+func provideConnectSkillRootResolver(manager *workspace.Manager) connectapi.SkillRootResolver {
+	return manager
 }

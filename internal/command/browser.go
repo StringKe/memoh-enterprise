@@ -76,7 +76,7 @@ func (h *Handler) buildBrowserGroup() *CommandGroup {
 			for _, item := range items {
 				if strings.EqualFold(item.Name, name) {
 					_, err := h.settingsService.UpsertBot(cc.Ctx, cc.BotID, settings.UpsertRequest{
-						BrowserContextID: item.ID,
+						BrowserContextID: &item.ID,
 					})
 					if err != nil {
 						return "", err

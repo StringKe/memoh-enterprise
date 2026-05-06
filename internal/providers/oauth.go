@@ -30,7 +30,7 @@ const (
 	defaultOpenAICodexClientID    = "app_EMoamEEZ73f0CkXaXp7hrann"
 	defaultOpenAIAuthorizeURL     = "https://auth.openai.com/oauth/authorize"
 	defaultOpenAITokenURL         = "https://auth.openai.com/oauth/token" //nolint:gosec // OAuth endpoint URL, not a credential
-	defaultOpenAICallbackURL      = "http://localhost:1455/auth/callback"
+	defaultOpenAICallbackURL      = "http://localhost:26817/auth/callback"
 	defaultOpenAIOAuthScopes      = "openid profile email offline_access"
 	defaultGitHubDeviceCodeURL    = "https://github.com/login/device/code"        //nolint:gosec // OAuth endpoint URL, not a credential
 	defaultGitHubTokenURL         = "https://github.com/login/oauth/access_token" //nolint:gosec // OAuth endpoint URL, not a credential

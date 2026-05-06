@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package memoh.integration.v1;
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/memohai/memoh/internal/connectapi/gen/memoh/integration/v1;integrationv1";
+
+message IntegrationSession {
+  string session_id = 1;
+  string bot_id = 2;
+  string external_session_id = 3;
+  string status = 4;
+  google.protobuf.Struct metadata = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
+}
+
+message BindSessionRequest {
+  string bot_id = 1;
+  string session_id = 2;
+  string external_session_id = 3;
+  google.protobuf.Struct metadata = 4;
+}
+
+message BindSessionResponse {
+  IntegrationSession session = 1;
+}
+
+message QuerySessionRequest {
+  string session_id = 1;
+  string external_session_id = 2;
+}
+
+message QuerySessionResponse {
+  IntegrationSession session = 1;
+}

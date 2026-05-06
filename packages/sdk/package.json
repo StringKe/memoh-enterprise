@@ -6,12 +6,19 @@
   "exports": {
     ".": "./src/index.ts",
     "./client": "./src/client.gen.ts",
-    "./colada": "./src/@pinia/colada.gen.ts"
+    "./colada": "./src/@pinia/colada.gen.ts",
+    "./connect": "./src/connect.ts",
+    "./gen/*": "./src/gen/*.ts"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
   },
   "scripts": {},
+  "dependencies": {
+    "@bufbuild/protobuf": "^2.12.0",
+    "@connectrpc/connect": "^2.1.1",
+    "@connectrpc/connect-web": "^2.1.1"
+  },
   "peerDependencies": {
     "@pinia/colada": ">=0.21.0"
   },

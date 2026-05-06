@@ -93,7 +93,7 @@ func (h *Handler) buildModelGroup() *CommandGroup {
 				return "", err
 			}
 			_, err = h.settingsService.UpsertBot(cc.Ctx, cc.BotID, settings.UpsertRequest{
-				ChatModelID: modelResp.ID,
+				ChatModelID: &modelResp.ID,
 			})
 			if err != nil {
 				return "", err
@@ -118,7 +118,7 @@ func (h *Handler) buildModelGroup() *CommandGroup {
 				return "", err
 			}
 			_, err = h.settingsService.UpsertBot(cc.Ctx, cc.BotID, settings.UpsertRequest{
-				HeartbeatModelID: modelResp.ID,
+				HeartbeatModelID: &modelResp.ID,
 			})
 			if err != nil {
 				return "", err

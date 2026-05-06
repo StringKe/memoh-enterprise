@@ -216,7 +216,7 @@ func (*Service) ListMeta(_ context.Context) []ProviderMeta {
 						Title:       "Base URL",
 						Description: "SearXNG instance URL (self-hosted)",
 						Required:    true,
-						Example:     "http://localhost:8080/search",
+						Example:     "http://localhost:26810/search",
 					},
 					"language": {
 						Type:        "string",

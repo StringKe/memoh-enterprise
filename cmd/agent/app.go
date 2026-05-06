@@ -497,7 +497,7 @@ func provideFederationGateway(log *slog.Logger, containerdHandler *handlers.Cont
 func provideOAuthService(log *slog.Logger, queries dbstore.Queries, cfg config.Config) *mcp.OAuthService {
 	addr := strings.TrimSpace(cfg.Server.Addr)
 	if addr == "" {
-		addr = ":8080"
+		addr = ":26810"
 	}
 	host := addr
 	if strings.HasPrefix(host, ":") {
@@ -730,13 +730,13 @@ func provideProvidersService(log *slog.Logger, queries dbstore.Queries, _ config
 }
 
 func defaultProviderOAuthCallbackURL() string {
-	return "http://localhost:1455/auth/callback"
+	return "http://localhost:26817/auth/callback"
 }
 
 func provideEmailOAuthHandler(log *slog.Logger, service *emailpkg.Service, tokenStore *emailpkg.DBOAuthTokenStore, cfg config.Config) *handlers.EmailOAuthHandler {
 	addr := strings.TrimSpace(cfg.Server.Addr)
 	if addr == "" {
-		addr = ":8080"
+		addr = ":26810"
 	}
 	host := addr
 	if strings.HasPrefix(host, ":") {

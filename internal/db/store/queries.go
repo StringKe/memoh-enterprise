@@ -19,6 +19,7 @@ type Queries interface {
 	CompleteScheduleLog(ctx context.Context, arg dbsqlc.CompleteScheduleLogParams) (dbsqlc.ScheduleLog, error)
 	CountAccounts(ctx context.Context) (int64, error)
 	CountCompactionLogsByBot(ctx context.Context, botID pgtype.UUID) (int64, error)
+	CountBotsInGroup(ctx context.Context, groupID pgtype.UUID) (int64, error)
 	CountEmailOutboxByBot(ctx context.Context, botID pgtype.UUID) (int64, error)
 	CountHeartbeatLogsByBot(ctx context.Context, botID pgtype.UUID) (int64, error)
 	CountMemoryProvidersByDefault(ctx context.Context) (int64, error)
@@ -36,6 +37,7 @@ type Queries interface {
 	CreateBot(ctx context.Context, arg dbsqlc.CreateBotParams) (dbsqlc.CreateBotRow, error)
 	CreateBotACLRule(ctx context.Context, arg dbsqlc.CreateBotACLRuleParams) (dbsqlc.CreateBotACLRuleRow, error)
 	CreateBotEmailBinding(ctx context.Context, arg dbsqlc.CreateBotEmailBindingParams) (dbsqlc.BotEmailBinding, error)
+	CreateBotGroup(ctx context.Context, arg dbsqlc.CreateBotGroupParams) (dbsqlc.BotGroup, error)
 	CreateBrowserContext(ctx context.Context, arg dbsqlc.CreateBrowserContextParams) (dbsqlc.BrowserContext, error)
 	CreateChannelIdentity(ctx context.Context, arg dbsqlc.CreateChannelIdentityParams) (dbsqlc.IamChannelIdentity, error)
 	CreateChat(ctx context.Context, arg dbsqlc.CreateChatParams) (dbsqlc.CreateChatRow, error)
@@ -60,12 +62,15 @@ type Queries interface {
 	CreateToolApprovalRequest(ctx context.Context, arg dbsqlc.CreateToolApprovalRequestParams) (dbsqlc.ToolApprovalRequest, error)
 	CreateIAMLoginCode(ctx context.Context, arg dbsqlc.CreateIAMLoginCodeParams) (dbsqlc.IamLoginCode, error)
 	CreateIAMSession(ctx context.Context, arg dbsqlc.CreateIAMSessionParams) (dbsqlc.IamSession, error)
+	CreateIntegrationAPIToken(ctx context.Context, arg dbsqlc.CreateIntegrationAPITokenParams) (dbsqlc.IntegrationApiToken, error)
 	CreatePasswordIdentity(ctx context.Context, arg dbsqlc.CreatePasswordIdentityParams) (dbsqlc.IamIdentity, error)
 	CreateUser(ctx context.Context, arg dbsqlc.CreateUserParams) (dbsqlc.IamUser, error)
 	DeleteBotACLRuleByID(ctx context.Context, id pgtype.UUID) error
 	DeleteBotByID(ctx context.Context, id pgtype.UUID) error
 	DeleteBotChannelConfig(ctx context.Context, arg dbsqlc.DeleteBotChannelConfigParams) error
 	DeleteBotEmailBinding(ctx context.Context, id pgtype.UUID) error
+	DeleteBotGroup(ctx context.Context, id pgtype.UUID) error
+	DeleteBotGroupSettings(ctx context.Context, groupID pgtype.UUID) error
 	DeleteBrowserContext(ctx context.Context, id pgtype.UUID) error
 	DeleteChat(ctx context.Context, chatID pgtype.UUID) error
 	DeleteChatRoute(ctx context.Context, id pgtype.UUID) error
@@ -76,6 +81,7 @@ type Queries interface {
 	DeleteHeartbeatLogsByBot(ctx context.Context, botID pgtype.UUID) error
 	DeleteIAMGroup(ctx context.Context, id pgtype.UUID) error
 	DeleteIAMGroupMember(ctx context.Context, arg dbsqlc.DeleteIAMGroupMemberParams) error
+	DeleteIntegrationAPIToken(ctx context.Context, id pgtype.UUID) error
 	DeleteMCPConnection(ctx context.Context, arg dbsqlc.DeleteMCPConnectionParams) error
 	DeleteMCPOAuthToken(ctx context.Context, connectionID pgtype.UUID) error
 	DeleteMemoryProvider(ctx context.Context, id pgtype.UUID) error
@@ -98,6 +104,8 @@ type Queries interface {
 	DeleteSSOGroupMapping(ctx context.Context, arg dbsqlc.DeleteSSOGroupMappingParams) error
 	DeleteSSOProvider(ctx context.Context, id pgtype.UUID) error
 	DeleteUserProviderOAuthToken(ctx context.Context, arg dbsqlc.DeleteUserProviderOAuthTokenParams) error
+	DisableAllIntegrationAPITokens(ctx context.Context) error
+	DisableIntegrationAPIToken(ctx context.Context, id pgtype.UUID) (dbsqlc.IntegrationApiToken, error)
 	EvaluateBotACLRule(ctx context.Context, arg dbsqlc.EvaluateBotACLRuleParams) (string, error)
 	ExtendIAMSession(ctx context.Context, arg dbsqlc.ExtendIAMSessionParams) (dbsqlc.IamSession, error)
 	FindChatRoute(ctx context.Context, arg dbsqlc.FindChatRouteParams) (dbsqlc.FindChatRouteRow, error)
@@ -112,6 +120,10 @@ type Queries interface {
 	GetBotChannelConfigByExternalIdentity(ctx context.Context, arg dbsqlc.GetBotChannelConfigByExternalIdentityParams) (dbsqlc.BotChannelConfig, error)
 	GetBotEmailBindingByBotAndProvider(ctx context.Context, arg dbsqlc.GetBotEmailBindingByBotAndProviderParams) (dbsqlc.BotEmailBinding, error)
 	GetBotEmailBindingByID(ctx context.Context, id pgtype.UUID) (dbsqlc.BotEmailBinding, error)
+	GetBotGroupByID(ctx context.Context, id pgtype.UUID) (dbsqlc.BotGroup, error)
+	GetBotGroupByOwnerAndID(ctx context.Context, arg dbsqlc.GetBotGroupByOwnerAndIDParams) (dbsqlc.BotGroup, error)
+	GetBotGroupSettings(ctx context.Context, groupID pgtype.UUID) (dbsqlc.BotGroupSetting, error)
+	GetBotHeartbeatConfig(ctx context.Context, id pgtype.UUID) (dbsqlc.GetBotHeartbeatConfigRow, error)
 	GetBotOverlayConfig(ctx context.Context, id pgtype.UUID) (dbsqlc.GetBotOverlayConfigRow, error)
 	GetBotStorageBinding(ctx context.Context, botID pgtype.UUID) (dbsqlc.BotStorageBinding, error)
 	GetBrowserContextByID(ctx context.Context, id pgtype.UUID) (dbsqlc.BrowserContext, error)
@@ -134,6 +146,8 @@ type Queries interface {
 	GetIAMGroupByID(ctx context.Context, id pgtype.UUID) (dbsqlc.IamGroup, error)
 	GetIAMSessionByID(ctx context.Context, id pgtype.UUID) (dbsqlc.GetIAMSessionByIDRow, error)
 	GetIdentityByProviderSubject(ctx context.Context, arg dbsqlc.GetIdentityByProviderSubjectParams) (dbsqlc.IamIdentity, error)
+	GetIntegrationAPITokenByHash(ctx context.Context, tokenHash string) (dbsqlc.IntegrationApiToken, error)
+	GetIntegrationAPITokenByID(ctx context.Context, id pgtype.UUID) (dbsqlc.IntegrationApiToken, error)
 	GetPasswordIdentityBySubject(ctx context.Context, subject string) (dbsqlc.IamIdentity, error)
 	GetLatestAssistantUsage(ctx context.Context, sessionID pgtype.UUID) (int64, error)
 	GetLatestPendingToolApprovalBySession(ctx context.Context, arg dbsqlc.GetLatestPendingToolApprovalBySessionParams) (dbsqlc.ToolApprovalRequest, error)
@@ -187,6 +201,7 @@ type Queries interface {
 	ListBotChannelConfigsByType(ctx context.Context, channelType string) ([]dbsqlc.BotChannelConfig, error)
 	ListBotEmailBindings(ctx context.Context, botID pgtype.UUID) ([]dbsqlc.BotEmailBinding, error)
 	ListBotEmailBindingsByProvider(ctx context.Context, emailProviderID pgtype.UUID) ([]dbsqlc.BotEmailBinding, error)
+	ListBotGroupsByOwner(ctx context.Context, ownerUserID pgtype.UUID) ([]dbsqlc.BotGroup, error)
 	ListBotsByOwner(ctx context.Context, ownerUserID pgtype.UUID) ([]dbsqlc.ListBotsByOwnerRow, error)
 	ListBrowserContexts(ctx context.Context) ([]dbsqlc.BrowserContext, error)
 	ListChannelIdentitiesByUserID(ctx context.Context, userID pgtype.UUID) ([]dbsqlc.IamChannelIdentity, error)
@@ -207,6 +222,7 @@ type Queries interface {
 	ListHeartbeatLogsByBot(ctx context.Context, arg dbsqlc.ListHeartbeatLogsByBotParams) ([]dbsqlc.ListHeartbeatLogsByBotRow, error)
 	ListIAMGroupMembers(ctx context.Context, groupID pgtype.UUID) ([]dbsqlc.ListIAMGroupMembersRow, error)
 	ListIAMGroups(ctx context.Context) ([]dbsqlc.IamGroup, error)
+	ListIntegrationAPITokens(ctx context.Context) ([]dbsqlc.IntegrationApiToken, error)
 	ListMCPConnectionsByBotID(ctx context.Context, botID pgtype.UUID) ([]dbsqlc.McpConnection, error)
 	ListMemoryProviders(ctx context.Context) ([]dbsqlc.MemoryProvider, error)
 	ListMessageAssets(ctx context.Context, messageID pgtype.UUID) ([]dbsqlc.ListMessageAssetsRow, error)
@@ -278,6 +294,7 @@ type Queries interface {
 	SoftDeleteSession(ctx context.Context, id pgtype.UUID) error
 	SoftDeleteSessionsByBot(ctx context.Context, botID pgtype.UUID) error
 	TouchChat(ctx context.Context, chatID pgtype.UUID) error
+	TouchIntegrationAPITokenUsed(ctx context.Context, id pgtype.UUID) error
 	TouchSession(ctx context.Context, id pgtype.UUID) error
 	UpdateAccountAdmin(ctx context.Context, arg dbsqlc.UpdateAccountAdminParams) (dbsqlc.IamUser, error)
 	UpdateAccountLastLogin(ctx context.Context, id pgtype.UUID) (dbsqlc.IamUser, error)
@@ -287,8 +304,10 @@ type Queries interface {
 	UpdateBotACLRulePriority(ctx context.Context, arg dbsqlc.UpdateBotACLRulePriorityParams) error
 	UpdateBotChannelConfigDisabled(ctx context.Context, arg dbsqlc.UpdateBotChannelConfigDisabledParams) (dbsqlc.BotChannelConfig, error)
 	UpdateBotEmailBinding(ctx context.Context, arg dbsqlc.UpdateBotEmailBindingParams) (dbsqlc.BotEmailBinding, error)
+	UpdateBotGroup(ctx context.Context, arg dbsqlc.UpdateBotGroupParams) (dbsqlc.BotGroup, error)
 	UpdateBotOwner(ctx context.Context, arg dbsqlc.UpdateBotOwnerParams) (dbsqlc.UpdateBotOwnerRow, error)
 	UpdateBotProfile(ctx context.Context, arg dbsqlc.UpdateBotProfileParams) (dbsqlc.UpdateBotProfileRow, error)
+	UpdateBotSettingsOverrideMask(ctx context.Context, arg dbsqlc.UpdateBotSettingsOverrideMaskParams) error
 	UpdateBotStatus(ctx context.Context, arg dbsqlc.UpdateBotStatusParams) error
 	UpdateBrowserContext(ctx context.Context, arg dbsqlc.UpdateBrowserContextParams) (dbsqlc.BrowserContext, error)
 	UpdateChatRouteMetadata(ctx context.Context, arg dbsqlc.UpdateChatRouteMetadataParams) error
@@ -323,6 +342,7 @@ type Queries interface {
 	UpsertIAMGroupMember(ctx context.Context, arg dbsqlc.UpsertIAMGroupMemberParams) (dbsqlc.IamGroupMember, error)
 	UpsertAccountByUsername(ctx context.Context, arg dbsqlc.UpsertAccountByUsernameParams) (dbsqlc.IamUser, error)
 	UpsertBotChannelConfig(ctx context.Context, arg dbsqlc.UpsertBotChannelConfigParams) (dbsqlc.BotChannelConfig, error)
+	UpsertBotGroupSettings(ctx context.Context, arg dbsqlc.UpsertBotGroupSettingsParams) (dbsqlc.BotGroupSetting, error)
 	UpsertBotSettings(ctx context.Context, arg dbsqlc.UpsertBotSettingsParams) (dbsqlc.UpsertBotSettingsRow, error)
 	UpsertBotStorageBinding(ctx context.Context, arg dbsqlc.UpsertBotStorageBindingParams) (dbsqlc.BotStorageBinding, error)
 	UpsertChannelIdentityByChannelSubject(ctx context.Context, arg dbsqlc.UpsertChannelIdentityByChannelSubjectParams) (dbsqlc.IamChannelIdentity, error)

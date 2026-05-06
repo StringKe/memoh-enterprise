@@ -1,0 +1,7 @@
+version: v2
+plugins:
+  - remote: buf.build/bufbuild/es
+    out: packages/sdk/src/gen
+    opt:
+      - target=ts
+      - import_extension=none

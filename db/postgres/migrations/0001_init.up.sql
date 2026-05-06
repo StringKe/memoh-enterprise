@@ -149,9 +149,23 @@ CREATE TABLE IF NOT EXISTS browser_contexts (
   updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+CREATE TABLE IF NOT EXISTS bot_groups (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  owner_user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  description TEXT NOT NULL DEFAULT '',
+  metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT bot_groups_owner_name_unique UNIQUE (owner_user_id, name)
+);
+
+CREATE INDEX IF NOT EXISTS idx_bot_groups_owner_user_id ON bot_groups(owner_user_id);
+
 CREATE TABLE IF NOT EXISTS bots (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   owner_user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  group_id UUID REFERENCES bot_groups(id) ON DELETE SET NULL,
   type TEXT NOT NULL,
   display_name TEXT,
   avatar_url TEXT,
@@ -184,6 +198,7 @@ CREATE TABLE IF NOT EXISTS bots (
   overlay_provider TEXT NOT NULL DEFAULT '',
   overlay_enabled BOOLEAN NOT NULL DEFAULT false,
   overlay_config JSONB NOT NULL DEFAULT '{}'::jsonb,
+  settings_override_mask JSONB NOT NULL DEFAULT '{}'::jsonb,
   metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -193,6 +208,74 @@ CREATE TABLE IF NOT EXISTS bots (
 );
 
 CREATE INDEX IF NOT EXISTS idx_bots_owner_user_id ON bots(owner_user_id);
+CREATE INDEX IF NOT EXISTS idx_bots_group_id ON bots(group_id);
+
+CREATE TABLE IF NOT EXISTS bot_group_settings (
+  group_id UUID PRIMARY KEY REFERENCES bot_groups(id) ON DELETE CASCADE,
+  timezone TEXT,
+  language TEXT,
+  reasoning_enabled BOOLEAN,
+  reasoning_effort TEXT,
+  chat_model_id UUID REFERENCES models(id) ON DELETE SET NULL,
+  search_provider_id UUID REFERENCES search_providers(id) ON DELETE SET NULL,
+  memory_provider_id UUID REFERENCES memory_providers(id) ON DELETE SET NULL,
+  heartbeat_enabled BOOLEAN,
+  heartbeat_interval INTEGER,
+  heartbeat_prompt TEXT,
+  heartbeat_model_id UUID REFERENCES models(id) ON DELETE SET NULL,
+  compaction_enabled BOOLEAN,
+  compaction_threshold INTEGER,
+  compaction_ratio INTEGER,
+  compaction_model_id UUID REFERENCES models(id) ON DELETE SET NULL,
+  title_model_id UUID REFERENCES models(id) ON DELETE SET NULL,
+  image_model_id UUID REFERENCES models(id) ON DELETE SET NULL,
+  discuss_probe_model_id UUID REFERENCES models(id) ON DELETE SET NULL,
+  tts_model_id UUID REFERENCES models(id) ON DELETE SET NULL,
+  transcription_model_id UUID REFERENCES models(id) ON DELETE SET NULL,
+  browser_context_id UUID REFERENCES browser_contexts(id) ON DELETE SET NULL,
+  persist_full_tool_results BOOLEAN,
+  show_tool_calls_in_im BOOLEAN,
+  tool_approval_config JSONB,
+  overlay_provider TEXT,
+  overlay_enabled BOOLEAN,
+  overlay_config JSONB,
+  metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT bot_group_settings_reasoning_effort_check CHECK (
+    reasoning_effort IS NULL OR reasoning_effort IN ('low', 'medium', 'high')
+  )
+);
+
+CREATE TABLE IF NOT EXISTS integration_api_tokens (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  token_hash TEXT NOT NULL,
+  scope_type TEXT NOT NULL,
+  scope_bot_id UUID REFERENCES bots(id) ON DELETE CASCADE,
+  scope_bot_group_id UUID REFERENCES bot_groups(id) ON DELETE CASCADE,
+  allowed_event_types JSONB NOT NULL DEFAULT '[]'::jsonb,
+  allowed_action_types JSONB NOT NULL DEFAULT '[]'::jsonb,
+  expires_at TIMESTAMPTZ,
+  disabled_at TIMESTAMPTZ,
+  last_used_at TIMESTAMPTZ,
+  created_by_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT integration_api_tokens_token_hash_unique UNIQUE (token_hash),
+  CONSTRAINT integration_api_tokens_scope_type_check CHECK (scope_type IN ('global', 'bot', 'bot_group')),
+  CONSTRAINT integration_api_tokens_scope_check CHECK (
+    (scope_type = 'global' AND scope_bot_id IS NULL AND scope_bot_group_id IS NULL)
+    OR (scope_type = 'bot' AND scope_bot_id IS NOT NULL AND scope_bot_group_id IS NULL)
+    OR (scope_type = 'bot_group' AND scope_bot_id IS NULL AND scope_bot_group_id IS NOT NULL)
+  )
+);
+
+CREATE INDEX IF NOT EXISTS idx_integration_api_tokens_scope_bot_id
+  ON integration_api_tokens(scope_bot_id);
+CREATE INDEX IF NOT EXISTS idx_integration_api_tokens_scope_bot_group_id
+  ON integration_api_tokens(scope_bot_group_id);
+CREATE INDEX IF NOT EXISTS idx_integration_api_tokens_created_by_user_id
+  ON integration_api_tokens(created_by_user_id);
 
 CREATE TABLE IF NOT EXISTS bot_acl_rules (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

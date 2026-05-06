@@ -38,6 +38,38 @@ SET language = 'auto',
     overlay_provider = '',
     overlay_enabled = false,
     overlay_config = '{}'::jsonb,
+    settings_override_mask = CASE
+      WHEN group_id IS NULL THEN '{}'::jsonb
+      ELSE jsonb_build_object(
+        'timezone', false,
+        'language', false,
+        'reasoning_enabled', false,
+        'reasoning_effort', false,
+        'chat_model_id', false,
+        'search_provider_id', false,
+        'memory_provider_id', false,
+        'heartbeat_enabled', false,
+        'heartbeat_interval', false,
+        'heartbeat_prompt', false,
+        'heartbeat_model_id', false,
+        'compaction_enabled', false,
+        'compaction_threshold', false,
+        'compaction_ratio', false,
+        'compaction_model_id', false,
+        'title_model_id', false,
+        'image_model_id', false,
+        'discuss_probe_model_id', false,
+        'tts_model_id', false,
+        'transcription_model_id', false,
+        'browser_context_id', false,
+        'persist_full_tool_results', false,
+        'show_tool_calls_in_im', false,
+        'tool_approval_config', false,
+        'overlay_provider', false,
+        'overlay_enabled', false,
+        'overlay_config', false
+      )
+    END,
     updated_at = now()
 WHERE id = $1
 `
@@ -60,23 +92,53 @@ SELECT
   bots.compaction_threshold,
   bots.compaction_ratio,
   bots.timezone,
-  chat_models.id AS chat_model_id,
-  heartbeat_models.id AS heartbeat_model_id,
-  compaction_models.id AS compaction_model_id,
-  title_models.id AS title_model_id,
-  search_providers.id AS search_provider_id,
-  memory_providers.id AS memory_provider_id,
-  image_models.id AS image_model_id,
-  tts_models.id AS tts_model_id,
-  transcription_models.id AS transcription_model_id,
-  browser_contexts.id AS browser_context_id,
+  bots.chat_model_id,
+  bots.heartbeat_model_id,
+  bots.compaction_model_id,
+  bots.title_model_id,
+  bots.search_provider_id,
+  bots.memory_provider_id,
+  bots.image_model_id,
+  bots.tts_model_id,
+  bots.transcription_model_id,
+  bots.browser_context_id,
   bots.persist_full_tool_results,
   bots.show_tool_calls_in_im,
   bots.tool_approval_config,
   bots.overlay_provider,
   bots.overlay_enabled,
-  bots.overlay_config
+  bots.overlay_config,
+  bots.group_id,
+  bots.settings_override_mask,
+  bot_group_settings.timezone AS group_timezone,
+  bot_group_settings.language AS group_language,
+  bot_group_settings.reasoning_enabled AS group_reasoning_enabled,
+  bot_group_settings.reasoning_effort AS group_reasoning_effort,
+  bot_group_settings.chat_model_id AS group_chat_model_id,
+  bot_group_settings.search_provider_id AS group_search_provider_id,
+  bot_group_settings.memory_provider_id AS group_memory_provider_id,
+  bot_group_settings.heartbeat_enabled AS group_heartbeat_enabled,
+  bot_group_settings.heartbeat_interval AS group_heartbeat_interval,
+  bot_group_settings.heartbeat_prompt AS group_heartbeat_prompt,
+  bot_group_settings.heartbeat_model_id AS group_heartbeat_model_id,
+  bot_group_settings.compaction_enabled AS group_compaction_enabled,
+  bot_group_settings.compaction_threshold AS group_compaction_threshold,
+  bot_group_settings.compaction_ratio AS group_compaction_ratio,
+  bot_group_settings.compaction_model_id AS group_compaction_model_id,
+  bot_group_settings.title_model_id AS group_title_model_id,
+  bot_group_settings.image_model_id AS group_image_model_id,
+  bot_group_settings.discuss_probe_model_id AS group_discuss_probe_model_id,
+  bot_group_settings.tts_model_id AS group_tts_model_id,
+  bot_group_settings.transcription_model_id AS group_transcription_model_id,
+  bot_group_settings.browser_context_id AS group_browser_context_id,
+  bot_group_settings.persist_full_tool_results AS group_persist_full_tool_results,
+  bot_group_settings.show_tool_calls_in_im AS group_show_tool_calls_in_im,
+  bot_group_settings.tool_approval_config AS group_tool_approval_config,
+  bot_group_settings.overlay_provider AS group_overlay_provider,
+  bot_group_settings.overlay_enabled AS group_overlay_enabled,
+  bot_group_settings.overlay_config AS group_overlay_config
 FROM bots
+LEFT JOIN bot_group_settings ON bot_group_settings.group_id = bots.group_id
 LEFT JOIN models AS chat_models ON chat_models.id = bots.chat_model_id
 LEFT JOIN models AS heartbeat_models ON heartbeat_models.id = bots.heartbeat_model_id
 LEFT JOIN models AS compaction_models ON compaction_models.id = bots.compaction_model_id
@@ -91,33 +153,62 @@ WHERE bots.id = $1
 `
 
 type GetSettingsByBotIDRow struct {
-	BotID                  pgtype.UUID `json:"bot_id"`
-	Language               string      `json:"language"`
-	ReasoningEnabled       bool        `json:"reasoning_enabled"`
-	ReasoningEffort        string      `json:"reasoning_effort"`
-	HeartbeatEnabled       bool        `json:"heartbeat_enabled"`
-	HeartbeatInterval      int32       `json:"heartbeat_interval"`
-	HeartbeatPrompt        string      `json:"heartbeat_prompt"`
-	CompactionEnabled      bool        `json:"compaction_enabled"`
-	CompactionThreshold    int32       `json:"compaction_threshold"`
-	CompactionRatio        int32       `json:"compaction_ratio"`
-	Timezone               pgtype.Text `json:"timezone"`
-	ChatModelID            pgtype.UUID `json:"chat_model_id"`
-	HeartbeatModelID       pgtype.UUID `json:"heartbeat_model_id"`
-	CompactionModelID      pgtype.UUID `json:"compaction_model_id"`
-	TitleModelID           pgtype.UUID `json:"title_model_id"`
-	SearchProviderID       pgtype.UUID `json:"search_provider_id"`
-	MemoryProviderID       pgtype.UUID `json:"memory_provider_id"`
-	ImageModelID           pgtype.UUID `json:"image_model_id"`
-	TtsModelID             pgtype.UUID `json:"tts_model_id"`
-	TranscriptionModelID   pgtype.UUID `json:"transcription_model_id"`
-	BrowserContextID       pgtype.UUID `json:"browser_context_id"`
-	PersistFullToolResults bool        `json:"persist_full_tool_results"`
-	ShowToolCallsInIm      bool        `json:"show_tool_calls_in_im"`
-	ToolApprovalConfig     []byte      `json:"tool_approval_config"`
-	OverlayProvider        string      `json:"overlay_provider"`
-	OverlayEnabled         bool        `json:"overlay_enabled"`
-	OverlayConfig          []byte      `json:"overlay_config"`
+	BotID                       pgtype.UUID `json:"bot_id"`
+	Language                    string      `json:"language"`
+	ReasoningEnabled            bool        `json:"reasoning_enabled"`
+	ReasoningEffort             string      `json:"reasoning_effort"`
+	HeartbeatEnabled            bool        `json:"heartbeat_enabled"`
+	HeartbeatInterval           int32       `json:"heartbeat_interval"`
+	HeartbeatPrompt             string      `json:"heartbeat_prompt"`
+	CompactionEnabled           bool        `json:"compaction_enabled"`
+	CompactionThreshold         int32       `json:"compaction_threshold"`
+	CompactionRatio             int32       `json:"compaction_ratio"`
+	Timezone                    pgtype.Text `json:"timezone"`
+	ChatModelID                 pgtype.UUID `json:"chat_model_id"`
+	HeartbeatModelID            pgtype.UUID `json:"heartbeat_model_id"`
+	CompactionModelID           pgtype.UUID `json:"compaction_model_id"`
+	TitleModelID                pgtype.UUID `json:"title_model_id"`
+	SearchProviderID            pgtype.UUID `json:"search_provider_id"`
+	MemoryProviderID            pgtype.UUID `json:"memory_provider_id"`
+	ImageModelID                pgtype.UUID `json:"image_model_id"`
+	TtsModelID                  pgtype.UUID `json:"tts_model_id"`
+	TranscriptionModelID        pgtype.UUID `json:"transcription_model_id"`
+	BrowserContextID            pgtype.UUID `json:"browser_context_id"`
+	PersistFullToolResults      bool        `json:"persist_full_tool_results"`
+	ShowToolCallsInIm           bool        `json:"show_tool_calls_in_im"`
+	ToolApprovalConfig          []byte      `json:"tool_approval_config"`
+	OverlayProvider             string      `json:"overlay_provider"`
+	OverlayEnabled              bool        `json:"overlay_enabled"`
+	OverlayConfig               []byte      `json:"overlay_config"`
+	GroupID                     pgtype.UUID `json:"group_id"`
+	SettingsOverrideMask        []byte      `json:"settings_override_mask"`
+	GroupTimezone               pgtype.Text `json:"group_timezone"`
+	GroupLanguage               pgtype.Text `json:"group_language"`
+	GroupReasoningEnabled       pgtype.Bool `json:"group_reasoning_enabled"`
+	GroupReasoningEffort        pgtype.Text `json:"group_reasoning_effort"`
+	GroupChatModelID            pgtype.UUID `json:"group_chat_model_id"`
+	GroupSearchProviderID       pgtype.UUID `json:"group_search_provider_id"`
+	GroupMemoryProviderID       pgtype.UUID `json:"group_memory_provider_id"`
+	GroupHeartbeatEnabled       pgtype.Bool `json:"group_heartbeat_enabled"`
+	GroupHeartbeatInterval      pgtype.Int4 `json:"group_heartbeat_interval"`
+	GroupHeartbeatPrompt        pgtype.Text `json:"group_heartbeat_prompt"`
+	GroupHeartbeatModelID       pgtype.UUID `json:"group_heartbeat_model_id"`
+	GroupCompactionEnabled      pgtype.Bool `json:"group_compaction_enabled"`
+	GroupCompactionThreshold    pgtype.Int4 `json:"group_compaction_threshold"`
+	GroupCompactionRatio        pgtype.Int4 `json:"group_compaction_ratio"`
+	GroupCompactionModelID      pgtype.UUID `json:"group_compaction_model_id"`
+	GroupTitleModelID           pgtype.UUID `json:"group_title_model_id"`
+	GroupImageModelID           pgtype.UUID `json:"group_image_model_id"`
+	GroupDiscussProbeModelID    pgtype.UUID `json:"group_discuss_probe_model_id"`
+	GroupTtsModelID             pgtype.UUID `json:"group_tts_model_id"`
+	GroupTranscriptionModelID   pgtype.UUID `json:"group_transcription_model_id"`
+	GroupBrowserContextID       pgtype.UUID `json:"group_browser_context_id"`
+	GroupPersistFullToolResults pgtype.Bool `json:"group_persist_full_tool_results"`
+	GroupShowToolCallsInIm      pgtype.Bool `json:"group_show_tool_calls_in_im"`
+	GroupToolApprovalConfig     []byte      `json:"group_tool_approval_config"`
+	GroupOverlayProvider        pgtype.Text `json:"group_overlay_provider"`
+	GroupOverlayEnabled         pgtype.Bool `json:"group_overlay_enabled"`
+	GroupOverlayConfig          []byte      `json:"group_overlay_config"`
 }
 
 func (q *Queries) GetSettingsByBotID(ctx context.Context, id pgtype.UUID) (GetSettingsByBotIDRow, error) {
@@ -151,8 +242,54 @@ func (q *Queries) GetSettingsByBotID(ctx context.Context, id pgtype.UUID) (GetSe
 		&i.OverlayProvider,
 		&i.OverlayEnabled,
 		&i.OverlayConfig,
+		&i.GroupID,
+		&i.SettingsOverrideMask,
+		&i.GroupTimezone,
+		&i.GroupLanguage,
+		&i.GroupReasoningEnabled,
+		&i.GroupReasoningEffort,
+		&i.GroupChatModelID,
+		&i.GroupSearchProviderID,
+		&i.GroupMemoryProviderID,
+		&i.GroupHeartbeatEnabled,
+		&i.GroupHeartbeatInterval,
+		&i.GroupHeartbeatPrompt,
+		&i.GroupHeartbeatModelID,
+		&i.GroupCompactionEnabled,
+		&i.GroupCompactionThreshold,
+		&i.GroupCompactionRatio,
+		&i.GroupCompactionModelID,
+		&i.GroupTitleModelID,
+		&i.GroupImageModelID,
+		&i.GroupDiscussProbeModelID,
+		&i.GroupTtsModelID,
+		&i.GroupTranscriptionModelID,
+		&i.GroupBrowserContextID,
+		&i.GroupPersistFullToolResults,
+		&i.GroupShowToolCallsInIm,
+		&i.GroupToolApprovalConfig,
+		&i.GroupOverlayProvider,
+		&i.GroupOverlayEnabled,
+		&i.GroupOverlayConfig,
 	)
 	return i, err
+}
+
+const updateBotSettingsOverrideMask = `-- name: UpdateBotSettingsOverrideMask :exec
+UPDATE bots
+SET settings_override_mask = $1::jsonb,
+    updated_at = now()
+WHERE id = $2
+`
+
+type UpdateBotSettingsOverrideMaskParams struct {
+	SettingsOverrideMask []byte      `json:"settings_override_mask"`
+	ID                   pgtype.UUID `json:"id"`
+}
+
+func (q *Queries) UpdateBotSettingsOverrideMask(ctx context.Context, arg UpdateBotSettingsOverrideMaskParams) error {
+	_, err := q.db.Exec(ctx, updateBotSettingsOverrideMask, arg.SettingsOverrideMask, arg.ID)
+	return err
 }
 
 const upsertBotSettings = `-- name: UpsertBotSettings :one
@@ -167,25 +304,25 @@ WITH updated AS (
       compaction_enabled = $7,
       compaction_threshold = $8,
       compaction_ratio = $9,
-      timezone = COALESCE($10::text, bots.timezone),
-      chat_model_id = COALESCE($11::uuid, bots.chat_model_id),
-      heartbeat_model_id = COALESCE($12::uuid, bots.heartbeat_model_id),
-      compaction_model_id = COALESCE($13::uuid, bots.compaction_model_id),
-      title_model_id = COALESCE($14::uuid, bots.title_model_id),
-      search_provider_id = COALESCE($15::uuid, bots.search_provider_id),
-      memory_provider_id = COALESCE($16::uuid, bots.memory_provider_id),
-      image_model_id = COALESCE($17::uuid, bots.image_model_id),
-      tts_model_id = COALESCE($18::uuid, bots.tts_model_id),
-      transcription_model_id = COALESCE($19::uuid, bots.transcription_model_id),
-      browser_context_id = COALESCE($20::uuid, bots.browser_context_id),
-      persist_full_tool_results = $21,
-      show_tool_calls_in_im = $22,
-      tool_approval_config = $23,
-      overlay_provider = $24,
-      overlay_enabled = $25,
-      overlay_config = $26,
+      timezone = CASE WHEN $10::boolean THEN $11::text ELSE bots.timezone END,
+      chat_model_id = CASE WHEN $12::boolean THEN $13::uuid ELSE bots.chat_model_id END,
+      heartbeat_model_id = CASE WHEN $14::boolean THEN $15::uuid ELSE bots.heartbeat_model_id END,
+      compaction_model_id = CASE WHEN $16::boolean THEN $17::uuid ELSE bots.compaction_model_id END,
+      title_model_id = CASE WHEN $18::boolean THEN $19::uuid ELSE bots.title_model_id END,
+      search_provider_id = CASE WHEN $20::boolean THEN $21::uuid ELSE bots.search_provider_id END,
+      memory_provider_id = CASE WHEN $22::boolean THEN $23::uuid ELSE bots.memory_provider_id END,
+      image_model_id = CASE WHEN $24::boolean THEN $25::uuid ELSE bots.image_model_id END,
+      tts_model_id = CASE WHEN $26::boolean THEN $27::uuid ELSE bots.tts_model_id END,
+      transcription_model_id = CASE WHEN $28::boolean THEN $29::uuid ELSE bots.transcription_model_id END,
+      browser_context_id = CASE WHEN $30::boolean THEN $31::uuid ELSE bots.browser_context_id END,
+      persist_full_tool_results = $32,
+      show_tool_calls_in_im = $33,
+      tool_approval_config = $34,
+      overlay_provider = $35,
+      overlay_enabled = $36,
+      overlay_config = $37,
       updated_at = now()
-  WHERE bots.id = $27
+  WHERE bots.id = $38
   RETURNING bots.id, bots.language, bots.reasoning_enabled, bots.reasoning_effort, bots.heartbeat_enabled, bots.heartbeat_interval, bots.heartbeat_prompt, bots.compaction_enabled, bots.compaction_threshold, bots.compaction_ratio, bots.timezone, bots.chat_model_id, bots.heartbeat_model_id, bots.compaction_model_id, bots.title_model_id, bots.image_model_id, bots.search_provider_id, bots.memory_provider_id, bots.tts_model_id, bots.transcription_model_id, bots.browser_context_id, bots.persist_full_tool_results, bots.show_tool_calls_in_im, bots.tool_approval_config, bots.overlay_provider, bots.overlay_enabled, bots.overlay_config
 )
 SELECT
@@ -230,33 +367,44 @@ LEFT JOIN browser_contexts ON browser_contexts.id = updated.browser_context_id
 `
 
 type UpsertBotSettingsParams struct {
-	Language               string      `json:"language"`
-	ReasoningEnabled       bool        `json:"reasoning_enabled"`
-	ReasoningEffort        string      `json:"reasoning_effort"`
-	HeartbeatEnabled       bool        `json:"heartbeat_enabled"`
-	HeartbeatInterval      int32       `json:"heartbeat_interval"`
-	HeartbeatPrompt        string      `json:"heartbeat_prompt"`
-	CompactionEnabled      bool        `json:"compaction_enabled"`
-	CompactionThreshold    int32       `json:"compaction_threshold"`
-	CompactionRatio        int32       `json:"compaction_ratio"`
-	Timezone               pgtype.Text `json:"timezone"`
-	ChatModelID            pgtype.UUID `json:"chat_model_id"`
-	HeartbeatModelID       pgtype.UUID `json:"heartbeat_model_id"`
-	CompactionModelID      pgtype.UUID `json:"compaction_model_id"`
-	TitleModelID           pgtype.UUID `json:"title_model_id"`
-	SearchProviderID       pgtype.UUID `json:"search_provider_id"`
-	MemoryProviderID       pgtype.UUID `json:"memory_provider_id"`
-	ImageModelID           pgtype.UUID `json:"image_model_id"`
-	TtsModelID             pgtype.UUID `json:"tts_model_id"`
-	TranscriptionModelID   pgtype.UUID `json:"transcription_model_id"`
-	BrowserContextID       pgtype.UUID `json:"browser_context_id"`
-	PersistFullToolResults bool        `json:"persist_full_tool_results"`
-	ShowToolCallsInIm      bool        `json:"show_tool_calls_in_im"`
-	ToolApprovalConfig     []byte      `json:"tool_approval_config"`
-	OverlayProvider        string      `json:"overlay_provider"`
-	OverlayEnabled         bool        `json:"overlay_enabled"`
-	OverlayConfig          []byte      `json:"overlay_config"`
-	ID                     pgtype.UUID `json:"id"`
+	Language                    string      `json:"language"`
+	ReasoningEnabled            bool        `json:"reasoning_enabled"`
+	ReasoningEffort             string      `json:"reasoning_effort"`
+	HeartbeatEnabled            bool        `json:"heartbeat_enabled"`
+	HeartbeatInterval           int32       `json:"heartbeat_interval"`
+	HeartbeatPrompt             string      `json:"heartbeat_prompt"`
+	CompactionEnabled           bool        `json:"compaction_enabled"`
+	CompactionThreshold         int32       `json:"compaction_threshold"`
+	CompactionRatio             int32       `json:"compaction_ratio"`
+	TimezonePresent             bool        `json:"timezone_present"`
+	Timezone                    pgtype.Text `json:"timezone"`
+	ChatModelIDPresent          bool        `json:"chat_model_id_present"`
+	ChatModelID                 pgtype.UUID `json:"chat_model_id"`
+	HeartbeatModelIDPresent     bool        `json:"heartbeat_model_id_present"`
+	HeartbeatModelID            pgtype.UUID `json:"heartbeat_model_id"`
+	CompactionModelIDPresent    bool        `json:"compaction_model_id_present"`
+	CompactionModelID           pgtype.UUID `json:"compaction_model_id"`
+	TitleModelIDPresent         bool        `json:"title_model_id_present"`
+	TitleModelID                pgtype.UUID `json:"title_model_id"`
+	SearchProviderIDPresent     bool        `json:"search_provider_id_present"`
+	SearchProviderID            pgtype.UUID `json:"search_provider_id"`
+	MemoryProviderIDPresent     bool        `json:"memory_provider_id_present"`
+	MemoryProviderID            pgtype.UUID `json:"memory_provider_id"`
+	ImageModelIDPresent         bool        `json:"image_model_id_present"`
+	ImageModelID                pgtype.UUID `json:"image_model_id"`
+	TtsModelIDPresent           bool        `json:"tts_model_id_present"`
+	TtsModelID                  pgtype.UUID `json:"tts_model_id"`
+	TranscriptionModelIDPresent bool        `json:"transcription_model_id_present"`
+	TranscriptionModelID        pgtype.UUID `json:"transcription_model_id"`
+	BrowserContextIDPresent     bool        `json:"browser_context_id_present"`
+	BrowserContextID            pgtype.UUID `json:"browser_context_id"`
+	PersistFullToolResults      bool        `json:"persist_full_tool_results"`
+	ShowToolCallsInIm           bool        `json:"show_tool_calls_in_im"`
+	ToolApprovalConfig          []byte      `json:"tool_approval_config"`
+	OverlayProvider             string      `json:"overlay_provider"`
+	OverlayEnabled              bool        `json:"overlay_enabled"`
+	OverlayConfig               []byte      `json:"overlay_config"`
+	ID                          pgtype.UUID `json:"id"`
 }
 
 type UpsertBotSettingsRow struct {
@@ -300,16 +448,27 @@ func (q *Queries) UpsertBotSettings(ctx context.Context, arg UpsertBotSettingsPa
 		arg.CompactionEnabled,
 		arg.CompactionThreshold,
 		arg.CompactionRatio,
+		arg.TimezonePresent,
 		arg.Timezone,
+		arg.ChatModelIDPresent,
 		arg.ChatModelID,
+		arg.HeartbeatModelIDPresent,
 		arg.HeartbeatModelID,
+		arg.CompactionModelIDPresent,
 		arg.CompactionModelID,
+		arg.TitleModelIDPresent,
 		arg.TitleModelID,
+		arg.SearchProviderIDPresent,
 		arg.SearchProviderID,
+		arg.MemoryProviderIDPresent,
 		arg.MemoryProviderID,
+		arg.ImageModelIDPresent,
 		arg.ImageModelID,
+		arg.TtsModelIDPresent,
 		arg.TtsModelID,
+		arg.TranscriptionModelIDPresent,
 		arg.TranscriptionModelID,
+		arg.BrowserContextIDPresent,
 		arg.BrowserContextID,
 		arg.PersistFullToolResults,
 		arg.ShowToolCallsInIm,

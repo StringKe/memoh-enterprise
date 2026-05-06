@@ -1,0 +1,130 @@
+syntax = "proto3";
+
+package memoh.private.v1;
+
+import "google/protobuf/struct.proto";
+import "memoh/private/v1/common.proto";
+
+option go_package = "github.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1;privatev1";
+
+message Model {
+  string id = 1;
+  string provider_id = 2;
+  string model_id = 3;
+  string display_name = 4;
+  string type = 5;
+  repeated string modalities = 6;
+  string client_type = 7;
+  bool enabled = 8;
+  google.protobuf.Struct reasoning = 9;
+  google.protobuf.Struct metadata = 10;
+  AuditFields audit = 11;
+}
+
+message ModelCapabilities {
+  string model_id = 1;
+  repeated string modalities = 2;
+  bool supports_tools = 3;
+  bool supports_vision = 4;
+  bool supports_reasoning = 5;
+  bool supports_streaming = 6;
+  google.protobuf.Struct metadata = 7;
+}
+
+message CreateModelRequest {
+  string provider_id = 1;
+  string model_id = 2;
+  string display_name = 3;
+  string type = 4;
+  repeated string modalities = 5;
+  bool enabled = 6;
+  google.protobuf.Struct reasoning = 7;
+  google.protobuf.Struct metadata = 8;
+}
+
+message CreateModelResponse {
+  Model model = 1;
+}
+
+message ListModelsRequest {
+  string provider_id = 1;
+  string type = 2;
+  PageRequest page = 3;
+}
+
+message ListModelsResponse {
+  repeated Model models = 1;
+  PageResponse page = 2;
+}
+
+message GetModelRequest {
+  string id = 1;
+  string model_id = 2;
+}
+
+message GetModelResponse {
+  Model model = 1;
+}
+
+message UpdateModelRequest {
+  string id = 1;
+  string model_id = 2;
+  optional string display_name = 3;
+  optional string type = 4;
+  repeated string modalities = 5;
+  optional bool enabled = 6;
+  google.protobuf.Struct reasoning = 7;
+  google.protobuf.Struct metadata = 8;
+}
+
+message UpdateModelResponse {
+  Model model = 1;
+}
+
+message DeleteModelRequest {
+  string id = 1;
+  string model_id = 2;
+}
+
+message DeleteModelResponse {}
+
+message CountModelsRequest {
+  string provider_id = 1;
+  string type = 2;
+}
+
+message CountModelsResponse {
+  int64 count = 1;
+}
+
+message TestModelRequest {
+  string id = 1;
+  string model_id = 2;
+  string prompt = 3;
+}
+
+message TestModelResponse {
+  bool ok = 1;
+  string message = 2;
+  google.protobuf.Struct metadata = 3;
+}
+
+message GetModelCapabilitiesRequest {
+  string id = 1;
+  string model_id = 2;
+}
+
+message GetModelCapabilitiesResponse {
+  ModelCapabilities capabilities = 1;
+}
+
+service ModelService {
+  rpc CreateModel(CreateModelRequest) returns (CreateModelResponse);
+  rpc ListModels(ListModelsRequest) returns (ListModelsResponse);
+  rpc GetModel(GetModelRequest) returns (GetModelResponse);
+  rpc UpdateModel(UpdateModelRequest) returns (UpdateModelResponse);
+  rpc DeleteModel(DeleteModelRequest) returns (DeleteModelResponse);
+  rpc CountModels(CountModelsRequest) returns (CountModelsResponse);
+  rpc TestModel(TestModelRequest) returns (TestModelResponse);
+  rpc GetModelCapabilities(GetModelCapabilitiesRequest) returns (GetModelCapabilitiesResponse);
+}

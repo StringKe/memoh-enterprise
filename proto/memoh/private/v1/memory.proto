@@ -1,0 +1,294 @@
+syntax = "proto3";
+
+package memoh.private.v1;
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+import "memoh/private/v1/common.proto";
+
+option go_package = "github.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1;privatev1";
+
+message MemoryProviderMeta {
+  string type = 1;
+  string display_name = 2;
+  string description = 3;
+  google.protobuf.Struct schema = 4;
+  google.protobuf.Struct defaults = 5;
+}
+
+message MemoryProvider {
+  string id = 1;
+  string name = 2;
+  string type = 3;
+  bool enabled = 4;
+  google.protobuf.Struct config = 5;
+  AuditFields audit = 6;
+}
+
+message MemoryProviderStatus {
+  string id = 1;
+  bool ok = 2;
+  string message = 3;
+  google.protobuf.Struct metadata = 4;
+}
+
+message BotMemory {
+  string id = 1;
+  string bot_id = 2;
+  string content = 3;
+  double score = 4;
+  google.protobuf.Struct metadata = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
+  string hash = 8;
+  string agent_id = 9;
+  string run_id = 10;
+  repeated MemoryTopKBucket top_k_buckets = 11;
+  repeated MemoryCDFPoint cdf_curve = 12;
+}
+
+message MemoryMessage {
+  string role = 1;
+  string content = 2;
+}
+
+message MemoryTopKBucket {
+  uint32 index = 1;
+  float value = 2;
+}
+
+message MemoryCDFPoint {
+  int32 k = 1;
+  double cumulative = 2;
+}
+
+message MemoryHealthStatus {
+  bool ok = 1;
+  string error = 2;
+}
+
+message BotMemoryStatus {
+  string bot_id = 1;
+  bool ready = 2;
+  string message = 3;
+  google.protobuf.Struct metadata = 4;
+  string provider_type = 5;
+  string memory_mode = 6;
+  bool can_manual_sync = 7;
+  string source_dir = 8;
+  string overview_path = 9;
+  int32 markdown_file_count = 10;
+  int32 source_count = 11;
+  int32 indexed_count = 12;
+  string qdrant_collection = 13;
+  MemoryHealthStatus encoder = 14;
+  MemoryHealthStatus qdrant = 15;
+}
+
+message BotMemoryUsage {
+  string bot_id = 1;
+  int64 item_count = 2;
+  int64 estimated_bytes = 3;
+  google.protobuf.Struct metadata = 4;
+  int64 total_text_bytes = 5;
+  int64 avg_text_bytes = 6;
+}
+
+message MemoryRelation {
+  google.protobuf.Struct value = 1;
+}
+
+message CompactBotMemoryResult {
+  int32 before_count = 1;
+  int32 after_count = 2;
+  double ratio = 3;
+  repeated BotMemory memories = 4;
+}
+
+message RebuildBotMemoryResult {
+  int32 fs_count = 1;
+  int32 storage_count = 2;
+  int32 missing_count = 3;
+  int32 restored_count = 4;
+}
+
+message ListMemoryProviderMetaRequest {}
+
+message ListMemoryProviderMetaResponse {
+  repeated MemoryProviderMeta providers = 1;
+}
+
+message CreateMemoryProviderRequest {
+  string name = 1;
+  string type = 2;
+  bool enabled = 3;
+  google.protobuf.Struct config = 4;
+}
+
+message CreateMemoryProviderResponse {
+  MemoryProvider provider = 1;
+}
+
+message ListMemoryProvidersRequest {
+  PageRequest page = 1;
+}
+
+message ListMemoryProvidersResponse {
+  repeated MemoryProvider providers = 1;
+  PageResponse page = 2;
+}
+
+message GetMemoryProviderRequest {
+  string id = 1;
+}
+
+message GetMemoryProviderResponse {
+  MemoryProvider provider = 1;
+}
+
+message UpdateMemoryProviderRequest {
+  string id = 1;
+  optional string name = 2;
+  optional string type = 3;
+  optional bool enabled = 4;
+  google.protobuf.Struct config = 5;
+}
+
+message UpdateMemoryProviderResponse {
+  MemoryProvider provider = 1;
+}
+
+message DeleteMemoryProviderRequest {
+  string id = 1;
+}
+
+message DeleteMemoryProviderResponse {}
+
+message GetMemoryProviderStatusRequest {
+  string id = 1;
+}
+
+message GetMemoryProviderStatusResponse {
+  MemoryProviderStatus status = 1;
+}
+
+message AddBotMemoryRequest {
+  string bot_id = 1;
+  string content = 2;
+  google.protobuf.Struct metadata = 3;
+  repeated MemoryMessage messages = 4;
+  string namespace = 5;
+  string run_id = 6;
+  google.protobuf.Struct filters = 7;
+  optional bool infer = 8;
+  optional bool embedding_enabled = 9;
+}
+
+message AddBotMemoryResponse {
+  BotMemory memory = 1;
+  repeated BotMemory memories = 2;
+  repeated MemoryRelation relations = 3;
+}
+
+message ListBotMemoriesRequest {
+  string bot_id = 1;
+  PageRequest page = 2;
+  bool no_stats = 3;
+}
+
+message ListBotMemoriesResponse {
+  repeated BotMemory memories = 1;
+  PageResponse page = 2;
+  repeated MemoryRelation relations = 3;
+}
+
+message DeleteBotMemoriesRequest {
+  string bot_id = 1;
+  repeated string memory_ids = 2;
+}
+
+message DeleteBotMemoriesResponse {
+  int32 deleted_count = 1;
+  string message = 2;
+}
+
+message DeleteBotMemoryRequest {
+  string bot_id = 1;
+  string memory_id = 2;
+}
+
+message DeleteBotMemoryResponse {}
+
+message SearchBotMemoryRequest {
+  string bot_id = 1;
+  string query = 2;
+  int32 limit = 3;
+  string run_id = 4;
+  google.protobuf.Struct filters = 5;
+  repeated string sources = 6;
+  optional bool embedding_enabled = 7;
+  bool no_stats = 8;
+}
+
+message SearchBotMemoryResponse {
+  repeated BotMemory memories = 1;
+  repeated MemoryRelation relations = 2;
+}
+
+message CompactBotMemoryRequest {
+  string bot_id = 1;
+  double ratio = 2;
+  optional int32 decay_days = 3;
+}
+
+message CompactBotMemoryResponse {
+  BotMemoryStatus status = 1;
+  CompactBotMemoryResult result = 2;
+}
+
+message RebuildBotMemoryRequest {
+  string bot_id = 1;
+}
+
+message RebuildBotMemoryResponse {
+  BotMemoryStatus status = 1;
+  RebuildBotMemoryResult result = 2;
+}
+
+message GetBotMemoryStatusRequest {
+  string bot_id = 1;
+}
+
+message GetBotMemoryStatusResponse {
+  BotMemoryStatus status = 1;
+}
+
+message GetBotMemoryUsageRequest {
+  string bot_id = 1;
+}
+
+message GetBotMemoryUsageResponse {
+  BotMemoryUsage usage = 1;
+}
+
+service MemoryProviderService {
+  rpc ListMemoryProviderMeta(ListMemoryProviderMetaRequest) returns (ListMemoryProviderMetaResponse);
+  rpc CreateMemoryProvider(CreateMemoryProviderRequest) returns (CreateMemoryProviderResponse);
+  rpc ListMemoryProviders(ListMemoryProvidersRequest) returns (ListMemoryProvidersResponse);
+  rpc GetMemoryProvider(GetMemoryProviderRequest) returns (GetMemoryProviderResponse);
+  rpc UpdateMemoryProvider(UpdateMemoryProviderRequest) returns (UpdateMemoryProviderResponse);
+  rpc DeleteMemoryProvider(DeleteMemoryProviderRequest) returns (DeleteMemoryProviderResponse);
+  rpc GetMemoryProviderStatus(GetMemoryProviderStatusRequest) returns (GetMemoryProviderStatusResponse);
+}
+
+service MemoryService {
+  rpc AddBotMemory(AddBotMemoryRequest) returns (AddBotMemoryResponse);
+  rpc ListBotMemories(ListBotMemoriesRequest) returns (ListBotMemoriesResponse);
+  rpc DeleteBotMemories(DeleteBotMemoriesRequest) returns (DeleteBotMemoriesResponse);
+  rpc DeleteBotMemory(DeleteBotMemoryRequest) returns (DeleteBotMemoryResponse);
+  rpc SearchBotMemory(SearchBotMemoryRequest) returns (SearchBotMemoryResponse);
+  rpc CompactBotMemory(CompactBotMemoryRequest) returns (CompactBotMemoryResponse);
+  rpc RebuildBotMemory(RebuildBotMemoryRequest) returns (RebuildBotMemoryResponse);
+  rpc GetBotMemoryStatus(GetBotMemoryStatusRequest) returns (GetBotMemoryStatusResponse);
+  rpc GetBotMemoryUsage(GetBotMemoryUsageRequest) returns (GetBotMemoryUsageResponse);
+}

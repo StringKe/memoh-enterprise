@@ -1,0 +1,217 @@
+syntax = "proto3";
+
+package memoh.private.v1;
+
+import "google/protobuf/struct.proto";
+import "memoh/private/v1/common.proto";
+
+option go_package = "github.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1;privatev1";
+
+message IamRole {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  repeated string permissions = 4;
+}
+
+message IamGroup {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  google.protobuf.Struct metadata = 4;
+  AuditFields audit = 5;
+}
+
+message IamGroupMember {
+  string group_id = 1;
+  string user_id = 2;
+  string role = 3;
+  AuditFields audit = 4;
+}
+
+message IamSsoProvider {
+  string id = 1;
+  string name = 2;
+  string type = 3;
+  bool enabled = 4;
+  google.protobuf.Struct config = 5;
+  AuditFields audit = 6;
+}
+
+message IamSsoGroupMapping {
+  string id = 1;
+  string provider_id = 2;
+  string external_group = 3;
+  string internal_group_id = 4;
+  string role = 5;
+  AuditFields audit = 6;
+}
+
+message BotPrincipalRole {
+  string id = 1;
+  string bot_id = 2;
+  string principal_type = 3;
+  string principal_id = 4;
+  string role = 5;
+  AuditFields audit = 6;
+}
+
+message ListIamRolesRequest {}
+
+message ListIamRolesResponse {
+  repeated IamRole roles = 1;
+}
+
+message ListIamGroupsRequest {
+  PageRequest page = 1;
+}
+
+message ListIamGroupsResponse {
+  repeated IamGroup groups = 1;
+  PageResponse page = 2;
+}
+
+message UpsertIamGroupRequest {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  google.protobuf.Struct metadata = 4;
+}
+
+message UpsertIamGroupResponse {
+  IamGroup group = 1;
+}
+
+message DeleteIamGroupRequest {
+  string id = 1;
+}
+
+message DeleteIamGroupResponse {}
+
+message ListIamGroupMembersRequest {
+  string group_id = 1;
+  PageRequest page = 2;
+}
+
+message ListIamGroupMembersResponse {
+  repeated IamGroupMember members = 1;
+  PageResponse page = 2;
+}
+
+message UpsertIamGroupMemberRequest {
+  string group_id = 1;
+  string user_id = 2;
+  string role = 3;
+}
+
+message UpsertIamGroupMemberResponse {
+  IamGroupMember member = 1;
+}
+
+message DeleteIamGroupMemberRequest {
+  string group_id = 1;
+  string user_id = 2;
+}
+
+message DeleteIamGroupMemberResponse {}
+
+message ListIamSsoProvidersRequest {
+  PageRequest page = 1;
+}
+
+message ListIamSsoProvidersResponse {
+  repeated IamSsoProvider providers = 1;
+  PageResponse page = 2;
+}
+
+message UpsertIamSsoProviderRequest {
+  string id = 1;
+  string name = 2;
+  string type = 3;
+  bool enabled = 4;
+  google.protobuf.Struct config = 5;
+}
+
+message UpsertIamSsoProviderResponse {
+  IamSsoProvider provider = 1;
+}
+
+message DeleteIamSsoProviderRequest {
+  string id = 1;
+}
+
+message DeleteIamSsoProviderResponse {}
+
+message ListIamSsoGroupMappingsRequest {
+  string provider_id = 1;
+  PageRequest page = 2;
+}
+
+message ListIamSsoGroupMappingsResponse {
+  repeated IamSsoGroupMapping mappings = 1;
+  PageResponse page = 2;
+}
+
+message UpsertIamSsoGroupMappingRequest {
+  string id = 1;
+  string provider_id = 2;
+  string external_group = 3;
+  string internal_group_id = 4;
+  string role = 5;
+}
+
+message UpsertIamSsoGroupMappingResponse {
+  IamSsoGroupMapping mapping = 1;
+}
+
+message DeleteIamSsoGroupMappingRequest {
+  string id = 1;
+}
+
+message DeleteIamSsoGroupMappingResponse {}
+
+message ListBotPrincipalRolesRequest {
+  string bot_id = 1;
+  PageRequest page = 2;
+}
+
+message ListBotPrincipalRolesResponse {
+  repeated BotPrincipalRole roles = 1;
+  PageResponse page = 2;
+}
+
+message AssignBotPrincipalRoleRequest {
+  string bot_id = 1;
+  string principal_type = 2;
+  string principal_id = 3;
+  string role = 4;
+}
+
+message AssignBotPrincipalRoleResponse {
+  BotPrincipalRole role = 1;
+}
+
+message DeleteBotPrincipalRoleRequest {
+  string id = 1;
+}
+
+message DeleteBotPrincipalRoleResponse {}
+
+service IamService {
+  rpc ListIamRoles(ListIamRolesRequest) returns (ListIamRolesResponse);
+  rpc ListIamGroups(ListIamGroupsRequest) returns (ListIamGroupsResponse);
+  rpc UpsertIamGroup(UpsertIamGroupRequest) returns (UpsertIamGroupResponse);
+  rpc DeleteIamGroup(DeleteIamGroupRequest) returns (DeleteIamGroupResponse);
+  rpc ListIamGroupMembers(ListIamGroupMembersRequest) returns (ListIamGroupMembersResponse);
+  rpc UpsertIamGroupMember(UpsertIamGroupMemberRequest) returns (UpsertIamGroupMemberResponse);
+  rpc DeleteIamGroupMember(DeleteIamGroupMemberRequest) returns (DeleteIamGroupMemberResponse);
+  rpc ListIamSsoProviders(ListIamSsoProvidersRequest) returns (ListIamSsoProvidersResponse);
+  rpc UpsertIamSsoProvider(UpsertIamSsoProviderRequest) returns (UpsertIamSsoProviderResponse);
+  rpc DeleteIamSsoProvider(DeleteIamSsoProviderRequest) returns (DeleteIamSsoProviderResponse);
+  rpc ListIamSsoGroupMappings(ListIamSsoGroupMappingsRequest) returns (ListIamSsoGroupMappingsResponse);
+  rpc UpsertIamSsoGroupMapping(UpsertIamSsoGroupMappingRequest) returns (UpsertIamSsoGroupMappingResponse);
+  rpc DeleteIamSsoGroupMapping(DeleteIamSsoGroupMappingRequest) returns (DeleteIamSsoGroupMappingResponse);
+  rpc ListBotPrincipalRoles(ListBotPrincipalRolesRequest) returns (ListBotPrincipalRolesResponse);
+  rpc AssignBotPrincipalRole(AssignBotPrincipalRoleRequest) returns (AssignBotPrincipalRoleResponse);
+  rpc DeleteBotPrincipalRole(DeleteBotPrincipalRoleRequest) returns (DeleteBotPrincipalRoleResponse);
+}

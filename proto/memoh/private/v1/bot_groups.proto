@@ -1,0 +1,96 @@
+syntax = "proto3";
+
+package memoh.private.v1;
+
+import "google/protobuf/struct.proto";
+import "memoh/private/v1/common.proto";
+
+option go_package = "github.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1;privatev1";
+
+message BotGroup {
+  string id = 1;
+  string owner_user_id = 2;
+  string name = 3;
+  string description = 4;
+  google.protobuf.Struct metadata = 5;
+  int64 bot_count = 6;
+  AuditFields audit = 7;
+}
+
+message CreateBotGroupRequest {
+  string name = 1;
+  string description = 2;
+  google.protobuf.Struct metadata = 3;
+}
+
+message CreateBotGroupResponse {
+  BotGroup group = 1;
+}
+
+message GetBotGroupRequest {
+  string id = 1;
+}
+
+message GetBotGroupResponse {
+  BotGroup group = 1;
+}
+
+message ListBotGroupsRequest {
+  PageRequest page = 1;
+}
+
+message ListBotGroupsResponse {
+  repeated BotGroup groups = 1;
+  PageResponse page = 2;
+}
+
+message UpdateBotGroupRequest {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  google.protobuf.Struct metadata = 4;
+}
+
+message UpdateBotGroupResponse {
+  BotGroup group = 1;
+}
+
+message DeleteBotGroupRequest {
+  string id = 1;
+}
+
+message DeleteBotGroupResponse {}
+
+message GetBotGroupSettingsRequest {
+  string group_id = 1;
+}
+
+message GetBotGroupSettingsResponse {
+  BotSettings settings = 1;
+}
+
+message UpdateBotGroupSettingsRequest {
+  string group_id = 1;
+  BotSettings settings = 2;
+}
+
+message UpdateBotGroupSettingsResponse {
+  BotSettings settings = 1;
+}
+
+message DeleteBotGroupSettingsRequest {
+  string group_id = 1;
+}
+
+message DeleteBotGroupSettingsResponse {}
+
+service BotGroupService {
+  rpc CreateBotGroup(CreateBotGroupRequest) returns (CreateBotGroupResponse);
+  rpc GetBotGroup(GetBotGroupRequest) returns (GetBotGroupResponse);
+  rpc ListBotGroups(ListBotGroupsRequest) returns (ListBotGroupsResponse);
+  rpc UpdateBotGroup(UpdateBotGroupRequest) returns (UpdateBotGroupResponse);
+  rpc DeleteBotGroup(DeleteBotGroupRequest) returns (DeleteBotGroupResponse);
+  rpc GetBotGroupSettings(GetBotGroupSettingsRequest) returns (GetBotGroupSettingsResponse);
+  rpc UpdateBotGroupSettings(UpdateBotGroupSettingsRequest) returns (UpdateBotGroupSettingsResponse);
+  rpc DeleteBotGroupSettings(DeleteBotGroupSettingsRequest) returns (DeleteBotGroupSettingsResponse);
+}

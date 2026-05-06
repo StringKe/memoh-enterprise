@@ -1,0 +1,86 @@
+syntax = "proto3";
+
+package memoh.private.v1;
+
+import "google/protobuf/struct.proto";
+import "memoh/private/v1/common.proto";
+
+option go_package = "github.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1;privatev1";
+
+message SearchProviderMeta {
+  string type = 1;
+  string display_name = 2;
+  string description = 3;
+  google.protobuf.Struct schema = 4;
+  google.protobuf.Struct defaults = 5;
+}
+
+message SearchProvider {
+  string id = 1;
+  string name = 2;
+  string type = 3;
+  bool enabled = 4;
+  google.protobuf.Struct config = 5;
+  AuditFields audit = 6;
+}
+
+message ListSearchProviderMetaRequest {}
+
+message ListSearchProviderMetaResponse {
+  repeated SearchProviderMeta providers = 1;
+}
+
+message CreateSearchProviderRequest {
+  string name = 1;
+  string type = 2;
+  bool enabled = 3;
+  google.protobuf.Struct config = 4;
+}
+
+message CreateSearchProviderResponse {
+  SearchProvider provider = 1;
+}
+
+message ListSearchProvidersRequest {
+  PageRequest page = 1;
+}
+
+message ListSearchProvidersResponse {
+  repeated SearchProvider providers = 1;
+  PageResponse page = 2;
+}
+
+message GetSearchProviderRequest {
+  string id = 1;
+}
+
+message GetSearchProviderResponse {
+  SearchProvider provider = 1;
+}
+
+message UpdateSearchProviderRequest {
+  string id = 1;
+  optional string name = 2;
+  optional string type = 3;
+  optional bool enabled = 4;
+  google.protobuf.Struct config = 5;
+}
+
+message UpdateSearchProviderResponse {
+  SearchProvider provider = 1;
+}
+
+message DeleteSearchProviderRequest {
+  string id = 1;
+}
+
+message DeleteSearchProviderResponse {}
+
+service SearchProviderService {
+  rpc ListSearchProviderMeta(ListSearchProviderMetaRequest) returns (ListSearchProviderMetaResponse);
+  rpc CreateSearchProvider(CreateSearchProviderRequest) returns (CreateSearchProviderResponse);
+  rpc ListSearchProviders(ListSearchProvidersRequest) returns (ListSearchProvidersResponse);
+  rpc GetSearchProvider(GetSearchProviderRequest) returns (GetSearchProviderResponse);
+  rpc UpdateSearchProvider(UpdateSearchProviderRequest) returns (UpdateSearchProviderResponse);
+  rpc DeleteSearchProvider(DeleteSearchProviderRequest) returns (DeleteSearchProviderResponse);
+}

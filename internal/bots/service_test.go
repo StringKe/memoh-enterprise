@@ -46,41 +46,97 @@ func (d *fakeDBTX) QueryRow(ctx context.Context, sql string, args ...any) pgx.Ro
 }
 
 // makeBotRow creates a fakeRow that populates a sqlc.GetBotByIDRow via Scan.
-// Column order: id, owner_user_id, display_name, avatar_url, timezone, is_active, status,
+// Column order: id, owner_user_id, group_id, display_name, avatar_url, timezone, is_active, status,
 // language, reasoning_enabled, reasoning_effort,
 // chat_model_id, search_provider_id, memory_provider_id,
 // heartbeat_enabled, heartbeat_interval, heartbeat_prompt,
 // compaction_enabled, compaction_threshold, compaction_model_id,
-// metadata, created_at, updated_at.
+// settings_override_mask, metadata, created_at, updated_at.
 func makeBotRow(botID, ownerUserID pgtype.UUID) *fakeRow {
+	return makeBotRowWithGroup(botID, ownerUserID, pgtype.UUID{})
+}
+
+func makeBotRowWithGroup(botID, ownerUserID, groupID pgtype.UUID) *fakeRow {
 	return &fakeRow{
 		scanFunc: func(dest ...any) error {
-			if len(dest) < 22 {
+			if len(dest) < 25 {
 				return pgx.ErrNoRows
 			}
 			*dest[0].(*pgtype.UUID) = botID
 			*dest[1].(*pgtype.UUID) = ownerUserID
-			*dest[2].(*pgtype.Text) = pgtype.Text{String: "test-bot", Valid: true}
-			*dest[3].(*pgtype.Text) = pgtype.Text{}
+			*dest[2].(*pgtype.UUID) = groupID
+			*dest[3].(*pgtype.Text) = pgtype.Text{String: "test-bot", Valid: true}
 			*dest[4].(*pgtype.Text) = pgtype.Text{}
-			*dest[5].(*bool) = true
-			*dest[6].(*string) = BotStatusReady
-			*dest[7].(*string) = "en"                // Language
-			*dest[8].(*bool) = false                 // ReasoningEnabled
-			*dest[9].(*string) = "medium"            // ReasoningEffort
-			*dest[10].(*pgtype.UUID) = pgtype.UUID{} // ChatModelID
-			*dest[11].(*pgtype.UUID) = pgtype.UUID{} // SearchProviderID
-			*dest[12].(*pgtype.UUID) = pgtype.UUID{} // MemoryProviderID
-			*dest[13].(*bool) = false                // HeartbeatEnabled
-			*dest[14].(*int32) = 30                  // HeartbeatInterval
-			*dest[15].(*string) = ""                 // HeartbeatPrompt
-			*dest[16].(*bool) = false                // CompactionEnabled
-			*dest[17].(*int32) = 100000              // CompactionThreshold
-			*dest[18].(*int32) = 80                  // CompactionRatio
-			*dest[19].(*pgtype.UUID) = pgtype.UUID{} // CompactionModelID
-			*dest[20].(*[]byte) = []byte(`{}`)
-			*dest[21].(*pgtype.Timestamptz) = pgtype.Timestamptz{}
-			*dest[22].(*pgtype.Timestamptz) = pgtype.Timestamptz{}
+			*dest[5].(*pgtype.Text) = pgtype.Text{}
+			*dest[6].(*bool) = true
+			*dest[7].(*string) = BotStatusReady
+			*dest[8].(*string) = "en"                // Language
+			*dest[9].(*bool) = false                 // ReasoningEnabled
+			*dest[10].(*string) = "medium"           // ReasoningEffort
+			*dest[11].(*pgtype.UUID) = pgtype.UUID{} // ChatModelID
+			*dest[12].(*pgtype.UUID) = pgtype.UUID{} // SearchProviderID
+			*dest[13].(*pgtype.UUID) = pgtype.UUID{} // MemoryProviderID
+			*dest[14].(*bool) = false                // HeartbeatEnabled
+			*dest[15].(*int32) = 30                  // HeartbeatInterval
+			*dest[16].(*string) = ""                 // HeartbeatPrompt
+			*dest[17].(*bool) = false                // CompactionEnabled
+			*dest[18].(*int32) = 100000              // CompactionThreshold
+			*dest[19].(*int32) = 80                  // CompactionRatio
+			*dest[20].(*pgtype.UUID) = pgtype.UUID{} // CompactionModelID
+			*dest[21].(*[]byte) = []byte(`{}`)
+			*dest[22].(*[]byte) = []byte(`{}`)
+			*dest[23].(*pgtype.Timestamptz) = pgtype.Timestamptz{}
+			*dest[24].(*pgtype.Timestamptz) = pgtype.Timestamptz{}
+			return nil
+		},
+	}
+}
+
+func makeUpdateBotProfileRow(botID, ownerUserID, groupID pgtype.UUID) *fakeRow {
+	return &fakeRow{
+		scanFunc: func(dest ...any) error {
+			if len(dest) < 21 {
+				return pgx.ErrNoRows
+			}
+			*dest[0].(*pgtype.UUID) = botID
+			*dest[1].(*pgtype.UUID) = ownerUserID
+			*dest[2].(*pgtype.UUID) = groupID
+			*dest[3].(*pgtype.Text) = pgtype.Text{String: "test-bot", Valid: true}
+			*dest[4].(*pgtype.Text) = pgtype.Text{}
+			*dest[5].(*pgtype.Text) = pgtype.Text{}
+			*dest[6].(*bool) = true
+			*dest[7].(*string) = BotStatusReady
+			*dest[8].(*string) = "en"
+			*dest[9].(*bool) = false
+			*dest[10].(*string) = "medium"
+			*dest[11].(*pgtype.UUID) = pgtype.UUID{}
+			*dest[12].(*pgtype.UUID) = pgtype.UUID{}
+			*dest[13].(*pgtype.UUID) = pgtype.UUID{}
+			*dest[14].(*bool) = false
+			*dest[15].(*int32) = 30
+			*dest[16].(*string) = ""
+			*dest[17].(*[]byte) = []byte(`{}`)
+			*dest[18].(*[]byte) = []byte(`{}`)
+			*dest[19].(*pgtype.Timestamptz) = pgtype.Timestamptz{}
+			*dest[20].(*pgtype.Timestamptz) = pgtype.Timestamptz{}
+			return nil
+		},
+	}
+}
+
+func makeBotGroupRow(groupID, ownerUserID pgtype.UUID) *fakeRow {
+	return &fakeRow{
+		scanFunc: func(dest ...any) error {
+			if len(dest) < 7 {
+				return pgx.ErrNoRows
+			}
+			*dest[0].(*pgtype.UUID) = groupID
+			*dest[1].(*pgtype.UUID) = ownerUserID
+			*dest[2].(*string) = "test-group"
+			*dest[3].(*string) = ""
+			*dest[4].(*[]byte) = []byte(`{}`)
+			*dest[5].(*pgtype.Timestamptz) = pgtype.Timestamptz{}
+			*dest[6].(*pgtype.Timestamptz) = pgtype.Timestamptz{}
 			return nil
 		},
 	}
@@ -199,5 +255,161 @@ func TestCreateRejectsUnknownACLPreset(t *testing.T) {
 	}
 	if createCalled {
 		t.Fatal("bot row should not be created when acl preset is invalid")
+	}
+}
+
+func TestCreateSettingsOverrideMaskInheritsGroupDefaults(t *testing.T) {
+	payload, err := createSettingsOverrideMask(true, false)
+	if err != nil {
+		t.Fatalf("createSettingsOverrideMask returned error: %v", err)
+	}
+	mask, err := decodeOverrideMask(payload)
+	if err != nil {
+		t.Fatalf("decodeOverrideMask returned error: %v", err)
+	}
+	for field, enabled := range mask {
+		if enabled {
+			t.Fatalf("field %s override = true, want false", field)
+		}
+	}
+	if len(mask) == 0 {
+		t.Fatal("inherited mask must include settings fields")
+	}
+}
+
+func TestCreateSettingsOverrideMaskPreservesExplicitTimezone(t *testing.T) {
+	payload, err := createSettingsOverrideMask(true, true)
+	if err != nil {
+		t.Fatalf("createSettingsOverrideMask returned error: %v", err)
+	}
+	mask, err := decodeOverrideMask(payload)
+	if err != nil {
+		t.Fatalf("decodeOverrideMask returned error: %v", err)
+	}
+	if !mask["timezone"] {
+		t.Fatal("timezone override = false, want true")
+	}
+	if mask["language"] {
+		t.Fatal("language override = true, want false")
+	}
+}
+
+func TestAssignGroupAssignsOwnBotToOwnGroup(t *testing.T) {
+	ownerUUID := mustParseUUID("00000000-0000-0000-0000-000000000001")
+	botUUID := mustParseUUID("00000000-0000-0000-0000-000000000002")
+	groupUUID := mustParseUUID("00000000-0000-0000-0000-000000000003")
+	updateCalled := false
+
+	db := &fakeDBTX{
+		queryRowFunc: func(_ context.Context, sql string, args ...any) pgx.Row {
+			switch {
+			case strings.Contains(sql, "FROM bots") && strings.Contains(sql, "WHERE id = $1"):
+				return makeBotRow(botUUID, ownerUUID)
+			case strings.Contains(sql, "FROM bot_groups") && strings.Contains(sql, "owner_user_id = $1"):
+				if args[0] != ownerUUID || args[1] != groupUUID {
+					t.Fatalf("unexpected group owner lookup args: %#v", args)
+				}
+				return makeBotGroupRow(groupUUID, ownerUUID)
+			case strings.Contains(sql, "UPDATE bots") && strings.Contains(sql, "group_id = $5"):
+				updateCalled = true
+				gotGroupID, ok := args[4].(pgtype.UUID)
+				if !ok || gotGroupID != groupUUID {
+					t.Fatalf("update group id = %#v, want %#v", args[4], groupUUID)
+				}
+				return makeUpdateBotProfileRow(botUUID, ownerUUID, groupUUID)
+			default:
+				return &fakeRow{scanFunc: func(_ ...any) error { return pgx.ErrNoRows }}
+			}
+		},
+	}
+
+	svc := NewService(nil, postgresstore.NewQueries(sqlc.New(db)))
+	permission := &fakePermissionService{allowed: true}
+	svc.SetRBACService(permission)
+
+	bot, err := svc.AssignGroup(context.Background(), ownerUUID.String(), botUUID.String(), groupUUID.String())
+	if err != nil {
+		t.Fatalf("AssignGroup returned error: %v", err)
+	}
+	if bot.GroupID != groupUUID.String() {
+		t.Fatalf("group id = %q, want %q", bot.GroupID, groupUUID.String())
+	}
+	if !updateCalled {
+		t.Fatal("expected bot profile update")
+	}
+	if permission.check.PermissionKey != rbac.PermissionBotUpdate {
+		t.Fatalf("permission = %q, want %q", permission.check.PermissionKey, rbac.PermissionBotUpdate)
+	}
+}
+
+func TestAssignGroupRejectsAnotherUsersGroup(t *testing.T) {
+	ownerUUID := mustParseUUID("00000000-0000-0000-0000-000000000001")
+	botUUID := mustParseUUID("00000000-0000-0000-0000-000000000002")
+	groupUUID := mustParseUUID("00000000-0000-0000-0000-000000000003")
+	updateCalled := false
+
+	db := &fakeDBTX{
+		queryRowFunc: func(_ context.Context, sql string, _ ...any) pgx.Row {
+			switch {
+			case strings.Contains(sql, "FROM bots") && strings.Contains(sql, "WHERE id = $1"):
+				return makeBotRow(botUUID, ownerUUID)
+			case strings.Contains(sql, "FROM bot_groups") && strings.Contains(sql, "owner_user_id = $1"):
+				return &fakeRow{scanFunc: func(_ ...any) error { return pgx.ErrNoRows }}
+			case strings.Contains(sql, "UPDATE bots"):
+				updateCalled = true
+				return makeUpdateBotProfileRow(botUUID, ownerUUID, groupUUID)
+			default:
+				return &fakeRow{scanFunc: func(_ ...any) error { return pgx.ErrNoRows }}
+			}
+		},
+	}
+
+	svc := NewService(nil, postgresstore.NewQueries(sqlc.New(db)))
+	svc.SetRBACService(&fakePermissionService{allowed: true})
+
+	_, err := svc.AssignGroup(context.Background(), ownerUUID.String(), botUUID.String(), groupUUID.String())
+	if !errors.Is(err, ErrBotGroupNotAllowed) {
+		t.Fatalf("expected ErrBotGroupNotAllowed, got %v", err)
+	}
+	if updateCalled {
+		t.Fatal("bot profile should not update when group owner check fails")
+	}
+}
+
+func TestClearGroupPreservesNoGroupBehavior(t *testing.T) {
+	ownerUUID := mustParseUUID("00000000-0000-0000-0000-000000000001")
+	botUUID := mustParseUUID("00000000-0000-0000-0000-000000000002")
+	updateCalled := false
+
+	db := &fakeDBTX{
+		queryRowFunc: func(_ context.Context, sql string, args ...any) pgx.Row {
+			switch {
+			case strings.Contains(sql, "FROM bots") && strings.Contains(sql, "WHERE id = $1"):
+				return makeBotRow(botUUID, ownerUUID)
+			case strings.Contains(sql, "UPDATE bots") && strings.Contains(sql, "group_id = $5"):
+				updateCalled = true
+				gotGroupID, ok := args[4].(pgtype.UUID)
+				if !ok || gotGroupID.Valid {
+					t.Fatalf("update group id = %#v, want invalid pgtype.UUID", args[4])
+				}
+				return makeUpdateBotProfileRow(botUUID, ownerUUID, pgtype.UUID{})
+			default:
+				return &fakeRow{scanFunc: func(_ ...any) error { return pgx.ErrNoRows }}
+			}
+		},
+	}
+
+	svc := NewService(nil, postgresstore.NewQueries(sqlc.New(db)))
+	svc.SetRBACService(&fakePermissionService{allowed: true})
+
+	bot, err := svc.ClearGroup(context.Background(), ownerUUID.String(), botUUID.String())
+	if err != nil {
+		t.Fatalf("ClearGroup returned error: %v", err)
+	}
+	if bot.GroupID != "" {
+		t.Fatalf("group id = %q, want empty", bot.GroupID)
+	}
+	if !updateCalled {
+		t.Fatal("expected bot profile update")
 	}
 }

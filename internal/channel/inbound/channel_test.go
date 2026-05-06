@@ -2024,7 +2024,7 @@ func TestIsHTTPURL(t *testing.T) {
 		want  bool
 	}{
 		{"https://example.com/img.png", true},
-		{"http://localhost:8080/test", true},
+		{"http://localhost:26810/test", true},
 		{"HTTP://EXAMPLE.COM", true},
 		{"/data/media/img.png", false},
 		{"data:image/png;base64,abc", false},

@@ -1,0 +1,71 @@
+syntax = "proto3";
+
+package memoh.private.v1;
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1;privatev1";
+
+message PageRequest {
+  int32 page_size = 1;
+  string page_token = 2;
+}
+
+message PageResponse {
+  string next_page_token = 1;
+}
+
+message FieldSource {
+  string field = 1;
+  string source = 2;
+  string source_id = 3;
+}
+
+message SettingsOverrideMask {
+  map<string, bool> fields = 1;
+}
+
+message BotSettings {
+  optional string timezone = 1;
+  optional string language = 2;
+  optional bool reasoning_enabled = 3;
+  optional string reasoning_effort = 4;
+  optional string chat_model_id = 5;
+  optional string search_provider_id = 6;
+  optional string memory_provider_id = 7;
+  optional bool heartbeat_enabled = 8;
+  optional int32 heartbeat_interval = 9;
+  optional string heartbeat_prompt = 10;
+  optional string heartbeat_model_id = 11;
+  optional bool compaction_enabled = 12;
+  optional int32 compaction_threshold = 13;
+  optional int32 compaction_ratio = 14;
+  optional string compaction_model_id = 15;
+  optional string title_model_id = 16;
+  optional string image_model_id = 17;
+  optional string discuss_probe_model_id = 18;
+  optional string tts_model_id = 19;
+  optional string transcription_model_id = 20;
+  optional string browser_context_id = 21;
+  optional bool persist_full_tool_results = 22;
+  optional bool show_tool_calls_in_im = 23;
+  optional google.protobuf.Struct tool_approval_config = 24;
+  optional string overlay_provider = 25;
+  optional bool overlay_enabled = 26;
+  optional google.protobuf.Struct overlay_config = 27;
+  google.protobuf.Struct metadata = 28;
+  optional string acl_default_effect = 29;
+}
+
+message EffectiveBotSettings {
+  BotSettings settings = 1;
+  SettingsOverrideMask override_mask = 2;
+  repeated FieldSource sources = 3;
+  string group_id = 4;
+}
+
+message AuditFields {
+  google.protobuf.Timestamp created_at = 1;
+  google.protobuf.Timestamp updated_at = 2;
+}

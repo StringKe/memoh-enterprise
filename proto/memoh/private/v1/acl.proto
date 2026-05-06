@@ -1,0 +1,142 @@
+syntax = "proto3";
+
+package memoh.private.v1;
+
+import "google/protobuf/struct.proto";
+import "memoh/private/v1/common.proto";
+
+option go_package = "github.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1;privatev1";
+
+message AclRule {
+  string id = 1;
+  string bot_id = 2;
+  string channel = 3;
+  string identity_id = 4;
+  string effect = 5;
+  int32 priority = 6;
+  google.protobuf.Struct metadata = 7;
+  AuditFields audit = 8;
+}
+
+message AclChannelIdentity {
+  string id = 1;
+  string channel = 2;
+  string display_name = 3;
+  google.protobuf.Struct metadata = 4;
+}
+
+message AclObservedConversation {
+  string id = 1;
+  string channel = 2;
+  string identity_id = 3;
+  string title = 4;
+  google.protobuf.Struct metadata = 5;
+}
+
+message ListAclRulesRequest {
+  string bot_id = 1;
+}
+
+message ListAclRulesResponse {
+  repeated AclRule rules = 1;
+}
+
+message CreateAclRuleRequest {
+  string bot_id = 1;
+  string channel = 2;
+  string identity_id = 3;
+  string effect = 4;
+  google.protobuf.Struct metadata = 5;
+}
+
+message CreateAclRuleResponse {
+  AclRule rule = 1;
+}
+
+message UpdateAclRuleRequest {
+  string id = 1;
+  optional string effect = 2;
+  google.protobuf.Struct metadata = 3;
+}
+
+message UpdateAclRuleResponse {
+  AclRule rule = 1;
+}
+
+message DeleteAclRuleRequest {
+  string id = 1;
+}
+
+message DeleteAclRuleResponse {}
+
+message ReorderAclRulesRequest {
+  string bot_id = 1;
+  repeated string rule_ids = 2;
+}
+
+message ReorderAclRulesResponse {
+  repeated AclRule rules = 1;
+}
+
+message GetAclDefaultEffectRequest {
+  string bot_id = 1;
+}
+
+message GetAclDefaultEffectResponse {
+  string effect = 1;
+}
+
+message SetAclDefaultEffectRequest {
+  string bot_id = 1;
+  string effect = 2;
+}
+
+message SetAclDefaultEffectResponse {
+  string effect = 1;
+}
+
+message SearchAclChannelIdentitiesRequest {
+  string bot_id = 1;
+  string query = 2;
+  PageRequest page = 3;
+}
+
+message SearchAclChannelIdentitiesResponse {
+  repeated AclChannelIdentity identities = 1;
+  PageResponse page = 2;
+}
+
+message ListAclObservedConversationsRequest {
+  string bot_id = 1;
+  string identity_id = 2;
+  PageRequest page = 3;
+}
+
+message ListAclObservedConversationsResponse {
+  repeated AclObservedConversation conversations = 1;
+  PageResponse page = 2;
+}
+
+message ListAclObservedConversationsByChannelTypeRequest {
+  string bot_id = 1;
+  string channel = 2;
+  PageRequest page = 3;
+}
+
+message ListAclObservedConversationsByChannelTypeResponse {
+  repeated AclObservedConversation conversations = 1;
+  PageResponse page = 2;
+}
+
+service AclService {
+  rpc ListAclRules(ListAclRulesRequest) returns (ListAclRulesResponse);
+  rpc CreateAclRule(CreateAclRuleRequest) returns (CreateAclRuleResponse);
+  rpc UpdateAclRule(UpdateAclRuleRequest) returns (UpdateAclRuleResponse);
+  rpc DeleteAclRule(DeleteAclRuleRequest) returns (DeleteAclRuleResponse);
+  rpc ReorderAclRules(ReorderAclRulesRequest) returns (ReorderAclRulesResponse);
+  rpc GetAclDefaultEffect(GetAclDefaultEffectRequest) returns (GetAclDefaultEffectResponse);
+  rpc SetAclDefaultEffect(SetAclDefaultEffectRequest) returns (SetAclDefaultEffectResponse);
+  rpc SearchAclChannelIdentities(SearchAclChannelIdentitiesRequest) returns (SearchAclChannelIdentitiesResponse);
+  rpc ListAclObservedConversations(ListAclObservedConversationsRequest) returns (ListAclObservedConversationsResponse);
+  rpc ListAclObservedConversationsByChannelType(ListAclObservedConversationsByChannelTypeRequest) returns (ListAclObservedConversationsByChannelTypeResponse);
+}

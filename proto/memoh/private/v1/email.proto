@@ -1,0 +1,205 @@
+syntax = "proto3";
+
+package memoh.private.v1;
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+import "memoh/private/v1/common.proto";
+
+option go_package = "github.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1;privatev1";
+
+message EmailProviderMeta {
+  string type = 1;
+  string display_name = 2;
+  google.protobuf.Struct schema = 3;
+}
+
+message EmailProvider {
+  string id = 1;
+  string name = 2;
+  string type = 3;
+  bool enabled = 4;
+  google.protobuf.Struct config = 5;
+  AuditFields audit = 6;
+}
+
+message EmailBinding {
+  string id = 1;
+  string bot_id = 2;
+  string provider_id = 3;
+  string address = 4;
+  bool enabled = 5;
+  google.protobuf.Struct config = 6;
+  AuditFields audit = 7;
+}
+
+message EmailOutboxItem {
+  string id = 1;
+  string bot_id = 2;
+  string provider_id = 3;
+  string to = 4;
+  string subject = 5;
+  string status = 6;
+  string error = 7;
+  google.protobuf.Timestamp sent_at = 8;
+  AuditFields audit = 9;
+}
+
+message ListEmailProviderMetaRequest {}
+
+message ListEmailProviderMetaResponse {
+  repeated EmailProviderMeta providers = 1;
+}
+
+message CreateEmailProviderRequest {
+  string name = 1;
+  string type = 2;
+  bool enabled = 3;
+  google.protobuf.Struct config = 4;
+}
+
+message CreateEmailProviderResponse {
+  EmailProvider provider = 1;
+}
+
+message ListEmailProvidersRequest {
+  PageRequest page = 1;
+}
+
+message ListEmailProvidersResponse {
+  repeated EmailProvider providers = 1;
+  PageResponse page = 2;
+}
+
+message GetEmailProviderRequest {
+  string id = 1;
+}
+
+message GetEmailProviderResponse {
+  EmailProvider provider = 1;
+}
+
+message UpdateEmailProviderRequest {
+  string id = 1;
+  optional string name = 2;
+  optional string type = 3;
+  optional bool enabled = 4;
+  google.protobuf.Struct config = 5;
+}
+
+message UpdateEmailProviderResponse {
+  EmailProvider provider = 1;
+}
+
+message DeleteEmailProviderRequest {
+  string id = 1;
+}
+
+message DeleteEmailProviderResponse {}
+
+message StartEmailOauthRequest {
+  string provider_id = 1;
+  string redirect_uri = 2;
+}
+
+message StartEmailOauthResponse {
+  string authorize_url = 1;
+  string state = 2;
+}
+
+message GetEmailOauthStatusRequest {
+  string provider_id = 1;
+}
+
+message GetEmailOauthStatusResponse {
+  bool authorized = 1;
+  string account = 2;
+  google.protobuf.Struct metadata = 3;
+}
+
+message RevokeEmailOauthRequest {
+  string provider_id = 1;
+}
+
+message RevokeEmailOauthResponse {}
+
+message CreateEmailBindingRequest {
+  string bot_id = 1;
+  string provider_id = 2;
+  string address = 3;
+  bool enabled = 4;
+  google.protobuf.Struct config = 5;
+}
+
+message CreateEmailBindingResponse {
+  EmailBinding binding = 1;
+}
+
+message ListEmailBindingsRequest {
+  string bot_id = 1;
+  PageRequest page = 2;
+}
+
+message ListEmailBindingsResponse {
+  repeated EmailBinding bindings = 1;
+  PageResponse page = 2;
+}
+
+message UpdateEmailBindingRequest {
+  string id = 1;
+  optional string address = 2;
+  optional bool enabled = 3;
+  google.protobuf.Struct config = 4;
+}
+
+message UpdateEmailBindingResponse {
+  EmailBinding binding = 1;
+}
+
+message DeleteEmailBindingRequest {
+  string id = 1;
+}
+
+message DeleteEmailBindingResponse {}
+
+message ListEmailOutboxRequest {
+  string bot_id = 1;
+  PageRequest page = 2;
+}
+
+message ListEmailOutboxResponse {
+  repeated EmailOutboxItem items = 1;
+  PageResponse page = 2;
+}
+
+message GetEmailOutboxItemRequest {
+  string id = 1;
+}
+
+message GetEmailOutboxItemResponse {
+  EmailOutboxItem item = 1;
+}
+
+service EmailProviderService {
+  rpc ListEmailProviderMeta(ListEmailProviderMetaRequest) returns (ListEmailProviderMetaResponse);
+  rpc CreateEmailProvider(CreateEmailProviderRequest) returns (CreateEmailProviderResponse);
+  rpc ListEmailProviders(ListEmailProvidersRequest) returns (ListEmailProvidersResponse);
+  rpc GetEmailProvider(GetEmailProviderRequest) returns (GetEmailProviderResponse);
+  rpc UpdateEmailProvider(UpdateEmailProviderRequest) returns (UpdateEmailProviderResponse);
+  rpc DeleteEmailProvider(DeleteEmailProviderRequest) returns (DeleteEmailProviderResponse);
+  rpc StartEmailOauth(StartEmailOauthRequest) returns (StartEmailOauthResponse);
+  rpc GetEmailOauthStatus(GetEmailOauthStatusRequest) returns (GetEmailOauthStatusResponse);
+  rpc RevokeEmailOauth(RevokeEmailOauthRequest) returns (RevokeEmailOauthResponse);
+}
+
+service EmailBindingService {
+  rpc CreateEmailBinding(CreateEmailBindingRequest) returns (CreateEmailBindingResponse);
+  rpc ListEmailBindings(ListEmailBindingsRequest) returns (ListEmailBindingsResponse);
+  rpc UpdateEmailBinding(UpdateEmailBindingRequest) returns (UpdateEmailBindingResponse);
+  rpc DeleteEmailBinding(DeleteEmailBindingRequest) returns (DeleteEmailBindingResponse);
+}
+
+service EmailOutboxService {
+  rpc ListEmailOutbox(ListEmailOutboxRequest) returns (ListEmailOutboxResponse);
+  rpc GetEmailOutboxItem(GetEmailOutboxItemRequest) returns (GetEmailOutboxItemResponse);
+}

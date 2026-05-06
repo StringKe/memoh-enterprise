@@ -1,0 +1,97 @@
+syntax = "proto3";
+
+package memoh.private.v1;
+
+import "google/protobuf/struct.proto";
+import "memoh/private/v1/common.proto";
+
+option go_package = "github.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1;privatev1";
+
+message SupermarketItem {
+  string id = 1;
+  string name = 2;
+  string display_name = 3;
+  string description = 4;
+  repeated string tags = 5;
+  google.protobuf.Struct metadata = 6;
+}
+
+message SupermarketTag {
+  string id = 1;
+  string name = 2;
+  int32 count = 3;
+}
+
+message ListSupermarketMcpsRequest {
+  string query = 1;
+  repeated string tags = 2;
+  PageRequest page = 3;
+}
+
+message ListSupermarketMcpsResponse {
+  repeated SupermarketItem items = 1;
+  PageResponse page = 2;
+}
+
+message GetSupermarketMcpRequest {
+  string id = 1;
+}
+
+message GetSupermarketMcpResponse {
+  SupermarketItem item = 1;
+}
+
+message ListSupermarketSkillsRequest {
+  string query = 1;
+  repeated string tags = 2;
+  PageRequest page = 3;
+}
+
+message ListSupermarketSkillsResponse {
+  repeated SupermarketItem items = 1;
+  PageResponse page = 2;
+}
+
+message GetSupermarketSkillRequest {
+  string id = 1;
+}
+
+message GetSupermarketSkillResponse {
+  SupermarketItem item = 1;
+}
+
+message ListSupermarketTagsRequest {}
+
+message ListSupermarketTagsResponse {
+  repeated SupermarketTag tags = 1;
+}
+
+message InstallSupermarketMcpRequest {
+  string bot_id = 1;
+  string id = 2;
+  google.protobuf.Struct options = 3;
+}
+
+message InstallSupermarketMcpResponse {
+  SupermarketItem item = 1;
+}
+
+message InstallSupermarketSkillRequest {
+  string bot_id = 1;
+  string id = 2;
+  google.protobuf.Struct options = 3;
+}
+
+message InstallSupermarketSkillResponse {
+  SupermarketItem item = 1;
+}
+
+service SupermarketService {
+  rpc ListSupermarketMcps(ListSupermarketMcpsRequest) returns (ListSupermarketMcpsResponse);
+  rpc GetSupermarketMcp(GetSupermarketMcpRequest) returns (GetSupermarketMcpResponse);
+  rpc ListSupermarketSkills(ListSupermarketSkillsRequest) returns (ListSupermarketSkillsResponse);
+  rpc GetSupermarketSkill(GetSupermarketSkillRequest) returns (GetSupermarketSkillResponse);
+  rpc ListSupermarketTags(ListSupermarketTagsRequest) returns (ListSupermarketTagsResponse);
+  rpc InstallSupermarketMcp(InstallSupermarketMcpRequest) returns (InstallSupermarketMcpResponse);
+  rpc InstallSupermarketSkill(InstallSupermarketSkillRequest) returns (InstallSupermarketSkillResponse);
+}

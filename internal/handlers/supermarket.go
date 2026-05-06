@@ -325,7 +325,7 @@ func (h *SupermarketHandler) InstallSkill(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]any{"ok": true, "files_written": filesWritten})
 }
 
-// --- Supermarket upstream types (for swagger) ---
+// --- Supermarket upstream payload types ---
 
 type SupermarketAuthor struct {
 	Name  string `json:"name"`

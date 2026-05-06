@@ -11,6 +11,7 @@ import (
 type Bot struct {
 	ID                     pgtype.UUID        `json:"id"`
 	OwnerUserID            pgtype.UUID        `json:"owner_user_id"`
+	GroupID                pgtype.UUID        `json:"group_id"`
 	DisplayName            pgtype.Text        `json:"display_name"`
 	AvatarUrl              pgtype.Text        `json:"avatar_url"`
 	Timezone               pgtype.Text        `json:"timezone"`
@@ -42,6 +43,7 @@ type Bot struct {
 	OverlayProvider        string             `json:"overlay_provider"`
 	OverlayEnabled         bool               `json:"overlay_enabled"`
 	OverlayConfig          []byte             `json:"overlay_config"`
+	SettingsOverrideMask   []byte             `json:"settings_override_mask"`
 	Metadata               []byte             `json:"metadata"`
 	CreatedAt              pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt              pgtype.Timestamptz `json:"updated_at"`
@@ -109,6 +111,49 @@ type BotEmailBinding struct {
 	Config          []byte             `json:"config"`
 	CreatedAt       pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
+}
+
+type BotGroup struct {
+	ID          pgtype.UUID        `json:"id"`
+	OwnerUserID pgtype.UUID        `json:"owner_user_id"`
+	Name        string             `json:"name"`
+	Description string             `json:"description"`
+	Metadata    []byte             `json:"metadata"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+}
+
+type BotGroupSetting struct {
+	GroupID                pgtype.UUID        `json:"group_id"`
+	Timezone               pgtype.Text        `json:"timezone"`
+	Language               pgtype.Text        `json:"language"`
+	ReasoningEnabled       pgtype.Bool        `json:"reasoning_enabled"`
+	ReasoningEffort        pgtype.Text        `json:"reasoning_effort"`
+	ChatModelID            pgtype.UUID        `json:"chat_model_id"`
+	SearchProviderID       pgtype.UUID        `json:"search_provider_id"`
+	MemoryProviderID       pgtype.UUID        `json:"memory_provider_id"`
+	HeartbeatEnabled       pgtype.Bool        `json:"heartbeat_enabled"`
+	HeartbeatInterval      pgtype.Int4        `json:"heartbeat_interval"`
+	HeartbeatPrompt        pgtype.Text        `json:"heartbeat_prompt"`
+	HeartbeatModelID       pgtype.UUID        `json:"heartbeat_model_id"`
+	CompactionEnabled      pgtype.Bool        `json:"compaction_enabled"`
+	CompactionThreshold    pgtype.Int4        `json:"compaction_threshold"`
+	CompactionRatio        pgtype.Int4        `json:"compaction_ratio"`
+	CompactionModelID      pgtype.UUID        `json:"compaction_model_id"`
+	TitleModelID           pgtype.UUID        `json:"title_model_id"`
+	ImageModelID           pgtype.UUID        `json:"image_model_id"`
+	DiscussProbeModelID    pgtype.UUID        `json:"discuss_probe_model_id"`
+	TtsModelID             pgtype.UUID        `json:"tts_model_id"`
+	TranscriptionModelID   pgtype.UUID        `json:"transcription_model_id"`
+	BrowserContextID       pgtype.UUID        `json:"browser_context_id"`
+	PersistFullToolResults pgtype.Bool        `json:"persist_full_tool_results"`
+	ShowToolCallsInIm      pgtype.Bool        `json:"show_tool_calls_in_im"`
+	ToolApprovalConfig     []byte             `json:"tool_approval_config"`
+	OverlayProvider        pgtype.Text        `json:"overlay_provider"`
+	OverlayEnabled         pgtype.Bool        `json:"overlay_enabled"`
+	OverlayConfig          []byte             `json:"overlay_config"`
+	Metadata               []byte             `json:"metadata"`
+	UpdatedAt              pgtype.Timestamptz `json:"updated_at"`
 }
 
 type BotHeartbeatLog struct {
@@ -460,6 +505,23 @@ type IamUserProviderOauthToken struct {
 	Metadata         []byte             `json:"metadata"`
 	CreatedAt        pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt        pgtype.Timestamptz `json:"updated_at"`
+}
+
+type IntegrationApiToken struct {
+	ID                 pgtype.UUID        `json:"id"`
+	Name               string             `json:"name"`
+	TokenHash          string             `json:"token_hash"`
+	ScopeType          string             `json:"scope_type"`
+	ScopeBotID         pgtype.UUID        `json:"scope_bot_id"`
+	ScopeBotGroupID    pgtype.UUID        `json:"scope_bot_group_id"`
+	AllowedEventTypes  []byte             `json:"allowed_event_types"`
+	AllowedActionTypes []byte             `json:"allowed_action_types"`
+	ExpiresAt          pgtype.Timestamptz `json:"expires_at"`
+	DisabledAt         pgtype.Timestamptz `json:"disabled_at"`
+	LastUsedAt         pgtype.Timestamptz `json:"last_used_at"`
+	CreatedByUserID    pgtype.UUID        `json:"created_by_user_id"`
+	CreatedAt          pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt          pgtype.Timestamptz `json:"updated_at"`
 }
 
 type LifecycleEvent struct {

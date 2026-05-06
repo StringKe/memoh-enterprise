@@ -12,57 +12,74 @@ import (
 )
 
 const createBot = `-- name: CreateBot :one
-INSERT INTO bots (owner_user_id, display_name, avatar_url, timezone, is_active, metadata, status)
-VALUES ($1, $2, $3, $4, $5, $6, $7)
-RETURNING id, owner_user_id, display_name, avatar_url, timezone, is_active, status, language, reasoning_enabled, reasoning_effort, chat_model_id, search_provider_id, memory_provider_id, heartbeat_enabled, heartbeat_interval, heartbeat_prompt, metadata, created_at, updated_at
+INSERT INTO bots (owner_user_id, group_id, display_name, avatar_url, timezone, is_active, metadata, status, settings_override_mask)
+VALUES (
+  $1,
+  $2,
+  $3,
+  $4,
+  $5,
+  $6,
+  $7,
+  COALESCE(NULLIF($8::text, ''), 'ready'),
+  COALESCE($9::jsonb, '{}'::jsonb)
+)
+RETURNING id, owner_user_id, group_id, display_name, avatar_url, timezone, is_active, status, language, reasoning_enabled, reasoning_effort, chat_model_id, search_provider_id, memory_provider_id, heartbeat_enabled, heartbeat_interval, heartbeat_prompt, settings_override_mask, metadata, created_at, updated_at
 `
 
 type CreateBotParams struct {
-	OwnerUserID pgtype.UUID `json:"owner_user_id"`
-	DisplayName pgtype.Text `json:"display_name"`
-	AvatarUrl   pgtype.Text `json:"avatar_url"`
-	Timezone    pgtype.Text `json:"timezone"`
-	IsActive    bool        `json:"is_active"`
-	Metadata    []byte      `json:"metadata"`
-	Status      string      `json:"status"`
+	OwnerUserID          pgtype.UUID `json:"owner_user_id"`
+	GroupID              pgtype.UUID `json:"group_id"`
+	DisplayName          pgtype.Text `json:"display_name"`
+	AvatarUrl            pgtype.Text `json:"avatar_url"`
+	Timezone             pgtype.Text `json:"timezone"`
+	IsActive             bool        `json:"is_active"`
+	Metadata             []byte      `json:"metadata"`
+	Status               string      `json:"status"`
+	SettingsOverrideMask []byte      `json:"settings_override_mask"`
 }
 
 type CreateBotRow struct {
-	ID                pgtype.UUID        `json:"id"`
-	OwnerUserID       pgtype.UUID        `json:"owner_user_id"`
-	DisplayName       pgtype.Text        `json:"display_name"`
-	AvatarUrl         pgtype.Text        `json:"avatar_url"`
-	Timezone          pgtype.Text        `json:"timezone"`
-	IsActive          bool               `json:"is_active"`
-	Status            string             `json:"status"`
-	Language          string             `json:"language"`
-	ReasoningEnabled  bool               `json:"reasoning_enabled"`
-	ReasoningEffort   string             `json:"reasoning_effort"`
-	ChatModelID       pgtype.UUID        `json:"chat_model_id"`
-	SearchProviderID  pgtype.UUID        `json:"search_provider_id"`
-	MemoryProviderID  pgtype.UUID        `json:"memory_provider_id"`
-	HeartbeatEnabled  bool               `json:"heartbeat_enabled"`
-	HeartbeatInterval int32              `json:"heartbeat_interval"`
-	HeartbeatPrompt   string             `json:"heartbeat_prompt"`
-	Metadata          []byte             `json:"metadata"`
-	CreatedAt         pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
+	ID                   pgtype.UUID        `json:"id"`
+	OwnerUserID          pgtype.UUID        `json:"owner_user_id"`
+	GroupID              pgtype.UUID        `json:"group_id"`
+	DisplayName          pgtype.Text        `json:"display_name"`
+	AvatarUrl            pgtype.Text        `json:"avatar_url"`
+	Timezone             pgtype.Text        `json:"timezone"`
+	IsActive             bool               `json:"is_active"`
+	Status               string             `json:"status"`
+	Language             string             `json:"language"`
+	ReasoningEnabled     bool               `json:"reasoning_enabled"`
+	ReasoningEffort      string             `json:"reasoning_effort"`
+	ChatModelID          pgtype.UUID        `json:"chat_model_id"`
+	SearchProviderID     pgtype.UUID        `json:"search_provider_id"`
+	MemoryProviderID     pgtype.UUID        `json:"memory_provider_id"`
+	HeartbeatEnabled     bool               `json:"heartbeat_enabled"`
+	HeartbeatInterval    int32              `json:"heartbeat_interval"`
+	HeartbeatPrompt      string             `json:"heartbeat_prompt"`
+	SettingsOverrideMask []byte             `json:"settings_override_mask"`
+	Metadata             []byte             `json:"metadata"`
+	CreatedAt            pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt            pgtype.Timestamptz `json:"updated_at"`
 }
 
 func (q *Queries) CreateBot(ctx context.Context, arg CreateBotParams) (CreateBotRow, error) {
 	row := q.db.QueryRow(ctx, createBot,
 		arg.OwnerUserID,
+		arg.GroupID,
 		arg.DisplayName,
 		arg.AvatarUrl,
 		arg.Timezone,
 		arg.IsActive,
 		arg.Metadata,
 		arg.Status,
+		arg.SettingsOverrideMask,
 	)
 	var i CreateBotRow
 	err := row.Scan(
 		&i.ID,
 		&i.OwnerUserID,
+		&i.GroupID,
 		&i.DisplayName,
 		&i.AvatarUrl,
 		&i.Timezone,
@@ -77,6 +94,7 @@ func (q *Queries) CreateBot(ctx context.Context, arg CreateBotParams) (CreateBot
 		&i.HeartbeatEnabled,
 		&i.HeartbeatInterval,
 		&i.HeartbeatPrompt,
+		&i.SettingsOverrideMask,
 		&i.Metadata,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -94,35 +112,37 @@ func (q *Queries) DeleteBotByID(ctx context.Context, id pgtype.UUID) error {
 }
 
 const getBotByID = `-- name: GetBotByID :one
-SELECT id, owner_user_id, display_name, avatar_url, timezone, is_active, status, language, reasoning_enabled, reasoning_effort, chat_model_id, search_provider_id, memory_provider_id, heartbeat_enabled, heartbeat_interval, heartbeat_prompt, compaction_enabled, compaction_threshold, compaction_ratio, compaction_model_id, metadata, created_at, updated_at
+SELECT id, owner_user_id, group_id, display_name, avatar_url, timezone, is_active, status, language, reasoning_enabled, reasoning_effort, chat_model_id, search_provider_id, memory_provider_id, heartbeat_enabled, heartbeat_interval, heartbeat_prompt, compaction_enabled, compaction_threshold, compaction_ratio, compaction_model_id, settings_override_mask, metadata, created_at, updated_at
 FROM bots
 WHERE id = $1
 `
 
 type GetBotByIDRow struct {
-	ID                  pgtype.UUID        `json:"id"`
-	OwnerUserID         pgtype.UUID        `json:"owner_user_id"`
-	DisplayName         pgtype.Text        `json:"display_name"`
-	AvatarUrl           pgtype.Text        `json:"avatar_url"`
-	Timezone            pgtype.Text        `json:"timezone"`
-	IsActive            bool               `json:"is_active"`
-	Status              string             `json:"status"`
-	Language            string             `json:"language"`
-	ReasoningEnabled    bool               `json:"reasoning_enabled"`
-	ReasoningEffort     string             `json:"reasoning_effort"`
-	ChatModelID         pgtype.UUID        `json:"chat_model_id"`
-	SearchProviderID    pgtype.UUID        `json:"search_provider_id"`
-	MemoryProviderID    pgtype.UUID        `json:"memory_provider_id"`
-	HeartbeatEnabled    bool               `json:"heartbeat_enabled"`
-	HeartbeatInterval   int32              `json:"heartbeat_interval"`
-	HeartbeatPrompt     string             `json:"heartbeat_prompt"`
-	CompactionEnabled   bool               `json:"compaction_enabled"`
-	CompactionThreshold int32              `json:"compaction_threshold"`
-	CompactionRatio     int32              `json:"compaction_ratio"`
-	CompactionModelID   pgtype.UUID        `json:"compaction_model_id"`
-	Metadata            []byte             `json:"metadata"`
-	CreatedAt           pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt           pgtype.Timestamptz `json:"updated_at"`
+	ID                   pgtype.UUID        `json:"id"`
+	OwnerUserID          pgtype.UUID        `json:"owner_user_id"`
+	GroupID              pgtype.UUID        `json:"group_id"`
+	DisplayName          pgtype.Text        `json:"display_name"`
+	AvatarUrl            pgtype.Text        `json:"avatar_url"`
+	Timezone             pgtype.Text        `json:"timezone"`
+	IsActive             bool               `json:"is_active"`
+	Status               string             `json:"status"`
+	Language             string             `json:"language"`
+	ReasoningEnabled     bool               `json:"reasoning_enabled"`
+	ReasoningEffort      string             `json:"reasoning_effort"`
+	ChatModelID          pgtype.UUID        `json:"chat_model_id"`
+	SearchProviderID     pgtype.UUID        `json:"search_provider_id"`
+	MemoryProviderID     pgtype.UUID        `json:"memory_provider_id"`
+	HeartbeatEnabled     bool               `json:"heartbeat_enabled"`
+	HeartbeatInterval    int32              `json:"heartbeat_interval"`
+	HeartbeatPrompt      string             `json:"heartbeat_prompt"`
+	CompactionEnabled    bool               `json:"compaction_enabled"`
+	CompactionThreshold  int32              `json:"compaction_threshold"`
+	CompactionRatio      int32              `json:"compaction_ratio"`
+	CompactionModelID    pgtype.UUID        `json:"compaction_model_id"`
+	SettingsOverrideMask []byte             `json:"settings_override_mask"`
+	Metadata             []byte             `json:"metadata"`
+	CreatedAt            pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt            pgtype.Timestamptz `json:"updated_at"`
 }
 
 func (q *Queries) GetBotByID(ctx context.Context, id pgtype.UUID) (GetBotByIDRow, error) {
@@ -131,6 +151,7 @@ func (q *Queries) GetBotByID(ctx context.Context, id pgtype.UUID) (GetBotByIDRow
 	err := row.Scan(
 		&i.ID,
 		&i.OwnerUserID,
+		&i.GroupID,
 		&i.DisplayName,
 		&i.AvatarUrl,
 		&i.Timezone,
@@ -149,6 +170,7 @@ func (q *Queries) GetBotByID(ctx context.Context, id pgtype.UUID) (GetBotByIDRow
 		&i.CompactionThreshold,
 		&i.CompactionRatio,
 		&i.CompactionModelID,
+		&i.SettingsOverrideMask,
 		&i.Metadata,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -156,33 +178,86 @@ func (q *Queries) GetBotByID(ctx context.Context, id pgtype.UUID) (GetBotByIDRow
 	return i, err
 }
 
+const getBotHeartbeatConfig = `-- name: GetBotHeartbeatConfig :one
+SELECT
+  bots.id,
+  bots.owner_user_id,
+  bots.status,
+  CASE
+    WHEN bots.group_id IS NOT NULL
+      AND NOT COALESCE((bots.settings_override_mask->>'heartbeat_enabled')::boolean, false)
+      THEN COALESCE(bot_group_settings.heartbeat_enabled, false)
+    ELSE bots.heartbeat_enabled
+  END::boolean AS heartbeat_enabled,
+  CASE
+    WHEN bots.group_id IS NOT NULL
+      AND NOT COALESCE((bots.settings_override_mask->>'heartbeat_interval')::boolean, false)
+      THEN COALESCE(bot_group_settings.heartbeat_interval, 30)
+    ELSE bots.heartbeat_interval
+  END::integer AS heartbeat_interval,
+  CASE
+    WHEN bots.group_id IS NOT NULL
+      AND NOT COALESCE((bots.settings_override_mask->>'heartbeat_prompt')::boolean, false)
+      THEN COALESCE(bot_group_settings.heartbeat_prompt, '')
+    ELSE bots.heartbeat_prompt
+  END::text AS heartbeat_prompt
+FROM bots
+LEFT JOIN bot_group_settings ON bot_group_settings.group_id = bots.group_id
+WHERE bots.id = $1
+`
+
+type GetBotHeartbeatConfigRow struct {
+	ID                pgtype.UUID `json:"id"`
+	OwnerUserID       pgtype.UUID `json:"owner_user_id"`
+	Status            string      `json:"status"`
+	HeartbeatEnabled  bool        `json:"heartbeat_enabled"`
+	HeartbeatInterval int32       `json:"heartbeat_interval"`
+	HeartbeatPrompt   string      `json:"heartbeat_prompt"`
+}
+
+func (q *Queries) GetBotHeartbeatConfig(ctx context.Context, id pgtype.UUID) (GetBotHeartbeatConfigRow, error) {
+	row := q.db.QueryRow(ctx, getBotHeartbeatConfig, id)
+	var i GetBotHeartbeatConfigRow
+	err := row.Scan(
+		&i.ID,
+		&i.OwnerUserID,
+		&i.Status,
+		&i.HeartbeatEnabled,
+		&i.HeartbeatInterval,
+		&i.HeartbeatPrompt,
+	)
+	return i, err
+}
+
 const listBotsByOwner = `-- name: ListBotsByOwner :many
-SELECT id, owner_user_id, display_name, avatar_url, timezone, is_active, status, language, reasoning_enabled, reasoning_effort, chat_model_id, search_provider_id, memory_provider_id, heartbeat_enabled, heartbeat_interval, heartbeat_prompt, metadata, created_at, updated_at
+SELECT id, owner_user_id, group_id, display_name, avatar_url, timezone, is_active, status, language, reasoning_enabled, reasoning_effort, chat_model_id, search_provider_id, memory_provider_id, heartbeat_enabled, heartbeat_interval, heartbeat_prompt, settings_override_mask, metadata, created_at, updated_at
 FROM bots
 WHERE owner_user_id = $1
 ORDER BY created_at DESC
 `
 
 type ListBotsByOwnerRow struct {
-	ID                pgtype.UUID        `json:"id"`
-	OwnerUserID       pgtype.UUID        `json:"owner_user_id"`
-	DisplayName       pgtype.Text        `json:"display_name"`
-	AvatarUrl         pgtype.Text        `json:"avatar_url"`
-	Timezone          pgtype.Text        `json:"timezone"`
-	IsActive          bool               `json:"is_active"`
-	Status            string             `json:"status"`
-	Language          string             `json:"language"`
-	ReasoningEnabled  bool               `json:"reasoning_enabled"`
-	ReasoningEffort   string             `json:"reasoning_effort"`
-	ChatModelID       pgtype.UUID        `json:"chat_model_id"`
-	SearchProviderID  pgtype.UUID        `json:"search_provider_id"`
-	MemoryProviderID  pgtype.UUID        `json:"memory_provider_id"`
-	HeartbeatEnabled  bool               `json:"heartbeat_enabled"`
-	HeartbeatInterval int32              `json:"heartbeat_interval"`
-	HeartbeatPrompt   string             `json:"heartbeat_prompt"`
-	Metadata          []byte             `json:"metadata"`
-	CreatedAt         pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
+	ID                   pgtype.UUID        `json:"id"`
+	OwnerUserID          pgtype.UUID        `json:"owner_user_id"`
+	GroupID              pgtype.UUID        `json:"group_id"`
+	DisplayName          pgtype.Text        `json:"display_name"`
+	AvatarUrl            pgtype.Text        `json:"avatar_url"`
+	Timezone             pgtype.Text        `json:"timezone"`
+	IsActive             bool               `json:"is_active"`
+	Status               string             `json:"status"`
+	Language             string             `json:"language"`
+	ReasoningEnabled     bool               `json:"reasoning_enabled"`
+	ReasoningEffort      string             `json:"reasoning_effort"`
+	ChatModelID          pgtype.UUID        `json:"chat_model_id"`
+	SearchProviderID     pgtype.UUID        `json:"search_provider_id"`
+	MemoryProviderID     pgtype.UUID        `json:"memory_provider_id"`
+	HeartbeatEnabled     bool               `json:"heartbeat_enabled"`
+	HeartbeatInterval    int32              `json:"heartbeat_interval"`
+	HeartbeatPrompt      string             `json:"heartbeat_prompt"`
+	SettingsOverrideMask []byte             `json:"settings_override_mask"`
+	Metadata             []byte             `json:"metadata"`
+	CreatedAt            pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt            pgtype.Timestamptz `json:"updated_at"`
 }
 
 func (q *Queries) ListBotsByOwner(ctx context.Context, ownerUserID pgtype.UUID) ([]ListBotsByOwnerRow, error) {
@@ -197,6 +272,7 @@ func (q *Queries) ListBotsByOwner(ctx context.Context, ownerUserID pgtype.UUID) 
 		if err := rows.Scan(
 			&i.ID,
 			&i.OwnerUserID,
+			&i.GroupID,
 			&i.DisplayName,
 			&i.AvatarUrl,
 			&i.Timezone,
@@ -211,6 +287,7 @@ func (q *Queries) ListBotsByOwner(ctx context.Context, ownerUserID pgtype.UUID) 
 			&i.HeartbeatEnabled,
 			&i.HeartbeatInterval,
 			&i.HeartbeatPrompt,
+			&i.SettingsOverrideMask,
 			&i.Metadata,
 			&i.CreatedAt,
 			&i.UpdatedAt,
@@ -226,8 +303,34 @@ func (q *Queries) ListBotsByOwner(ctx context.Context, ownerUserID pgtype.UUID) 
 }
 
 const listHeartbeatEnabledBots = `-- name: ListHeartbeatEnabledBots :many
+WITH effective AS (
+  SELECT
+    bots.id,
+    bots.owner_user_id,
+    bots.status,
+    CASE
+      WHEN bots.group_id IS NOT NULL
+        AND NOT COALESCE((bots.settings_override_mask->>'heartbeat_enabled')::boolean, false)
+        THEN COALESCE(bot_group_settings.heartbeat_enabled, false)
+      ELSE bots.heartbeat_enabled
+    END::boolean AS heartbeat_enabled,
+    CASE
+      WHEN bots.group_id IS NOT NULL
+        AND NOT COALESCE((bots.settings_override_mask->>'heartbeat_interval')::boolean, false)
+        THEN COALESCE(bot_group_settings.heartbeat_interval, 30)
+      ELSE bots.heartbeat_interval
+    END::integer AS heartbeat_interval,
+    CASE
+      WHEN bots.group_id IS NOT NULL
+        AND NOT COALESCE((bots.settings_override_mask->>'heartbeat_prompt')::boolean, false)
+        THEN COALESCE(bot_group_settings.heartbeat_prompt, '')
+      ELSE bots.heartbeat_prompt
+    END::text AS heartbeat_prompt
+  FROM bots
+  LEFT JOIN bot_group_settings ON bot_group_settings.group_id = bots.group_id
+)
 SELECT id, owner_user_id, heartbeat_enabled, heartbeat_interval, heartbeat_prompt
-FROM bots
+FROM effective
 WHERE heartbeat_enabled = true AND status = 'ready'
 `
 
@@ -270,7 +373,7 @@ UPDATE bots
 SET owner_user_id = $2,
     updated_at = now()
 WHERE id = $1
-RETURNING id, owner_user_id, display_name, avatar_url, timezone, is_active, status, language, reasoning_enabled, reasoning_effort, chat_model_id, search_provider_id, memory_provider_id, heartbeat_enabled, heartbeat_interval, heartbeat_prompt, metadata, created_at, updated_at
+RETURNING id, owner_user_id, group_id, display_name, avatar_url, timezone, is_active, status, language, reasoning_enabled, reasoning_effort, chat_model_id, search_provider_id, memory_provider_id, heartbeat_enabled, heartbeat_interval, heartbeat_prompt, settings_override_mask, metadata, created_at, updated_at
 `
 
 type UpdateBotOwnerParams struct {
@@ -279,25 +382,27 @@ type UpdateBotOwnerParams struct {
 }
 
 type UpdateBotOwnerRow struct {
-	ID                pgtype.UUID        `json:"id"`
-	OwnerUserID       pgtype.UUID        `json:"owner_user_id"`
-	DisplayName       pgtype.Text        `json:"display_name"`
-	AvatarUrl         pgtype.Text        `json:"avatar_url"`
-	Timezone          pgtype.Text        `json:"timezone"`
-	IsActive          bool               `json:"is_active"`
-	Status            string             `json:"status"`
-	Language          string             `json:"language"`
-	ReasoningEnabled  bool               `json:"reasoning_enabled"`
-	ReasoningEffort   string             `json:"reasoning_effort"`
-	ChatModelID       pgtype.UUID        `json:"chat_model_id"`
-	SearchProviderID  pgtype.UUID        `json:"search_provider_id"`
-	MemoryProviderID  pgtype.UUID        `json:"memory_provider_id"`
-	HeartbeatEnabled  bool               `json:"heartbeat_enabled"`
-	HeartbeatInterval int32              `json:"heartbeat_interval"`
-	HeartbeatPrompt   string             `json:"heartbeat_prompt"`
-	Metadata          []byte             `json:"metadata"`
-	CreatedAt         pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
+	ID                   pgtype.UUID        `json:"id"`
+	OwnerUserID          pgtype.UUID        `json:"owner_user_id"`
+	GroupID              pgtype.UUID        `json:"group_id"`
+	DisplayName          pgtype.Text        `json:"display_name"`
+	AvatarUrl            pgtype.Text        `json:"avatar_url"`
+	Timezone             pgtype.Text        `json:"timezone"`
+	IsActive             bool               `json:"is_active"`
+	Status               string             `json:"status"`
+	Language             string             `json:"language"`
+	ReasoningEnabled     bool               `json:"reasoning_enabled"`
+	ReasoningEffort      string             `json:"reasoning_effort"`
+	ChatModelID          pgtype.UUID        `json:"chat_model_id"`
+	SearchProviderID     pgtype.UUID        `json:"search_provider_id"`
+	MemoryProviderID     pgtype.UUID        `json:"memory_provider_id"`
+	HeartbeatEnabled     bool               `json:"heartbeat_enabled"`
+	HeartbeatInterval    int32              `json:"heartbeat_interval"`
+	HeartbeatPrompt      string             `json:"heartbeat_prompt"`
+	SettingsOverrideMask []byte             `json:"settings_override_mask"`
+	Metadata             []byte             `json:"metadata"`
+	CreatedAt            pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt            pgtype.Timestamptz `json:"updated_at"`
 }
 
 func (q *Queries) UpdateBotOwner(ctx context.Context, arg UpdateBotOwnerParams) (UpdateBotOwnerRow, error) {
@@ -306,6 +411,7 @@ func (q *Queries) UpdateBotOwner(ctx context.Context, arg UpdateBotOwnerParams) 
 	err := row.Scan(
 		&i.ID,
 		&i.OwnerUserID,
+		&i.GroupID,
 		&i.DisplayName,
 		&i.AvatarUrl,
 		&i.Timezone,
@@ -320,6 +426,7 @@ func (q *Queries) UpdateBotOwner(ctx context.Context, arg UpdateBotOwnerParams) 
 		&i.HeartbeatEnabled,
 		&i.HeartbeatInterval,
 		&i.HeartbeatPrompt,
+		&i.SettingsOverrideMask,
 		&i.Metadata,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -329,60 +436,66 @@ func (q *Queries) UpdateBotOwner(ctx context.Context, arg UpdateBotOwnerParams) 
 
 const updateBotProfile = `-- name: UpdateBotProfile :one
 UPDATE bots
-SET display_name = $2,
-    avatar_url = $3,
-    timezone = $4,
-    is_active = $5,
+SET display_name = $1,
+    avatar_url = $2,
+    timezone = $3,
+    is_active = $4,
+    group_id = $5,
     metadata = $6,
     updated_at = now()
-WHERE id = $1
-RETURNING id, owner_user_id, display_name, avatar_url, timezone, is_active, status, language, reasoning_enabled, reasoning_effort, chat_model_id, search_provider_id, memory_provider_id, heartbeat_enabled, heartbeat_interval, heartbeat_prompt, metadata, created_at, updated_at
+WHERE id = $7
+RETURNING id, owner_user_id, group_id, display_name, avatar_url, timezone, is_active, status, language, reasoning_enabled, reasoning_effort, chat_model_id, search_provider_id, memory_provider_id, heartbeat_enabled, heartbeat_interval, heartbeat_prompt, settings_override_mask, metadata, created_at, updated_at
 `
 
 type UpdateBotProfileParams struct {
-	ID          pgtype.UUID `json:"id"`
 	DisplayName pgtype.Text `json:"display_name"`
 	AvatarUrl   pgtype.Text `json:"avatar_url"`
 	Timezone    pgtype.Text `json:"timezone"`
 	IsActive    bool        `json:"is_active"`
+	GroupID     pgtype.UUID `json:"group_id"`
 	Metadata    []byte      `json:"metadata"`
+	ID          pgtype.UUID `json:"id"`
 }
 
 type UpdateBotProfileRow struct {
-	ID                pgtype.UUID        `json:"id"`
-	OwnerUserID       pgtype.UUID        `json:"owner_user_id"`
-	DisplayName       pgtype.Text        `json:"display_name"`
-	AvatarUrl         pgtype.Text        `json:"avatar_url"`
-	Timezone          pgtype.Text        `json:"timezone"`
-	IsActive          bool               `json:"is_active"`
-	Status            string             `json:"status"`
-	Language          string             `json:"language"`
-	ReasoningEnabled  bool               `json:"reasoning_enabled"`
-	ReasoningEffort   string             `json:"reasoning_effort"`
-	ChatModelID       pgtype.UUID        `json:"chat_model_id"`
-	SearchProviderID  pgtype.UUID        `json:"search_provider_id"`
-	MemoryProviderID  pgtype.UUID        `json:"memory_provider_id"`
-	HeartbeatEnabled  bool               `json:"heartbeat_enabled"`
-	HeartbeatInterval int32              `json:"heartbeat_interval"`
-	HeartbeatPrompt   string             `json:"heartbeat_prompt"`
-	Metadata          []byte             `json:"metadata"`
-	CreatedAt         pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
+	ID                   pgtype.UUID        `json:"id"`
+	OwnerUserID          pgtype.UUID        `json:"owner_user_id"`
+	GroupID              pgtype.UUID        `json:"group_id"`
+	DisplayName          pgtype.Text        `json:"display_name"`
+	AvatarUrl            pgtype.Text        `json:"avatar_url"`
+	Timezone             pgtype.Text        `json:"timezone"`
+	IsActive             bool               `json:"is_active"`
+	Status               string             `json:"status"`
+	Language             string             `json:"language"`
+	ReasoningEnabled     bool               `json:"reasoning_enabled"`
+	ReasoningEffort      string             `json:"reasoning_effort"`
+	ChatModelID          pgtype.UUID        `json:"chat_model_id"`
+	SearchProviderID     pgtype.UUID        `json:"search_provider_id"`
+	MemoryProviderID     pgtype.UUID        `json:"memory_provider_id"`
+	HeartbeatEnabled     bool               `json:"heartbeat_enabled"`
+	HeartbeatInterval    int32              `json:"heartbeat_interval"`
+	HeartbeatPrompt      string             `json:"heartbeat_prompt"`
+	SettingsOverrideMask []byte             `json:"settings_override_mask"`
+	Metadata             []byte             `json:"metadata"`
+	CreatedAt            pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt            pgtype.Timestamptz `json:"updated_at"`
 }
 
 func (q *Queries) UpdateBotProfile(ctx context.Context, arg UpdateBotProfileParams) (UpdateBotProfileRow, error) {
 	row := q.db.QueryRow(ctx, updateBotProfile,
-		arg.ID,
 		arg.DisplayName,
 		arg.AvatarUrl,
 		arg.Timezone,
 		arg.IsActive,
+		arg.GroupID,
 		arg.Metadata,
+		arg.ID,
 	)
 	var i UpdateBotProfileRow
 	err := row.Scan(
 		&i.ID,
 		&i.OwnerUserID,
+		&i.GroupID,
 		&i.DisplayName,
 		&i.AvatarUrl,
 		&i.Timezone,
@@ -397,6 +510,7 @@ func (q *Queries) UpdateBotProfile(ctx context.Context, arg UpdateBotProfilePara
 		&i.HeartbeatEnabled,
 		&i.HeartbeatInterval,
 		&i.HeartbeatPrompt,
+		&i.SettingsOverrideMask,
 		&i.Metadata,
 		&i.CreatedAt,
 		&i.UpdatedAt,

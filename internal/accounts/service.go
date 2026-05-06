@@ -160,9 +160,7 @@ func (s *Service) Create(ctx context.Context, userID string, req CreateAccountRe
 	return toAccount(row), nil
 }
 
-// CreateHuman keeps compatibility with older call sites.
-//
-// Deprecated: use Create directly.
+// CreateHuman creates a user and its primary account.
 func (s *Service) CreateHuman(ctx context.Context, userID string, req CreateAccountRequest) (Account, error) {
 	userID = strings.TrimSpace(userID)
 	if userID == "" {

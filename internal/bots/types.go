@@ -7,18 +7,20 @@ import (
 
 // Bot represents a bot entity.
 type Bot struct {
-	ID              string         `json:"id"`
-	OwnerUserID     string         `json:"owner_user_id"`
-	DisplayName     string         `json:"display_name"`
-	AvatarURL       string         `json:"avatar_url,omitempty"`
-	Timezone        string         `json:"timezone,omitempty"`
-	IsActive        bool           `json:"is_active"`
-	Status          string         `json:"status"`
-	CheckState      string         `json:"check_state"`
-	CheckIssueCount int32          `json:"check_issue_count"`
-	Metadata        map[string]any `json:"metadata,omitempty"`
-	CreatedAt       time.Time      `json:"created_at"`
-	UpdatedAt       time.Time      `json:"updated_at"`
+	ID                   string          `json:"id"`
+	OwnerUserID          string          `json:"owner_user_id"`
+	GroupID              string          `json:"group_id,omitempty"`
+	DisplayName          string          `json:"display_name"`
+	AvatarURL            string          `json:"avatar_url,omitempty"`
+	Timezone             string          `json:"timezone,omitempty"`
+	IsActive             bool            `json:"is_active"`
+	Status               string          `json:"status"`
+	CheckState           string          `json:"check_state"`
+	CheckIssueCount      int32           `json:"check_issue_count"`
+	SettingsOverrideMask map[string]bool `json:"settings_override_mask,omitempty"`
+	Metadata             map[string]any  `json:"metadata,omitempty"`
+	CreatedAt            time.Time       `json:"created_at"`
+	UpdatedAt            time.Time       `json:"updated_at"`
 }
 
 // BotCheck represents one resource check row for a bot.
@@ -36,6 +38,7 @@ type BotCheck struct {
 // CreateBotRequest is the input for creating a bot.
 type CreateBotRequest struct {
 	DisplayName string         `json:"display_name,omitempty"`
+	GroupID     string         `json:"group_id,omitempty"`
 	AvatarURL   string         `json:"avatar_url,omitempty"`
 	Timezone    *string        `json:"timezone,omitempty"`
 	IsActive    *bool          `json:"is_active,omitempty"`
@@ -46,6 +49,7 @@ type CreateBotRequest struct {
 // UpdateBotRequest is the input for updating a bot.
 type UpdateBotRequest struct {
 	DisplayName *string        `json:"display_name,omitempty"`
+	GroupID     *string        `json:"group_id,omitempty"`
 	AvatarURL   *string        `json:"avatar_url,omitempty"`
 	Timezone    *string        `json:"timezone,omitempty"`
 	IsActive    *bool          `json:"is_active,omitempty"`

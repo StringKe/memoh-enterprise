@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package memoh.private.v1;
+
+import "memoh/private/v1/common.proto";
+
+option go_package = "github.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1;privatev1";
+
+message GetBotSettingsRequest {
+  string bot_id = 1;
+}
+
+message GetBotSettingsResponse {
+  EffectiveBotSettings settings = 1;
+}
+
+message UpdateBotSettingsRequest {
+  string bot_id = 1;
+  BotSettings settings = 2;
+  SettingsOverrideMask override_mask = 3;
+}
+
+message UpdateBotSettingsResponse {
+  EffectiveBotSettings settings = 1;
+}
+
+message DeleteBotSettingsRequest {
+  string bot_id = 1;
+}
+
+message DeleteBotSettingsResponse {}
+
+message RestoreBotSettingsInheritanceRequest {
+  string bot_id = 1;
+  repeated string fields = 2;
+}
+
+message RestoreBotSettingsInheritanceResponse {
+  EffectiveBotSettings settings = 1;
+}
+
+service SettingsService {
+  rpc GetBotSettings(GetBotSettingsRequest) returns (GetBotSettingsResponse);
+  rpc UpdateBotSettings(UpdateBotSettingsRequest) returns (UpdateBotSettingsResponse);
+  rpc DeleteBotSettings(DeleteBotSettingsRequest) returns (DeleteBotSettingsResponse);
+  rpc RestoreBotSettingsInheritance(RestoreBotSettingsInheritanceRequest) returns (RestoreBotSettingsInheritanceResponse);
+}

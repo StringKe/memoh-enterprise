@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package memoh.private.v1;
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1;privatev1";
+
+message StreamChatRequest {
+  string bot_id = 1;
+  string session_id = 2;
+  string message = 3;
+  repeated string attachment_ids = 4;
+  google.protobuf.Struct options = 5;
+}
+
+message StreamChatResponse {
+  string id = 1;
+  string type = 2;
+  string text = 3;
+  google.protobuf.Struct payload = 4;
+  google.protobuf.Timestamp created_at = 5;
+}
+
+message StreamContainerProgressRequest {
+  string bot_id = 1;
+  string operation = 2;
+  google.protobuf.Struct options = 3;
+}
+
+message StreamContainerProgressResponse {
+  string id = 1;
+  string type = 2;
+  string message = 3;
+  google.protobuf.Struct payload = 4;
+  google.protobuf.Timestamp created_at = 5;
+}
+
+service ChatService {
+  rpc StreamChat(StreamChatRequest) returns (stream StreamChatResponse);
+}
+
+service ContainerService {
+  rpc StreamContainerProgress(StreamContainerProgressRequest) returns (stream StreamContainerProgressResponse);
+}

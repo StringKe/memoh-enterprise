@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package memoh.private.v1;
+
+import "google/protobuf/struct.proto";
+
+option go_package = "github.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1;privatev1";
+
+message ApproveToolRequest {
+  string bot_id = 1;
+  string conversation_id = 2;
+  string request_id = 3;
+  google.protobuf.Struct payload = 4;
+}
+
+message ApproveToolResponse {}
+
+message RejectToolRequest {
+  string bot_id = 1;
+  string conversation_id = 2;
+  string request_id = 3;
+  string reason = 4;
+}
+
+message RejectToolResponse {}
+
+service ToolApprovalService {
+  rpc ApproveTool(ApproveToolRequest) returns (ApproveToolResponse);
+  rpc RejectTool(RejectToolRequest) returns (RejectToolResponse);
+}

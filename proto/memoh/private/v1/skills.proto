@@ -1,0 +1,82 @@
+syntax = "proto3";
+
+package memoh.private.v1;
+
+import "google/protobuf/struct.proto";
+import "memoh/private/v1/common.proto";
+
+option go_package = "github.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1;privatev1";
+
+message Skill {
+  string id = 1;
+  string name = 2;
+  string source = 3;
+  string description = 4;
+  bool enabled = 5;
+  google.protobuf.Struct metadata = 6;
+}
+
+message ListSkillsRequest {
+  string bot_id = 1;
+}
+
+message ListSkillsResponse {
+  repeated Skill skills = 1;
+}
+
+message UpsertSkillsRequest {
+  string bot_id = 1;
+  repeated Skill skills = 2;
+}
+
+message UpsertSkillsResponse {
+  repeated Skill skills = 1;
+}
+
+message DeleteSkillsRequest {
+  string bot_id = 1;
+  repeated string skill_ids = 2;
+}
+
+message DeleteSkillsResponse {}
+
+message ApplySkillActionRequest {
+  string bot_id = 1;
+  string skill_id = 2;
+  string action = 3;
+  google.protobuf.Struct payload = 4;
+}
+
+message ApplySkillActionResponse {
+  Skill skill = 1;
+  google.protobuf.Struct result = 2;
+}
+
+message ListSkillCatalogRequest {
+  string source = 1;
+  PageRequest page = 2;
+}
+
+message ListSkillCatalogResponse {
+  repeated Skill skills = 1;
+  PageResponse page = 2;
+}
+
+message InstallSkillRequest {
+  string bot_id = 1;
+  string source = 2;
+  string skill_id = 3;
+}
+
+message InstallSkillResponse {
+  Skill skill = 1;
+}
+
+service SkillService {
+  rpc ListSkills(ListSkillsRequest) returns (ListSkillsResponse);
+  rpc UpsertSkills(UpsertSkillsRequest) returns (UpsertSkillsResponse);
+  rpc DeleteSkills(DeleteSkillsRequest) returns (DeleteSkillsResponse);
+  rpc ApplySkillAction(ApplySkillActionRequest) returns (ApplySkillActionResponse);
+  rpc ListSkillCatalog(ListSkillCatalogRequest) returns (ListSkillCatalogResponse);
+  rpc InstallSkill(InstallSkillRequest) returns (InstallSkillResponse);
+}

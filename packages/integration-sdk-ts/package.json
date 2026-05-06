@@ -1,0 +1,21 @@
+{
+  "name": "@stringke/integration-sdk",
+  "version": "0.8.0",
+  "description": "Memoh Enterprise Integration WebSocket SDK for TypeScript.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "scripts": {},
+  "dependencies": {
+    "@bufbuild/protobuf": "^2.12.0",
+    "@stringke/sdk": "workspace:*"
+  },
+  "devDependencies": {
+    "vitest": "npm:@voidzero-dev/vite-plus-test@latest"
+  },
+  "packageManager": "pnpm@10.27.0"
+}

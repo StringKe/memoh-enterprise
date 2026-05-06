@@ -230,6 +230,10 @@ func (m *Manager) WorkspaceInfo(ctx context.Context, botID string) (executorclie
 	}, nil
 }
 
+func (m *Manager) WorkspaceExecutorTarget(botID string) string {
+	return strings.TrimSpace(m.dialTarget(botID))
+}
+
 func (m *Manager) Init(ctx context.Context) error {
 	image := m.imageRef()
 	result, err := m.PrepareImageForCreate(ctx, image, &ctr.PullImageOptions{

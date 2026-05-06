@@ -1,5 +1,5 @@
 {
-  "command": ["sleep", "999"],
-  "timeout_seconds": 601,
+  "command": ["/bin/sh", "-lc", "sleep 2"],
+  "timeout_seconds": 1,
   "error_code": "deadline_exceeded"
 }

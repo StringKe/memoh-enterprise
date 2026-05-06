@@ -68,10 +68,24 @@ jobs:
           openssl genpkey -algorithm Ed25519 -out /tmp/memoh-service-auth.key
           openssl pkey -in /tmp/memoh-service-auth.key -pubout -out /tmp/memoh-service-auth.pub
           python3 - <<'PY'
+          import re
+          import tomllib
           from pathlib import Path
 
           def toml_multiline(value: str) -> str:
               return '"""' + value.rstrip("\n") + '\n"""'
+
+          def replace_single_docker_key(text: str, value: str) -> str:
+              text, count = re.subn(
+                  r'^docker = ""$',
+                  f"docker = {toml_multiline(value)}",
+                  text,
+                  count=1,
+                  flags=re.MULTILINE,
+              )
+              if count != 1:
+                  raise RuntimeError(f"expected exactly one docker placeholder replacement, got {count}")
+              return text
 
           config = Path("config.toml")
           text = config.read_text()
@@ -79,9 +93,10 @@ jobs:
               'bootstrap_token = "CHANGE-ME-INTERNAL-BOOTSTRAP"',
               'bootstrap_token = "E2E-INTERNAL-BOOTSTRAP"',
           )
-          text = text.replace('docker = ""', f"docker = {toml_multiline(Path('/tmp/memoh-service-auth.key').read_text())}", 1)
-          text = text.replace('docker = ""', f"docker = {toml_multiline(Path('/tmp/memoh-service-auth.pub').read_text())}", 1)
+          text = replace_single_docker_key(text, Path('/tmp/memoh-service-auth.key').read_text())
+          text = replace_single_docker_key(text, Path('/tmp/memoh-service-auth.pub').read_text())
           config.write_text(text)
+          tomllib.loads(text)
           PY
           echo "MEMOH_INTERNAL_AUTH_BOOTSTRAP_TOKEN=E2E-INTERNAL-BOOTSTRAP" >> "$GITHUB_ENV"
 

@@ -10,21 +10,25 @@ import (
 
 	"github.com/memohai/memoh/internal/accounts"
 	"github.com/memohai/memoh/internal/bots"
-	"github.com/memohai/memoh/internal/conversation/flow"
+	"github.com/memohai/memoh/internal/conversation"
 )
+
+type toolApprovalResponder interface {
+	RespondToolApproval(ctx context.Context, input conversation.ToolApprovalResponseInput, eventCh chan<- conversation.WSStreamEvent) error
+}
 
 type ToolApprovalHandler struct {
 	logger         *slog.Logger
 	botService     *bots.Service
 	accountService *accounts.Service
-	resolver       *flow.Resolver
+	resolver       toolApprovalResponder
 }
 
 type ToolApprovalDecisionRequest struct {
 	Reason string `json:"reason,omitempty"`
 }
 
-func NewToolApprovalHandler(log *slog.Logger, botService *bots.Service, accountService *accounts.Service, resolver *flow.Resolver) *ToolApprovalHandler {
+func NewToolApprovalHandler(log *slog.Logger, botService *bots.Service, accountService *accounts.Service, resolver toolApprovalResponder) *ToolApprovalHandler {
 	return &ToolApprovalHandler{
 		logger:         log.With(slog.String("handler", "tool_approval")),
 		botService:     botService,
@@ -84,7 +88,7 @@ func (h *ToolApprovalHandler) respond(c echo.Context, decision string) error {
 	}
 	var req ToolApprovalDecisionRequest
 	_ = c.Bind(&req)
-	if err := h.resolver.RespondToolApproval(context.WithoutCancel(c.Request().Context()), flow.ToolApprovalResponseInput{
+	if err := h.resolver.RespondToolApproval(context.WithoutCancel(c.Request().Context()), conversation.ToolApprovalResponseInput{
 		BotID:                  botID,
 		ActorChannelIdentityID: channelIdentityID,
 		ApprovalID:             approvalID,

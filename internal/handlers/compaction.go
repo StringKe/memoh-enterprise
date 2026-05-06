@@ -2,16 +2,20 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	"log/slog"
 	"net/http"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 
 	"github.com/memohai/memoh/internal/accounts"
 	"github.com/memohai/memoh/internal/bots"
 	"github.com/memohai/memoh/internal/compaction"
+	"github.com/memohai/memoh/internal/config"
 	dbstore "github.com/memohai/memoh/internal/db/store"
+	"github.com/memohai/memoh/internal/eventbus"
 	"github.com/memohai/memoh/internal/models"
 	"github.com/memohai/memoh/internal/providers"
 	"github.com/memohai/memoh/internal/settings"
@@ -25,6 +29,8 @@ type CompactionHandler struct {
 	modelsService    *models.Service
 	queries          dbstore.Queries
 	providersService *providers.Service
+	events           *eventbus.Producer
+	workerConsumer   string
 	logger           *slog.Logger
 }
 
@@ -37,7 +43,13 @@ func NewCompactionHandler(
 	modelsService *models.Service,
 	queries dbstore.Queries,
 	providersService *providers.Service,
+	events *eventbus.Producer,
+	cfg config.Config,
 ) *CompactionHandler {
+	workerConsumer := strings.TrimSpace(cfg.Internal.WorkerName)
+	if workerConsumer == "" {
+		workerConsumer = "memoh-worker"
+	}
 	return &CompactionHandler{
 		service:          service,
 		botService:       botService,
@@ -46,6 +58,8 @@ func NewCompactionHandler(
 		modelsService:    modelsService,
 		queries:          queries,
 		providersService: providersService,
+		events:           events,
+		workerConsumer:   workerConsumer,
 		logger:           log.With(slog.String("handler", "compaction")),
 	}
 }
@@ -150,69 +164,33 @@ func (h *CompactionHandler) TriggerCompact(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "session id is required")
 	}
 
-	cfg, err := h.buildTriggerConfig(c.Request().Context(), botID, sessionID)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	if h.events == nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "eventbus producer is not configured")
 	}
-
-	if err := h.service.RunCompactionSync(c.Request().Context(), cfg); err != nil {
+	payload, err := json.Marshal(struct {
+		BotID     string
+		SessionID string
+	}{
+		BotID:     botID,
+		SessionID: sessionID,
+	})
+	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
-
-	logs, _, err := h.service.ListLogs(c.Request().Context(), botID, 1, 0)
-	if err != nil || len(logs) == 0 {
-		return c.JSON(http.StatusOK, TriggerCompactResponse{Status: "ok"})
+	if _, err := h.events.Publish(c.Request().Context(), eventbus.Event{
+		Topic:          "worker.compaction.run",
+		PayloadType:    "memoh.compaction.TriggerConfig",
+		Payload:        payload,
+		PayloadJSON:    payload,
+		IdempotencyKey: "bot-session-compact:" + uuid.NewString(),
+		AggregateType:  "bot_session",
+		PartitionKey:   sessionID,
+	}, []string{h.workerConsumer}); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
-	latest := logs[0]
 	return c.JSON(http.StatusOK, TriggerCompactResponse{
-		Status:       latest.Status,
-		Summary:      latest.Summary,
-		MessageCount: latest.MessageCount,
+		Status: "queued",
 	})
-}
-
-func (h *CompactionHandler) buildTriggerConfig(ctx context.Context, botID, sessionID string) (compaction.TriggerConfig, error) {
-	botSettings, err := h.settingsService.GetBot(ctx, botID)
-	if err != nil {
-		return compaction.TriggerConfig{}, err
-	}
-	modelID := botSettings.CompactionModelID
-	if modelID == "" {
-		modelID = botSettings.ChatModelID
-	}
-	if modelID == "" {
-		return compaction.TriggerConfig{}, echo.NewHTTPError(http.StatusBadRequest, "no compaction or chat model configured")
-	}
-
-	compactModel, err := h.modelsService.GetByID(ctx, modelID)
-	if err != nil {
-		return compaction.TriggerConfig{}, err
-	}
-	compactProvider, err := models.FetchProviderByID(ctx, h.queries, compactModel.ProviderID)
-	if err != nil {
-		return compaction.TriggerConfig{}, err
-	}
-	creds, err := h.providersService.ResolveModelCredentials(ctx, compactProvider)
-	if err != nil {
-		return compaction.TriggerConfig{}, err
-	}
-
-	cfg := compaction.TriggerConfig{
-		BotID:            botID,
-		SessionID:        sessionID,
-		ModelID:          compactModel.ModelID,
-		ClientType:       compactProvider.ClientType,
-		APIKey:           creds.APIKey,
-		CodexAccountID:   creds.CodexAccountID,
-		BaseURL:          providers.ProviderConfigString(compactProvider, "base_url"),
-		Ratio:            100,
-		TotalInputTokens: 1,
-		PromptCacheTTL:   providers.ProviderConfigString(compactProvider, "prompt_cache_ttl"),
-	}
-	if compactModel.Config.ContextWindow != nil && *compactModel.Config.ContextWindow > 0 {
-		cfg.MaxCompactTokens = *compactModel.Config.ContextWindow * 90 / 100
-	}
-	return cfg, nil
 }
 
 func (*CompactionHandler) requireUserID(c echo.Context) (string, error) {

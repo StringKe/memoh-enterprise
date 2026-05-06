@@ -40,7 +40,7 @@ func TestChatServiceStreamsChunks(t *testing.T) {
 	close(fake.chunkOut)
 	close(fake.errOut)
 
-	client, cleanup := newChatServiceTestClient(t, &ChatService{resolver: fake})
+	client, cleanup := newChatServiceTestClient(t, &ChatService{runner: fake})
 	defer cleanup()
 
 	stream, err := client.StreamChat(context.Background(), connect.NewRequest(&privatev1.StreamChatRequest{
@@ -82,7 +82,7 @@ func TestChatServiceStreamCancellationReachesResolver(t *testing.T) {
 		errOut:   make(chan error),
 	}
 	fake.chunkOut <- mustJSONChunk(t, map[string]any{"id": "evt-1", "type": "text_delta", "delta": "hello"})
-	client, cleanup := newChatServiceTestClient(t, &ChatService{resolver: fake})
+	client, cleanup := newChatServiceTestClient(t, &ChatService{runner: fake})
 	defer cleanup()
 
 	ctx, cancel := context.WithCancel(context.Background())

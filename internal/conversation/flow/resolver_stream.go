@@ -14,7 +14,7 @@ import (
 )
 
 // WSStreamEvent represents a raw JSON event forwarded from the agent.
-type WSStreamEvent = json.RawMessage
+type WSStreamEvent = conversation.WSStreamEvent
 
 // terminalSnapshot captures the partial state extracted from a terminal
 // agent event. It is used both for the success-path persistence and for the

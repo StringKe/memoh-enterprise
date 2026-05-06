@@ -15,7 +15,6 @@ import (
 	privatev1 "github.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1"
 	"github.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1/privatev1connect"
 	"github.com/memohai/memoh/internal/conversation"
-	"github.com/memohai/memoh/internal/conversation/flow"
 )
 
 type chatStreamer interface {
@@ -23,11 +22,11 @@ type chatStreamer interface {
 }
 
 type ChatService struct {
-	resolver chatStreamer
+	runner chatStreamer
 }
 
-func NewChatService(resolver *flow.Resolver) *ChatService {
-	return &ChatService{resolver: resolver}
+func NewChatService(runner chatStreamer) *ChatService {
+	return &ChatService{runner: runner}
 }
 
 func NewChatHandler(service *ChatService) Handler {
@@ -36,8 +35,8 @@ func NewChatHandler(service *ChatService) Handler {
 }
 
 func (s *ChatService) StreamChat(ctx context.Context, req *connect.Request[privatev1.StreamChatRequest], stream *connect.ServerStream[privatev1.StreamChatResponse]) error {
-	if s.resolver == nil {
-		return connect.NewError(connect.CodeInternal, errors.New("chat resolver is not configured"))
+	if s.runner == nil {
+		return connect.NewError(connect.CodeInternal, errors.New("chat runner is not configured"))
 	}
 	userID, err := UserIDFromContext(ctx)
 	if err != nil {
@@ -54,7 +53,7 @@ func (s *ChatService) StreamChat(ctx context.Context, req *connect.Request[priva
 	}
 
 	token := strings.TrimSpace(req.Header().Get("Authorization"))
-	chunks, errs := s.resolver.StreamChat(ctx, conversation.ChatRequest{
+	chunks, errs := s.runner.StreamChat(ctx, conversation.ChatRequest{
 		BotID:                   botID,
 		ChatID:                  botID,
 		SessionID:               strings.TrimSpace(req.Msg.GetSessionId()),

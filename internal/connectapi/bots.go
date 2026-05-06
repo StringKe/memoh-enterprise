@@ -4,26 +4,70 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"connectrpc.com/connect"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 
 	"github.com/memohai/memoh/internal/bots"
 	privatev1 "github.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1"
 	"github.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1/privatev1connect"
+	dbsqlc "github.com/memohai/memoh/internal/db/postgres/sqlc"
+	"github.com/memohai/memoh/internal/eventbus"
 	"github.com/memohai/memoh/internal/iam/rbac"
 	messagepkg "github.com/memohai/memoh/internal/message"
 )
 
 type BotService struct {
-	bots     *bots.Service
-	messages messagepkg.Service
+	bots               *bots.Service
+	permissions        botPermissionChecker
+	messages           messagepkg.Service
+	events             botEventPublisher
+	workerConsumerName string
+	now                func() time.Time
 }
 
-func NewBotService(bots *bots.Service, messages *messagepkg.DBService) *BotService {
-	return &BotService{bots: bots, messages: messages}
+type botPermissionChecker interface {
+	HasBotPermission(ctx context.Context, userID, botID string, permission rbac.PermissionKey) (bool, error)
+}
+
+type botEventPublisher interface {
+	Publish(ctx context.Context, event eventbus.Event, consumers []string) (dbsqlc.EventOutbox, error)
+}
+
+const (
+	defaultWorkerConsumerName    = "memoh-worker"
+	botSessionCompactionTopic    = "worker.compaction.run"
+	botSessionCompactionPayload  = "memoh.compaction.TriggerConfig"
+	botSessionCompactionConsumer = defaultWorkerConsumerName
+)
+
+func NewBotService(bots *bots.Service, messages *messagepkg.DBService, events *eventbus.Producer) *BotService {
+	return &BotService{
+		bots:               bots,
+		permissions:        bots,
+		messages:           messages,
+		events:             events,
+		workerConsumerName: defaultWorkerConsumerName,
+		now:                time.Now,
+	}
+}
+
+func (s *BotService) SetWorkerConsumerName(name string) {
+	name = strings.TrimSpace(name)
+	if name != "" {
+		s.workerConsumerName = name
+	}
+}
+
+func (s *BotService) SetNow(now func() time.Time) {
+	if now != nil {
+		s.now = now
+	}
 }
 
 func NewBotHandler(service *BotService) Handler {
@@ -163,7 +207,37 @@ func (s *BotService) CompactBotSession(ctx context.Context, req *connect.Request
 	if err := s.requireBotPermission(ctx, userID, req.Msg.GetBotId(), rbac.PermissionBotUpdate); err != nil {
 		return nil, botConnectError(err)
 	}
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("manual bot session compaction is not implemented"))
+	if s.events == nil {
+		return nil, connect.NewError(connect.CodeInternal, errors.New("eventbus producer is not configured"))
+	}
+	botID := strings.TrimSpace(req.Msg.GetBotId())
+	sessionID := strings.TrimSpace(req.Msg.GetSessionId())
+	payload, err := json.Marshal(struct {
+		BotID     string
+		SessionID string
+	}{
+		BotID:     botID,
+		SessionID: sessionID,
+	})
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+	if _, err := s.events.Publish(ctx, eventbus.Event{
+		Topic:          botSessionCompactionTopic,
+		PayloadType:    botSessionCompactionPayload,
+		Payload:        payload,
+		PayloadJSON:    payload,
+		IdempotencyKey: fmt.Sprintf("bot-session-compact:%s", uuid.NewString()),
+		AggregateType:  "bot_session",
+		PartitionKey:   sessionID,
+	}, []string{s.workerConsumer()}); err != nil {
+		return nil, connectError(err)
+	}
+	return connect.NewResponse(&privatev1.CompactBotSessionResponse{
+		SessionId:   sessionID,
+		Summary:     "queued",
+		CompactedAt: timeToProto(s.now().UTC()),
+	}), nil
 }
 
 func (s *BotService) ListBotSessionMessages(ctx context.Context, req *connect.Request[privatev1.ListBotSessionMessagesRequest]) (*connect.Response[privatev1.ListBotSessionMessagesResponse], error) {
@@ -232,7 +306,14 @@ func (s *BotService) ClearBotGroup(ctx context.Context, req *connect.Request[pri
 }
 
 func (s *BotService) requireBotPermission(ctx context.Context, userID, botID string, permission rbac.PermissionKey) error {
-	allowed, err := s.bots.HasBotPermission(ctx, userID, botID, permission)
+	checker := s.permissions
+	if checker == nil {
+		checker = s.bots
+	}
+	if checker == nil {
+		return errors.New("bot permission checker is not configured")
+	}
+	allowed, err := checker.HasBotPermission(ctx, userID, botID, permission)
 	if err != nil {
 		return err
 	}
@@ -240,6 +321,13 @@ func (s *BotService) requireBotPermission(ctx context.Context, userID, botID str
 		return bots.ErrBotAccessDenied
 	}
 	return nil
+}
+
+func (s *BotService) workerConsumer() string {
+	if s != nil && strings.TrimSpace(s.workerConsumerName) != "" {
+		return strings.TrimSpace(s.workerConsumerName)
+	}
+	return botSessionCompactionConsumer
 }
 
 func botToProto(bot bots.Bot) *privatev1.Bot {

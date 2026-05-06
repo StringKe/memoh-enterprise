@@ -226,6 +226,10 @@ func (d *DiscussDriver) handleReply(ctx context.Context, sess *discussSession, r
 }
 
 func (d *DiscussDriver) handleReplyWithAgent(ctx context.Context, sess *discussSession, rc RenderedContext, log *slog.Logger, agent discussStreamer) {
+	if agent == nil {
+		log.Error("discuss driver: runner not configured")
+		return
+	}
 	cfg := sess.config
 
 	trs := d.loadTurnResponses(ctx, cfg.SessionID)

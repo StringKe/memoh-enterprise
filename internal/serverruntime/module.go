@@ -1,4 +1,4 @@
-package main
+package serverruntime
 
 import (
 	"log/slog"
@@ -16,12 +16,12 @@ import (
 	"github.com/memohai/memoh/internal/browsercontexts"
 	"github.com/memohai/memoh/internal/channel"
 	"github.com/memohai/memoh/internal/channel/adapters/local"
-	"github.com/memohai/memoh/internal/channel/adapters/weixin"
 	"github.com/memohai/memoh/internal/channel/identities"
 	"github.com/memohai/memoh/internal/compaction"
 	"github.com/memohai/memoh/internal/connectapi"
 	"github.com/memohai/memoh/internal/conversation"
 	emailpkg "github.com/memohai/memoh/internal/email"
+	"github.com/memohai/memoh/internal/eventbus"
 	"github.com/memohai/memoh/internal/handlers"
 	"github.com/memohai/memoh/internal/heartbeat"
 	"github.com/memohai/memoh/internal/integrations"
@@ -37,7 +37,7 @@ import (
 	"github.com/memohai/memoh/internal/workspace"
 )
 
-func runServe() {
+func RunServe() {
 	fx.New(options()).Run()
 }
 
@@ -85,7 +85,7 @@ func options() fx.Option {
 			provideEmailRegistry,
 			emailpkg.NewService,
 			emailpkg.NewOutboxService,
-			provideEmailChatGateway,
+			provideEmailChatTriggerer,
 			provideEmailTrigger,
 			emailpkg.NewManager,
 			provideRouteService,
@@ -98,11 +98,11 @@ func options() fx.Option {
 			local.NewRouteHub,
 			provideChannelRegistry,
 			channel.NewStore,
+			provideRunnerServiceClient,
+			provideRunnerDispatcher,
 			provideChannelRouter,
 			provideChannelManager,
 			provideChannelLifecycleService,
-			provideAgent,
-			provideChatResolver,
 			provideScheduleTriggerer,
 			provideHeartbeatSessionCreator,
 			provideScheduleSessionCreator,
@@ -110,9 +110,13 @@ func options() fx.Option {
 			provideHeartbeatTriggerer,
 			heartbeat.NewService,
 			compaction.NewService,
+			eventbus.NewProducer,
+			provideServiceAuthSigner,
+			provideInternalAuthService,
+			provideRunnerSupportService,
 			connectapi.NewAuthService,
 			connectapi.NewUserService,
-			connectapi.NewBotService,
+			provideConnectBotService,
 			connectapi.NewBotGroupService,
 			connectapi.NewIntegrationAdminService,
 			connectapi.NewSettingsService,
@@ -128,7 +132,7 @@ func options() fx.Option {
 			connectapi.NewEmailBindingService,
 			connectapi.NewEmailOutboxService,
 			connectapi.NewHealthService,
-			connectapi.NewChatService,
+			provideConnectChatService,
 			connectapi.NewContainerService,
 			connectapi.NewMcpService,
 			connectapi.NewScheduleService,
@@ -164,14 +168,13 @@ func options() fx.Option {
 			provideServerHandler(connectapi.NewSupermarketHandler),
 			provideServerHandler(connectapi.NewToolApprovalHandler),
 			provideServerHandler(connectapi.NewUsageHandler),
-			provideServerHandler(integrations.NewWebSocketHandler),
+			provideServerHandler(connectapi.NewInternalAuthHandler),
+			provideServerHandler(connectapi.NewRunnerSupportHandler),
 			provideContainerdHandler,
 			provideFederationGateway,
 			provideConnectMcpFederationGateway,
 			provideConnectSkillRootResolver,
 			provideToolGatewayService,
-			provideBackgroundManager,
-			provideToolProviders,
 			provideServerHandler(handlers.NewPingHandler),
 			provideServerHandler(provideAuthHandler),
 			provideServerHandler(provideMemoryHandler),
@@ -182,15 +185,12 @@ func options() fx.Option {
 			provideServerHandler(handlers.NewSearchProvidersHandler),
 			provideServerHandler(handlers.NewModelsHandler),
 			provideServerHandler(handlers.NewSettingsHandler),
-			provideServerHandler(handlers.NewToolApprovalHandler),
 			provideServerHandler(handlers.NewACLHandler),
 			provideServerHandler(handlers.NewBindHandler),
 			provideServerHandler(handlers.NewScheduleHandler),
 			provideServerHandler(handlers.NewHeartbeatHandler),
 			provideServerHandler(handlers.NewCompactionHandler),
 			provideServerHandler(handlers.NewChannelHandler),
-			provideServerHandler(channel.NewWebhookServerHandler),
-			provideServerHandler(weixin.NewQRServerHandler),
 			provideServerHandler(handlers.NewIAMHandler),
 			provideServerHandler(provideUsersHandler),
 			provideServerHandler(handlers.NewMemoryProvidersHandler),
@@ -209,22 +209,15 @@ func options() fx.Option {
 			provideServerHandler(handlers.NewSessionInfoHandler),
 			provideServerHandler(handlers.NewBrowserContextsHandler),
 			provideServerHandler(handlers.NewSupermarketHandler),
-			provideServerHandler(provideWebHandler),
 			provideServer,
 		),
 		fx.Invoke(
-			injectToolProviders,
 			startRegistrySync,
 			startAudioProviderBootstrap,
 			startMemoryProviderBootstrap,
 			startSearchProviderBootstrap,
-			startScheduleService,
-			startHeartbeatService,
-			wireResolverOutbound,
-			startChannelManager,
 			startEmailManager,
 			startContainerReconciliation,
-			startBackgroundTaskCleanup,
 			startAudioTempStoreCleanup,
 			startServer,
 		),

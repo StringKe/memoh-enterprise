@@ -1,4 +1,4 @@
-package main
+package serverruntime
 
 import (
 	"fmt"
@@ -30,7 +30,7 @@ func migrationsFS(cfg config.Config) fs.FS {
 	return sub
 }
 
-func runMigrateCommand(args []string) error {
+func RunMigrateCommand(args []string) error {
 	cfg, err := provideConfig()
 	if err != nil {
 		return fmt.Errorf("config: %w", err)
@@ -52,7 +52,7 @@ func runMigrateCommand(args []string) error {
 	return nil
 }
 
-func runVersion() error {
+func RunVersion() error {
 	fmt.Printf("memoh-server %s\n", version.GetInfo())
 	return nil
 }

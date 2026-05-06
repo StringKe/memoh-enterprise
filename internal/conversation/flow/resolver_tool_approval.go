@@ -14,17 +14,7 @@ import (
 	"github.com/memohai/memoh/internal/toolapproval"
 )
 
-type ToolApprovalResponseInput struct {
-	BotID                  string
-	SessionID              string
-	ActorChannelIdentityID string
-	ApprovalID             string
-	ExplicitID             string
-	ReplyExternalMessageID string
-	Decision               string
-	Reason                 string
-	ChatToken              string
-}
+type ToolApprovalResponseInput = conversation.ToolApprovalResponseInput
 
 func (r *Resolver) RespondToolApproval(ctx context.Context, input ToolApprovalResponseInput, eventCh chan<- WSStreamEvent) error {
 	if r.toolApproval == nil {

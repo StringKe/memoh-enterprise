@@ -12,19 +12,17 @@ import (
 
 	privatev1 "github.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1"
 	"github.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1/privatev1connect"
-	"github.com/memohai/memoh/internal/conversation/flow"
 	"github.com/memohai/memoh/internal/iam/rbac"
 	"github.com/memohai/memoh/internal/toolapproval"
 )
 
 type ToolApprovalService struct {
 	bots      *BotService
-	resolver  *flow.Resolver
 	approvals *toolapproval.Service
 }
 
-func NewToolApprovalService(bots *BotService, resolver *flow.Resolver, approvals *toolapproval.Service) *ToolApprovalService {
-	return &ToolApprovalService{bots: bots, resolver: resolver, approvals: approvals}
+func NewToolApprovalService(bots *BotService, approvals *toolapproval.Service) *ToolApprovalService {
+	return &ToolApprovalService{bots: bots, approvals: approvals}
 }
 
 func NewToolApprovalHandler(service *ToolApprovalService) Handler {
@@ -33,14 +31,14 @@ func NewToolApprovalHandler(service *ToolApprovalService) Handler {
 }
 
 func (s *ToolApprovalService) ApproveTool(ctx context.Context, req *connect.Request[privatev1.ApproveToolRequest]) (*connect.Response[privatev1.ApproveToolResponse], error) {
-	if err := s.respond(ctx, req.Msg.GetBotId(), req.Msg.GetConversationId(), req.Msg.GetRequestId(), "approve", toolApprovalReasonFromPayload(req.Msg.GetPayload())); err != nil {
+	if _, err := s.respond(ctx, req.Msg.GetBotId(), req.Msg.GetConversationId(), req.Msg.GetRequestId(), "approve", toolApprovalReasonFromPayload(req.Msg.GetPayload())); err != nil {
 		return nil, err
 	}
 	return connect.NewResponse(&privatev1.ApproveToolResponse{}), nil
 }
 
 func (s *ToolApprovalService) RejectTool(ctx context.Context, req *connect.Request[privatev1.RejectToolRequest]) (*connect.Response[privatev1.RejectToolResponse], error) {
-	if err := s.respond(ctx, req.Msg.GetBotId(), req.Msg.GetConversationId(), req.Msg.GetRequestId(), "reject", req.Msg.GetReason()); err != nil {
+	if _, err := s.respond(ctx, req.Msg.GetBotId(), req.Msg.GetConversationId(), req.Msg.GetRequestId(), "reject", req.Msg.GetReason()); err != nil {
 		return nil, err
 	}
 	return connect.NewResponse(&privatev1.RejectToolResponse{}), nil
@@ -122,53 +120,48 @@ func (s *ToolApprovalService) RespondToolApproval(ctx context.Context, req *conn
 	if decision != "approve" && decision != "reject" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("decision must be approve or reject"))
 	}
-	if err := s.respond(ctx, req.Msg.GetBotId(), req.Msg.GetConversationId(), req.Msg.GetRequestId(), decision, firstNonEmptyString(req.Msg.GetReason(), toolApprovalReasonFromPayload(req.Msg.GetPayload()))); err != nil {
+	item, err := s.respond(ctx, req.Msg.GetBotId(), req.Msg.GetConversationId(), req.Msg.GetRequestId(), decision, firstNonEmptyString(req.Msg.GetReason(), toolApprovalReasonFromPayload(req.Msg.GetPayload())))
+	if err != nil {
 		return nil, err
 	}
-	status := toolapproval.StatusApproved
-	if decision == "reject" {
-		status = toolapproval.StatusRejected
-	}
 	return connect.NewResponse(&privatev1.RespondToolApprovalResponse{
-		Request: &privatev1.ToolApprovalItem{
-			Id:             strings.TrimSpace(req.Msg.GetRequestId()),
-			BotId:          strings.TrimSpace(req.Msg.GetBotId()),
-			ConversationId: strings.TrimSpace(req.Msg.GetConversationId()),
-			RequestId:      strings.TrimSpace(req.Msg.GetRequestId()),
-			Status:         status,
-			DecidedAt:      timestamppb.Now(),
-		},
+		Request: toolApprovalItemToProto(item),
 	}), nil
 }
 
-func (s *ToolApprovalService) respond(ctx context.Context, botID, conversationID, requestID, decision, reason string) error {
+func (s *ToolApprovalService) respond(ctx context.Context, botID, conversationID, requestID, decision, reason string) (toolapproval.Request, error) {
 	userID, err := UserIDFromContext(ctx)
 	if err != nil {
-		return connect.NewError(connect.CodeUnauthenticated, err)
+		return toolapproval.Request{}, connect.NewError(connect.CodeUnauthenticated, err)
 	}
 	if strings.TrimSpace(botID) == "" || strings.TrimSpace(requestID) == "" {
-		return connect.NewError(connect.CodeInvalidArgument, errors.New("bot_id and request_id are required"))
+		return toolapproval.Request{}, connect.NewError(connect.CodeInvalidArgument, errors.New("bot_id and request_id are required"))
 	}
 	if s.bots == nil {
-		return connect.NewError(connect.CodeInternal, errors.New("bot service not configured"))
+		return toolapproval.Request{}, connect.NewError(connect.CodeInternal, errors.New("bot service not configured"))
 	}
 	if err := s.bots.requireBotPermission(ctx, userID, botID, rbac.PermissionBotUpdate); err != nil {
-		return botConnectError(err)
+		return toolapproval.Request{}, botConnectError(err)
 	}
-	if s.resolver == nil {
-		return connect.NewError(connect.CodeInternal, errors.New("tool approval resolver not configured"))
+	if s.approvals == nil {
+		return toolapproval.Request{}, connect.NewError(connect.CodeInternal, errors.New("tool approval service not configured"))
 	}
-	if err := s.resolver.RespondToolApproval(context.WithoutCancel(ctx), flow.ToolApprovalResponseInput{
-		BotID:                  strings.TrimSpace(botID),
-		SessionID:              strings.TrimSpace(conversationID),
-		ActorChannelIdentityID: userID,
-		ApprovalID:             strings.TrimSpace(requestID),
-		Decision:               decision,
-		Reason:                 strings.TrimSpace(reason),
-	}, nil); err != nil {
-		return connect.NewError(connect.CodeInternal, err)
+	target, err := s.approvals.ResolveTarget(ctx, toolapproval.ResolveInput{
+		BotID:      strings.TrimSpace(botID),
+		SessionID:  strings.TrimSpace(conversationID),
+		ExplicitID: strings.TrimSpace(requestID),
+	})
+	if err != nil {
+		return toolapproval.Request{}, toolApprovalConnectError(err)
 	}
-	return nil
+	switch decision {
+	case "approve":
+		return s.approvals.Approve(context.WithoutCancel(ctx), target.ID, userID, strings.TrimSpace(reason))
+	case "reject":
+		return s.approvals.Reject(context.WithoutCancel(ctx), target.ID, userID, strings.TrimSpace(reason))
+	default:
+		return toolapproval.Request{}, connect.NewError(connect.CodeInvalidArgument, errors.New("decision must be approve or reject"))
+	}
 }
 
 func toolApprovalItemToProto(item toolapproval.Request) *privatev1.ToolApprovalItem {

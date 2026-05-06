@@ -22,11 +22,11 @@ const (
 	DefaultJWTExpiresIn     = "24h"
 	DefaultDatabaseDriver   = "postgres"
 	DefaultPGHost           = "127.0.0.1"
-	DefaultPGPort           = 26813
+	DefaultPGPort           = 26817
 	DefaultPGUser           = "postgres"
 	DefaultPGDatabase       = "memoh"
 	DefaultPGSSLMode        = "disable"
-	DefaultQdrantURL        = "http://127.0.0.1:26815"
+	DefaultQdrantURL        = "http://127.0.0.1:26819"
 	DefaultQdrantCollection = "memory"
 	DefaultRuntimeDir       = "/opt/memoh/runtime"
 	DefaultBaseImage        = "debian:bookworm-slim"
@@ -42,6 +42,8 @@ type Config struct {
 	Server         ServerConfig         `toml:"server"`
 	Admin          AdminConfig          `toml:"admin"`
 	Auth           AuthConfig           `toml:"auth"`
+	InternalAuth   InternalAuthConfig   `toml:"internal_auth"`
+	Internal       InternalServices     `toml:"internal_services"`
 	Timezone       string               `toml:"timezone"`
 	Database       DatabaseConfig       `toml:"database"`
 	Container      ContainerConfig      `toml:"container"`
@@ -79,6 +81,21 @@ type AdminConfig struct {
 type AuthConfig struct {
 	JWTSecret    string `toml:"jwt_secret"    json:"-"`
 	JWTExpiresIn string `toml:"jwt_expires_in"`
+}
+
+type InternalAuthConfig struct {
+	ActiveKeyID       string            `toml:"active_key_id"`
+	BootstrapToken    string            `toml:"bootstrap_token" json:"-"`
+	PrivateKeys       map[string]string `toml:"private_keys"    json:"-"`
+	PublicKeys        map[string]string `toml:"public_keys"`
+	PreviousPublicKey map[string]string `toml:"previous_public_keys"`
+}
+
+type InternalServices struct {
+	AgentRunnerAddr        string `toml:"agent_runner_addr"`
+	ConnectorAddr          string `toml:"connector_addr"`
+	IntegrationGatewayAddr string `toml:"integration_gateway_addr"`
+	WorkerName             string `toml:"worker_name"`
 }
 
 type DatabaseConfig struct {
@@ -339,6 +356,12 @@ func Load(path string) (Config, error) {
 		},
 		Auth: AuthConfig{
 			JWTExpiresIn: DefaultJWTExpiresIn,
+		},
+		Internal: InternalServices{
+			AgentRunnerAddr:        "http://127.0.0.1:26813",
+			ConnectorAddr:          "local",
+			IntegrationGatewayAddr: "http://127.0.0.1:26815",
+			WorkerName:             "memoh-worker",
 		},
 		Timezone: DefaultTimezone,
 		Database: DatabaseConfig{

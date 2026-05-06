@@ -1,10 +1,9 @@
-package main
+package serverruntime
 
 import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
 	"log/slog"
 	"net/http"
 	"os"
@@ -19,9 +18,6 @@ import (
 
 	"github.com/memohai/memoh/internal/accounts"
 	"github.com/memohai/memoh/internal/acl"
-	agentpkg "github.com/memohai/memoh/internal/agent"
-	"github.com/memohai/memoh/internal/agent/background"
-	agenttools "github.com/memohai/memoh/internal/agent/tools"
 	audiopkg "github.com/memohai/memoh/internal/audio"
 	"github.com/memohai/memoh/internal/bind"
 	"github.com/memohai/memoh/internal/boot"
@@ -29,28 +25,19 @@ import (
 	"github.com/memohai/memoh/internal/bots"
 	"github.com/memohai/memoh/internal/browsercontexts"
 	"github.com/memohai/memoh/internal/channel"
-	"github.com/memohai/memoh/internal/channel/adapters/dingtalk"
-	"github.com/memohai/memoh/internal/channel/adapters/discord"
-	"github.com/memohai/memoh/internal/channel/adapters/feishu"
 	"github.com/memohai/memoh/internal/channel/adapters/local"
-	"github.com/memohai/memoh/internal/channel/adapters/matrix"
-	"github.com/memohai/memoh/internal/channel/adapters/misskey"
-	"github.com/memohai/memoh/internal/channel/adapters/qq"
-	slackadapter "github.com/memohai/memoh/internal/channel/adapters/slack"
-	"github.com/memohai/memoh/internal/channel/adapters/telegram"
-	"github.com/memohai/memoh/internal/channel/adapters/wechatoa"
-	"github.com/memohai/memoh/internal/channel/adapters/wecom"
-	"github.com/memohai/memoh/internal/channel/adapters/weixin"
+	"github.com/memohai/memoh/internal/channel/catalog"
 	"github.com/memohai/memoh/internal/channel/identities"
 	"github.com/memohai/memoh/internal/channel/inbound"
 	"github.com/memohai/memoh/internal/channel/route"
 	"github.com/memohai/memoh/internal/command"
 	"github.com/memohai/memoh/internal/compaction"
 	"github.com/memohai/memoh/internal/config"
+	"github.com/memohai/memoh/internal/connectapi"
+	"github.com/memohai/memoh/internal/connectapi/gen/memoh/runner/v1/runnerv1connect"
 	ctr "github.com/memohai/memoh/internal/container"
 	containerprovider "github.com/memohai/memoh/internal/container/provider"
 	"github.com/memohai/memoh/internal/conversation"
-	"github.com/memohai/memoh/internal/conversation/flow"
 	"github.com/memohai/memoh/internal/db"
 	"github.com/memohai/memoh/internal/db/postgres/sqlc"
 	postgresstore "github.com/memohai/memoh/internal/db/postgres/store"
@@ -59,6 +46,7 @@ import (
 	emailgeneric "github.com/memohai/memoh/internal/email/adapters/generic"
 	emailgmail "github.com/memohai/memoh/internal/email/adapters/gmail"
 	emailmailgun "github.com/memohai/memoh/internal/email/adapters/mailgun"
+	"github.com/memohai/memoh/internal/eventbus"
 	"github.com/memohai/memoh/internal/handlers"
 	"github.com/memohai/memoh/internal/healthcheck"
 	channelchecker "github.com/memohai/memoh/internal/healthcheck/checkers/channel"
@@ -79,7 +67,6 @@ import (
 	storefs "github.com/memohai/memoh/internal/memory/storefs"
 	"github.com/memohai/memoh/internal/message"
 	"github.com/memohai/memoh/internal/message/event"
-	"github.com/memohai/memoh/internal/messaging"
 	"github.com/memohai/memoh/internal/models"
 	netctl "github.com/memohai/memoh/internal/network"
 	"github.com/memohai/memoh/internal/network/kubeapi"
@@ -88,9 +75,11 @@ import (
 	"github.com/memohai/memoh/internal/policy"
 	"github.com/memohai/memoh/internal/providers"
 	"github.com/memohai/memoh/internal/registry"
+	"github.com/memohai/memoh/internal/runnerdispatch"
 	"github.com/memohai/memoh/internal/schedule"
 	"github.com/memohai/memoh/internal/searchproviders"
 	"github.com/memohai/memoh/internal/server"
+	"github.com/memohai/memoh/internal/serviceauth"
 	sessionpkg "github.com/memohai/memoh/internal/session"
 	"github.com/memohai/memoh/internal/settings"
 	"github.com/memohai/memoh/internal/storage/providers/containerfs"
@@ -253,14 +242,62 @@ func provideEventStore(log *slog.Logger, queries dbstore.Queries) *pipelinepkg.E
 	return pipelinepkg.NewEventStore(log, queries)
 }
 
-func provideDiscussDriver(log *slog.Logger, pipeline *pipelinepkg.Pipeline, eventStore *pipelinepkg.EventStore, agent *agentpkg.Agent, msgService *message.DBService) *pipelinepkg.DiscussDriver {
+func provideDiscussDriver(log *slog.Logger, pipeline *pipelinepkg.Pipeline, eventStore *pipelinepkg.EventStore, msgService *message.DBService) *pipelinepkg.DiscussDriver {
 	return pipelinepkg.NewDiscussDriver(pipelinepkg.DiscussDriverDeps{
 		Pipeline:       pipeline,
 		EventStore:     eventStore,
-		Agent:          agent,
 		MessageService: msgService,
 		Logger:         log,
 	})
+}
+
+func provideServiceAuthSigner(cfg config.Config) (*serviceauth.Signer, error) {
+	activeKeyID := strings.TrimSpace(cfg.InternalAuth.ActiveKeyID)
+	if activeKeyID == "" {
+		return nil, nil
+	}
+	if strings.TrimSpace(cfg.InternalAuth.PrivateKeys[activeKeyID]) == "" {
+		return nil, nil
+	}
+	return serviceauth.NewSignerFromConfig(activeKeyID, cfg.InternalAuth.PrivateKeys)
+}
+
+func provideInternalAuthService(signer *serviceauth.Signer, cfg config.Config, queries dbstore.Queries) *connectapi.InternalAuthService {
+	registration := serviceauth.NewRegistrationValidator(cfg.InternalAuth.BootstrapToken)
+	kubernetes := serviceauth.NewKubernetesServiceAccountValidator(
+		serviceauth.Issuer,
+		cfg.Kubernetes.EffectiveNamespace(),
+		cfg.Kubernetes.ServiceAccountName,
+	)
+	return connectapi.NewInternalAuthService(signer, registration, kubernetes, connectapi.SQLRunLeaseResolver{Queries: queries})
+}
+
+func provideRunnerSupportService(queries dbstore.Queries, internalAuth *connectapi.InternalAuthService, msgService *message.DBService, memoryRegistry *memprovider.Registry, providersService *providers.Service, toolApprovals *toolapproval.Service, channelManager *channel.Manager) *connectapi.RunnerSupportService {
+	service := connectapi.NewRunnerSupportService(connectapi.SQLRunLeaseResolver{Queries: queries}, internalAuth)
+	backend := connectapi.NewRunnerSupportBackend(connectapi.RunnerSupportBackendDeps{
+		Queries:       queries,
+		Messages:      msgService,
+		Memory:        memoryRegistry,
+		Providers:     providersService,
+		ToolApprovals: toolApprovals,
+		ChannelSender: channelManager,
+	})
+	service.SetRunContextResolver(backend)
+	service.SetSessionHistoryReader(backend)
+	service.SetRunEventAppender(backend)
+	service.SetSessionMessageAppender(backend)
+	service.SetOutboundSupport(backend)
+	service.SetMemorySupport(backend)
+	service.SetSecretSupport(backend)
+	service.SetProviderCredentialSupport(backend)
+	service.SetToolApprovalSupport(backend)
+	return service
+}
+
+func provideConnectBotService(botService *bots.Service, msgService *message.DBService, producer *eventbus.Producer, cfg config.Config) *connectapi.BotService {
+	service := connectapi.NewBotService(botService, msgService, producer)
+	service.SetWorkerConsumerName(cfg.Internal.WorkerName)
+	return service
 }
 
 func provideRouteService(log *slog.Logger, queries dbstore.Queries, chatService *conversation.Service) *route.DBService {
@@ -275,12 +312,32 @@ func provideMessageService(log *slog.Logger, queries dbstore.Queries, hub *event
 	return message.NewService(log, queries, hub)
 }
 
-func provideScheduleTriggerer(resolver *flow.Resolver) schedule.Triggerer {
-	return flow.NewScheduleGateway(resolver)
+func provideRunnerServiceClient(cfg config.Config) runnerv1connect.RunnerServiceClient {
+	return runnerdispatch.NewRunnerClient(cfg.Internal.AgentRunnerAddr)
 }
 
-func provideHeartbeatTriggerer(resolver *flow.Resolver) heartbeat.Triggerer {
-	return flow.NewHeartbeatGateway(resolver)
+func provideRunnerDispatcher(log *slog.Logger, queries dbstore.Queries, sessions *sessionpkg.Service, manager *workspace.Manager, cfg config.Config, runnerClient runnerv1connect.RunnerServiceClient) *runnerdispatch.Service {
+	return runnerdispatch.New(runnerdispatch.Deps{
+		Logger:           log,
+		Queries:          queries,
+		Sessions:         sessions,
+		Runner:           runnerClient,
+		WorkspaceTargets: manager,
+		RunnerInstanceID: "memoh-agent-runner",
+		JWTSecret:        cfg.Auth.JWTSecret,
+	})
+}
+
+func provideConnectChatService(dispatcher *runnerdispatch.Service) *connectapi.ChatService {
+	return connectapi.NewChatService(dispatcher)
+}
+
+func provideScheduleTriggerer(dispatcher *runnerdispatch.Service) schedule.Triggerer {
+	return dispatcher
+}
+
+func provideHeartbeatTriggerer(dispatcher *runnerdispatch.Service) heartbeat.Triggerer {
+	return dispatcher
 }
 
 type sessionCreatorAdapter struct {
@@ -306,82 +363,10 @@ func provideScheduleSessionCreator(sessionService *sessionpkg.Service) schedule.
 	return &sessionCreatorAdapter{svc: sessionService}
 }
 
-func provideAgent(log *slog.Logger, provider executorclient.Provider) *agentpkg.Agent {
-	return agentpkg.New(agentpkg.Deps{
-		WorkspaceExecutorProvider: provider,
-		Logger:                    log,
-	})
-}
-
-func injectToolProviders(a *agentpkg.Agent, msgService *message.DBService, providers []agenttools.ToolProvider) {
-	a.SetToolProviders(providers)
-	for _, p := range providers {
-		if sp, ok := p.(*agenttools.SpawnProvider); ok {
-			sp.SetAgent(agentpkg.NewSpawnAdapter(a))
-			sp.SetMessageService(msgService)
-			sp.SetSystemPromptFunc(agentpkg.SpawnSystemPrompt)
-			sp.SetModelCreator(agentpkg.SpawnModelCreatorFunc())
-		}
-	}
-}
-
-func provideChatResolver(log *slog.Logger, a *agentpkg.Agent, modelsService *models.Service, queries dbstore.Queries, chatService *conversation.Service, msgService *message.DBService, settingsService *settings.Service, accountService *accounts.Service, mediaService *media.Service, containerdHandler *handlers.ContainerdHandler, memoryRegistry *memprovider.Registry, channelStore *channel.Store, routeService *route.DBService, sessionService *sessionpkg.Service, eventHub *event.Hub, compactionService *compaction.Service, pipeline *pipelinepkg.Pipeline, rc *boot.RuntimeConfig, bgManager *background.Manager, toolApproval *toolapproval.Service) *flow.Resolver {
-	resolver := flow.NewResolver(log, modelsService, queries, chatService, msgService, settingsService, accountService, a, rc.TimezoneLocation, 120*time.Second)
-	resolver.SetMemoryRegistry(memoryRegistry)
-	resolver.SetSkillLoader(&skillLoaderAdapter{handler: containerdHandler})
-	resolver.SetGatewayAssetLoader(&gatewayAssetLoaderAdapter{media: mediaService})
-	resolver.SetChannelStore(channelStore)
-	resolver.SetRouteService(routeService)
-	resolver.SetSessionService(sessionService)
-	resolver.SetEventPublisher(eventHub)
-	resolver.SetCompactionService(compactionService)
-	resolver.SetPipeline(pipeline)
-	resolver.SetBackgroundManager(bgManager)
-	resolver.SetToolApprovalService(toolApproval)
-	bgManager.SetWakeFunc(func(botID, sessionID string) {
-		resolver.TriggerBackgroundNotification(context.Background(), botID, sessionID)
-	})
-	return resolver
-}
-
-func provideChannelRegistry(log *slog.Logger, hub *local.RouteHub, mediaService *media.Service) *channel.Registry {
+func provideChannelRegistry(_ *slog.Logger, hub *local.RouteHub, _ *media.Service) *channel.Registry {
 	registry := channel.NewRegistry()
-
-	tgAdapter := telegram.NewTelegramAdapter(log)
-	tgAdapter.SetAssetOpener(mediaService)
-	registry.MustRegister(tgAdapter)
-
-	discordAdapter := discord.NewDiscordAdapter(log)
-	discordAdapter.SetAssetOpener(mediaService)
-	registry.MustRegister(discordAdapter)
-
-	qqAdapter := qq.NewQQAdapter(log)
-	qqAdapter.SetAssetOpener(mediaService)
-	registry.MustRegister(qqAdapter)
-
-	matrixAdapter := matrix.NewMatrixAdapter(log)
-	matrixAdapter.SetAssetOpener(mediaService)
-	registry.MustRegister(matrixAdapter)
-
-	feishuAdapter := feishu.NewFeishuAdapter(log)
-	feishuAdapter.SetAssetOpener(mediaService)
-	registry.MustRegister(feishuAdapter)
-
-	slackAdapter := slackadapter.NewSlackAdapter(log)
-	slackAdapter.SetAssetOpener(mediaService)
-	registry.MustRegister(slackAdapter)
-
-	registry.MustRegister(wecom.NewWeComAdapter(log))
-
-	dingTalkAdapter := dingtalk.NewDingTalkAdapter(log)
-	registry.MustRegister(dingTalkAdapter)
-	registry.MustRegister(wechatoa.NewWeChatOAAdapter(log))
-
-	weixinAdapter := weixin.NewWeixinAdapter(log)
-	weixinAdapter.SetAssetOpener(mediaService)
-	registry.MustRegister(weixinAdapter)
+	catalog.RegisterEnterpriseDescriptors(registry)
 	registry.MustRegister(local.NewWebAdapter(hub))
-	registry.MustRegister(misskey.NewMisskeyAdapter(log))
 
 	return registry
 }
@@ -393,7 +378,7 @@ func provideChannelRouter(
 	routeService *route.DBService,
 	sessionService *sessionpkg.Service,
 	msgService *message.DBService,
-	resolver *flow.Resolver,
+	dispatcher *runnerdispatch.Service,
 	identityService *identities.Service,
 	botService *bots.Service,
 	aclService *acl.Service,
@@ -421,21 +406,9 @@ func provideChannelRouter(
 	discussDriver *pipelinepkg.DiscussDriver,
 	rc *boot.RuntimeConfig,
 ) *inbound.ChannelInboundProcessor {
-	adapter, ok := registry.Get(qq.Type)
-	if !ok {
-		panic("qq adapter not registered")
-	}
-	qqAdapter, ok := adapter.(*qq.QQAdapter)
-	if !ok {
-		panic("qq adapter has unexpected type")
-	}
-	qqAdapter.SetChannelIdentityResolver(identityService)
-	qqAdapter.SetRouteResolver(routeService)
-
-	processor := inbound.NewChannelInboundProcessor(log, registry, routeService, msgService, resolver, identityService, policyService, bindService, rc.JwtSecret, 5*time.Minute)
+	processor := inbound.NewChannelInboundProcessor(log, registry, routeService, msgService, dispatcher, identityService, policyService, bindService, rc.JwtSecret, 5*time.Minute)
 	processor.SetSessionEnsurer(&sessionEnsurerAdapter{svc: sessionService})
 	processor.SetPipeline(pipeline, eventStore, discussDriver)
-	discussDriver.SetResolver(resolver)
 	discussDriver.SetBroadcaster(hub)
 	processor.SetACLService(aclService)
 	processor.SetMediaService(mediaService)
@@ -469,11 +442,6 @@ func provideChannelRouter(
 }
 
 func provideChannelManager(log *slog.Logger, registry *channel.Registry, channelStore *channel.Store, channelRouter *inbound.ChannelInboundProcessor, mediaService *media.Service) *channel.Manager {
-	if adapter, ok := registry.Get(matrix.Type); ok {
-		if matrixAdapter, ok := adapter.(*matrix.MatrixAdapter); ok {
-			matrixAdapter.SetSyncStateSaver(channelStore.SaveMatrixSyncSinceToken)
-		}
-	}
 	mgr := channel.NewManager(log, registry, channelStore, channelRouter)
 	mgr.SetAttachmentStore(mediaService)
 	if mw := channelRouter.IdentityMiddleware(); mw != nil {
@@ -514,36 +482,6 @@ func provideToolGatewayService(log *slog.Logger, fedGateway *handlers.MCPFederat
 	svc := mcp.NewToolGatewayService(log, []mcp.ToolSource{fedSource})
 	containerdHandler.SetToolGatewayService(svc)
 	return svc
-}
-
-func provideBackgroundManager(log *slog.Logger) *background.Manager {
-	return background.New(log)
-}
-
-func provideToolProviders(log *slog.Logger, cfg config.Config, channelManager *channel.Manager, registry *channel.Registry, routeService *route.DBService, scheduleService *schedule.Service, settingsService *settings.Service, searchProviderService *searchproviders.Service, manager *workspace.Manager, mediaService *media.Service, memoryRegistry *memprovider.Registry, emailService *emailpkg.Service, emailManager *emailpkg.Manager, fedGateway *handlers.MCPFederationGateway, mcpConnService *mcp.ConnectionService, modelsService *models.Service, browserContextService *browsercontexts.Service, queries dbstore.Queries, audioService *audiopkg.Service, sessionService *sessionpkg.Service, bgManager *background.Manager) []agenttools.ToolProvider {
-	var assetResolver messaging.AssetResolver
-	if mediaService != nil {
-		assetResolver = &mediaAssetResolverAdapter{media: mediaService}
-	}
-	fedSource := mcpfederation.NewSource(log, fedGateway, mcpConnService)
-	return []agenttools.ToolProvider{
-		agenttools.NewMessageProvider(log, channelManager, channelManager, registry, assetResolver),
-		agenttools.NewContactsProvider(log, routeService),
-		agenttools.NewScheduleProvider(log, scheduleService),
-		agenttools.NewMemoryProvider(log, memoryRegistry, settingsService),
-		agenttools.NewWebProvider(log, settingsService, searchProviderService),
-		agenttools.NewContainerProvider(log, manager, bgManager, config.DefaultDataMount),
-		agenttools.NewEmailProvider(log, emailService, emailManager),
-		agenttools.NewWebFetchProvider(log),
-		agenttools.NewSpawnProvider(log, settingsService, modelsService, queries, sessionService),
-		agenttools.NewSkillProvider(log),
-		agenttools.NewBrowserProvider(log, settingsService, browserContextService, manager, cfg.BrowserGateway),
-		agenttools.NewTTSProvider(log, settingsService, audioService, channelManager, registry),
-		agenttools.NewTranscriptionProvider(log, settingsService, audioService, mediaService),
-		agenttools.NewImageGenProvider(log, settingsService, modelsService, queries, manager, config.DefaultDataMount),
-		agenttools.NewFederationProvider(log, fedSource),
-		agenttools.NewHistoryProvider(log, sessionService, queries),
-	}
 }
 
 func provideMemoryHandler(log *slog.Logger, botService *bots.Service, accountService *accounts.Service, _ config.Config, provider executorclient.Provider, memoryRegistry *memprovider.Registry, settingsService *settings.Service, _ *handlers.ContainerdHandler) *handlers.MemoryHandler {
@@ -592,14 +530,6 @@ func provideUsersHandler(log *slog.Logger, accountService *accounts.Service, ide
 	return handlers.NewUsersHandler(log, accountService, identityService, botService, routeService, channelStore, channelLifecycle, channelManager, registry, rbacService)
 }
 
-func provideWebHandler(channelManager *channel.Manager, channelStore *channel.Store, chatService *conversation.Service, hub *local.RouteHub, botService *bots.Service, accountService *accounts.Service, resolver *flow.Resolver, mediaService *media.Service, audioService *audiopkg.Service, settingsService *settings.Service) *handlers.LocalChannelHandler {
-	h := handlers.NewLocalChannelHandler(local.WebType, channelManager, channelStore, chatService, hub, botService, accountService)
-	h.SetResolver(resolver)
-	h.SetMediaService(mediaService)
-	h.SetSpeechService(audioService, &settingsSpeechModelResolver{settings: settingsService})
-	return h
-}
-
 func provideAudioRegistry() *audiopkg.Registry {
 	return audiopkg.NewRegistry()
 }
@@ -613,20 +543,6 @@ func startAudioTempStoreCleanup(lc fx.Lifecycle, store *audiopkg.TempStore) {
 	lc.Append(fx.Hook{
 		OnStart: func(_ context.Context) error {
 			go store.StartCleanup(done)
-			return nil
-		},
-		OnStop: func(_ context.Context) error {
-			close(done)
-			return nil
-		},
-	})
-}
-
-func startBackgroundTaskCleanup(lc fx.Lifecycle, mgr *background.Manager) {
-	done := make(chan struct{})
-	lc.Append(fx.Hook{
-		OnStart: func(_ context.Context) error {
-			go mgr.StartCleanupLoop(done, background.DefaultCleanupInterval, background.DefaultTaskRetention)
 			return nil
 		},
 		OnStop: func(_ context.Context) error {
@@ -747,8 +663,8 @@ func provideEmailOAuthHandler(log *slog.Logger, service *emailpkg.Service, token
 	return handlers.NewEmailOAuthHandler(log, service, tokenStore, callbackURL)
 }
 
-func provideEmailChatGateway(resolver *flow.Resolver, queries dbstore.Queries, cfg config.Config, log *slog.Logger) emailpkg.ChatTriggerer {
-	return flow.NewEmailChatGateway(resolver, queries, cfg.Auth.JWTSecret, log)
+func provideEmailChatTriggerer(dispatcher *runnerdispatch.Service) emailpkg.ChatTriggerer {
+	return dispatcher
 }
 
 func provideEmailTrigger(log *slog.Logger, service *emailpkg.Service, chatTriggerer emailpkg.ChatTriggerer) *emailpkg.Trigger {
@@ -844,45 +760,6 @@ func startSearchProviderBootstrap(lc fx.Lifecycle, log *slog.Logger, spService *
 				log.Warn("failed to ensure default search providers", slog.Any("error", err))
 			}
 			return nil
-		},
-	})
-}
-
-func startScheduleService(lc fx.Lifecycle, scheduleService *schedule.Service) {
-	lc.Append(fx.Hook{
-		OnStart: func(ctx context.Context) error {
-			return scheduleService.Bootstrap(ctx)
-		},
-	})
-}
-
-func startHeartbeatService(lc fx.Lifecycle, heartbeatService *heartbeat.Service) {
-	lc.Append(fx.Hook{
-		OnStart: func(ctx context.Context) error {
-			return heartbeatService.Bootstrap(ctx)
-		},
-	})
-}
-
-func wireResolverOutbound(resolver *flow.Resolver, channelManager *channel.Manager) {
-	resolver.SetOutboundFn(func(ctx context.Context, botID, channelType, target, text string) error {
-		return channelManager.Send(ctx, botID, channel.ChannelType(channelType), channel.SendRequest{
-			Target:  target,
-			Message: channel.Message{Text: text},
-		})
-	})
-}
-
-func startChannelManager(lc fx.Lifecycle, channelManager *channel.Manager) {
-	ctx, cancel := context.WithCancel(context.Background())
-	lc.Append(fx.Hook{
-		OnStart: func(_ context.Context) error {
-			channelManager.Start(ctx)
-			return nil
-		},
-		OnStop: func(stopCtx context.Context) error {
-			cancel()
-			return channelManager.Shutdown(stopCtx)
 		},
 	})
 }
@@ -1076,93 +953,6 @@ func (c *lazyLLMClient) resolve(ctx context.Context, botID string) (memprovider.
 		Timeout:        c.timeout,
 		PromptCacheTTL: providers.ProviderConfigString(memoryProvider, "prompt_cache_ttl"),
 	}), nil
-}
-
-type skillLoaderAdapter struct {
-	handler *handlers.ContainerdHandler
-}
-
-func (a *skillLoaderAdapter) LoadSkills(ctx context.Context, botID string) ([]flow.SkillEntry, error) {
-	items, err := a.handler.LoadSkills(ctx, botID)
-	if err != nil {
-		return nil, err
-	}
-	entries := make([]flow.SkillEntry, len(items))
-	for i, item := range items {
-		skillPath := ""
-		if item.SourcePath != "" {
-			skillPath = stdpath.Dir(item.SourcePath)
-		}
-		entries[i] = flow.SkillEntry{
-			Name:        item.Name,
-			Description: item.Description,
-			Content:     item.Content,
-			Path:        skillPath,
-			Metadata:    item.Metadata,
-		}
-	}
-	return entries, nil
-}
-
-type mediaAssetResolverAdapter struct {
-	media *media.Service
-}
-
-func (a *mediaAssetResolverAdapter) Stat(ctx context.Context, botID, contentHash string) (media.Asset, error) {
-	if a == nil || a.media == nil {
-		return media.Asset{}, errors.New("media service not configured")
-	}
-	return a.media.Stat(ctx, botID, contentHash)
-}
-
-func (a *mediaAssetResolverAdapter) Open(ctx context.Context, botID, contentHash string) (io.ReadCloser, media.Asset, error) {
-	if a == nil || a.media == nil {
-		return nil, media.Asset{}, errors.New("media service not configured")
-	}
-	return a.media.Open(ctx, botID, contentHash)
-}
-
-func (a *mediaAssetResolverAdapter) Ingest(ctx context.Context, input media.IngestInput) (media.Asset, error) {
-	if a == nil || a.media == nil {
-		return media.Asset{}, errors.New("media service not configured")
-	}
-	return a.media.Ingest(ctx, input)
-}
-
-func (a *mediaAssetResolverAdapter) GetByStorageKey(ctx context.Context, botID, storageKey string) (messaging.AssetMeta, error) {
-	if a == nil || a.media == nil {
-		return messaging.AssetMeta{}, errors.New("media service not configured")
-	}
-	return a.media.GetByStorageKey(ctx, botID, storageKey)
-}
-
-func (a *mediaAssetResolverAdapter) AccessPath(asset media.Asset) string {
-	if a == nil || a.media == nil {
-		return ""
-	}
-	return a.media.AccessPath(asset)
-}
-
-func (a *mediaAssetResolverAdapter) IngestContainerFile(ctx context.Context, botID, containerPath string) (messaging.AssetMeta, error) {
-	if a == nil || a.media == nil {
-		return messaging.AssetMeta{}, errors.New("media service not configured")
-	}
-	return a.media.IngestContainerFile(ctx, botID, containerPath)
-}
-
-type gatewayAssetLoaderAdapter struct {
-	media *media.Service
-}
-
-func (a *gatewayAssetLoaderAdapter) OpenForGateway(ctx context.Context, botID, contentHash string) (io.ReadCloser, string, error) {
-	if a == nil || a.media == nil {
-		return nil, "", errors.New("media service not configured")
-	}
-	reader, asset, err := a.media.Open(ctx, botID, contentHash)
-	if err != nil {
-		return nil, "", err
-	}
-	return reader, strings.TrimSpace(asset.Mime), nil
 }
 
 type commandSkillLoaderAdapter struct {

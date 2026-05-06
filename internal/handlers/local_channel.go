@@ -25,7 +25,6 @@ import (
 	"github.com/memohai/memoh/internal/channel"
 	"github.com/memohai/memoh/internal/channel/adapters/local"
 	"github.com/memohai/memoh/internal/conversation"
-	"github.com/memohai/memoh/internal/conversation/flow"
 	"github.com/memohai/memoh/internal/media"
 	messagepkg "github.com/memohai/memoh/internal/message"
 )
@@ -40,6 +39,12 @@ type localSpeechModelResolver interface {
 	ResolveSpeechModelID(ctx context.Context, botID string) (string, error)
 }
 
+type localChannelResolver interface {
+	StreamChatWS(ctx context.Context, req conversation.ChatRequest, eventCh chan<- conversation.WSStreamEvent, abortCh <-chan struct{}) error
+	RespondToolApproval(ctx context.Context, input conversation.ToolApprovalResponseInput, eventCh chan<- conversation.WSStreamEvent) error
+	LinkOutboundAssets(ctx context.Context, botID, sessionID string, assets []messagepkg.AssetRef)
+}
+
 // LocalChannelHandler handles local channel routes (WebUI / API) backed by bot history.
 type LocalChannelHandler struct {
 	channelType         channel.ChannelType
@@ -49,7 +54,7 @@ type LocalChannelHandler struct {
 	routeHub            *local.RouteHub
 	botService          *bots.Service
 	accountService      *accounts.Service
-	resolver            *flow.Resolver
+	resolver            localChannelResolver
 	mediaService        *media.Service
 	speechService       localSpeechSynthesizer
 	speechModelResolver localSpeechModelResolver
@@ -71,7 +76,7 @@ func NewLocalChannelHandler(channelType channel.ChannelType, channelManager *cha
 }
 
 // SetResolver sets the flow resolver for WebSocket streaming.
-func (h *LocalChannelHandler) SetResolver(resolver *flow.Resolver) {
+func (h *LocalChannelHandler) SetResolver(resolver localChannelResolver) {
 	h.resolver = resolver
 }
 
@@ -409,7 +414,7 @@ func (h *LocalChannelHandler) HandleWebSocket(c echo.Context) error {
 			}
 			streamCtx, streamCancel := context.WithCancel(ctx)
 			activeCancel = streamCancel
-			eventCh := make(chan flow.WSStreamEvent, 64)
+			eventCh := make(chan conversation.WSStreamEvent, 64)
 
 			var (
 				outboundAssetMu   sync.Mutex
@@ -419,7 +424,7 @@ func (h *LocalChannelHandler) HandleWebSocket(c echo.Context) error {
 			go func() {
 				defer streamCancel()
 				defer close(eventCh)
-				if err := h.resolver.RespondToolApproval(streamCtx, flow.ToolApprovalResponseInput{
+				if err := h.resolver.RespondToolApproval(streamCtx, conversation.ToolApprovalResponseInput{
 					BotID:                  botID,
 					SessionID:              sessionID,
 					ActorChannelIdentityID: channelIdentityID,
@@ -510,7 +515,7 @@ func (h *LocalChannelHandler) HandleWebSocket(c echo.Context) error {
 
 			streamCtx, streamCancel := context.WithCancel(ctx)
 			activeCancel = streamCancel
-			eventCh := make(chan flow.WSStreamEvent, 64)
+			eventCh := make(chan conversation.WSStreamEvent, 64)
 
 			var (
 				outboundAssetMu   sync.Mutex

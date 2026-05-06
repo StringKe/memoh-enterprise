@@ -23,7 +23,6 @@ import (
 	"github.com/memohai/memoh/internal/channel/route"
 	"github.com/memohai/memoh/internal/command"
 	"github.com/memohai/memoh/internal/conversation"
-	"github.com/memohai/memoh/internal/conversation/flow"
 	"github.com/memohai/memoh/internal/iam/rbac"
 	"github.com/memohai/memoh/internal/media"
 	messagepkg "github.com/memohai/memoh/internal/message"
@@ -99,7 +98,7 @@ type SessionEnsurer interface {
 }
 
 type ToolApprovalRunner interface {
-	RespondToolApproval(ctx context.Context, input flow.ToolApprovalResponseInput, eventCh chan<- flow.WSStreamEvent) error
+	RespondToolApproval(ctx context.Context, input conversation.ToolApprovalResponseInput, eventCh chan<- conversation.WSStreamEvent) error
 }
 
 // IMDisplayOptionsReader exposes bot-level IM display preferences.
@@ -119,7 +118,7 @@ type SessionResult struct {
 
 // ChannelInboundProcessor routes channel inbound messages to the chat gateway.
 type ChannelInboundProcessor struct {
-	runner              flow.Runner
+	runner              conversation.Runner
 	routeResolver       RouteResolver
 	message             messagepkg.Writer
 	mediaService        mediaIngestor
@@ -157,7 +156,7 @@ func NewChannelInboundProcessor(
 	registry *channel.Registry,
 	routeResolver RouteResolver,
 	messageWriter messagepkg.Writer,
-	runner flow.Runner,
+	runner conversation.Runner,
 	channelIdentityService ChannelIdentityService,
 	policyService PolicyService,
 	bindService BindService,
@@ -630,7 +629,7 @@ func (p *ChannelInboundProcessor) HandleInbound(ctx context.Context, cfg channel
 	// short-circuit here instead of starting a new stream.
 	if p.dispatcher != nil && !isLocalChannelType(msg.Channel) && inboundMode != ModeParallel {
 		if p.dispatcher.IsActive(routeID) {
-			headerifiedText := flow.FormatUserHeader(flow.UserMessageHeaderInput{
+			headerifiedText := conversation.FormatUserHeader(conversation.UserMessageHeaderInput{
 				MessageID:         strings.TrimSpace(msg.Message.ID),
 				ChannelIdentityID: strings.TrimSpace(identity.ChannelIdentityID),
 				DisplayName:       strings.TrimSpace(identity.DisplayName),
@@ -1017,7 +1016,7 @@ startStream:
 		return nil
 	}
 
-	outputs := flow.ExtractAssistantOutputs(finalMessages)
+	outputs := conversation.ExtractAssistantOutputs(finalMessages)
 	for _, output := range outputs {
 		outMessage := buildChannelMessage(output, desc.Capabilities)
 		if outMessage.IsEmpty() {
@@ -1229,7 +1228,7 @@ func (p *ChannelInboundProcessor) persistPassiveMessage(
 		}
 	}
 
-	headerifiedText := flow.FormatUserHeader(flow.UserMessageHeaderInput{
+	headerifiedText := conversation.FormatUserHeader(conversation.UserMessageHeaderInput{
 		MessageID:         strings.TrimSpace(msg.Message.ID),
 		ChannelIdentityID: strings.TrimSpace(ident.ChannelIdentityID),
 		DisplayName:       strings.TrimSpace(ident.DisplayName),
@@ -2771,7 +2770,7 @@ func (p *ChannelInboundProcessor) handleToolApprovalCommand(ctx context.Context,
 		explicitID = actionText
 		reason = strings.TrimSpace(strings.Join(parsed.Args, " "))
 	}
-	return p.streamToolApprovalCommand(ctx, msg, sender, identity, approvalRunner, flow.ToolApprovalResponseInput{
+	return p.streamToolApprovalCommand(ctx, msg, sender, identity, approvalRunner, conversation.ToolApprovalResponseInput{
 		BotID:                  strings.TrimSpace(identity.BotID),
 		SessionID:              strings.TrimSpace(sessionID),
 		ActorChannelIdentityID: strings.TrimSpace(identity.ChannelIdentityID),
@@ -2783,7 +2782,7 @@ func (p *ChannelInboundProcessor) handleToolApprovalCommand(ctx context.Context,
 	})
 }
 
-func (p *ChannelInboundProcessor) streamToolApprovalCommand(ctx context.Context, msg channel.InboundMessage, sender channel.StreamReplySender, identity InboundIdentity, approvalRunner ToolApprovalRunner, input flow.ToolApprovalResponseInput) error {
+func (p *ChannelInboundProcessor) streamToolApprovalCommand(ctx context.Context, msg channel.InboundMessage, sender channel.StreamReplySender, identity InboundIdentity, approvalRunner ToolApprovalRunner, input conversation.ToolApprovalResponseInput) error {
 	target := strings.TrimSpace(msg.ReplyTarget)
 	if target == "" {
 		return errors.New("reply target missing")
@@ -2820,7 +2819,7 @@ func (p *ChannelInboundProcessor) streamToolApprovalCommand(ctx context.Context,
 		return err
 	}
 
-	eventCh := make(chan flow.WSStreamEvent, 64)
+	eventCh := make(chan conversation.WSStreamEvent, 64)
 	errCh := make(chan error, 1)
 	go func() {
 		defer close(eventCh)
@@ -2876,7 +2875,7 @@ func (p *ChannelInboundProcessor) streamToolApprovalCommand(ctx context.Context,
 
 	sentTexts, suppressReplies := collectMessageToolContext(p.registry, finalMessages, msg.Channel, target)
 	if !suppressReplies {
-		outputs := flow.ExtractAssistantOutputs(finalMessages)
+		outputs := conversation.ExtractAssistantOutputs(finalMessages)
 		for _, output := range outputs {
 			outMessage := buildChannelMessage(output, channel.ChannelCapabilities{Text: true, Markdown: true, Reply: true})
 			if outMessage.IsEmpty() {

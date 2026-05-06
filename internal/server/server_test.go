@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -78,7 +79,7 @@ func TestConnectProtectedRouteRequiresValidToken(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			req := httptest.NewRequest(http.MethodPost, "/connect/memoh.private.v1.TestService/Ping", nil)
+			req := httptest.NewRequestWithContext(context.Background(), http.MethodPost, "/connect/memoh.private.v1.TestService/Ping", nil)
 			if tc.token != "" {
 				req.Header.Set("Authorization", "Bearer "+tc.token)
 			}
@@ -105,7 +106,7 @@ func TestConnectProtectedRouteAcceptsValidToken(t *testing.T) {
 		w.WriteHeader(http.StatusNoContent)
 	})
 	srv := NewServer(slog.Default(), ":0", secret, protected)
-	req := httptest.NewRequest(http.MethodPost, "/connect/memoh.private.v1.TestService/Ping", nil)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodPost, "/connect/memoh.private.v1.TestService/Ping", nil)
 	req.Header.Set("Authorization", "Bearer "+token)
 	rec := httptest.NewRecorder()
 
@@ -120,7 +121,7 @@ func TestSwaggerRouteIsNotMounted(t *testing.T) {
 	t.Parallel()
 
 	srv := NewServer(slog.Default(), ":0", "secret")
-	req := httptest.NewRequest(http.MethodGet, "/api/swagger.json", nil)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/api/swagger.json", nil)
 	rec := httptest.NewRecorder()
 
 	srv.echo.ServeHTTP(rec, req)

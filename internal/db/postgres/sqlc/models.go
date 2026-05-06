@@ -765,6 +765,46 @@ type StorageProvider struct {
 	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
 }
 
+type StructuredDataAudit struct {
+	ID          pgtype.UUID        `json:"id"`
+	SpaceID     pgtype.UUID        `json:"space_id"`
+	ActorType   string             `json:"actor_type"`
+	ActorUserID pgtype.UUID        `json:"actor_user_id"`
+	ActorBotID  pgtype.UUID        `json:"actor_bot_id"`
+	Operation   string             `json:"operation"`
+	Statement   string             `json:"statement"`
+	Success     bool               `json:"success"`
+	Error       string             `json:"error"`
+	RowCount    int64              `json:"row_count"`
+	DurationMs  int64              `json:"duration_ms"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+}
+
+type StructuredDataGrant struct {
+	ID               pgtype.UUID        `json:"id"`
+	SpaceID          pgtype.UUID        `json:"space_id"`
+	TargetType       string             `json:"target_type"`
+	TargetBotID      pgtype.UUID        `json:"target_bot_id"`
+	TargetBotGroupID pgtype.UUID        `json:"target_bot_group_id"`
+	Privileges       []string           `json:"privileges"`
+	CreatedByUserID  pgtype.UUID        `json:"created_by_user_id"`
+	CreatedAt        pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt        pgtype.Timestamptz `json:"updated_at"`
+}
+
+type StructuredDataSpace struct {
+	ID              pgtype.UUID        `json:"id"`
+	OwnerType       string             `json:"owner_type"`
+	OwnerBotID      pgtype.UUID        `json:"owner_bot_id"`
+	OwnerBotGroupID pgtype.UUID        `json:"owner_bot_group_id"`
+	SchemaName      string             `json:"schema_name"`
+	RoleName        string             `json:"role_name"`
+	DisplayName     string             `json:"display_name"`
+	Metadata        []byte             `json:"metadata"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
+}
+
 type Task struct {
 	ID        string             `json:"id"`
 	BotID     string             `json:"bot_id"`

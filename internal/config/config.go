@@ -12,7 +12,7 @@ import (
 
 const (
 	DefaultConfigPath       = "config.toml"
-	DefaultHTTPAddr         = ":8080"
+	DefaultHTTPAddr         = ":26810"
 	DefaultNamespace        = "default"
 	DefaultSocketPath       = "/run/containerd/containerd.sock"
 	DefaultDataRoot         = "data"
@@ -22,11 +22,11 @@ const (
 	DefaultJWTExpiresIn     = "24h"
 	DefaultDatabaseDriver   = "postgres"
 	DefaultPGHost           = "127.0.0.1"
-	DefaultPGPort           = 5432
+	DefaultPGPort           = 26813
 	DefaultPGUser           = "postgres"
 	DefaultPGDatabase       = "memoh"
 	DefaultPGSSLMode        = "disable"
-	DefaultQdrantURL        = "http://127.0.0.1:6334"
+	DefaultQdrantURL        = "http://127.0.0.1:26815"
 	DefaultQdrantCollection = "memory"
 	DefaultRuntimeDir       = "/opt/memoh/runtime"
 	DefaultBaseImage        = "debian:bookworm-slim"

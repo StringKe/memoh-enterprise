@@ -326,6 +326,7 @@ func (m *Manager) updateBotWorkspaceImagePreference(ctx context.Context, botID, 
 		AvatarUrl:   row.AvatarUrl,
 		Timezone:    row.Timezone,
 		IsActive:    row.IsActive,
+		GroupID:     row.GroupID,
 		Metadata:    payload,
 	})
 	return err
@@ -358,6 +359,7 @@ func (m *Manager) rememberWorkspaceBackend(ctx context.Context, botID, backend, 
 		AvatarUrl:   row.AvatarUrl,
 		Timezone:    row.Timezone,
 		IsActive:    row.IsActive,
+		GroupID:     row.GroupID,
 		Metadata:    payload,
 	})
 	return err
@@ -448,6 +450,7 @@ func (m *Manager) updateBotWorkspaceGPUPreference(ctx context.Context, botID str
 		AvatarUrl:   row.AvatarUrl,
 		Timezone:    row.Timezone,
 		IsActive:    row.IsActive,
+		GroupID:     row.GroupID,
 		Metadata:    payload,
 	})
 	return err

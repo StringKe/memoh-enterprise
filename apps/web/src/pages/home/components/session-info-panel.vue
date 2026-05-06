@@ -58,7 +58,6 @@
               formatTokenCount(info?.cache_stats?.cache_read_tokens ?? 0)
             }}</span>
           </div>
-
         </div>
 
         <!-- Compact Now -->

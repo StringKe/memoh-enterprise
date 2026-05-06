@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"log/slog"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -66,6 +67,7 @@ type Manager struct {
 	notifications []Notification   // pending notifications, protected by mu
 	logger        *slog.Logger
 	wakeFunc      func(botID, sessionID string) // optional callback to wake agent on new notification
+	eventFunc     func(TaskEvent)               // optional callback for live UI task updates
 }
 
 // New creates a new background task Manager.
@@ -88,6 +90,22 @@ func (m *Manager) SetWakeFunc(fn func(botID, sessionID string)) {
 	m.mu.Unlock()
 }
 
+// SetEventFunc registers a callback for live background task events.
+func (m *Manager) SetEventFunc(fn func(TaskEvent)) {
+	m.mu.Lock()
+	m.eventFunc = fn
+	m.mu.Unlock()
+}
+
+func (m *Manager) emitEvent(event TaskEvent) {
+	m.mu.Lock()
+	fn := m.eventFunc
+	m.mu.Unlock()
+	if fn != nil {
+		fn(event)
+	}
+}
+
 // enqueueNotification appends n to the pending list and, if a wake function is
 // registered, calls it asynchronously so the agent can process the notification.
 func (m *Manager) enqueueNotification(n Notification) {
@@ -103,6 +121,33 @@ func (m *Manager) enqueueNotification(n Notification) {
 	if wakeFn != nil {
 		go wakeFn(n.BotID, n.SessionID)
 	}
+}
+
+func (m *Manager) emitTaskEvent(task *Task, event TaskEventType, stream, chunk string) {
+	if task == nil {
+		return
+	}
+	task.mu.Lock()
+	payload := TaskEvent{
+		Event:      event,
+		TaskID:     task.ID,
+		BotID:      task.BotID,
+		SessionID:  task.SessionID,
+		Command:    task.Command,
+		Status:     task.Status,
+		Stream:     stream,
+		Chunk:      chunk,
+		Tail:       task.outputTailLocked(),
+		OutputFile: task.OutputFile,
+		ExitCode:   task.ExitCode,
+		Duration:   time.Since(task.StartedAt).Round(time.Millisecond).String(),
+		Stalled:    event == TaskEventStalled,
+	}
+	task.mu.Unlock()
+	if event == TaskEventCompleted || event == TaskEventFailed || event == TaskEventStalled {
+		payload.Duration = strings.TrimSpace(payload.Duration)
+	}
+	m.emitEvent(payload)
 }
 
 // Spawn starts a command in the background. It returns the task ID immediately.
@@ -141,6 +186,7 @@ func (m *Manager) Spawn(
 		slog.String("bot_id", botID),
 		slog.String("command", truncate(command, 120)),
 	)
+	m.emitTaskEvent(task, TaskEventStarted, "", "")
 
 	go m.run(parentCtx, task, execFn, writeFn, readFn)
 	return taskID, outputFile
@@ -179,9 +225,26 @@ func (m *Manager) SpawnAdopt(
 		slog.String("bot_id", botID),
 		slog.String("command", truncate(command, 120)),
 	)
+	m.emitTaskEvent(task, TaskEventStarted, "", "")
 
 	go m.runAdopt(parentCtx, task, resultCh, writeFn)
 	return taskID, outputFile
+}
+
+// RecordOutput appends live output for a running task and emits a UI event.
+func (m *Manager) RecordOutput(taskID, stream, chunk string) {
+	chunk = strings.TrimSuffix(chunk, "\x00")
+	if strings.TrimSpace(taskID) == "" || chunk == "" {
+		return
+	}
+	m.mu.Lock()
+	task := m.tasks[taskID]
+	m.mu.Unlock()
+	if task == nil {
+		return
+	}
+	task.AppendOutput(chunk)
+	m.emitTaskEvent(task, TaskEventOutput, stream, chunk)
 }
 
 func (m *Manager) newTaskIDLocked(botID string) string {
@@ -236,7 +299,13 @@ func (m *Manager) runAdopt(parentCtx context.Context, task *Task, resultCh <-cha
 		_ = writeFn(context.WithoutCancel(ctx), task.OutputFile, []byte(combined))
 	}
 
-	m.completeTask(task, result.Stdout, result.Stderr, result.Err, result.ExitCode)
+	stdout := result.Stdout
+	stderr := result.Stderr
+	if result.OutputRecorded {
+		stdout = ""
+		stderr = ""
+	}
+	m.completeTask(task, stdout, stderr, result.Err, result.ExitCode)
 }
 
 func (m *Manager) run(parentCtx context.Context, task *Task, execFn ExecFunc, writeFn WriteFileFunc, readFn ReadFileFunc) {
@@ -343,8 +412,15 @@ func (m *Manager) completeTask(task *Task, stdout, stderr string, execErr error,
 		slog.Duration("duration", duration),
 	)
 
+	eventType := TaskEventCompleted
+	if status == TaskFailed {
+		eventType = TaskEventFailed
+	}
+	m.emitTaskEvent(task, eventType, "", "")
+
 	// Guard against double notification when Kill or an auto-background race
-	// already enqueued one for this task.
+	// already enqueued one for this task. UI terminal events are emitted above
+	// even if an earlier stalled notification already woke the agent.
 	if !task.MarkNotified() {
 		return
 	}
@@ -435,6 +511,28 @@ func (m *Manager) ListForSession(botID, sessionID string) []*Task {
 		}
 	}
 	return result
+}
+
+// ListSnapshotsForSession returns lock-safe snapshots for all tasks in a
+// bot+session, most recent first.
+func (m *Manager) ListSnapshotsForSession(botID, sessionID string) []TaskSnapshot {
+	m.mu.Lock()
+	tasks := make([]*Task, 0)
+	for _, t := range m.tasks {
+		if t.BotID == botID && t.SessionID == sessionID {
+			tasks = append(tasks, t)
+		}
+	}
+	m.mu.Unlock()
+
+	snapshots := make([]TaskSnapshot, 0, len(tasks))
+	for _, task := range tasks {
+		snapshots = append(snapshots, task.Snapshot())
+	}
+	sort.Slice(snapshots, func(i, j int) bool {
+		return snapshots[i].StartedAt.After(snapshots[j].StartedAt)
+	})
+	return snapshots
 }
 
 // KillForSession cancels a running background task only when it belongs to the
@@ -621,8 +719,10 @@ func (m *Manager) stallWatchdog(ctx context.Context, task *Task) {
 			slog.String("task_id", task.ID),
 		)
 
-		// Enqueue a stall notification (only once).
-		if !task.MarkNotified() {
+		// Enqueue a stall notification (only once). Terminal completion still
+		// gets its own notification later, so persisted UI can close the task
+		// after a reload.
+		if !task.MarkStalledNotified() {
 			return
 		}
 
@@ -640,6 +740,7 @@ func (m *Manager) stallWatchdog(ctx context.Context, task *Task) {
 			Stalled:     true,
 		}
 
+		m.emitTaskEvent(task, TaskEventStalled, "", "")
 		m.enqueueNotification(n)
 		return // only notify once per task
 	}

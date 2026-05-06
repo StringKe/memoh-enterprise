@@ -169,6 +169,14 @@
     "history": "History",
     "historyParticipant": "Chats",
     "historyObserved": "Observed Chats",
+    "backgroundTask": {
+      "running": "Background task running",
+      "completed": "Background task completed",
+      "failed": "Background task failed",
+      "stalled": "Background task needs attention",
+      "killed": "Background task killed",
+      "updated": "Background task updated"
+    },
     "readonly": "Read-only",
     "tools": {
       "read": "Read",
@@ -213,6 +221,7 @@
         "result": "Result",
         "noData": "No data",
         "noOutput": "No output",
+        "waitingOutput": "Waiting for output…",
         "noChanges": "No changes",
         "noContent": "No content",
         "noTasks": "No tasks",

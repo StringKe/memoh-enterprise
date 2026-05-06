@@ -173,9 +173,8 @@ func (c *UIMessageStreamConverter) HandleEvent(event UIMessageStreamEvent) []UIM
 		if event.Input != nil {
 			state.Message.Input = event.Input
 		}
-		state.Message.Output = event.Output
-		state.Message.Running = uiBoolPtr(false)
-		if state.Message.ToolCallID != "" {
+		applyToolResultToUIMessage(&state.Message, event.Output)
+		if state.Message.ToolCallID != "" && !isBackgroundToolStillRunning(state.Message) {
 			delete(c.tools, state.Message.ToolCallID)
 		}
 		return []UIMessage{cloneToolStreamMessage(state.Message)}

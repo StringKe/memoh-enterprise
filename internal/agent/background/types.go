@@ -32,10 +32,59 @@ type Task struct {
 	StartedAt   time.Time
 	CompletedAt time.Time
 
-	mu       sync.Mutex
-	cancel   context.CancelFunc
-	notified bool            // true once a notification has been enqueued; prevents duplicates
-	output   strings.Builder // buffered output tail
+	mu              sync.Mutex
+	cancel          context.CancelFunc
+	notified        bool            // true once a terminal notification has been enqueued; prevents duplicates
+	stalledNotified bool            // true once a stalled notification has been enqueued
+	output          strings.Builder // buffered output tail
+}
+
+// TaskSnapshot is a lock-safe, immutable view of a task for handler/UI code.
+type TaskSnapshot struct {
+	TaskID      string
+	BotID       string
+	SessionID   string
+	Command     string
+	Description string
+	WorkDir     string
+	Status      TaskStatus
+	ExitCode    int32
+	OutputFile  string
+	OutputTail  string
+	StartedAt   time.Time
+	CompletedAt time.Time
+	Duration    time.Duration
+	Stalled     bool
+}
+
+// Snapshot returns a consistent view of the task without exposing its mutex.
+func (t *Task) Snapshot() TaskSnapshot {
+	if t == nil {
+		return TaskSnapshot{}
+	}
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	duration := time.Since(t.StartedAt)
+	if !t.CompletedAt.IsZero() {
+		duration = t.CompletedAt.Sub(t.StartedAt)
+	}
+	return TaskSnapshot{
+		TaskID:      t.ID,
+		BotID:       t.BotID,
+		SessionID:   t.SessionID,
+		Command:     t.Command,
+		Description: t.Description,
+		WorkDir:     t.WorkDir,
+		Status:      t.Status,
+		ExitCode:    t.ExitCode,
+		OutputFile:  t.OutputFile,
+		OutputTail:  t.outputTailLocked(),
+		StartedAt:   t.StartedAt,
+		CompletedAt: t.CompletedAt,
+		Duration:    duration,
+		Stalled:     t.stalledNotified && t.Status == TaskRunning,
+	}
 }
 
 // MarkNotified atomically sets the notified flag. Returns true if this call
@@ -47,6 +96,17 @@ func (t *Task) MarkNotified() bool {
 		return false
 	}
 	t.notified = true
+	return true
+}
+
+// MarkStalledNotified atomically sets the stalled notification flag.
+func (t *Task) MarkStalledNotified() bool {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	if t.stalledNotified {
+		return false
+	}
+	t.stalledNotified = true
 	return true
 }
 
@@ -81,6 +141,10 @@ func (t *Task) AppendOutput(s string) {
 func (t *Task) OutputTail() string {
 	t.mu.Lock()
 	defer t.mu.Unlock()
+	return t.outputTailLocked()
+}
+
+func (t *Task) outputTailLocked() string {
 	s := t.output.String()
 	if len(s) > maxTailBytes {
 		return s[len(s)-maxTailBytes:]
@@ -93,10 +157,11 @@ const maxTailBytes = 4096
 // AdoptResult carries the outcome of a command whose execution was started
 // externally (e.g. via ExecStream) and then handed off to the Manager.
 type AdoptResult struct {
-	Stdout   string
-	Stderr   string
-	ExitCode int32
-	Err      error
+	Stdout         string
+	Stderr         string
+	ExitCode       int32
+	Err            error
+	OutputRecorded bool
 }
 
 // Notification is the structured event sent to the agent when a background
@@ -113,6 +178,36 @@ type Notification struct {
 	OutputTail  string // last N bytes of output for quick summary
 	Duration    time.Duration
 	Stalled     bool // true when task appears stuck on interactive input
+}
+
+// TaskEventType identifies a UI-facing background task event.
+type TaskEventType string
+
+const (
+	TaskEventStarted   TaskEventType = "started"
+	TaskEventOutput    TaskEventType = "output"
+	TaskEventCompleted TaskEventType = "completed"
+	TaskEventFailed    TaskEventType = "failed"
+	TaskEventStalled   TaskEventType = "stalled"
+)
+
+// TaskEvent is emitted for live UI updates. Output events are intentionally
+// lightweight and non-persistent; completion notifications remain the source of
+// truth for agent wakeups and history.
+type TaskEvent struct {
+	Event      TaskEventType `json:"event"`
+	TaskID     string        `json:"task_id"`
+	BotID      string        `json:"bot_id,omitempty"`
+	SessionID  string        `json:"session_id,omitempty"`
+	Command    string        `json:"command,omitempty"`
+	Status     TaskStatus    `json:"status,omitempty"`
+	Stream     string        `json:"stream,omitempty"`
+	Chunk      string        `json:"chunk,omitempty"`
+	Tail       string        `json:"tail,omitempty"`
+	OutputFile string        `json:"output_file,omitempty"`
+	ExitCode   int32         `json:"exit_code,omitempty"`
+	Duration   string        `json:"duration,omitempty"`
+	Stalled    bool          `json:"stalled,omitempty"`
 }
 
 // MessageText returns the full user-message text that should be injected into

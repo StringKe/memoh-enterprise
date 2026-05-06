@@ -95,6 +95,8 @@ export function useMediaGallery(messages: Ref<ChatMessage[]>) {
         continue;
       }
 
+      if (msg.role !== "assistant") continue;
+
       for (const block of msg.messages) {
         if (block.type !== "attachments") continue;
         for (const att of block.attachments) {

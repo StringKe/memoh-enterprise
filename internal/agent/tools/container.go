@@ -11,6 +11,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	sdk "github.com/memohai/twilight-ai/sdk"
@@ -541,6 +542,120 @@ func (p *ContainerProvider) execExec(ctx context.Context, session SessionContext
 	return map[string]any{"stdout": stdout, "stderr": stderr, "exit_code": result.ExitCode}, nil
 }
 
+const backgroundReplayBytes = 4096
+
+type backgroundExecStreamReader struct {
+	resultCh chan background.AdoptResult
+	logger   *slog.Logger
+	command  string
+
+	mu             sync.Mutex
+	stdout         strings.Builder
+	stderr         strings.Builder
+	chunkHandler   func(stream, chunk string)
+	outputRecorded bool
+}
+
+func startBackgroundExecStreamReader(log *slog.Logger, stream *executorclient.ExecStream, cancel context.CancelFunc, command string) *backgroundExecStreamReader {
+	reader := &backgroundExecStreamReader{
+		resultCh: make(chan background.AdoptResult, 1),
+		logger:   log,
+		command:  command,
+	}
+	go reader.run(stream, cancel)
+	return reader
+}
+
+func (r *backgroundExecStreamReader) run(stream *executorclient.ExecStream, cancel context.CancelFunc) {
+	defer cancel()
+	var exitCode int32
+	for {
+		msg, recvErr := stream.Recv()
+		if errors.Is(recvErr, io.EOF) {
+			break
+		}
+		if recvErr != nil {
+			r.logger.Warn("background exec stream recv error",
+				slog.String("command", truncateStr(r.command, 80)),
+				slog.Any("error", recvErr),
+			)
+			r.resultCh <- background.AdoptResult{Err: recvErr}
+			return
+		}
+		switch msg.GetKind() {
+		case pb.ExecResponse_KIND_STDOUT:
+			r.appendChunk("stdout", string(msg.GetData()))
+		case pb.ExecResponse_KIND_STDERR:
+			r.appendChunk("stderr", string(msg.GetData()))
+		case pb.ExecResponse_KIND_EXIT:
+			exitCode = msg.GetExitCode()
+		case pb.ExecResponse_KIND_ERROR:
+			r.resultCh <- background.AdoptResult{Err: fmt.Errorf("%s: %s", msg.GetErrorCode(), msg.GetErrorMessage())}
+			return
+		}
+	}
+
+	r.mu.Lock()
+	stdout := r.stdout.String()
+	stderr := r.stderr.String()
+	outputRecorded := r.outputRecorded
+	r.mu.Unlock()
+	r.resultCh <- background.AdoptResult{
+		Stdout:         stdout,
+		Stderr:         stderr,
+		ExitCode:       exitCode,
+		OutputRecorded: outputRecorded,
+	}
+}
+
+func (r *backgroundExecStreamReader) appendChunk(stream, chunk string) {
+	if chunk == "" {
+		return
+	}
+	r.mu.Lock()
+	switch stream {
+	case "stderr":
+		r.stderr.WriteString(chunk)
+	default:
+		r.stdout.WriteString(chunk)
+	}
+	handler := r.chunkHandler
+	r.mu.Unlock()
+	if handler != nil {
+		handler(stream, chunk)
+	}
+}
+
+func (r *backgroundExecStreamReader) SetChunkHandler(handler func(stream, chunk string)) {
+	r.mu.Lock()
+	r.chunkHandler = handler
+	r.outputRecorded = handler != nil
+	stdout := tailText(r.stdout.String(), backgroundReplayBytes)
+	stderr := tailText(r.stderr.String(), backgroundReplayBytes)
+	r.mu.Unlock()
+
+	if handler == nil {
+		return
+	}
+	if stdout != "" {
+		handler("stdout", stdout)
+	}
+	if stderr != "" {
+		handler("stderr", stderr)
+	}
+}
+
+func (r *backgroundExecStreamReader) Result() <-chan background.AdoptResult {
+	return r.resultCh
+}
+
+func tailText(value string, maxBytes int) string {
+	if maxBytes <= 0 || len(value) <= maxBytes {
+		return value
+	}
+	return value[len(value)-maxBytes:]
+}
+
 // execExecWithFlip runs a command via ExecStream with a client-side soft timeout.
 // If the command finishes within the timeout, it returns the result normally.
 // If the soft timeout fires first, the running stream is handed off to the
@@ -560,47 +675,14 @@ func (p *ContainerProvider) execExecWithFlip(
 		streamCancel()
 		return nil, err
 	}
-
-	resultCh := make(chan background.AdoptResult, 1)
-	go func() {
-		defer streamCancel()
-		var stdout, stderr strings.Builder
-		var exitCode int32
-		for {
-			msg, recvErr := stream.Recv()
-			if errors.Is(recvErr, io.EOF) {
-				break
-			}
-			if recvErr != nil {
-				p.logger.Warn("flip-to-background: stream recv error",
-					slog.String("command", truncateStr(command, 80)),
-					slog.Any("error", recvErr),
-				)
-				resultCh <- background.AdoptResult{Err: recvErr}
-				return
-			}
-			switch msg.GetKind() {
-			case pb.ExecResponse_KIND_STDOUT:
-				stdout.Write(msg.GetData())
-			case pb.ExecResponse_KIND_STDERR:
-				stderr.Write(msg.GetData())
-			case pb.ExecResponse_KIND_EXIT:
-				exitCode = msg.GetExitCode()
-			}
-		}
-		resultCh <- background.AdoptResult{
-			Stdout:   stdout.String(),
-			Stderr:   stderr.String(),
-			ExitCode: exitCode,
-		}
-	}()
+	reader := startBackgroundExecStreamReader(p.logger, stream, streamCancel, command)
 
 	// Wait for either the result or soft timeout.
 	timer := time.NewTimer(time.Duration(softTimeout) * time.Second)
 	defer timer.Stop()
 
 	select {
-	case r := <-resultCh:
+	case r := <-reader.Result():
 		// Command finished within the soft timeout — return normally.
 		if r.Err != nil {
 			return nil, r.Err
@@ -613,7 +695,7 @@ func (p *ContainerProvider) execExecWithFlip(
 		// Soft timeout fired — flip the running stream to background.
 		// The container process is still alive; we hand off the stream reader
 		// goroutine to the background manager.
-		return p.flipToBackground(ctx, session, client, resultCh, command, workDir, description, softTimeout)
+		return p.flipToBackground(ctx, session, client, reader, command, workDir, description, softTimeout)
 
 	case <-ctx.Done():
 		return nil, ctx.Err()
@@ -625,7 +707,7 @@ func (p *ContainerProvider) execExecWithFlip(
 func (p *ContainerProvider) flipToBackground(
 	ctx context.Context,
 	session SessionContext, client *executorclient.Client,
-	resultCh <-chan background.AdoptResult,
+	reader *backgroundExecStreamReader,
 	command, workDir, description string, softTimeout int32,
 ) (any, error) {
 	writeFn := func(ctx context.Context, path string, data []byte) error {
@@ -635,8 +717,11 @@ func (p *ContainerProvider) flipToBackground(
 	taskID, outputFile := p.bgManager.SpawnAdopt(
 		ctx,
 		session.BotID, session.SessionID, command, workDir, description,
-		resultCh, writeFn,
+		reader.Result(), writeFn,
 	)
+	reader.SetChunkHandler(func(stream, chunk string) {
+		p.bgManager.RecordOutput(taskID, stream, chunk)
+	})
 
 	p.logger.Info("foreground exec flipped to background",
 		slog.String("task_id", taskID),
@@ -673,47 +758,30 @@ func detectBlockedSleep(command string) string {
 	return fmt.Sprintf("sleep %.0f is not allowed in foreground execution", seconds)
 }
 
-// spawnBackground is the shared helper that registers a background task and
-// returns (taskID, outputFile). Used by both explicit and auto-background paths.
-func (p *ContainerProvider) spawnBackground(
-	ctx context.Context,
-	session SessionContext, client *executorclient.Client,
-	command, workDir, description string,
-) (taskID, outputFile string) {
-	execFn := func(ctx context.Context, cmd, wd string, timeout int32) (*executorclient.ExecResult, error) {
-		return client.Exec(ctx, cmd, wd, timeout)
-	}
-	writeFn := func(ctx context.Context, path string, data []byte) error {
-		return client.WriteFile(ctx, path, data)
-	}
-	readFn := func(ctx context.Context, path string) ([]byte, error) {
-		// Use pool to get a fresh client — the original client may be in a failed
-		// state if the streaming exec errored, but the pool will re-dial as needed.
-		c, err := p.clients.ExecutorClient(ctx, session.BotID)
-		if err != nil {
-			return nil, err
-		}
-		resp, err := c.ReadFile(ctx, path, 1, 10)
-		if err != nil {
-			return nil, err
-		}
-		return []byte(resp.GetContent()), nil
-	}
-
-	taskID, outputFile = p.bgManager.Spawn(
-		ctx,
-		session.BotID, session.SessionID, command, workDir, description,
-		execFn, writeFn, readFn,
-	)
-	return taskID, outputFile
-}
-
 // execExecBackground spawns the command as a background task and returns immediately.
 func (p *ContainerProvider) execExecBackground(
 	ctx context.Context, session SessionContext, client *executorclient.Client,
 	command, workDir, description string,
 ) (any, error) {
-	taskID, outputFile := p.spawnBackground(ctx, session, client, command, workDir, description)
+	streamCtx, streamCancel := context.WithTimeout(context.WithoutCancel(ctx), time.Duration(background.BackgroundExecTimeout)*time.Second)
+	stream, err := client.ExecStream(streamCtx, command, workDir, background.BackgroundExecTimeout)
+	if err != nil {
+		streamCancel()
+		return nil, err
+	}
+	reader := startBackgroundExecStreamReader(p.logger, stream, streamCancel, command)
+
+	writeFn := func(ctx context.Context, path string, data []byte) error {
+		return client.WriteFile(ctx, path, data)
+	}
+	taskID, outputFile := p.bgManager.SpawnAdopt(
+		ctx,
+		session.BotID, session.SessionID, command, workDir, description,
+		reader.Result(), writeFn,
+	)
+	reader.SetChunkHandler(func(stream, chunk string) {
+		p.bgManager.RecordOutput(taskID, stream, chunk)
+	})
 
 	return map[string]any{
 		"status":      "background_started",

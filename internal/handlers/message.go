@@ -16,6 +16,7 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/memohai/memoh/internal/accounts"
+	"github.com/memohai/memoh/internal/agent/background"
 	"github.com/memohai/memoh/internal/bots"
 	"github.com/memohai/memoh/internal/conversation"
 	"github.com/memohai/memoh/internal/iam/rbac"
@@ -35,6 +36,7 @@ type MessageHandler struct {
 	accountService      *accounts.Service
 	rbacService         SystemPermissionService
 	toolApproval        *toolapproval.Service
+	bgManager           *background.Manager
 	logger              *slog.Logger
 }
 
@@ -65,6 +67,10 @@ func (h *MessageHandler) SetToolApprovalService(svc *toolapproval.Service) {
 
 func (h *MessageHandler) SetRBACService(svc SystemPermissionService) {
 	h.rbacService = svc
+}
+
+func (h *MessageHandler) SetBackgroundManager(mgr *background.Manager) {
+	h.bgManager = mgr
 }
 
 // Register registers all conversation routes.
@@ -187,6 +193,9 @@ func (h *MessageHandler) ListMessages(c echo.Context) error {
 	h.fillAssetMimeFromStorage(c.Request().Context(), botID, messages)
 	if format == "ui" {
 		items := conversation.ConvertMessagesToUITurns(messages)
+		if sessionID != "" && h.bgManager != nil {
+			conversation.ApplyBackgroundTaskSnapshots(items, h.backgroundTaskSnapshots(botID, sessionID))
+		}
 		if sessionID != "" && h.toolApproval != nil {
 			if approvals, err := h.toolApproval.ListBySession(c.Request().Context(), botID, sessionID); err == nil {
 				mergeToolApprovals(items, approvals)
@@ -197,6 +206,32 @@ func (h *MessageHandler) ListMessages(c echo.Context) error {
 		})
 	}
 	return c.JSON(http.StatusOK, map[string]any{"items": messages})
+}
+
+func (h *MessageHandler) backgroundTaskSnapshots(botID, sessionID string) []conversation.UIBackgroundTask {
+	if h.bgManager == nil {
+		return nil
+	}
+	snapshots := h.bgManager.ListSnapshotsForSession(botID, sessionID)
+	tasks := make([]conversation.UIBackgroundTask, 0, len(snapshots))
+	for _, snapshot := range snapshots {
+		status := string(snapshot.Status)
+		stalled := snapshot.Stalled
+		if stalled {
+			status = "stalled"
+		}
+		tasks = append(tasks, conversation.UIBackgroundTask{
+			TaskID:     snapshot.TaskID,
+			Status:     status,
+			Command:    snapshot.Command,
+			OutputFile: snapshot.OutputFile,
+			ExitCode:   snapshot.ExitCode,
+			Duration:   snapshot.Duration.Round(time.Millisecond).String(),
+			OutputTail: snapshot.OutputTail,
+			Stalled:    stalled,
+		})
+	}
+	return tasks
 }
 
 func mergeToolApprovals(turns []conversation.UITurn, approvals []toolapproval.Request) {
@@ -394,6 +429,33 @@ func (h *MessageHandler) StreamMessageEvents(c echo.Context) error {
 					"session_id": payload["session_id"],
 					"title":      payload["title"],
 				}); err != nil {
+					return nil
+				}
+			case messageevent.EventTypeBackgroundTask:
+				var payload map[string]any
+				if err := json.Unmarshal(event.Data, &payload); err != nil {
+					continue
+				}
+				payload["type"] = string(messageevent.EventTypeBackgroundTask)
+				payload["bot_id"] = botID
+				if _, ok := payload["task"]; !ok {
+					taskPayload := make(map[string]any, len(payload))
+					for key, value := range payload {
+						taskPayload[key] = value
+					}
+					payload["task"] = taskPayload
+				}
+				if err := writeSSEJSON(writer, flusher, payload); err != nil {
+					return nil
+				}
+			case messageevent.EventTypeAgentStream:
+				var payload map[string]any
+				if err := json.Unmarshal(event.Data, &payload); err != nil {
+					continue
+				}
+				payload["type"] = string(messageevent.EventTypeAgentStream)
+				payload["bot_id"] = botID
+				if err := writeSSEJSON(writer, flusher, payload); err != nil {
 					return nil
 				}
 			}

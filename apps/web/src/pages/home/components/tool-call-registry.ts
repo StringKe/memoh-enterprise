@@ -112,6 +112,19 @@ function structured(block: ToolCallBlock): Record<string, unknown> {
 }
 
 function execErrorState(block: ToolCallBlock): { isError: boolean; suffix: string } {
+  const bg = block.backgroundTask;
+  if (bg?.status === "stalled") return { isError: true, suffix: "(stalled)" };
+  if (bg && block.done) {
+    if (bg.status === "failed" || bg.status === "killed") {
+      return {
+        isError: true,
+        suffix: typeof bg.exitCode === "number" ? `(exit ${bg.exitCode})` : "",
+      };
+    }
+    if (typeof bg.exitCode === "number" && bg.exitCode !== 0) {
+      return { isError: true, suffix: `(exit ${bg.exitCode})` };
+    }
+  }
   if (!block.done || !block.result) return { isError: false, suffix: "" };
   const r = asObject(block.result);
   const sc = structured(block);

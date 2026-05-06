@@ -86,6 +86,9 @@ export interface MessageStreamEvent {
   message?: Message;
   session_id?: string;
   title?: string;
+  event?: string;
+  task?: UIBackgroundTask;
+  stream?: UIStreamEvent;
 }
 
 export interface FetchMessagesOptions {
@@ -138,6 +141,24 @@ export interface UIToolMessage {
   running: boolean;
   progress?: unknown[];
   approval?: UIToolApproval;
+  background_task?: UIBackgroundTask;
+}
+
+export interface UIBackgroundTask {
+  event?: string;
+  task_id?: string;
+  bot_id?: string;
+  session_id?: string;
+  command?: string;
+  status?: string;
+  stream?: string;
+  chunk?: string;
+  tail?: string;
+  output_file?: string;
+  output_tail?: string;
+  exit_code?: number;
+  duration?: string;
+  stalled?: boolean;
 }
 
 export interface UIToolApproval {
@@ -176,7 +197,16 @@ export interface UIAssistantTurn {
   id?: string;
 }
 
-export type UITurn = UIUserTurn | UIAssistantTurn;
+export interface UISystemTurn {
+  role: "system";
+  kind?: "background_task" | string;
+  background_task?: UIBackgroundTask;
+  timestamp: string;
+  platform?: string;
+  id?: string;
+}
+
+export type UITurn = UIUserTurn | UIAssistantTurn | UISystemTurn;
 
 export interface UIStreamStartEvent {
   type: "start";

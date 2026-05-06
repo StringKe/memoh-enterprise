@@ -15,6 +15,7 @@ import (
 	"github.com/memohai/memoh/internal/channel/route"
 	"github.com/memohai/memoh/internal/conversation"
 	"github.com/memohai/memoh/internal/heartbeat"
+	messageevent "github.com/memohai/memoh/internal/message/event"
 	"github.com/memohai/memoh/internal/schedule"
 )
 
@@ -306,28 +307,113 @@ func (r *Resolver) deliverBackgroundNotifications(ctx context.Context, botID, se
 	// should go through the same execution path as normal user messages.
 	cfg = r.prepareRunConfig(ctx, cfg)
 
-	result, err := r.agent.Generate(ctx, cfg)
-	if err != nil {
-		return fmt.Errorf("generate background delivery: %w", err)
+	idleCtx, idleCancel := withIdleTimeout(ctx)
+	defer idleCancel.Stop()
+
+	eventCh := r.agent.Stream(idleCtx, cfg)
+	converter := conversation.NewUIMessageStreamConverter()
+	var text strings.Builder
+	stored := false
+	var lastSnapshot terminalSnapshot
+	var hasSnapshot bool
+	var toolCallCount int
+
+	for event := range eventCh {
+		idleCancel.Reset()
+		if event.Type == agentpkg.EventToolCallStart {
+			toolCallCount++
+			idleCancel.RecordToolCall()
+		}
+		if event.Type == agentpkg.EventTextDelta {
+			text.WriteString(event.Delta)
+		}
+		if event.Type == agentpkg.EventError {
+			r.logger.Error("background notification stream error",
+				slog.String("bot_id", botID),
+				slog.String("session_id", sessionID),
+				slog.String("model_id", rc.model.ID),
+				slog.String("error", event.Error),
+			)
+			r.publishBackgroundAgentStream(botID, sessionID, map[string]any{
+				"type":    "error",
+				"message": strings.TrimSpace(event.Error),
+			})
+			continue
+		}
+
+		if event.IsTerminal() {
+			if len(event.Messages) > 0 {
+				data, err := json.Marshal(event)
+				if err == nil {
+					if snap, ok := extractTerminalSnapshot(data); ok {
+						lastSnapshot = snap
+						hasSnapshot = true
+						if !stored {
+							if storeErr := r.storeBackgroundNotificationSnapshot(context.WithoutCancel(ctx), req, rc, notifMessages, snap); storeErr != nil {
+								r.logger.Error("background notification stream persist failed", slog.Any("error", storeErr))
+							} else {
+								stored = true
+							}
+						}
+					}
+				}
+
+				for _, uiMessage := range conversation.ConvertRawModelMessagesToUIAssistantMessages(event.Messages) {
+					r.publishBackgroundAgentStream(botID, sessionID, map[string]any{
+						"type": "message",
+						"data": uiMessage,
+					})
+				}
+			}
+			r.publishBackgroundAgentStream(botID, sessionID, map[string]any{"type": "end"})
+			continue
+		}
+
+		if event.Type == agentpkg.EventAgentStart {
+			r.publishBackgroundAgentStream(botID, sessionID, map[string]any{"type": "start"})
+			continue
+		}
+
+		for _, uiMessage := range converter.HandleEvent(uiStreamEventFromAgentEvent(event)) {
+			r.publishBackgroundAgentStream(botID, sessionID, map[string]any{
+				"type": "message",
+				"data": uiMessage,
+			})
+		}
 	}
-	r.logger.Info("background notification trigger: generate ok",
+
+	if !stored && hasSnapshot {
+		if storeErr := r.storeBackgroundNotificationSnapshot(context.WithoutCancel(ctx), req, rc, notifMessages, lastSnapshot); storeErr != nil {
+			r.logger.Error("background notification fallback persist failed", slog.Any("error", storeErr))
+		} else {
+			stored = true
+		}
+	}
+
+	if idleCancel.DidFire() {
+		r.logger.Warn("background notification stream aborted: idle timeout",
+			slog.String("bot_id", botID),
+			slog.String("session_id", sessionID),
+			slog.String("model_id", rc.model.ID),
+			slog.Int("tool_calls", toolCallCount),
+		)
+		r.publishBackgroundAgentStream(botID, sessionID, map[string]any{
+			"type":    "error",
+			"message": fmt.Sprintf("stream timeout: no response from model provider (after %d tool calls)", toolCallCount),
+		})
+	}
+
+	r.logger.Info("background notification trigger: stream ok",
 		slog.String("bot_id", botID),
 		slog.String("platform", delivery.channelType),
 		slog.String("reply_target", delivery.replyTarget),
-		slog.Int("messages", len(result.Messages)),
+		slog.Bool("stored", stored),
 	)
-
-	if len(result.Messages) > 0 {
-		outputMessages := sdkMessagesToModelMessages(result.Messages)
-		notifModelMessages := sdkMessagesToModelMessages(notifMessages)
-		roundMessages := append(append(make([]conversation.ModelMessage, 0, len(notifModelMessages)+len(outputMessages)), notifModelMessages...), outputMessages...)
-		_ = r.storeRound(ctx, req, roundMessages, rc.model.ID)
-	}
 
 	// Auto-deliver the agent's text response to the user through the normal
 	// outbound path, not through a special "send" tool call.
-	if text := strings.TrimSpace(result.Text); text != "" && r.outboundFn != nil {
-		if err := r.outboundFn(ctx, botID, delivery.channelType, delivery.replyTarget, text); err != nil {
+	if responseText := strings.TrimSpace(text.String()); responseText != "" && r.outboundFn != nil {
+		if err := r.outboundFn(ctx, botID, delivery.channelType, delivery.replyTarget, responseText); err != nil {
 			r.logger.Warn("background notification: outbound delivery failed",
 				slog.String("bot_id", botID),
 				slog.String("platform", delivery.channelType),
@@ -337,4 +423,84 @@ func (r *Resolver) deliverBackgroundNotifications(ctx context.Context, botID, se
 		}
 	}
 	return nil
+}
+
+func (r *Resolver) storeBackgroundNotificationSnapshot(ctx context.Context, req conversation.ChatRequest, rc resolvedContext, notifMessages []sdk.Message, snap terminalSnapshot) error {
+	if len(snap.sdkMessages) == 0 {
+		return nil
+	}
+	outputMessages := sdkMessagesToModelMessages(snap.sdkMessages)
+	notifModelMessages := sdkMessagesToModelMessages(notifMessages)
+	roundMessages := append(append(make([]conversation.ModelMessage, 0, len(notifModelMessages)+len(outputMessages)), notifModelMessages...), outputMessages...)
+	return r.storeRound(ctx, req, roundMessages, rc.model.ID)
+}
+
+func (r *Resolver) publishBackgroundAgentStream(botID, sessionID string, stream map[string]any) {
+	if r.eventPublisher == nil || len(stream) == 0 {
+		return
+	}
+	payload := map[string]any{
+		"session_id": sessionID,
+		"stream":     stream,
+	}
+	data, err := json.Marshal(payload)
+	if err != nil {
+		return
+	}
+	r.eventPublisher.Publish(messageevent.Event{
+		Type:  messageevent.EventTypeAgentStream,
+		BotID: botID,
+		Data:  data,
+	})
+}
+
+func uiStreamEventFromAgentEvent(event agentpkg.StreamEvent) conversation.UIMessageStreamEvent {
+	attachments := make([]conversation.UIAttachment, 0, len(event.Attachments))
+	for _, attachment := range event.Attachments {
+		attachments = append(attachments, conversation.UIAttachment{
+			ID:          strings.TrimSpace(attachment.ContentHash),
+			Type:        normalizeUIAttachmentType(attachment.Type, attachment.Mime),
+			Path:        strings.TrimSpace(attachment.Path),
+			URL:         strings.TrimSpace(attachment.URL),
+			Name:        strings.TrimSpace(attachment.Name),
+			ContentHash: strings.TrimSpace(attachment.ContentHash),
+			Mime:        strings.TrimSpace(attachment.Mime),
+			Size:        attachment.Size,
+			Metadata:    attachment.Metadata,
+		})
+	}
+
+	return conversation.UIMessageStreamEvent{
+		Type:        string(event.Type),
+		Delta:       event.Delta,
+		ToolName:    event.ToolName,
+		ToolCallID:  event.ToolCallID,
+		Input:       event.Input,
+		Output:      event.Result,
+		Progress:    event.Progress,
+		Attachments: attachments,
+		Error:       event.Error,
+		ApprovalID:  event.ApprovalID,
+		ShortID:     event.ShortID,
+		Status:      event.Status,
+		Metadata:    event.Metadata,
+	}
+}
+
+func normalizeUIAttachmentType(kind, mime string) string {
+	normalizedKind := strings.ToLower(strings.TrimSpace(kind))
+	if normalizedKind != "" {
+		return normalizedKind
+	}
+	normalizedMime := strings.ToLower(strings.TrimSpace(mime))
+	switch {
+	case strings.HasPrefix(normalizedMime, "image/"):
+		return "image"
+	case strings.HasPrefix(normalizedMime, "audio/"):
+		return "audio"
+	case strings.HasPrefix(normalizedMime, "video/"):
+		return "video"
+	default:
+		return "file"
+	}
 }

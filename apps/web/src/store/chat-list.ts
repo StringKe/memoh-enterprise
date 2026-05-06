@@ -15,8 +15,10 @@ import {
   type ChatAttachment,
   type UIAttachment,
   type UIAttachmentsMessage,
+  type UIBackgroundTask,
   type UIMessage,
   type UIReasoningMessage,
+  type UISystemTurn,
   type UITextMessage,
   type UIToolApproval,
   type UIToolMessage,
@@ -40,6 +42,7 @@ export interface ToolCallBlock extends UIToolMessage {
   result: unknown | null;
   done: boolean;
   approval?: UIToolApproval;
+  backgroundTask?: BackgroundTask;
 }
 
 export type ContentBlock = TextBlock | ThinkingBlock | ToolCallBlock | AttachmentBlock;
@@ -67,7 +70,33 @@ export interface ChatAssistantTurn {
   streaming: boolean;
 }
 
-export type ChatMessage = ChatUserTurn | ChatAssistantTurn;
+export interface BackgroundTask {
+  taskId: string;
+  status: string;
+  event?: string;
+  botId?: string;
+  sessionId?: string;
+  command?: string;
+  outputFile?: string;
+  outputTail?: string;
+  stream?: string;
+  chunk?: string;
+  exitCode?: number;
+  duration?: string;
+  stalled?: boolean;
+}
+
+export interface ChatSystemTurn {
+  id: string;
+  role: "system";
+  kind: "background_task";
+  backgroundTask: BackgroundTask;
+  timestamp: string;
+  platform?: string;
+  streaming: boolean;
+}
+
+export type ChatMessage = ChatUserTurn | ChatAssistantTurn | ChatSystemTurn;
 
 interface PendingAssistantStream {
   assistantTurn: ChatAssistantTurn;
@@ -114,6 +143,8 @@ export const useChatStore = defineStore("chat", () => {
   let refreshTimer: ReturnType<typeof setTimeout> | null = null;
   let refreshPromise: Promise<void> | null = null;
   let suppressNextStartPlaceholder = false;
+  const pendingBackgroundEvents = new Map<string, BackgroundTask[]>();
+  const latestBackgroundTasks = new Map<string, BackgroundTask>();
   const messageEventsStream = useRetryingStream();
 
   const activeSession = computed(
@@ -174,18 +205,176 @@ export const useChatStore = defineStore("chat", () => {
     return { ...att };
   }
 
+  function asRecord(value: unknown): Record<string, unknown> {
+    return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
+  }
+
+  function pickString(obj: Record<string, unknown>, ...keys: string[]): string {
+    for (const key of keys) {
+      const value = obj[key];
+      if (typeof value === "string" && value.trim()) return value.trim();
+    }
+    return "";
+  }
+
+  function normalizeBackgroundStatus(status?: string, event?: string): string {
+    const token = (status || event || "").trim().toLowerCase();
+    switch (token) {
+      case "background_started":
+      case "auto_backgrounded":
+      case "started":
+      case "output":
+      case "running":
+        return "running";
+      case "complete":
+      case "completed":
+      case "success":
+      case "succeeded":
+        return "completed";
+      case "error":
+      case "failed":
+      case "failure":
+        return "failed";
+      case "stalled":
+        return "stalled";
+      case "killed":
+      case "cancelled":
+      case "canceled":
+        return "killed";
+      default:
+        return "";
+    }
+  }
+
+  function isBackgroundTaskActive(task?: BackgroundTask): boolean {
+    const status = normalizeBackgroundStatus(task?.status, task?.event);
+    return status === "running" || status === "stalled";
+  }
+
+  function normalizeBackgroundTask(
+    task?: UIBackgroundTask,
+    eventType?: string,
+  ): BackgroundTask | null {
+    if (!task) return null;
+    const record = task as Record<string, unknown>;
+    const taskId = pickString(record, "task_id", "taskId");
+    if (!taskId) return null;
+    const event = pickString(record, "event") || (eventType ?? "").trim();
+    const status = normalizeBackgroundStatus(pickString(record, "status"), event) || "running";
+    const exitCode = record.exit_code ?? record.exitCode;
+    return {
+      taskId,
+      status,
+      event: event || undefined,
+      botId: pickString(record, "bot_id", "botId") || undefined,
+      sessionId: pickString(record, "session_id", "sessionId") || undefined,
+      command: pickString(record, "command") || undefined,
+      outputFile: pickString(record, "output_file", "outputFile") || undefined,
+      outputTail: pickString(record, "output_tail", "outputTail", "tail") || undefined,
+      stream: pickString(record, "stream") || undefined,
+      chunk: pickString(record, "chunk") || undefined,
+      exitCode: typeof exitCode === "number" ? exitCode : undefined,
+      duration: pickString(record, "duration") || undefined,
+      stalled: record.stalled === true || status === "stalled",
+    };
+  }
+
+  function mergeBackgroundTask(
+    existing: BackgroundTask | undefined,
+    incoming: BackgroundTask,
+  ): BackgroundTask {
+    const merged: BackgroundTask = existing
+      ? { ...existing }
+      : { taskId: incoming.taskId, status: incoming.status };
+    const writable = merged as unknown as Record<string, unknown>;
+    for (const [key, value] of Object.entries(incoming)) {
+      if (value === undefined || value === "") continue;
+      writable[key] = value;
+    }
+    if (!incoming.outputTail && incoming.chunk) {
+      merged.outputTail = `${existing?.outputTail ?? ""}${incoming.chunk}`.slice(-4096);
+    }
+    merged.status =
+      normalizeBackgroundStatus(merged.status, merged.event) || merged.status || "running";
+    merged.stalled = merged.stalled === true || merged.status === "stalled";
+    return merged;
+  }
+
+  function rememberBackgroundTask(task: BackgroundTask): BackgroundTask {
+    const latest = mergeBackgroundTask(latestBackgroundTasks.get(task.taskId), task);
+    latestBackgroundTasks.set(task.taskId, latest);
+    return latest;
+  }
+
+  function structuredToolResult(result: unknown): Record<string, unknown> {
+    const record = asRecord(result);
+    const structured = asRecord(record.structuredContent);
+    return Object.keys(structured).length > 0 ? structured : record;
+  }
+
+  function taskIdFromToolBlock(block: ToolCallBlock): string {
+    if (block.backgroundTask?.taskId) return block.backgroundTask.taskId;
+    const structured = structuredToolResult(block.result);
+    const result = asRecord(block.result);
+    return pickString(structured, "task_id", "taskId") || pickString(result, "task_id", "taskId");
+  }
+
+  function mergeBackgroundTaskIntoToolBlock(block: ToolCallBlock, task: BackgroundTask) {
+    const merged = mergeBackgroundTask(block.backgroundTask, task);
+    block.backgroundTask = merged;
+    block.done = !isBackgroundTaskActive(merged);
+    block.running = !block.done;
+    block.background_task = {
+      task_id: merged.taskId,
+      status: merged.status,
+      event: merged.event,
+      bot_id: merged.botId,
+      session_id: merged.sessionId,
+      command: merged.command,
+      output_file: merged.outputFile,
+      output_tail: merged.outputTail,
+      stream: merged.stream,
+      chunk: merged.chunk,
+      exit_code: merged.exitCode,
+      duration: merged.duration,
+      stalled: merged.stalled,
+    };
+  }
+
+  function applyPendingBackgroundEventsToTool(block: ToolCallBlock) {
+    const taskId = taskIdFromToolBlock(block);
+    if (!taskId) return;
+    const pending = pendingBackgroundEvents.get(taskId);
+    if (pending?.length) {
+      for (const task of pending) {
+        mergeBackgroundTaskIntoToolBlock(block, task);
+      }
+      pendingBackgroundEvents.delete(taskId);
+    }
+    const latest = latestBackgroundTasks.get(taskId);
+    if (latest) {
+      mergeBackgroundTaskIntoToolBlock(block, latest);
+    }
+  }
+
   function normalizeUIMessage(msg: UIMessage): ContentBlock {
     switch (msg.type) {
-      case "tool":
-        return {
+      case "tool": {
+        const backgroundTask = normalizeBackgroundTask(msg.background_task);
+        const block: ToolCallBlock = {
           ...msg,
           toolCallId: msg.tool_call_id,
           toolName: msg.name,
           result: msg.output ?? null,
-          done: !msg.running,
+          running: backgroundTask ? isBackgroundTaskActive(backgroundTask) : msg.running,
+          done: backgroundTask ? !isBackgroundTaskActive(backgroundTask) : !msg.running,
           approval: msg.approval,
+          backgroundTask: backgroundTask ?? undefined,
           progress: msg.progress ? [...msg.progress] : undefined,
         };
+        applyPendingBackgroundEventsToTool(block);
+        return block;
+      }
       case "attachments":
         return {
           ...msg,
@@ -213,6 +402,23 @@ export const useChatStore = defineStore("chat", () => {
       };
     }
 
+    if (turn.role === "system") {
+      const task = normalizeBackgroundTask((turn as UISystemTurn).background_task) ?? {
+        taskId: String(turn.id ?? nextId()),
+        status: "completed",
+      };
+      const latest = rememberBackgroundTask(task);
+      return {
+        id: String(turn.id ?? `system-${latest.taskId}`),
+        role: "system",
+        kind: "background_task",
+        backgroundTask: latest,
+        timestamp: normalizeTimestamp(turn.timestamp),
+        platform: (turn.platform ?? "").trim() || undefined,
+        streaming: false,
+      };
+    }
+
     return {
       id: String(turn.id ?? nextId()),
       role: "assistant",
@@ -221,6 +427,24 @@ export const useChatStore = defineStore("chat", () => {
       platform: (turn.platform ?? "").trim() || undefined,
       streaming: false,
     };
+  }
+
+  function reconcileBackgroundTasksInMessages(items: ChatMessage[]) {
+    const toolsByTaskId = new Map<string, ToolCallBlock>();
+    for (const item of items) {
+      if (item.role === "assistant") {
+        for (const block of item.messages) {
+          if (block.type !== "tool") continue;
+          const taskId = taskIdFromToolBlock(block);
+          if (taskId) toolsByTaskId.set(taskId, block);
+        }
+        continue;
+      }
+      if (item.role === "system" && item.kind === "background_task") {
+        const target = toolsByTaskId.get(item.backgroundTask.taskId);
+        if (target) mergeBackgroundTaskIntoToolBlock(target, item.backgroundTask);
+      }
+    }
   }
 
   function updateSince(value?: string) {
@@ -246,6 +470,7 @@ export const useChatStore = defineStore("chat", () => {
 
   function replaceMessages(items: UITurn[]) {
     const normalized = items.map(normalizeTurn);
+    reconcileBackgroundTasksInMessages(normalized);
     messages.splice(0, messages.length, ...normalized);
     updateSinceFromMessages(normalized);
   }
@@ -431,14 +656,97 @@ export const useChatStore = defineStore("chat", () => {
 
     refreshTimer = setTimeout(() => {
       refreshTimer = null;
+      const sidNow = (sessionId.value ?? "").trim();
+      const streamActive =
+        streamingSessionId.value === sidNow &&
+        pendingAssistantStream &&
+        !pendingAssistantStream.done;
+      if (streamActive) return;
       void refreshCurrentSession();
     }, delay);
+  }
+
+  function findBackgroundToolBlock(taskId: string): ToolCallBlock | null {
+    const id = taskId.trim();
+    if (!id) return null;
+    for (const item of messages) {
+      if (item.role !== "assistant") continue;
+      for (const block of item.messages) {
+        if (block.type !== "tool") continue;
+        if (taskIdFromToolBlock(block) === id) return block;
+      }
+    }
+    return null;
+  }
+
+  function queuePendingBackgroundEvent(task: BackgroundTask) {
+    const current = pendingBackgroundEvents.get(task.taskId) ?? [];
+    current.push(task);
+    pendingBackgroundEvents.set(task.taskId, current.slice(-40));
+  }
+
+  function applyBackgroundTaskEvent(event: MessageStreamEvent) {
+    const incoming = normalizeBackgroundTask(
+      event.task ?? (event as UIBackgroundTask),
+      event.event,
+    );
+    if (!incoming) return;
+
+    const sid = (sessionId.value ?? "").trim();
+    if (incoming.sessionId && sid && incoming.sessionId !== sid) return;
+
+    const task = rememberBackgroundTask(incoming);
+
+    const block = findBackgroundToolBlock(task.taskId);
+    if (block) {
+      mergeBackgroundTaskIntoToolBlock(block, task);
+      if (!isBackgroundTaskActive(block.backgroundTask)) {
+        fsChangedAt.value = Date.now();
+      }
+    } else {
+      queuePendingBackgroundEvent(task);
+    }
+
+    if (!isBackgroundTaskActive(task) || task.status === "stalled") {
+      scheduleRefreshCurrentSession(task.sessionId, 250);
+    }
+  }
+
+  function applyAgentStreamEvent(event: MessageStreamEvent) {
+    const stream = event.stream;
+    if (!stream) return;
+
+    const sid = (event.session_id ?? "").trim();
+    const activeSid = (sessionId.value ?? "").trim();
+    if (sid && activeSid && sid !== activeSid) return;
+
+    if (stream.type === "start" || stream.type === "message") {
+      if (sid) streamingSessionId.value = sid;
+      loading.value = true;
+      suppressNextStartPlaceholder = false;
+    }
+
+    handleChatStreamEvent(stream);
+
+    if (stream.type === "end" || stream.type === "error") {
+      if (sid) touchSession(sid);
+    }
   }
 
   function handleStreamEvent(targetBotId: string, event: MessageStreamEvent) {
     const eventType = (event.type ?? "").toLowerCase();
     const eBotId = (event.bot_id ?? "").trim();
     if (eBotId && eBotId !== targetBotId) return;
+
+    if (eventType === "background_task") {
+      applyBackgroundTaskEvent(event);
+      return;
+    }
+
+    if (eventType === "agent_stream") {
+      applyAgentStreamEvent(event);
+      return;
+    }
 
     if (eventType === "message_created") {
       const raw = event.message;

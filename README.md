@@ -106,6 +106,12 @@ Default local endpoints:
 - Server API: `http://localhost:26810`
 - Web UI: `http://localhost:26811`
 - Browser Gateway: `http://localhost:26812` when the `browser` profile is enabled
+- Agent Runner: `http://localhost:26813`
+- Integration Gateway: `http://localhost:26815`
+- PostgreSQL: `localhost:26817`
+- Qdrant HTTP: `http://localhost:26818`
+- Qdrant gRPC: `localhost:26819`
+- Sparse memory service: `http://localhost:26820`
 
 Default admin account in templates: `admin` / `admin123`. Change it before production use.
 

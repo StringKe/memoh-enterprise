@@ -10,6 +10,8 @@ This fork keeps the core agent platform and web management experience, but narro
 - Current upstream alignment commit: `4509b6db06a888e2688103e7ffb7a4e4b9a60863`
 - Alignment marker: [`.parent-commit`](./.parent-commit)
 
+This project is built on top of Memoh. Thanks to the Memoh maintainers and contributors for creating and maintaining the original self-hosted AI agent platform. Memoh Enterprise exists because that upstream work provides the agent runtime, container workspace model, memory system, channel integrations, and web management foundation.
+
 This fork is expected to keep syncing useful upstream server, agent, memory, provider, channel, workspace, and web management improvements. Upstream changes for Desktop GUI, TUI, SQLite, Windows packaging, Docker Hub publishing, npmjs publishing, and China-specific optimizations are intentionally excluded.
 
 ## Enterprise Scope

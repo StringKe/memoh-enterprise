@@ -99,6 +99,7 @@ services:
       MEMOH_INTEGRATION_GATEWAY_ADDR: ":26815"
       MEMOH_SERVER_INTERNAL_URL: "http://server:8080/connect"
       MEMOH_SERVICE_TOKEN: "${MEMOH_SERVICE_TOKEN:-}"
+      MEMOH_INTERNAL_AUTH_BOOTSTRAP_TOKEN: "${MEMOH_INTERNAL_AUTH_BOOTSTRAP_TOKEN:-}"
     volumes:
       - ${MEMOH_CONFIG:-./config.toml}:/app/config.toml:ro
       - /etc/localtime:/etc/localtime:ro

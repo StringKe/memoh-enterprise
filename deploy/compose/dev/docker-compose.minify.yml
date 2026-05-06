@@ -168,6 +168,7 @@ services:
       GOFLAGS: -buildvcs=false
       MEMOH_INTEGRATION_GATEWAY_ADDR: ":26815"
       MEMOH_SERVER_INTERNAL_URL: "http://server:8080/connect"
+      MEMOH_INTERNAL_AUTH_BOOTSTRAP_TOKEN: "DEV-INTERNAL-BOOTSTRAP"
     volumes:
       - ../../..:/workspace
       - go_mod_cache:/go/pkg/mod

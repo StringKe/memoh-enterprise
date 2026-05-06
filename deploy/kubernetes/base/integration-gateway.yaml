@@ -35,6 +35,8 @@ spec:
               value: ":26815"
             - name: MEMOH_SERVER_INTERNAL_URL
               value: "http://memoh-server:8080/connect"
+            - name: MEMOH_INTERNAL_AUTH_BOOTSTRAP_TOKEN
+              value: "CHANGE-ME-INTERNAL-BOOTSTRAP"
           ports:
             - name: http
               containerPort: 26815

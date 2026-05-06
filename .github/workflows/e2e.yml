@@ -63,7 +63,27 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Generate config
-        run: cp conf/app.docker.toml config.toml
+        run: |
+          cp conf/app.docker.toml config.toml
+          openssl genpkey -algorithm Ed25519 -out /tmp/memoh-service-auth.key
+          openssl pkey -in /tmp/memoh-service-auth.key -pubout -out /tmp/memoh-service-auth.pub
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def toml_multiline(value: str) -> str:
+              return '"""' + value.rstrip("\n") + '\n"""'
+
+          config = Path("config.toml")
+          text = config.read_text()
+          text = text.replace(
+              'bootstrap_token = "CHANGE-ME-INTERNAL-BOOTSTRAP"',
+              'bootstrap_token = "E2E-INTERNAL-BOOTSTRAP"',
+          )
+          text = text.replace('docker = ""', f"docker = {toml_multiline(Path('/tmp/memoh-service-auth.key').read_text())}", 1)
+          text = text.replace('docker = ""', f"docker = {toml_multiline(Path('/tmp/memoh-service-auth.pub').read_text())}", 1)
+          config.write_text(text)
+          PY
+          echo "MEMOH_INTERNAL_AUTH_BOOTSTRAP_TOKEN=E2E-INTERNAL-BOOTSTRAP" >> "$GITHUB_ENV"
 
       - name: Build images
         run: |

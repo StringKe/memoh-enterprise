@@ -343,6 +343,72 @@ set_toml_string_value() {
   fi
 }
 
+set_toml_multiline_value() {
+  file="$1"
+  section="$2"
+  key="$3"
+  value="$4"
+  tmp="${file}.tmp.$$"
+  if TOML_VALUE="$value" awk -v target_section="[$section]" -v target_key="$key" '
+    BEGIN {
+      target_value = ENVIRON["TOML_VALUE"]
+    }
+    /^\[[^]]+\]/ {
+      in_section = ($0 == target_section)
+    }
+    in_section && $0 ~ "^[[:space:]]*" target_key "[[:space:]]*=" {
+      indent = $0
+      sub(/[^[:space:]].*/, "", indent)
+      print indent target_key " = \"\"\""
+      printf "%s", target_value
+      if (target_value !~ /\n$/) {
+        print ""
+      }
+      print "\"\"\""
+      next
+    }
+    { print }
+  ' "$file" > "$tmp"; then
+    mv "$tmp" "$file"
+  else
+    rm -f "$tmp"
+    return 1
+  fi
+}
+
+generate_service_auth_keypair() {
+  private_file=$(mktemp)
+  public_file=$(mktemp)
+  openssl genpkey -algorithm Ed25519 -out "$private_file" >/dev/null 2>&1
+  openssl pkey -in "$private_file" -pubout -out "$public_file" >/dev/null 2>&1
+  SERVICE_AUTH_PRIVATE_KEY=$(cat "$private_file")
+  SERVICE_AUTH_PUBLIC_KEY=$(cat "$public_file")
+  rm -f "$private_file" "$public_file"
+}
+
+ensure_service_auth_config() {
+  config_file="$1"
+  INTERNAL_AUTH_KEY_ID=$(read_toml_value "$config_file" "internal_auth" "active_key_id" || true)
+  if [ -z "$INTERNAL_AUTH_KEY_ID" ]; then
+    INTERNAL_AUTH_KEY_ID="docker"
+    set_toml_string_value "$config_file" "internal_auth" "active_key_id" "$INTERNAL_AUTH_KEY_ID"
+  fi
+
+  INTERNAL_BOOTSTRAP_TOKEN=$(read_toml_value "$config_file" "internal_auth" "bootstrap_token" || true)
+  if [ -z "$INTERNAL_BOOTSTRAP_TOKEN" ] || [ "$INTERNAL_BOOTSTRAP_TOKEN" = "CHANGE-ME-INTERNAL-BOOTSTRAP" ]; then
+    INTERNAL_BOOTSTRAP_TOKEN=$(gen_secret)
+    set_toml_string_value "$config_file" "internal_auth" "bootstrap_token" "$INTERNAL_BOOTSTRAP_TOKEN"
+  fi
+
+  private_key=$(read_toml_value "$config_file" "internal_auth.private_keys" "$INTERNAL_AUTH_KEY_ID" || true)
+  public_key=$(read_toml_value "$config_file" "internal_auth.public_keys" "$INTERNAL_AUTH_KEY_ID" || true)
+  if [ -z "$private_key" ] || [ "$private_key" = '"""' ] || [ -z "$public_key" ] || [ "$public_key" = '"""' ]; then
+    generate_service_auth_keypair
+    set_toml_multiline_value "$config_file" "internal_auth.private_keys" "$INTERNAL_AUTH_KEY_ID" "$SERVICE_AUTH_PRIVATE_KEY"
+    set_toml_multiline_value "$config_file" "internal_auth.public_keys" "$INTERNAL_AUTH_KEY_ID" "$SERVICE_AUTH_PUBLIC_KEY"
+  fi
+}
+
 write_env_value() {
   key="$1"
   value=$(printf '%s' "$2" | sed "s/'/\\\\'/g")
@@ -1036,6 +1102,7 @@ else
   set_toml_string_value config.toml "postgres" "password" "$PG_PASS"
   rm -f config.toml.bak
 fi
+ensure_service_auth_config config.toml
 
 INSTALL_DIR="$(pwd)"
 mkdir -p "$MEMOH_DATA_DIR"
@@ -1086,6 +1153,7 @@ write_env_value "MEMOH_DATA_DIR" "$MEMOH_DATA_DIR"
 write_env_value "MEMOH_DATABASE_DRIVER" "$DATABASE_DRIVER"
 write_env_value "MEMOH_CONTAINER_BACKEND" "$CONTAINER_BACKEND"
 write_env_value "MEMOH_DEPLOY_RUNTIME" "$DEPLOY_RUNTIME"
+write_env_value "MEMOH_INTERNAL_AUTH_BOOTSTRAP_TOKEN" "$INTERNAL_BOOTSTRAP_TOKEN"
 write_env_value "USE_SPARSE" "$USE_SPARSE"
 write_env_value "BROWSER_TAG" "$BROWSER_TAG"
 write_env_value "BROWSER_CORES" "$BROWSER_CORES"

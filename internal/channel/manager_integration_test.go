@@ -256,6 +256,46 @@ func TestManagerReconcileStartsAndStops(t *testing.T) {
 	}
 }
 
+func TestManagerEnsureConnectionRestartsWhenUpdatedAtAdvances(t *testing.T) {
+	t.Parallel()
+
+	log := slog.New(slog.DiscardHandler)
+	store := &fakeConfigStore{}
+	reg := NewRegistry()
+	adapter := &fakeAdapter{channelType: ChannelType("test")}
+	manager := NewManager(log, reg, store, &fakeInboundProcessorIntegration{})
+	manager.RegisterAdapter(adapter)
+
+	updatedAt := time.Now()
+	cfg := ChannelConfig{
+		ID:          "cfg-1",
+		BotID:       "bot-1",
+		ChannelType: ChannelType("test"),
+		Credentials: map[string]any{"token": "old"},
+		UpdatedAt:   updatedAt,
+	}
+	if err := manager.EnsureConnection(context.Background(), cfg); err != nil {
+		t.Fatalf("expected first connection to start, got %v", err)
+	}
+	cfg.Credentials = map[string]any{"token": "new"}
+	cfg.UpdatedAt = updatedAt.Add(time.Second)
+	if err := manager.EnsureConnection(context.Background(), cfg); err != nil {
+		t.Fatalf("expected updated connection to restart, got %v", err)
+	}
+
+	adapter.mu.Lock()
+	defer adapter.mu.Unlock()
+	if len(adapter.started) != 2 {
+		t.Fatalf("expected 2 starts, got %d", len(adapter.started))
+	}
+	if adapter.stops != 1 {
+		t.Fatalf("expected 1 stop, got %d", adapter.stops)
+	}
+	if got := adapter.started[1].Credentials["token"]; got != "new" {
+		t.Fatalf("expected restarted connection to use new token, got %v", got)
+	}
+}
+
 func TestManagerConnectionStatusesByBotTracksConnectFailure(t *testing.T) {
 	t.Parallel()
 

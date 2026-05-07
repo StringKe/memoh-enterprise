@@ -316,9 +316,68 @@
     "sessionActions": "Session actions",
     "tabBarToolkit": {
       "newTerminal": "Open new terminal",
+      "openDisplay": "Open workspace display",
       "menu": "Tab actions",
       "closeAll": "Close all",
       "closeFinished": "Close saved and finished"
+    },
+    "display": {
+      "title": "Display",
+      "reconnect": "Reconnect",
+      "closeSession": "Close display session",
+      "status": {
+        "idle": "Idle",
+        "connecting": "Connecting",
+        "connected": "Connected",
+        "disconnected": "Disconnected",
+        "unavailable": "Unavailable"
+      },
+      "unavailable": {
+        "disabled": "Workspace display is disabled",
+        "container": "Workspace container is not reachable",
+        "bundle": "Display runtime is unavailable",
+        "server": "Display server is not reachable",
+        "encoder": "GStreamer encoder is unavailable",
+        "manager": "Workspace manager is not configured",
+        "browser": "Workspace browser is unavailable",
+        "session": "Workspace display session is unavailable",
+        "toolkit": "Workspace toolkit is not installed"
+      },
+      "prepare": {
+        "title": "Preparing workspace display",
+        "stageCheck": "Check",
+        "stageInstall": "Install",
+        "stageBrowser": "Browser",
+        "stageSession": "Session",
+        "checking": "Checking display runtime",
+        "toolkit": "Checking workspace toolkit",
+        "system": "Checking workspace OS",
+        "installing": "Installing display and VNC packages",
+        "browser": "Installing browser runtime",
+        "starting": "Starting VNC display",
+        "session": "Starting display session",
+        "complete": "Display is ready",
+        "default": "Preparing display",
+        "failed": "Failed to prepare display"
+      },
+      "stats": {
+        "show": "Show stats",
+        "hide": "Hide stats",
+        "title": "WebRTC stats",
+        "session": "Session",
+        "resolution": "Resolution",
+        "viewport": "Viewport",
+        "codec": "Codec",
+        "connection": "Connection",
+        "ice": "ICE",
+        "fps": "FPS",
+        "bitrate": "Bitrate",
+        "decoded": "Decoded",
+        "dropped": "Dropped",
+        "packetsLost": "Packets lost",
+        "jitter": "Jitter",
+        "rtt": "RTT"
+      }
     }
   },
   "models": {
@@ -953,6 +1012,7 @@
       "structuredData": "Structured Data",
       "channels": "Platforms",
       "container": "Container",
+      "display": "Display",
       "mcp": "MCP",
       "heartbeat": "Heartbeat",
       "compaction": "Compaction",
@@ -977,6 +1037,29 @@
         "connected": "Connected",
         "disconnected": "Disconnected"
       }
+    },
+    "display": {
+      "runtimeTitle": "Runtime",
+      "runtimeButton": "Runtime",
+      "liveTitle": "Display 1",
+      "liveDescription": "Open an interactive WebRTC view into the bot workspace.",
+      "previewTitle": "Sessions",
+      "previewDescription": "View currently connected display sessions.",
+      "previewEmpty": "No snapshot",
+      "noSessions": "No active display sessions",
+      "unknown": "Unknown",
+      "closeSession": "Close session",
+      "closeFailed": "Failed to close display session",
+      "summaryDisabled": "Workspace display is disabled.",
+      "summaryReady": "Display runtime is ready.",
+      "summaryPreparing": "Display runtime is not ready.",
+      "enabled": "Enabled",
+      "runtime": "Runtime",
+      "vnc": "VNC",
+      "session": "Session",
+      "browser": "Browser",
+      "toolkit": "Toolkit",
+      "system": "System"
     },
     "files": {
       "name": "Name",
@@ -1210,6 +1293,8 @@
       "compactionModelPlaceholder": "Use chat model (default)",
       "showToolCallsInIM": "Show Tool Calls in IM",
       "showToolCallsInIMDescription": "Surface tool execution status (running / completed / failed) as a single message in IM channels. Off by default.",
+      "displayEnabled": "Enable Workspace Display",
+      "displayEnabledDescription": "Start Xvnc when the container starts. Save and restart the workspace container for this to take effect.",
       "toolApproval": "Tool Call Approval",
       "toolApprovalDescription": "Require human approval for sensitive write, edit, and exec tool calls, with bypass templates for safe paths or commands.",
       "toolApprovalBypass": "Bypass",

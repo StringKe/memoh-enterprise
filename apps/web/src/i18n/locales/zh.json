@@ -312,9 +312,68 @@
     "sessionActions": "会话操作",
     "tabBarToolkit": {
       "newTerminal": "新建终端",
+      "openDisplay": "打开工作区显示器",
       "menu": "标签页操作",
       "closeAll": "关闭全部",
       "closeFinished": "关闭已保存和结束的"
+    },
+    "display": {
+      "title": "显示器",
+      "reconnect": "重新连接",
+      "closeSession": "关闭显示会话",
+      "status": {
+        "idle": "空闲",
+        "connecting": "连接中",
+        "connected": "已连接",
+        "disconnected": "已断开",
+        "unavailable": "不可用"
+      },
+      "unavailable": {
+        "disabled": "工作区显示器未启用",
+        "container": "工作区容器不可达",
+        "bundle": "显示运行时不可用",
+        "server": "显示服务不可达",
+        "encoder": "GStreamer 编码器不可用",
+        "manager": "工作区管理器未配置",
+        "browser": "工作区浏览器不可用",
+        "session": "工作区显示会话不可用",
+        "toolkit": "工作区 toolkit 未安装"
+      },
+      "prepare": {
+        "title": "正在准备工作区显示器",
+        "stageCheck": "检查",
+        "stageInstall": "安装",
+        "stageBrowser": "浏览器",
+        "stageSession": "会话",
+        "checking": "正在检查显示运行时",
+        "toolkit": "正在检查工作区 toolkit",
+        "system": "正在检查工作区系统",
+        "installing": "正在安装显示和 VNC 组件",
+        "browser": "正在安装浏览器运行时",
+        "starting": "正在启动 VNC 显示器",
+        "session": "正在启动显示会话",
+        "complete": "显示器已就绪",
+        "default": "正在准备显示器",
+        "failed": "显示器准备失败"
+      },
+      "stats": {
+        "show": "显示统计",
+        "hide": "隐藏统计",
+        "title": "WebRTC 统计",
+        "session": "会话",
+        "resolution": "分辨率",
+        "viewport": "视口",
+        "codec": "编码",
+        "connection": "连接",
+        "ice": "ICE",
+        "fps": "FPS",
+        "bitrate": "码率",
+        "decoded": "已解码",
+        "dropped": "已丢帧",
+        "packetsLost": "丢包",
+        "jitter": "抖动",
+        "rtt": "RTT"
+      }
     }
   },
   "models": {
@@ -949,6 +1008,7 @@
       "structuredData": "结构化数据",
       "channels": "平台",
       "container": "容器",
+      "display": "显示器",
       "mcp": "MCP",
       "heartbeat": "心跳",
       "compaction": "上下文压缩",
@@ -973,6 +1033,29 @@
         "connected": "已连接",
         "disconnected": "已断开"
       }
+    },
+    "display": {
+      "runtimeTitle": "运行环境",
+      "runtimeButton": "运行环境",
+      "liveTitle": "显示器 1",
+      "liveDescription": "打开当前 Bot 工作区的 WebRTC 交互视图。",
+      "previewTitle": "会话",
+      "previewDescription": "查看当前连接中的显示会话。",
+      "previewEmpty": "暂无快照",
+      "noSessions": "暂无活跃显示会话",
+      "unknown": "未知",
+      "closeSession": "关闭会话",
+      "closeFailed": "关闭显示会话失败",
+      "summaryDisabled": "工作区显示器未启用。",
+      "summaryReady": "显示运行时已就绪。",
+      "summaryPreparing": "显示运行时尚未就绪。",
+      "enabled": "已启用",
+      "runtime": "运行环境",
+      "vnc": "VNC",
+      "session": "会话",
+      "browser": "浏览器",
+      "toolkit": "Toolkit",
+      "system": "系统"
     },
     "files": {
       "name": "名称",
@@ -1206,6 +1289,8 @@
       "compactionModelPlaceholder": "使用聊天模型（默认）",
       "showToolCallsInIM": "在 IM 中显示工具调用",
       "showToolCallsInIMDescription": "在 IM 频道中以单条消息持续展示工具执行的状态（进行中 / 已完成 / 失败）。默认关闭。",
+      "displayEnabled": "启用工作区显示器",
+      "displayEnabledDescription": "在容器启动时启动 Xvnc，保存后需重启工作区容器才会生效。",
       "toolApproval": "工具调用审核",
       "toolApprovalDescription": "对 write、edit、exec 等敏感工具启用人工审核，可配置可跳过审核的路径或命令。",
       "toolApprovalBypass": "跳过审核",

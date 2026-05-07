@@ -168,6 +168,7 @@ import BotEmail from "./components/bot-email.vue";
 import BotOverview from "./components/bot-overview.vue";
 import BotSchedule from "./components/bot-schedule.vue";
 import BotContainer from "./components/bot-container.vue";
+import BotDisplay from "./components/bot-display.vue";
 import BotAccess from "./components/bot-access.vue";
 import AvatarEditDialog from "./components/avatar-edit-dialog.vue";
 import StructuredDataWorkspace from "@/pages/structured-data/components/structured-data-workspace.vue";
@@ -251,6 +252,12 @@ const tabList = computed(() => {
     },
     { value: "container", label: "bots.tabs.container", component: BotContainer, params: {} },
     {
+      value: "display",
+      label: "bots.tabs.display",
+      component: BotDisplay,
+      params: { "bot-id": bot_id },
+    },
+    {
       value: "network",
       label: "bots.tabs.network",
       component: BotNetwork,
@@ -314,7 +321,9 @@ const tabList = computed(() => {
     },
   ];
   if (isLocalWorkspace.value) {
-    return tabs.filter((tab) => tab.value !== "container" && tab.value !== "network");
+    return tabs.filter(
+      (tab) => tab.value !== "container" && tab.value !== "display" && tab.value !== "network",
+    );
   }
   return tabs;
 });

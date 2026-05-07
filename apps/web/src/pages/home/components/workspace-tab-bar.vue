@@ -49,6 +49,15 @@
       >
         <TerminalSquare class="size-4" />
       </button>
+      <button
+        type="button"
+        class="inline-flex items-center justify-center size-8 rounded-md text-muted-foreground hover:bg-sidebar-accent/40 hover:text-foreground transition-colors [-webkit-app-region:no-drag]"
+        :title="t('chat.tabBarToolkit.openDisplay')"
+        :aria-label="t('chat.tabBarToolkit.openDisplay')"
+        @click="store.openDisplay()"
+      >
+        <Monitor class="size-4" />
+      </button>
       <DropdownMenu>
         <DropdownMenuTrigger as-child>
           <button
@@ -80,6 +89,7 @@ import { storeToRefs } from "pinia";
 import {
   File as FileIcon,
   MessageSquare,
+  Monitor,
   MoreHorizontal,
   TerminalSquare,
   X,
@@ -151,6 +161,8 @@ function tabIcon(tab: WorkspaceTab): Component {
       return FileIcon;
     case "terminal":
       return TerminalSquare;
+    case "display":
+      return Monitor;
   }
 }
 
@@ -163,6 +175,9 @@ function resolveTitle(tab: WorkspaceTab): string {
   }
   if (tab.type === "terminal") {
     return tab.title;
+  }
+  if (tab.type === "display") {
+    return tab.title || t("chat.display.title");
   }
   return tab.title || tab.filePath;
 }

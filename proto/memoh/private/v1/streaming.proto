@@ -182,6 +182,72 @@ message StreamContainerMetricsResponse {
   GetContainerMetricsResponse metrics = 1;
 }
 
+message GetDisplayInfoRequest {
+  string bot_id = 1;
+}
+
+message GetDisplayInfoResponse {
+  bool enabled = 1;
+  bool available = 2;
+  bool running = 3;
+  string transport = 4;
+  string encoder = 5;
+  bool encoder_available = 6;
+  bool session_available = 7;
+  bool browser_available = 8;
+  bool toolkit_available = 9;
+  bool prepare_supported = 10;
+  string prepare_system = 11;
+  string unavailable_reason = 12;
+}
+
+message CreateDisplayWebRTCOfferRequest {
+  string bot_id = 1;
+  string type = 2;
+  string sdp = 3;
+  string session_id = 4;
+  string candidate_host = 5;
+}
+
+message CreateDisplayWebRTCOfferResponse {
+  string type = 1;
+  string sdp = 2;
+  string session_id = 3;
+}
+
+message DisplaySession {
+  string id = 1;
+  string codec = 2;
+  string state = 3;
+  google.protobuf.Timestamp created_at = 4;
+}
+
+message ListDisplaySessionsRequest {
+  string bot_id = 1;
+}
+
+message ListDisplaySessionsResponse {
+  repeated DisplaySession sessions = 1;
+}
+
+message CloseDisplaySessionRequest {
+  string bot_id = 1;
+  string session_id = 2;
+}
+
+message CloseDisplaySessionResponse {}
+
+message PrepareDisplayRequest {
+  string bot_id = 1;
+}
+
+message PrepareDisplayResponse {
+  string type = 1;
+  string step = 2;
+  string message = 3;
+  int32 percent = 4;
+}
+
 message ContainerSnapshot {
   string snapshot_id = 1;
   string bot_id = 2;
@@ -359,6 +425,11 @@ service ContainerService {
   rpc StreamContainerLifecycle(StreamContainerLifecycleRequest) returns (stream StreamContainerLifecycleResponse);
   rpc GetContainerMetrics(GetContainerMetricsRequest) returns (GetContainerMetricsResponse);
   rpc StreamContainerMetrics(StreamContainerMetricsRequest) returns (stream StreamContainerMetricsResponse);
+  rpc GetDisplayInfo(GetDisplayInfoRequest) returns (GetDisplayInfoResponse);
+  rpc CreateDisplayWebRTCOffer(CreateDisplayWebRTCOfferRequest) returns (CreateDisplayWebRTCOfferResponse);
+  rpc ListDisplaySessions(ListDisplaySessionsRequest) returns (ListDisplaySessionsResponse);
+  rpc CloseDisplaySession(CloseDisplaySessionRequest) returns (CloseDisplaySessionResponse);
+  rpc PrepareDisplay(PrepareDisplayRequest) returns (stream PrepareDisplayResponse);
   rpc CreateContainerSnapshot(CreateContainerSnapshotRequest) returns (CreateContainerSnapshotResponse);
   rpc ListContainerSnapshots(ListContainerSnapshotsRequest) returns (ListContainerSnapshotsResponse);
   rpc RestoreContainerSnapshot(RestoreContainerSnapshotRequest) returns (RestoreContainerSnapshotResponse);

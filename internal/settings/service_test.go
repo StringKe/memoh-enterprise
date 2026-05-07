@@ -323,7 +323,7 @@ func TestRestoreInheritanceWritesFalseMask(t *testing.T) {
 func makeSettingsBotRow(botID, ownerUserID pgtype.UUID, mask []byte, groupID ...pgtype.UUID) *fakeSettingsRow {
 	return &fakeSettingsRow{
 		scanFunc: func(dest ...any) error {
-			if len(dest) < 25 {
+			if len(dest) < 26 {
 				return pgx.ErrNoRows
 			}
 			var scannedGroupID pgtype.UUID
@@ -348,13 +348,14 @@ func makeSettingsBotRow(botID, ownerUserID pgtype.UUID, mask []byte, groupID ...
 			*dest[15].(*int32) = 30
 			*dest[16].(*string) = ""
 			*dest[17].(*bool) = false
-			*dest[18].(*int32) = 100000
-			*dest[19].(*int32) = 80
-			*dest[20].(*pgtype.UUID) = pgtype.UUID{}
-			*dest[21].(*[]byte) = mask
-			*dest[22].(*[]byte) = []byte(`{}`)
-			*dest[23].(*pgtype.Timestamptz) = pgtype.Timestamptz{}
+			*dest[18].(*bool) = false
+			*dest[19].(*int32) = 100000
+			*dest[20].(*int32) = 80
+			*dest[21].(*pgtype.UUID) = pgtype.UUID{}
+			*dest[22].(*[]byte) = mask
+			*dest[23].(*[]byte) = []byte(`{}`)
 			*dest[24].(*pgtype.Timestamptz) = pgtype.Timestamptz{}
+			*dest[25].(*pgtype.Timestamptz) = pgtype.Timestamptz{}
 			return nil
 		},
 	}

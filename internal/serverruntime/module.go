@@ -59,6 +59,7 @@ func options() fx.Option {
 			provideAccountStore,
 			provideWorkspaceManager,
 			provideWorkspaceExecutorProvider,
+			provideDisplayService,
 			provideMemoryLLM,
 			memprovider.NewService,
 			botgroups.NewService,

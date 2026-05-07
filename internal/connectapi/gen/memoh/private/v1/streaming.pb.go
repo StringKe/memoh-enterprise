@@ -1831,6 +1831,674 @@ func (x *StreamContainerMetricsResponse) GetMetrics() *GetContainerMetricsRespon
 	return nil
 }
 
+type GetDisplayInfoRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	BotId         string                 `protobuf:"bytes,1,opt,name=bot_id,json=botId,proto3" json:"bot_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetDisplayInfoRequest) Reset() {
+	*x = GetDisplayInfoRequest{}
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetDisplayInfoRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetDisplayInfoRequest) ProtoMessage() {}
+
+func (x *GetDisplayInfoRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetDisplayInfoRequest.ProtoReflect.Descriptor instead.
+func (*GetDisplayInfoRequest) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *GetDisplayInfoRequest) GetBotId() string {
+	if x != nil {
+		return x.BotId
+	}
+	return ""
+}
+
+type GetDisplayInfoResponse struct {
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	Enabled           bool                   `protobuf:"varint,1,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	Available         bool                   `protobuf:"varint,2,opt,name=available,proto3" json:"available,omitempty"`
+	Running           bool                   `protobuf:"varint,3,opt,name=running,proto3" json:"running,omitempty"`
+	Transport         string                 `protobuf:"bytes,4,opt,name=transport,proto3" json:"transport,omitempty"`
+	Encoder           string                 `protobuf:"bytes,5,opt,name=encoder,proto3" json:"encoder,omitempty"`
+	EncoderAvailable  bool                   `protobuf:"varint,6,opt,name=encoder_available,json=encoderAvailable,proto3" json:"encoder_available,omitempty"`
+	SessionAvailable  bool                   `protobuf:"varint,7,opt,name=session_available,json=sessionAvailable,proto3" json:"session_available,omitempty"`
+	BrowserAvailable  bool                   `protobuf:"varint,8,opt,name=browser_available,json=browserAvailable,proto3" json:"browser_available,omitempty"`
+	ToolkitAvailable  bool                   `protobuf:"varint,9,opt,name=toolkit_available,json=toolkitAvailable,proto3" json:"toolkit_available,omitempty"`
+	PrepareSupported  bool                   `protobuf:"varint,10,opt,name=prepare_supported,json=prepareSupported,proto3" json:"prepare_supported,omitempty"`
+	PrepareSystem     string                 `protobuf:"bytes,11,opt,name=prepare_system,json=prepareSystem,proto3" json:"prepare_system,omitempty"`
+	UnavailableReason string                 `protobuf:"bytes,12,opt,name=unavailable_reason,json=unavailableReason,proto3" json:"unavailable_reason,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *GetDisplayInfoResponse) Reset() {
+	*x = GetDisplayInfoResponse{}
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetDisplayInfoResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetDisplayInfoResponse) ProtoMessage() {}
+
+func (x *GetDisplayInfoResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetDisplayInfoResponse.ProtoReflect.Descriptor instead.
+func (*GetDisplayInfoResponse) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *GetDisplayInfoResponse) GetEnabled() bool {
+	if x != nil {
+		return x.Enabled
+	}
+	return false
+}
+
+func (x *GetDisplayInfoResponse) GetAvailable() bool {
+	if x != nil {
+		return x.Available
+	}
+	return false
+}
+
+func (x *GetDisplayInfoResponse) GetRunning() bool {
+	if x != nil {
+		return x.Running
+	}
+	return false
+}
+
+func (x *GetDisplayInfoResponse) GetTransport() string {
+	if x != nil {
+		return x.Transport
+	}
+	return ""
+}
+
+func (x *GetDisplayInfoResponse) GetEncoder() string {
+	if x != nil {
+		return x.Encoder
+	}
+	return ""
+}
+
+func (x *GetDisplayInfoResponse) GetEncoderAvailable() bool {
+	if x != nil {
+		return x.EncoderAvailable
+	}
+	return false
+}
+
+func (x *GetDisplayInfoResponse) GetSessionAvailable() bool {
+	if x != nil {
+		return x.SessionAvailable
+	}
+	return false
+}
+
+func (x *GetDisplayInfoResponse) GetBrowserAvailable() bool {
+	if x != nil {
+		return x.BrowserAvailable
+	}
+	return false
+}
+
+func (x *GetDisplayInfoResponse) GetToolkitAvailable() bool {
+	if x != nil {
+		return x.ToolkitAvailable
+	}
+	return false
+}
+
+func (x *GetDisplayInfoResponse) GetPrepareSupported() bool {
+	if x != nil {
+		return x.PrepareSupported
+	}
+	return false
+}
+
+func (x *GetDisplayInfoResponse) GetPrepareSystem() string {
+	if x != nil {
+		return x.PrepareSystem
+	}
+	return ""
+}
+
+func (x *GetDisplayInfoResponse) GetUnavailableReason() string {
+	if x != nil {
+		return x.UnavailableReason
+	}
+	return ""
+}
+
+type CreateDisplayWebRTCOfferRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	BotId         string                 `protobuf:"bytes,1,opt,name=bot_id,json=botId,proto3" json:"bot_id,omitempty"`
+	Type          string                 `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"`
+	Sdp           string                 `protobuf:"bytes,3,opt,name=sdp,proto3" json:"sdp,omitempty"`
+	SessionId     string                 `protobuf:"bytes,4,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	CandidateHost string                 `protobuf:"bytes,5,opt,name=candidate_host,json=candidateHost,proto3" json:"candidate_host,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateDisplayWebRTCOfferRequest) Reset() {
+	*x = CreateDisplayWebRTCOfferRequest{}
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[34]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateDisplayWebRTCOfferRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateDisplayWebRTCOfferRequest) ProtoMessage() {}
+
+func (x *CreateDisplayWebRTCOfferRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[34]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateDisplayWebRTCOfferRequest.ProtoReflect.Descriptor instead.
+func (*CreateDisplayWebRTCOfferRequest) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{34}
+}
+
+func (x *CreateDisplayWebRTCOfferRequest) GetBotId() string {
+	if x != nil {
+		return x.BotId
+	}
+	return ""
+}
+
+func (x *CreateDisplayWebRTCOfferRequest) GetType() string {
+	if x != nil {
+		return x.Type
+	}
+	return ""
+}
+
+func (x *CreateDisplayWebRTCOfferRequest) GetSdp() string {
+	if x != nil {
+		return x.Sdp
+	}
+	return ""
+}
+
+func (x *CreateDisplayWebRTCOfferRequest) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
+}
+
+func (x *CreateDisplayWebRTCOfferRequest) GetCandidateHost() string {
+	if x != nil {
+		return x.CandidateHost
+	}
+	return ""
+}
+
+type CreateDisplayWebRTCOfferResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Type          string                 `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
+	Sdp           string                 `protobuf:"bytes,2,opt,name=sdp,proto3" json:"sdp,omitempty"`
+	SessionId     string                 `protobuf:"bytes,3,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateDisplayWebRTCOfferResponse) Reset() {
+	*x = CreateDisplayWebRTCOfferResponse{}
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[35]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateDisplayWebRTCOfferResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateDisplayWebRTCOfferResponse) ProtoMessage() {}
+
+func (x *CreateDisplayWebRTCOfferResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[35]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateDisplayWebRTCOfferResponse.ProtoReflect.Descriptor instead.
+func (*CreateDisplayWebRTCOfferResponse) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{35}
+}
+
+func (x *CreateDisplayWebRTCOfferResponse) GetType() string {
+	if x != nil {
+		return x.Type
+	}
+	return ""
+}
+
+func (x *CreateDisplayWebRTCOfferResponse) GetSdp() string {
+	if x != nil {
+		return x.Sdp
+	}
+	return ""
+}
+
+func (x *CreateDisplayWebRTCOfferResponse) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
+}
+
+type DisplaySession struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Codec         string                 `protobuf:"bytes,2,opt,name=codec,proto3" json:"codec,omitempty"`
+	State         string                 `protobuf:"bytes,3,opt,name=state,proto3" json:"state,omitempty"`
+	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DisplaySession) Reset() {
+	*x = DisplaySession{}
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[36]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DisplaySession) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DisplaySession) ProtoMessage() {}
+
+func (x *DisplaySession) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[36]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DisplaySession.ProtoReflect.Descriptor instead.
+func (*DisplaySession) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{36}
+}
+
+func (x *DisplaySession) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *DisplaySession) GetCodec() string {
+	if x != nil {
+		return x.Codec
+	}
+	return ""
+}
+
+func (x *DisplaySession) GetState() string {
+	if x != nil {
+		return x.State
+	}
+	return ""
+}
+
+func (x *DisplaySession) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
+}
+
+type ListDisplaySessionsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	BotId         string                 `protobuf:"bytes,1,opt,name=bot_id,json=botId,proto3" json:"bot_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListDisplaySessionsRequest) Reset() {
+	*x = ListDisplaySessionsRequest{}
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[37]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListDisplaySessionsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListDisplaySessionsRequest) ProtoMessage() {}
+
+func (x *ListDisplaySessionsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[37]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListDisplaySessionsRequest.ProtoReflect.Descriptor instead.
+func (*ListDisplaySessionsRequest) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{37}
+}
+
+func (x *ListDisplaySessionsRequest) GetBotId() string {
+	if x != nil {
+		return x.BotId
+	}
+	return ""
+}
+
+type ListDisplaySessionsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Sessions      []*DisplaySession      `protobuf:"bytes,1,rep,name=sessions,proto3" json:"sessions,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListDisplaySessionsResponse) Reset() {
+	*x = ListDisplaySessionsResponse{}
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[38]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListDisplaySessionsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListDisplaySessionsResponse) ProtoMessage() {}
+
+func (x *ListDisplaySessionsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[38]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListDisplaySessionsResponse.ProtoReflect.Descriptor instead.
+func (*ListDisplaySessionsResponse) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{38}
+}
+
+func (x *ListDisplaySessionsResponse) GetSessions() []*DisplaySession {
+	if x != nil {
+		return x.Sessions
+	}
+	return nil
+}
+
+type CloseDisplaySessionRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	BotId         string                 `protobuf:"bytes,1,opt,name=bot_id,json=botId,proto3" json:"bot_id,omitempty"`
+	SessionId     string                 `protobuf:"bytes,2,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CloseDisplaySessionRequest) Reset() {
+	*x = CloseDisplaySessionRequest{}
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[39]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CloseDisplaySessionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CloseDisplaySessionRequest) ProtoMessage() {}
+
+func (x *CloseDisplaySessionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[39]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CloseDisplaySessionRequest.ProtoReflect.Descriptor instead.
+func (*CloseDisplaySessionRequest) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{39}
+}
+
+func (x *CloseDisplaySessionRequest) GetBotId() string {
+	if x != nil {
+		return x.BotId
+	}
+	return ""
+}
+
+func (x *CloseDisplaySessionRequest) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
+}
+
+type CloseDisplaySessionResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CloseDisplaySessionResponse) Reset() {
+	*x = CloseDisplaySessionResponse{}
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[40]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CloseDisplaySessionResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CloseDisplaySessionResponse) ProtoMessage() {}
+
+func (x *CloseDisplaySessionResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[40]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CloseDisplaySessionResponse.ProtoReflect.Descriptor instead.
+func (*CloseDisplaySessionResponse) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{40}
+}
+
+type PrepareDisplayRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	BotId         string                 `protobuf:"bytes,1,opt,name=bot_id,json=botId,proto3" json:"bot_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PrepareDisplayRequest) Reset() {
+	*x = PrepareDisplayRequest{}
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[41]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PrepareDisplayRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PrepareDisplayRequest) ProtoMessage() {}
+
+func (x *PrepareDisplayRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[41]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PrepareDisplayRequest.ProtoReflect.Descriptor instead.
+func (*PrepareDisplayRequest) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{41}
+}
+
+func (x *PrepareDisplayRequest) GetBotId() string {
+	if x != nil {
+		return x.BotId
+	}
+	return ""
+}
+
+type PrepareDisplayResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Type          string                 `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
+	Step          string                 `protobuf:"bytes,2,opt,name=step,proto3" json:"step,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Percent       int32                  `protobuf:"varint,4,opt,name=percent,proto3" json:"percent,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PrepareDisplayResponse) Reset() {
+	*x = PrepareDisplayResponse{}
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[42]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PrepareDisplayResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PrepareDisplayResponse) ProtoMessage() {}
+
+func (x *PrepareDisplayResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[42]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PrepareDisplayResponse.ProtoReflect.Descriptor instead.
+func (*PrepareDisplayResponse) Descriptor() ([]byte, []int) {
+	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{42}
+}
+
+func (x *PrepareDisplayResponse) GetType() string {
+	if x != nil {
+		return x.Type
+	}
+	return ""
+}
+
+func (x *PrepareDisplayResponse) GetStep() string {
+	if x != nil {
+		return x.Step
+	}
+	return ""
+}
+
+func (x *PrepareDisplayResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *PrepareDisplayResponse) GetPercent() int32 {
+	if x != nil {
+		return x.Percent
+	}
+	return 0
+}
+
 type ContainerSnapshot struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	SnapshotId    string                 `protobuf:"bytes,1,opt,name=snapshot_id,json=snapshotId,proto3" json:"snapshot_id,omitempty"`
@@ -1845,7 +2513,7 @@ type ContainerSnapshot struct {
 
 func (x *ContainerSnapshot) Reset() {
 	*x = ContainerSnapshot{}
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[32]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1857,7 +2525,7 @@ func (x *ContainerSnapshot) String() string {
 func (*ContainerSnapshot) ProtoMessage() {}
 
 func (x *ContainerSnapshot) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[32]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1870,7 +2538,7 @@ func (x *ContainerSnapshot) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ContainerSnapshot.ProtoReflect.Descriptor instead.
 func (*ContainerSnapshot) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{32}
+	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *ContainerSnapshot) GetSnapshotId() string {
@@ -1926,7 +2594,7 @@ type CreateContainerSnapshotRequest struct {
 
 func (x *CreateContainerSnapshotRequest) Reset() {
 	*x = CreateContainerSnapshotRequest{}
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[33]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1938,7 +2606,7 @@ func (x *CreateContainerSnapshotRequest) String() string {
 func (*CreateContainerSnapshotRequest) ProtoMessage() {}
 
 func (x *CreateContainerSnapshotRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[33]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1951,7 +2619,7 @@ func (x *CreateContainerSnapshotRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateContainerSnapshotRequest.ProtoReflect.Descriptor instead.
 func (*CreateContainerSnapshotRequest) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{33}
+	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *CreateContainerSnapshotRequest) GetBotId() string {
@@ -1984,7 +2652,7 @@ type CreateContainerSnapshotResponse struct {
 
 func (x *CreateContainerSnapshotResponse) Reset() {
 	*x = CreateContainerSnapshotResponse{}
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[34]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1996,7 +2664,7 @@ func (x *CreateContainerSnapshotResponse) String() string {
 func (*CreateContainerSnapshotResponse) ProtoMessage() {}
 
 func (x *CreateContainerSnapshotResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[34]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2009,7 +2677,7 @@ func (x *CreateContainerSnapshotResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateContainerSnapshotResponse.ProtoReflect.Descriptor instead.
 func (*CreateContainerSnapshotResponse) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{34}
+	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *CreateContainerSnapshotResponse) GetSnapshot() *ContainerSnapshot {
@@ -2028,7 +2696,7 @@ type ListContainerSnapshotsRequest struct {
 
 func (x *ListContainerSnapshotsRequest) Reset() {
 	*x = ListContainerSnapshotsRequest{}
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[35]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2040,7 +2708,7 @@ func (x *ListContainerSnapshotsRequest) String() string {
 func (*ListContainerSnapshotsRequest) ProtoMessage() {}
 
 func (x *ListContainerSnapshotsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[35]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2053,7 +2721,7 @@ func (x *ListContainerSnapshotsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListContainerSnapshotsRequest.ProtoReflect.Descriptor instead.
 func (*ListContainerSnapshotsRequest) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{35}
+	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *ListContainerSnapshotsRequest) GetBotId() string {
@@ -2072,7 +2740,7 @@ type ListContainerSnapshotsResponse struct {
 
 func (x *ListContainerSnapshotsResponse) Reset() {
 	*x = ListContainerSnapshotsResponse{}
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[36]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2084,7 +2752,7 @@ func (x *ListContainerSnapshotsResponse) String() string {
 func (*ListContainerSnapshotsResponse) ProtoMessage() {}
 
 func (x *ListContainerSnapshotsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[36]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2097,7 +2765,7 @@ func (x *ListContainerSnapshotsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListContainerSnapshotsResponse.ProtoReflect.Descriptor instead.
 func (*ListContainerSnapshotsResponse) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{36}
+	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *ListContainerSnapshotsResponse) GetSnapshots() []*ContainerSnapshot {
@@ -2117,7 +2785,7 @@ type RestoreContainerSnapshotRequest struct {
 
 func (x *RestoreContainerSnapshotRequest) Reset() {
 	*x = RestoreContainerSnapshotRequest{}
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[37]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2129,7 +2797,7 @@ func (x *RestoreContainerSnapshotRequest) String() string {
 func (*RestoreContainerSnapshotRequest) ProtoMessage() {}
 
 func (x *RestoreContainerSnapshotRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[37]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2142,7 +2810,7 @@ func (x *RestoreContainerSnapshotRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RestoreContainerSnapshotRequest.ProtoReflect.Descriptor instead.
 func (*RestoreContainerSnapshotRequest) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{37}
+	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *RestoreContainerSnapshotRequest) GetBotId() string {
@@ -2168,7 +2836,7 @@ type RestoreContainerSnapshotResponse struct {
 
 func (x *RestoreContainerSnapshotResponse) Reset() {
 	*x = RestoreContainerSnapshotResponse{}
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[38]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2180,7 +2848,7 @@ func (x *RestoreContainerSnapshotResponse) String() string {
 func (*RestoreContainerSnapshotResponse) ProtoMessage() {}
 
 func (x *RestoreContainerSnapshotResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[38]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2193,7 +2861,7 @@ func (x *RestoreContainerSnapshotResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RestoreContainerSnapshotResponse.ProtoReflect.Descriptor instead.
 func (*RestoreContainerSnapshotResponse) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{38}
+	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *RestoreContainerSnapshotResponse) GetOperation() *WorkspaceOperation {
@@ -2213,7 +2881,7 @@ type DeleteContainerSnapshotRequest struct {
 
 func (x *DeleteContainerSnapshotRequest) Reset() {
 	*x = DeleteContainerSnapshotRequest{}
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[39]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2225,7 +2893,7 @@ func (x *DeleteContainerSnapshotRequest) String() string {
 func (*DeleteContainerSnapshotRequest) ProtoMessage() {}
 
 func (x *DeleteContainerSnapshotRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[39]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2238,7 +2906,7 @@ func (x *DeleteContainerSnapshotRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteContainerSnapshotRequest.ProtoReflect.Descriptor instead.
 func (*DeleteContainerSnapshotRequest) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{39}
+	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *DeleteContainerSnapshotRequest) GetBotId() string {
@@ -2263,7 +2931,7 @@ type DeleteContainerSnapshotResponse struct {
 
 func (x *DeleteContainerSnapshotResponse) Reset() {
 	*x = DeleteContainerSnapshotResponse{}
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[40]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2275,7 +2943,7 @@ func (x *DeleteContainerSnapshotResponse) String() string {
 func (*DeleteContainerSnapshotResponse) ProtoMessage() {}
 
 func (x *DeleteContainerSnapshotResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[40]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2288,7 +2956,7 @@ func (x *DeleteContainerSnapshotResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteContainerSnapshotResponse.ProtoReflect.Descriptor instead.
 func (*DeleteContainerSnapshotResponse) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{40}
+	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{51}
 }
 
 type ImportContainerDataRequest struct {
@@ -2303,7 +2971,7 @@ type ImportContainerDataRequest struct {
 
 func (x *ImportContainerDataRequest) Reset() {
 	*x = ImportContainerDataRequest{}
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[41]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2315,7 +2983,7 @@ func (x *ImportContainerDataRequest) String() string {
 func (*ImportContainerDataRequest) ProtoMessage() {}
 
 func (x *ImportContainerDataRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[41]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2328,7 +2996,7 @@ func (x *ImportContainerDataRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ImportContainerDataRequest.ProtoReflect.Descriptor instead.
 func (*ImportContainerDataRequest) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{41}
+	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *ImportContainerDataRequest) GetBotId() string {
@@ -2368,7 +3036,7 @@ type ImportContainerDataResponse struct {
 
 func (x *ImportContainerDataResponse) Reset() {
 	*x = ImportContainerDataResponse{}
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[42]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2380,7 +3048,7 @@ func (x *ImportContainerDataResponse) String() string {
 func (*ImportContainerDataResponse) ProtoMessage() {}
 
 func (x *ImportContainerDataResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[42]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2393,7 +3061,7 @@ func (x *ImportContainerDataResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ImportContainerDataResponse.ProtoReflect.Descriptor instead.
 func (*ImportContainerDataResponse) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{42}
+	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *ImportContainerDataResponse) GetOperation() *WorkspaceOperation {
@@ -2414,7 +3082,7 @@ type ExportContainerDataRequest struct {
 
 func (x *ExportContainerDataRequest) Reset() {
 	*x = ExportContainerDataRequest{}
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[43]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2426,7 +3094,7 @@ func (x *ExportContainerDataRequest) String() string {
 func (*ExportContainerDataRequest) ProtoMessage() {}
 
 func (x *ExportContainerDataRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[43]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2439,7 +3107,7 @@ func (x *ExportContainerDataRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExportContainerDataRequest.ProtoReflect.Descriptor instead.
 func (*ExportContainerDataRequest) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{43}
+	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *ExportContainerDataRequest) GetBotId() string {
@@ -2474,7 +3142,7 @@ type ExportContainerDataResponse struct {
 
 func (x *ExportContainerDataResponse) Reset() {
 	*x = ExportContainerDataResponse{}
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[44]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2486,7 +3154,7 @@ func (x *ExportContainerDataResponse) String() string {
 func (*ExportContainerDataResponse) ProtoMessage() {}
 
 func (x *ExportContainerDataResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[44]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2499,7 +3167,7 @@ func (x *ExportContainerDataResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExportContainerDataResponse.ProtoReflect.Descriptor instead.
 func (*ExportContainerDataResponse) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{44}
+	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *ExportContainerDataResponse) GetData() []byte {
@@ -2536,7 +3204,7 @@ type ContainerFileEntry struct {
 
 func (x *ContainerFileEntry) Reset() {
 	*x = ContainerFileEntry{}
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[45]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2548,7 +3216,7 @@ func (x *ContainerFileEntry) String() string {
 func (*ContainerFileEntry) ProtoMessage() {}
 
 func (x *ContainerFileEntry) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[45]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2561,7 +3229,7 @@ func (x *ContainerFileEntry) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ContainerFileEntry.ProtoReflect.Descriptor instead.
 func (*ContainerFileEntry) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{45}
+	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *ContainerFileEntry) GetPath() string {
@@ -2612,7 +3280,7 @@ type ListContainerFilesRequest struct {
 
 func (x *ListContainerFilesRequest) Reset() {
 	*x = ListContainerFilesRequest{}
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[46]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2624,7 +3292,7 @@ func (x *ListContainerFilesRequest) String() string {
 func (*ListContainerFilesRequest) ProtoMessage() {}
 
 func (x *ListContainerFilesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[46]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2637,7 +3305,7 @@ func (x *ListContainerFilesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListContainerFilesRequest.ProtoReflect.Descriptor instead.
 func (*ListContainerFilesRequest) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{46}
+	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *ListContainerFilesRequest) GetBotId() string {
@@ -2685,7 +3353,7 @@ type ListContainerFilesResponse struct {
 
 func (x *ListContainerFilesResponse) Reset() {
 	*x = ListContainerFilesResponse{}
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[47]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[58]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2697,7 +3365,7 @@ func (x *ListContainerFilesResponse) String() string {
 func (*ListContainerFilesResponse) ProtoMessage() {}
 
 func (x *ListContainerFilesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[47]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[58]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2710,7 +3378,7 @@ func (x *ListContainerFilesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListContainerFilesResponse.ProtoReflect.Descriptor instead.
 func (*ListContainerFilesResponse) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{47}
+	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *ListContainerFilesResponse) GetEntries() []*ContainerFileEntry {
@@ -2739,7 +3407,7 @@ type ReadContainerFileRequest struct {
 
 func (x *ReadContainerFileRequest) Reset() {
 	*x = ReadContainerFileRequest{}
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[48]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[59]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2751,7 +3419,7 @@ func (x *ReadContainerFileRequest) String() string {
 func (*ReadContainerFileRequest) ProtoMessage() {}
 
 func (x *ReadContainerFileRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[48]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[59]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2764,7 +3432,7 @@ func (x *ReadContainerFileRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReadContainerFileRequest.ProtoReflect.Descriptor instead.
 func (*ReadContainerFileRequest) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{48}
+	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *ReadContainerFileRequest) GetBotId() string {
@@ -2806,7 +3474,7 @@ type ReadContainerFileResponse struct {
 
 func (x *ReadContainerFileResponse) Reset() {
 	*x = ReadContainerFileResponse{}
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[49]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[60]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2818,7 +3486,7 @@ func (x *ReadContainerFileResponse) String() string {
 func (*ReadContainerFileResponse) ProtoMessage() {}
 
 func (x *ReadContainerFileResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[49]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[60]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2831,7 +3499,7 @@ func (x *ReadContainerFileResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReadContainerFileResponse.ProtoReflect.Descriptor instead.
 func (*ReadContainerFileResponse) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{49}
+	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *ReadContainerFileResponse) GetContent() []byte {
@@ -2867,7 +3535,7 @@ type WriteContainerFileRequest struct {
 
 func (x *WriteContainerFileRequest) Reset() {
 	*x = WriteContainerFileRequest{}
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[50]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[61]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2879,7 +3547,7 @@ func (x *WriteContainerFileRequest) String() string {
 func (*WriteContainerFileRequest) ProtoMessage() {}
 
 func (x *WriteContainerFileRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[50]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[61]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2892,7 +3560,7 @@ func (x *WriteContainerFileRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WriteContainerFileRequest.ProtoReflect.Descriptor instead.
 func (*WriteContainerFileRequest) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{50}
+	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *WriteContainerFileRequest) GetBotId() string {
@@ -2932,7 +3600,7 @@ type WriteContainerFileResponse struct {
 
 func (x *WriteContainerFileResponse) Reset() {
 	*x = WriteContainerFileResponse{}
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[51]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[62]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2944,7 +3612,7 @@ func (x *WriteContainerFileResponse) String() string {
 func (*WriteContainerFileResponse) ProtoMessage() {}
 
 func (x *WriteContainerFileResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[51]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[62]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2957,7 +3625,7 @@ func (x *WriteContainerFileResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WriteContainerFileResponse.ProtoReflect.Descriptor instead.
 func (*WriteContainerFileResponse) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{51}
+	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *WriteContainerFileResponse) GetBytesWritten() int64 {
@@ -2979,7 +3647,7 @@ type UploadContainerFileRequest struct {
 
 func (x *UploadContainerFileRequest) Reset() {
 	*x = UploadContainerFileRequest{}
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[52]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[63]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2991,7 +3659,7 @@ func (x *UploadContainerFileRequest) String() string {
 func (*UploadContainerFileRequest) ProtoMessage() {}
 
 func (x *UploadContainerFileRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[52]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[63]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3004,7 +3672,7 @@ func (x *UploadContainerFileRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UploadContainerFileRequest.ProtoReflect.Descriptor instead.
 func (*UploadContainerFileRequest) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{52}
+	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *UploadContainerFileRequest) GetBotId() string {
@@ -3044,7 +3712,7 @@ type UploadContainerFileResponse struct {
 
 func (x *UploadContainerFileResponse) Reset() {
 	*x = UploadContainerFileResponse{}
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[53]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[64]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3056,7 +3724,7 @@ func (x *UploadContainerFileResponse) String() string {
 func (*UploadContainerFileResponse) ProtoMessage() {}
 
 func (x *UploadContainerFileResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[53]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[64]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3069,7 +3737,7 @@ func (x *UploadContainerFileResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UploadContainerFileResponse.ProtoReflect.Descriptor instead.
 func (*UploadContainerFileResponse) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{53}
+	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{64}
 }
 
 func (x *UploadContainerFileResponse) GetBytesWritten() int64 {
@@ -3089,7 +3757,7 @@ type DownloadContainerFileRequest struct {
 
 func (x *DownloadContainerFileRequest) Reset() {
 	*x = DownloadContainerFileRequest{}
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[54]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[65]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3101,7 +3769,7 @@ func (x *DownloadContainerFileRequest) String() string {
 func (*DownloadContainerFileRequest) ProtoMessage() {}
 
 func (x *DownloadContainerFileRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[54]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[65]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3114,7 +3782,7 @@ func (x *DownloadContainerFileRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DownloadContainerFileRequest.ProtoReflect.Descriptor instead.
 func (*DownloadContainerFileRequest) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{54}
+	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{65}
 }
 
 func (x *DownloadContainerFileRequest) GetBotId() string {
@@ -3142,7 +3810,7 @@ type DownloadContainerFileResponse struct {
 
 func (x *DownloadContainerFileResponse) Reset() {
 	*x = DownloadContainerFileResponse{}
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[55]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[66]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3154,7 +3822,7 @@ func (x *DownloadContainerFileResponse) String() string {
 func (*DownloadContainerFileResponse) ProtoMessage() {}
 
 func (x *DownloadContainerFileResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[55]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[66]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3167,7 +3835,7 @@ func (x *DownloadContainerFileResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DownloadContainerFileResponse.ProtoReflect.Descriptor instead.
 func (*DownloadContainerFileResponse) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{55}
+	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{66}
 }
 
 func (x *DownloadContainerFileResponse) GetContent() []byte {
@@ -3202,7 +3870,7 @@ type MkdirContainerFileRequest struct {
 
 func (x *MkdirContainerFileRequest) Reset() {
 	*x = MkdirContainerFileRequest{}
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[56]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[67]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3214,7 +3882,7 @@ func (x *MkdirContainerFileRequest) String() string {
 func (*MkdirContainerFileRequest) ProtoMessage() {}
 
 func (x *MkdirContainerFileRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[56]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[67]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3227,7 +3895,7 @@ func (x *MkdirContainerFileRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MkdirContainerFileRequest.ProtoReflect.Descriptor instead.
 func (*MkdirContainerFileRequest) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{56}
+	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{67}
 }
 
 func (x *MkdirContainerFileRequest) GetBotId() string {
@@ -3259,7 +3927,7 @@ type MkdirContainerFileResponse struct {
 
 func (x *MkdirContainerFileResponse) Reset() {
 	*x = MkdirContainerFileResponse{}
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[57]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[68]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3271,7 +3939,7 @@ func (x *MkdirContainerFileResponse) String() string {
 func (*MkdirContainerFileResponse) ProtoMessage() {}
 
 func (x *MkdirContainerFileResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[57]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[68]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3284,7 +3952,7 @@ func (x *MkdirContainerFileResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MkdirContainerFileResponse.ProtoReflect.Descriptor instead.
 func (*MkdirContainerFileResponse) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{57}
+	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{68}
 }
 
 type RenameContainerFileRequest struct {
@@ -3299,7 +3967,7 @@ type RenameContainerFileRequest struct {
 
 func (x *RenameContainerFileRequest) Reset() {
 	*x = RenameContainerFileRequest{}
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[58]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[69]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3311,7 +3979,7 @@ func (x *RenameContainerFileRequest) String() string {
 func (*RenameContainerFileRequest) ProtoMessage() {}
 
 func (x *RenameContainerFileRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[58]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[69]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3324,7 +3992,7 @@ func (x *RenameContainerFileRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RenameContainerFileRequest.ProtoReflect.Descriptor instead.
 func (*RenameContainerFileRequest) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{58}
+	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{69}
 }
 
 func (x *RenameContainerFileRequest) GetBotId() string {
@@ -3363,7 +4031,7 @@ type RenameContainerFileResponse struct {
 
 func (x *RenameContainerFileResponse) Reset() {
 	*x = RenameContainerFileResponse{}
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[59]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[70]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3375,7 +4043,7 @@ func (x *RenameContainerFileResponse) String() string {
 func (*RenameContainerFileResponse) ProtoMessage() {}
 
 func (x *RenameContainerFileResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[59]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[70]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3388,7 +4056,7 @@ func (x *RenameContainerFileResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RenameContainerFileResponse.ProtoReflect.Descriptor instead.
 func (*RenameContainerFileResponse) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{59}
+	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{70}
 }
 
 type DeleteContainerFileRequest struct {
@@ -3402,7 +4070,7 @@ type DeleteContainerFileRequest struct {
 
 func (x *DeleteContainerFileRequest) Reset() {
 	*x = DeleteContainerFileRequest{}
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[60]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[71]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3414,7 +4082,7 @@ func (x *DeleteContainerFileRequest) String() string {
 func (*DeleteContainerFileRequest) ProtoMessage() {}
 
 func (x *DeleteContainerFileRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[60]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[71]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3427,7 +4095,7 @@ func (x *DeleteContainerFileRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteContainerFileRequest.ProtoReflect.Descriptor instead.
 func (*DeleteContainerFileRequest) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{60}
+	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{71}
 }
 
 func (x *DeleteContainerFileRequest) GetBotId() string {
@@ -3459,7 +4127,7 @@ type DeleteContainerFileResponse struct {
 
 func (x *DeleteContainerFileResponse) Reset() {
 	*x = DeleteContainerFileResponse{}
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[61]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[72]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3471,7 +4139,7 @@ func (x *DeleteContainerFileResponse) String() string {
 func (*DeleteContainerFileResponse) ProtoMessage() {}
 
 func (x *DeleteContainerFileResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_streaming_proto_msgTypes[61]
+	mi := &file_memoh_private_v1_streaming_proto_msgTypes[72]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3484,7 +4152,7 @@ func (x *DeleteContainerFileResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteContainerFileResponse.ProtoReflect.Descriptor instead.
 func (*DeleteContainerFileResponse) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{61}
+	return file_memoh_private_v1_streaming_proto_rawDescGZIP(), []int{72}
 }
 
 var File_memoh_private_v1_streaming_proto protoreflect.FileDescriptor
@@ -3620,7 +4288,57 @@ const file_memoh_private_v1_streaming_proto_rawDesc = "" +
 	"\x1dStreamContainerMetricsRequest\x12\x15\n" +
 	"\x06bot_id\x18\x01 \x01(\tR\x05botId\"i\n" +
 	"\x1eStreamContainerMetricsResponse\x12G\n" +
-	"\ametrics\x18\x01 \x01(\v2-.memoh.private.v1.GetContainerMetricsResponseR\ametrics\"\xee\x01\n" +
+	"\ametrics\x18\x01 \x01(\v2-.memoh.private.v1.GetContainerMetricsResponseR\ametrics\".\n" +
+	"\x15GetDisplayInfoRequest\x12\x15\n" +
+	"\x06bot_id\x18\x01 \x01(\tR\x05botId\"\xd9\x03\n" +
+	"\x16GetDisplayInfoResponse\x12\x18\n" +
+	"\aenabled\x18\x01 \x01(\bR\aenabled\x12\x1c\n" +
+	"\tavailable\x18\x02 \x01(\bR\tavailable\x12\x18\n" +
+	"\arunning\x18\x03 \x01(\bR\arunning\x12\x1c\n" +
+	"\ttransport\x18\x04 \x01(\tR\ttransport\x12\x18\n" +
+	"\aencoder\x18\x05 \x01(\tR\aencoder\x12+\n" +
+	"\x11encoder_available\x18\x06 \x01(\bR\x10encoderAvailable\x12+\n" +
+	"\x11session_available\x18\a \x01(\bR\x10sessionAvailable\x12+\n" +
+	"\x11browser_available\x18\b \x01(\bR\x10browserAvailable\x12+\n" +
+	"\x11toolkit_available\x18\t \x01(\bR\x10toolkitAvailable\x12+\n" +
+	"\x11prepare_supported\x18\n" +
+	" \x01(\bR\x10prepareSupported\x12%\n" +
+	"\x0eprepare_system\x18\v \x01(\tR\rprepareSystem\x12-\n" +
+	"\x12unavailable_reason\x18\f \x01(\tR\x11unavailableReason\"\xa4\x01\n" +
+	"\x1fCreateDisplayWebRTCOfferRequest\x12\x15\n" +
+	"\x06bot_id\x18\x01 \x01(\tR\x05botId\x12\x12\n" +
+	"\x04type\x18\x02 \x01(\tR\x04type\x12\x10\n" +
+	"\x03sdp\x18\x03 \x01(\tR\x03sdp\x12\x1d\n" +
+	"\n" +
+	"session_id\x18\x04 \x01(\tR\tsessionId\x12%\n" +
+	"\x0ecandidate_host\x18\x05 \x01(\tR\rcandidateHost\"g\n" +
+	" CreateDisplayWebRTCOfferResponse\x12\x12\n" +
+	"\x04type\x18\x01 \x01(\tR\x04type\x12\x10\n" +
+	"\x03sdp\x18\x02 \x01(\tR\x03sdp\x12\x1d\n" +
+	"\n" +
+	"session_id\x18\x03 \x01(\tR\tsessionId\"\x87\x01\n" +
+	"\x0eDisplaySession\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
+	"\x05codec\x18\x02 \x01(\tR\x05codec\x12\x14\n" +
+	"\x05state\x18\x03 \x01(\tR\x05state\x129\n" +
+	"\n" +
+	"created_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"3\n" +
+	"\x1aListDisplaySessionsRequest\x12\x15\n" +
+	"\x06bot_id\x18\x01 \x01(\tR\x05botId\"[\n" +
+	"\x1bListDisplaySessionsResponse\x12<\n" +
+	"\bsessions\x18\x01 \x03(\v2 .memoh.private.v1.DisplaySessionR\bsessions\"R\n" +
+	"\x1aCloseDisplaySessionRequest\x12\x15\n" +
+	"\x06bot_id\x18\x01 \x01(\tR\x05botId\x12\x1d\n" +
+	"\n" +
+	"session_id\x18\x02 \x01(\tR\tsessionId\"\x1d\n" +
+	"\x1bCloseDisplaySessionResponse\".\n" +
+	"\x15PrepareDisplayRequest\x12\x15\n" +
+	"\x06bot_id\x18\x01 \x01(\tR\x05botId\"t\n" +
+	"\x16PrepareDisplayResponse\x12\x12\n" +
+	"\x04type\x18\x01 \x01(\tR\x04type\x12\x12\n" +
+	"\x04step\x18\x02 \x01(\tR\x04step\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12\x18\n" +
+	"\apercent\x18\x04 \x01(\x05R\apercent\"\xee\x01\n" +
 	"\x11ContainerSnapshot\x12\x1f\n" +
 	"\vsnapshot_id\x18\x01 \x01(\tR\n" +
 	"snapshotId\x12\x15\n" +
@@ -3732,7 +4450,7 @@ const file_memoh_private_v1_streaming_proto_rawDesc = "" +
 	"\x1bDeleteContainerFileResponse2h\n" +
 	"\vChatService\x12Y\n" +
 	"\n" +
-	"StreamChat\x12#.memoh.private.v1.StreamChatRequest\x1a$.memoh.private.v1.StreamChatResponse0\x012\xbe\x19\n" +
+	"StreamChat\x12#.memoh.private.v1.StreamChatRequest\x1a$.memoh.private.v1.StreamChatResponse0\x012\xf6\x1d\n" +
 	"\x10ContainerService\x12\x80\x01\n" +
 	"\x17StreamContainerProgress\x120.memoh.private.v1.StreamContainerProgressRequest\x1a1.memoh.private.v1.StreamContainerProgressResponse0\x01\x12]\n" +
 	"\fOpenTerminal\x12%.memoh.private.v1.OpenTerminalRequest\x1a&.memoh.private.v1.OpenTerminalResponse\x12e\n" +
@@ -3747,7 +4465,12 @@ const file_memoh_private_v1_streaming_proto_rawDesc = "" +
 	"\x15GetContainerLifecycle\x12..memoh.private.v1.GetContainerLifecycleRequest\x1a/.memoh.private.v1.GetContainerLifecycleResponse\x12\x83\x01\n" +
 	"\x18StreamContainerLifecycle\x121.memoh.private.v1.StreamContainerLifecycleRequest\x1a2.memoh.private.v1.StreamContainerLifecycleResponse0\x01\x12r\n" +
 	"\x13GetContainerMetrics\x12,.memoh.private.v1.GetContainerMetricsRequest\x1a-.memoh.private.v1.GetContainerMetricsResponse\x12}\n" +
-	"\x16StreamContainerMetrics\x12/.memoh.private.v1.StreamContainerMetricsRequest\x1a0.memoh.private.v1.StreamContainerMetricsResponse0\x01\x12~\n" +
+	"\x16StreamContainerMetrics\x12/.memoh.private.v1.StreamContainerMetricsRequest\x1a0.memoh.private.v1.StreamContainerMetricsResponse0\x01\x12c\n" +
+	"\x0eGetDisplayInfo\x12'.memoh.private.v1.GetDisplayInfoRequest\x1a(.memoh.private.v1.GetDisplayInfoResponse\x12\x81\x01\n" +
+	"\x18CreateDisplayWebRTCOffer\x121.memoh.private.v1.CreateDisplayWebRTCOfferRequest\x1a2.memoh.private.v1.CreateDisplayWebRTCOfferResponse\x12r\n" +
+	"\x13ListDisplaySessions\x12,.memoh.private.v1.ListDisplaySessionsRequest\x1a-.memoh.private.v1.ListDisplaySessionsResponse\x12r\n" +
+	"\x13CloseDisplaySession\x12,.memoh.private.v1.CloseDisplaySessionRequest\x1a-.memoh.private.v1.CloseDisplaySessionResponse\x12e\n" +
+	"\x0ePrepareDisplay\x12'.memoh.private.v1.PrepareDisplayRequest\x1a(.memoh.private.v1.PrepareDisplayResponse0\x01\x12~\n" +
 	"\x17CreateContainerSnapshot\x120.memoh.private.v1.CreateContainerSnapshotRequest\x1a1.memoh.private.v1.CreateContainerSnapshotResponse\x12{\n" +
 	"\x16ListContainerSnapshots\x12/.memoh.private.v1.ListContainerSnapshotsRequest\x1a0.memoh.private.v1.ListContainerSnapshotsResponse\x12\x81\x01\n" +
 	"\x18RestoreContainerSnapshot\x121.memoh.private.v1.RestoreContainerSnapshotRequest\x1a2.memoh.private.v1.RestoreContainerSnapshotResponse\x12~\n" +
@@ -3775,7 +4498,7 @@ func file_memoh_private_v1_streaming_proto_rawDescGZIP() []byte {
 	return file_memoh_private_v1_streaming_proto_rawDescData
 }
 
-var file_memoh_private_v1_streaming_proto_msgTypes = make([]protoimpl.MessageInfo, 62)
+var file_memoh_private_v1_streaming_proto_msgTypes = make([]protoimpl.MessageInfo, 73)
 var file_memoh_private_v1_streaming_proto_goTypes = []any{
 	(*StreamChatRequest)(nil),                // 0: memoh.private.v1.StreamChatRequest
 	(*StreamChatResponse)(nil),               // 1: memoh.private.v1.StreamChatResponse
@@ -3809,136 +4532,159 @@ var file_memoh_private_v1_streaming_proto_goTypes = []any{
 	(*GetContainerMetricsResponse)(nil),      // 29: memoh.private.v1.GetContainerMetricsResponse
 	(*StreamContainerMetricsRequest)(nil),    // 30: memoh.private.v1.StreamContainerMetricsRequest
 	(*StreamContainerMetricsResponse)(nil),   // 31: memoh.private.v1.StreamContainerMetricsResponse
-	(*ContainerSnapshot)(nil),                // 32: memoh.private.v1.ContainerSnapshot
-	(*CreateContainerSnapshotRequest)(nil),   // 33: memoh.private.v1.CreateContainerSnapshotRequest
-	(*CreateContainerSnapshotResponse)(nil),  // 34: memoh.private.v1.CreateContainerSnapshotResponse
-	(*ListContainerSnapshotsRequest)(nil),    // 35: memoh.private.v1.ListContainerSnapshotsRequest
-	(*ListContainerSnapshotsResponse)(nil),   // 36: memoh.private.v1.ListContainerSnapshotsResponse
-	(*RestoreContainerSnapshotRequest)(nil),  // 37: memoh.private.v1.RestoreContainerSnapshotRequest
-	(*RestoreContainerSnapshotResponse)(nil), // 38: memoh.private.v1.RestoreContainerSnapshotResponse
-	(*DeleteContainerSnapshotRequest)(nil),   // 39: memoh.private.v1.DeleteContainerSnapshotRequest
-	(*DeleteContainerSnapshotResponse)(nil),  // 40: memoh.private.v1.DeleteContainerSnapshotResponse
-	(*ImportContainerDataRequest)(nil),       // 41: memoh.private.v1.ImportContainerDataRequest
-	(*ImportContainerDataResponse)(nil),      // 42: memoh.private.v1.ImportContainerDataResponse
-	(*ExportContainerDataRequest)(nil),       // 43: memoh.private.v1.ExportContainerDataRequest
-	(*ExportContainerDataResponse)(nil),      // 44: memoh.private.v1.ExportContainerDataResponse
-	(*ContainerFileEntry)(nil),               // 45: memoh.private.v1.ContainerFileEntry
-	(*ListContainerFilesRequest)(nil),        // 46: memoh.private.v1.ListContainerFilesRequest
-	(*ListContainerFilesResponse)(nil),       // 47: memoh.private.v1.ListContainerFilesResponse
-	(*ReadContainerFileRequest)(nil),         // 48: memoh.private.v1.ReadContainerFileRequest
-	(*ReadContainerFileResponse)(nil),        // 49: memoh.private.v1.ReadContainerFileResponse
-	(*WriteContainerFileRequest)(nil),        // 50: memoh.private.v1.WriteContainerFileRequest
-	(*WriteContainerFileResponse)(nil),       // 51: memoh.private.v1.WriteContainerFileResponse
-	(*UploadContainerFileRequest)(nil),       // 52: memoh.private.v1.UploadContainerFileRequest
-	(*UploadContainerFileResponse)(nil),      // 53: memoh.private.v1.UploadContainerFileResponse
-	(*DownloadContainerFileRequest)(nil),     // 54: memoh.private.v1.DownloadContainerFileRequest
-	(*DownloadContainerFileResponse)(nil),    // 55: memoh.private.v1.DownloadContainerFileResponse
-	(*MkdirContainerFileRequest)(nil),        // 56: memoh.private.v1.MkdirContainerFileRequest
-	(*MkdirContainerFileResponse)(nil),       // 57: memoh.private.v1.MkdirContainerFileResponse
-	(*RenameContainerFileRequest)(nil),       // 58: memoh.private.v1.RenameContainerFileRequest
-	(*RenameContainerFileResponse)(nil),      // 59: memoh.private.v1.RenameContainerFileResponse
-	(*DeleteContainerFileRequest)(nil),       // 60: memoh.private.v1.DeleteContainerFileRequest
-	(*DeleteContainerFileResponse)(nil),      // 61: memoh.private.v1.DeleteContainerFileResponse
-	(*structpb.Struct)(nil),                  // 62: google.protobuf.Struct
-	(*timestamppb.Timestamp)(nil),            // 63: google.protobuf.Timestamp
+	(*GetDisplayInfoRequest)(nil),            // 32: memoh.private.v1.GetDisplayInfoRequest
+	(*GetDisplayInfoResponse)(nil),           // 33: memoh.private.v1.GetDisplayInfoResponse
+	(*CreateDisplayWebRTCOfferRequest)(nil),  // 34: memoh.private.v1.CreateDisplayWebRTCOfferRequest
+	(*CreateDisplayWebRTCOfferResponse)(nil), // 35: memoh.private.v1.CreateDisplayWebRTCOfferResponse
+	(*DisplaySession)(nil),                   // 36: memoh.private.v1.DisplaySession
+	(*ListDisplaySessionsRequest)(nil),       // 37: memoh.private.v1.ListDisplaySessionsRequest
+	(*ListDisplaySessionsResponse)(nil),      // 38: memoh.private.v1.ListDisplaySessionsResponse
+	(*CloseDisplaySessionRequest)(nil),       // 39: memoh.private.v1.CloseDisplaySessionRequest
+	(*CloseDisplaySessionResponse)(nil),      // 40: memoh.private.v1.CloseDisplaySessionResponse
+	(*PrepareDisplayRequest)(nil),            // 41: memoh.private.v1.PrepareDisplayRequest
+	(*PrepareDisplayResponse)(nil),           // 42: memoh.private.v1.PrepareDisplayResponse
+	(*ContainerSnapshot)(nil),                // 43: memoh.private.v1.ContainerSnapshot
+	(*CreateContainerSnapshotRequest)(nil),   // 44: memoh.private.v1.CreateContainerSnapshotRequest
+	(*CreateContainerSnapshotResponse)(nil),  // 45: memoh.private.v1.CreateContainerSnapshotResponse
+	(*ListContainerSnapshotsRequest)(nil),    // 46: memoh.private.v1.ListContainerSnapshotsRequest
+	(*ListContainerSnapshotsResponse)(nil),   // 47: memoh.private.v1.ListContainerSnapshotsResponse
+	(*RestoreContainerSnapshotRequest)(nil),  // 48: memoh.private.v1.RestoreContainerSnapshotRequest
+	(*RestoreContainerSnapshotResponse)(nil), // 49: memoh.private.v1.RestoreContainerSnapshotResponse
+	(*DeleteContainerSnapshotRequest)(nil),   // 50: memoh.private.v1.DeleteContainerSnapshotRequest
+	(*DeleteContainerSnapshotResponse)(nil),  // 51: memoh.private.v1.DeleteContainerSnapshotResponse
+	(*ImportContainerDataRequest)(nil),       // 52: memoh.private.v1.ImportContainerDataRequest
+	(*ImportContainerDataResponse)(nil),      // 53: memoh.private.v1.ImportContainerDataResponse
+	(*ExportContainerDataRequest)(nil),       // 54: memoh.private.v1.ExportContainerDataRequest
+	(*ExportContainerDataResponse)(nil),      // 55: memoh.private.v1.ExportContainerDataResponse
+	(*ContainerFileEntry)(nil),               // 56: memoh.private.v1.ContainerFileEntry
+	(*ListContainerFilesRequest)(nil),        // 57: memoh.private.v1.ListContainerFilesRequest
+	(*ListContainerFilesResponse)(nil),       // 58: memoh.private.v1.ListContainerFilesResponse
+	(*ReadContainerFileRequest)(nil),         // 59: memoh.private.v1.ReadContainerFileRequest
+	(*ReadContainerFileResponse)(nil),        // 60: memoh.private.v1.ReadContainerFileResponse
+	(*WriteContainerFileRequest)(nil),        // 61: memoh.private.v1.WriteContainerFileRequest
+	(*WriteContainerFileResponse)(nil),       // 62: memoh.private.v1.WriteContainerFileResponse
+	(*UploadContainerFileRequest)(nil),       // 63: memoh.private.v1.UploadContainerFileRequest
+	(*UploadContainerFileResponse)(nil),      // 64: memoh.private.v1.UploadContainerFileResponse
+	(*DownloadContainerFileRequest)(nil),     // 65: memoh.private.v1.DownloadContainerFileRequest
+	(*DownloadContainerFileResponse)(nil),    // 66: memoh.private.v1.DownloadContainerFileResponse
+	(*MkdirContainerFileRequest)(nil),        // 67: memoh.private.v1.MkdirContainerFileRequest
+	(*MkdirContainerFileResponse)(nil),       // 68: memoh.private.v1.MkdirContainerFileResponse
+	(*RenameContainerFileRequest)(nil),       // 69: memoh.private.v1.RenameContainerFileRequest
+	(*RenameContainerFileResponse)(nil),      // 70: memoh.private.v1.RenameContainerFileResponse
+	(*DeleteContainerFileRequest)(nil),       // 71: memoh.private.v1.DeleteContainerFileRequest
+	(*DeleteContainerFileResponse)(nil),      // 72: memoh.private.v1.DeleteContainerFileResponse
+	(*structpb.Struct)(nil),                  // 73: google.protobuf.Struct
+	(*timestamppb.Timestamp)(nil),            // 74: google.protobuf.Timestamp
 }
 var file_memoh_private_v1_streaming_proto_depIdxs = []int32{
-	62, // 0: memoh.private.v1.StreamChatRequest.options:type_name -> google.protobuf.Struct
-	62, // 1: memoh.private.v1.StreamChatResponse.payload:type_name -> google.protobuf.Struct
-	63, // 2: memoh.private.v1.StreamChatResponse.created_at:type_name -> google.protobuf.Timestamp
-	62, // 3: memoh.private.v1.StreamContainerProgressRequest.options:type_name -> google.protobuf.Struct
-	62, // 4: memoh.private.v1.StreamContainerProgressResponse.payload:type_name -> google.protobuf.Struct
-	63, // 5: memoh.private.v1.StreamContainerProgressResponse.created_at:type_name -> google.protobuf.Timestamp
+	73, // 0: memoh.private.v1.StreamChatRequest.options:type_name -> google.protobuf.Struct
+	73, // 1: memoh.private.v1.StreamChatResponse.payload:type_name -> google.protobuf.Struct
+	74, // 2: memoh.private.v1.StreamChatResponse.created_at:type_name -> google.protobuf.Timestamp
+	73, // 3: memoh.private.v1.StreamContainerProgressRequest.options:type_name -> google.protobuf.Struct
+	73, // 4: memoh.private.v1.StreamContainerProgressResponse.payload:type_name -> google.protobuf.Struct
+	74, // 5: memoh.private.v1.StreamContainerProgressResponse.created_at:type_name -> google.protobuf.Timestamp
 	4,  // 6: memoh.private.v1.OpenTerminalRequest.size:type_name -> memoh.private.v1.TerminalSize
-	63, // 7: memoh.private.v1.StreamTerminalResponse.created_at:type_name -> google.protobuf.Timestamp
+	74, // 7: memoh.private.v1.StreamTerminalResponse.created_at:type_name -> google.protobuf.Timestamp
 	4,  // 8: memoh.private.v1.ResizeTerminalRequest.size:type_name -> memoh.private.v1.TerminalSize
-	62, // 9: memoh.private.v1.WorkspaceOperation.payload:type_name -> google.protobuf.Struct
-	63, // 10: memoh.private.v1.WorkspaceOperation.created_at:type_name -> google.protobuf.Timestamp
+	73, // 9: memoh.private.v1.WorkspaceOperation.payload:type_name -> google.protobuf.Struct
+	74, // 10: memoh.private.v1.WorkspaceOperation.created_at:type_name -> google.protobuf.Timestamp
 	15, // 11: memoh.private.v1.StreamWorkspaceOperationResponse.operation:type_name -> memoh.private.v1.WorkspaceOperation
-	62, // 12: memoh.private.v1.StartContainerRequest.options:type_name -> google.protobuf.Struct
+	73, // 12: memoh.private.v1.StartContainerRequest.options:type_name -> google.protobuf.Struct
 	15, // 13: memoh.private.v1.StartContainerResponse.operation:type_name -> memoh.private.v1.WorkspaceOperation
 	15, // 14: memoh.private.v1.StopContainerResponse.operation:type_name -> memoh.private.v1.WorkspaceOperation
-	62, // 15: memoh.private.v1.RestartContainerRequest.options:type_name -> google.protobuf.Struct
+	73, // 15: memoh.private.v1.RestartContainerRequest.options:type_name -> google.protobuf.Struct
 	15, // 16: memoh.private.v1.RestartContainerResponse.operation:type_name -> memoh.private.v1.WorkspaceOperation
-	63, // 17: memoh.private.v1.GetContainerLifecycleResponse.started_at:type_name -> google.protobuf.Timestamp
-	62, // 18: memoh.private.v1.GetContainerLifecycleResponse.metadata:type_name -> google.protobuf.Struct
+	74, // 17: memoh.private.v1.GetContainerLifecycleResponse.started_at:type_name -> google.protobuf.Timestamp
+	73, // 18: memoh.private.v1.GetContainerLifecycleResponse.metadata:type_name -> google.protobuf.Struct
 	25, // 19: memoh.private.v1.StreamContainerLifecycleResponse.lifecycle:type_name -> memoh.private.v1.GetContainerLifecycleResponse
-	63, // 20: memoh.private.v1.GetContainerMetricsResponse.observed_at:type_name -> google.protobuf.Timestamp
+	74, // 20: memoh.private.v1.GetContainerMetricsResponse.observed_at:type_name -> google.protobuf.Timestamp
 	29, // 21: memoh.private.v1.StreamContainerMetricsResponse.metrics:type_name -> memoh.private.v1.GetContainerMetricsResponse
-	63, // 22: memoh.private.v1.ContainerSnapshot.created_at:type_name -> google.protobuf.Timestamp
-	62, // 23: memoh.private.v1.ContainerSnapshot.metadata:type_name -> google.protobuf.Struct
-	62, // 24: memoh.private.v1.CreateContainerSnapshotRequest.metadata:type_name -> google.protobuf.Struct
-	32, // 25: memoh.private.v1.CreateContainerSnapshotResponse.snapshot:type_name -> memoh.private.v1.ContainerSnapshot
-	32, // 26: memoh.private.v1.ListContainerSnapshotsResponse.snapshots:type_name -> memoh.private.v1.ContainerSnapshot
-	15, // 27: memoh.private.v1.RestoreContainerSnapshotResponse.operation:type_name -> memoh.private.v1.WorkspaceOperation
-	62, // 28: memoh.private.v1.ImportContainerDataRequest.options:type_name -> google.protobuf.Struct
-	15, // 29: memoh.private.v1.ImportContainerDataResponse.operation:type_name -> memoh.private.v1.WorkspaceOperation
-	62, // 30: memoh.private.v1.ExportContainerDataRequest.options:type_name -> google.protobuf.Struct
-	63, // 31: memoh.private.v1.ContainerFileEntry.modified_at:type_name -> google.protobuf.Timestamp
-	45, // 32: memoh.private.v1.ListContainerFilesResponse.entries:type_name -> memoh.private.v1.ContainerFileEntry
-	0,  // 33: memoh.private.v1.ChatService.StreamChat:input_type -> memoh.private.v1.StreamChatRequest
-	2,  // 34: memoh.private.v1.ContainerService.StreamContainerProgress:input_type -> memoh.private.v1.StreamContainerProgressRequest
-	5,  // 35: memoh.private.v1.ContainerService.OpenTerminal:input_type -> memoh.private.v1.OpenTerminalRequest
-	7,  // 36: memoh.private.v1.ContainerService.StreamTerminal:input_type -> memoh.private.v1.StreamTerminalRequest
-	9,  // 37: memoh.private.v1.ContainerService.WriteTerminalInput:input_type -> memoh.private.v1.WriteTerminalInputRequest
-	11, // 38: memoh.private.v1.ContainerService.ResizeTerminal:input_type -> memoh.private.v1.ResizeTerminalRequest
-	13, // 39: memoh.private.v1.ContainerService.CloseTerminal:input_type -> memoh.private.v1.CloseTerminalRequest
-	16, // 40: memoh.private.v1.ContainerService.StreamWorkspaceOperation:input_type -> memoh.private.v1.StreamWorkspaceOperationRequest
-	18, // 41: memoh.private.v1.ContainerService.StartContainer:input_type -> memoh.private.v1.StartContainerRequest
-	20, // 42: memoh.private.v1.ContainerService.StopContainer:input_type -> memoh.private.v1.StopContainerRequest
-	22, // 43: memoh.private.v1.ContainerService.RestartContainer:input_type -> memoh.private.v1.RestartContainerRequest
-	24, // 44: memoh.private.v1.ContainerService.GetContainerLifecycle:input_type -> memoh.private.v1.GetContainerLifecycleRequest
-	26, // 45: memoh.private.v1.ContainerService.StreamContainerLifecycle:input_type -> memoh.private.v1.StreamContainerLifecycleRequest
-	28, // 46: memoh.private.v1.ContainerService.GetContainerMetrics:input_type -> memoh.private.v1.GetContainerMetricsRequest
-	30, // 47: memoh.private.v1.ContainerService.StreamContainerMetrics:input_type -> memoh.private.v1.StreamContainerMetricsRequest
-	33, // 48: memoh.private.v1.ContainerService.CreateContainerSnapshot:input_type -> memoh.private.v1.CreateContainerSnapshotRequest
-	35, // 49: memoh.private.v1.ContainerService.ListContainerSnapshots:input_type -> memoh.private.v1.ListContainerSnapshotsRequest
-	37, // 50: memoh.private.v1.ContainerService.RestoreContainerSnapshot:input_type -> memoh.private.v1.RestoreContainerSnapshotRequest
-	39, // 51: memoh.private.v1.ContainerService.DeleteContainerSnapshot:input_type -> memoh.private.v1.DeleteContainerSnapshotRequest
-	41, // 52: memoh.private.v1.ContainerService.ImportContainerData:input_type -> memoh.private.v1.ImportContainerDataRequest
-	43, // 53: memoh.private.v1.ContainerService.ExportContainerData:input_type -> memoh.private.v1.ExportContainerDataRequest
-	46, // 54: memoh.private.v1.ContainerService.ListContainerFiles:input_type -> memoh.private.v1.ListContainerFilesRequest
-	48, // 55: memoh.private.v1.ContainerService.ReadContainerFile:input_type -> memoh.private.v1.ReadContainerFileRequest
-	50, // 56: memoh.private.v1.ContainerService.WriteContainerFile:input_type -> memoh.private.v1.WriteContainerFileRequest
-	52, // 57: memoh.private.v1.ContainerService.UploadContainerFile:input_type -> memoh.private.v1.UploadContainerFileRequest
-	54, // 58: memoh.private.v1.ContainerService.DownloadContainerFile:input_type -> memoh.private.v1.DownloadContainerFileRequest
-	56, // 59: memoh.private.v1.ContainerService.MkdirContainerFile:input_type -> memoh.private.v1.MkdirContainerFileRequest
-	58, // 60: memoh.private.v1.ContainerService.RenameContainerFile:input_type -> memoh.private.v1.RenameContainerFileRequest
-	60, // 61: memoh.private.v1.ContainerService.DeleteContainerFile:input_type -> memoh.private.v1.DeleteContainerFileRequest
-	1,  // 62: memoh.private.v1.ChatService.StreamChat:output_type -> memoh.private.v1.StreamChatResponse
-	3,  // 63: memoh.private.v1.ContainerService.StreamContainerProgress:output_type -> memoh.private.v1.StreamContainerProgressResponse
-	6,  // 64: memoh.private.v1.ContainerService.OpenTerminal:output_type -> memoh.private.v1.OpenTerminalResponse
-	8,  // 65: memoh.private.v1.ContainerService.StreamTerminal:output_type -> memoh.private.v1.StreamTerminalResponse
-	10, // 66: memoh.private.v1.ContainerService.WriteTerminalInput:output_type -> memoh.private.v1.WriteTerminalInputResponse
-	12, // 67: memoh.private.v1.ContainerService.ResizeTerminal:output_type -> memoh.private.v1.ResizeTerminalResponse
-	14, // 68: memoh.private.v1.ContainerService.CloseTerminal:output_type -> memoh.private.v1.CloseTerminalResponse
-	17, // 69: memoh.private.v1.ContainerService.StreamWorkspaceOperation:output_type -> memoh.private.v1.StreamWorkspaceOperationResponse
-	19, // 70: memoh.private.v1.ContainerService.StartContainer:output_type -> memoh.private.v1.StartContainerResponse
-	21, // 71: memoh.private.v1.ContainerService.StopContainer:output_type -> memoh.private.v1.StopContainerResponse
-	23, // 72: memoh.private.v1.ContainerService.RestartContainer:output_type -> memoh.private.v1.RestartContainerResponse
-	25, // 73: memoh.private.v1.ContainerService.GetContainerLifecycle:output_type -> memoh.private.v1.GetContainerLifecycleResponse
-	27, // 74: memoh.private.v1.ContainerService.StreamContainerLifecycle:output_type -> memoh.private.v1.StreamContainerLifecycleResponse
-	29, // 75: memoh.private.v1.ContainerService.GetContainerMetrics:output_type -> memoh.private.v1.GetContainerMetricsResponse
-	31, // 76: memoh.private.v1.ContainerService.StreamContainerMetrics:output_type -> memoh.private.v1.StreamContainerMetricsResponse
-	34, // 77: memoh.private.v1.ContainerService.CreateContainerSnapshot:output_type -> memoh.private.v1.CreateContainerSnapshotResponse
-	36, // 78: memoh.private.v1.ContainerService.ListContainerSnapshots:output_type -> memoh.private.v1.ListContainerSnapshotsResponse
-	38, // 79: memoh.private.v1.ContainerService.RestoreContainerSnapshot:output_type -> memoh.private.v1.RestoreContainerSnapshotResponse
-	40, // 80: memoh.private.v1.ContainerService.DeleteContainerSnapshot:output_type -> memoh.private.v1.DeleteContainerSnapshotResponse
-	42, // 81: memoh.private.v1.ContainerService.ImportContainerData:output_type -> memoh.private.v1.ImportContainerDataResponse
-	44, // 82: memoh.private.v1.ContainerService.ExportContainerData:output_type -> memoh.private.v1.ExportContainerDataResponse
-	47, // 83: memoh.private.v1.ContainerService.ListContainerFiles:output_type -> memoh.private.v1.ListContainerFilesResponse
-	49, // 84: memoh.private.v1.ContainerService.ReadContainerFile:output_type -> memoh.private.v1.ReadContainerFileResponse
-	51, // 85: memoh.private.v1.ContainerService.WriteContainerFile:output_type -> memoh.private.v1.WriteContainerFileResponse
-	53, // 86: memoh.private.v1.ContainerService.UploadContainerFile:output_type -> memoh.private.v1.UploadContainerFileResponse
-	55, // 87: memoh.private.v1.ContainerService.DownloadContainerFile:output_type -> memoh.private.v1.DownloadContainerFileResponse
-	57, // 88: memoh.private.v1.ContainerService.MkdirContainerFile:output_type -> memoh.private.v1.MkdirContainerFileResponse
-	59, // 89: memoh.private.v1.ContainerService.RenameContainerFile:output_type -> memoh.private.v1.RenameContainerFileResponse
-	61, // 90: memoh.private.v1.ContainerService.DeleteContainerFile:output_type -> memoh.private.v1.DeleteContainerFileResponse
-	62, // [62:91] is the sub-list for method output_type
-	33, // [33:62] is the sub-list for method input_type
-	33, // [33:33] is the sub-list for extension type_name
-	33, // [33:33] is the sub-list for extension extendee
-	0,  // [0:33] is the sub-list for field type_name
+	74, // 22: memoh.private.v1.DisplaySession.created_at:type_name -> google.protobuf.Timestamp
+	36, // 23: memoh.private.v1.ListDisplaySessionsResponse.sessions:type_name -> memoh.private.v1.DisplaySession
+	74, // 24: memoh.private.v1.ContainerSnapshot.created_at:type_name -> google.protobuf.Timestamp
+	73, // 25: memoh.private.v1.ContainerSnapshot.metadata:type_name -> google.protobuf.Struct
+	73, // 26: memoh.private.v1.CreateContainerSnapshotRequest.metadata:type_name -> google.protobuf.Struct
+	43, // 27: memoh.private.v1.CreateContainerSnapshotResponse.snapshot:type_name -> memoh.private.v1.ContainerSnapshot
+	43, // 28: memoh.private.v1.ListContainerSnapshotsResponse.snapshots:type_name -> memoh.private.v1.ContainerSnapshot
+	15, // 29: memoh.private.v1.RestoreContainerSnapshotResponse.operation:type_name -> memoh.private.v1.WorkspaceOperation
+	73, // 30: memoh.private.v1.ImportContainerDataRequest.options:type_name -> google.protobuf.Struct
+	15, // 31: memoh.private.v1.ImportContainerDataResponse.operation:type_name -> memoh.private.v1.WorkspaceOperation
+	73, // 32: memoh.private.v1.ExportContainerDataRequest.options:type_name -> google.protobuf.Struct
+	74, // 33: memoh.private.v1.ContainerFileEntry.modified_at:type_name -> google.protobuf.Timestamp
+	56, // 34: memoh.private.v1.ListContainerFilesResponse.entries:type_name -> memoh.private.v1.ContainerFileEntry
+	0,  // 35: memoh.private.v1.ChatService.StreamChat:input_type -> memoh.private.v1.StreamChatRequest
+	2,  // 36: memoh.private.v1.ContainerService.StreamContainerProgress:input_type -> memoh.private.v1.StreamContainerProgressRequest
+	5,  // 37: memoh.private.v1.ContainerService.OpenTerminal:input_type -> memoh.private.v1.OpenTerminalRequest
+	7,  // 38: memoh.private.v1.ContainerService.StreamTerminal:input_type -> memoh.private.v1.StreamTerminalRequest
+	9,  // 39: memoh.private.v1.ContainerService.WriteTerminalInput:input_type -> memoh.private.v1.WriteTerminalInputRequest
+	11, // 40: memoh.private.v1.ContainerService.ResizeTerminal:input_type -> memoh.private.v1.ResizeTerminalRequest
+	13, // 41: memoh.private.v1.ContainerService.CloseTerminal:input_type -> memoh.private.v1.CloseTerminalRequest
+	16, // 42: memoh.private.v1.ContainerService.StreamWorkspaceOperation:input_type -> memoh.private.v1.StreamWorkspaceOperationRequest
+	18, // 43: memoh.private.v1.ContainerService.StartContainer:input_type -> memoh.private.v1.StartContainerRequest
+	20, // 44: memoh.private.v1.ContainerService.StopContainer:input_type -> memoh.private.v1.StopContainerRequest
+	22, // 45: memoh.private.v1.ContainerService.RestartContainer:input_type -> memoh.private.v1.RestartContainerRequest
+	24, // 46: memoh.private.v1.ContainerService.GetContainerLifecycle:input_type -> memoh.private.v1.GetContainerLifecycleRequest
+	26, // 47: memoh.private.v1.ContainerService.StreamContainerLifecycle:input_type -> memoh.private.v1.StreamContainerLifecycleRequest
+	28, // 48: memoh.private.v1.ContainerService.GetContainerMetrics:input_type -> memoh.private.v1.GetContainerMetricsRequest
+	30, // 49: memoh.private.v1.ContainerService.StreamContainerMetrics:input_type -> memoh.private.v1.StreamContainerMetricsRequest
+	32, // 50: memoh.private.v1.ContainerService.GetDisplayInfo:input_type -> memoh.private.v1.GetDisplayInfoRequest
+	34, // 51: memoh.private.v1.ContainerService.CreateDisplayWebRTCOffer:input_type -> memoh.private.v1.CreateDisplayWebRTCOfferRequest
+	37, // 52: memoh.private.v1.ContainerService.ListDisplaySessions:input_type -> memoh.private.v1.ListDisplaySessionsRequest
+	39, // 53: memoh.private.v1.ContainerService.CloseDisplaySession:input_type -> memoh.private.v1.CloseDisplaySessionRequest
+	41, // 54: memoh.private.v1.ContainerService.PrepareDisplay:input_type -> memoh.private.v1.PrepareDisplayRequest
+	44, // 55: memoh.private.v1.ContainerService.CreateContainerSnapshot:input_type -> memoh.private.v1.CreateContainerSnapshotRequest
+	46, // 56: memoh.private.v1.ContainerService.ListContainerSnapshots:input_type -> memoh.private.v1.ListContainerSnapshotsRequest
+	48, // 57: memoh.private.v1.ContainerService.RestoreContainerSnapshot:input_type -> memoh.private.v1.RestoreContainerSnapshotRequest
+	50, // 58: memoh.private.v1.ContainerService.DeleteContainerSnapshot:input_type -> memoh.private.v1.DeleteContainerSnapshotRequest
+	52, // 59: memoh.private.v1.ContainerService.ImportContainerData:input_type -> memoh.private.v1.ImportContainerDataRequest
+	54, // 60: memoh.private.v1.ContainerService.ExportContainerData:input_type -> memoh.private.v1.ExportContainerDataRequest
+	57, // 61: memoh.private.v1.ContainerService.ListContainerFiles:input_type -> memoh.private.v1.ListContainerFilesRequest
+	59, // 62: memoh.private.v1.ContainerService.ReadContainerFile:input_type -> memoh.private.v1.ReadContainerFileRequest
+	61, // 63: memoh.private.v1.ContainerService.WriteContainerFile:input_type -> memoh.private.v1.WriteContainerFileRequest
+	63, // 64: memoh.private.v1.ContainerService.UploadContainerFile:input_type -> memoh.private.v1.UploadContainerFileRequest
+	65, // 65: memoh.private.v1.ContainerService.DownloadContainerFile:input_type -> memoh.private.v1.DownloadContainerFileRequest
+	67, // 66: memoh.private.v1.ContainerService.MkdirContainerFile:input_type -> memoh.private.v1.MkdirContainerFileRequest
+	69, // 67: memoh.private.v1.ContainerService.RenameContainerFile:input_type -> memoh.private.v1.RenameContainerFileRequest
+	71, // 68: memoh.private.v1.ContainerService.DeleteContainerFile:input_type -> memoh.private.v1.DeleteContainerFileRequest
+	1,  // 69: memoh.private.v1.ChatService.StreamChat:output_type -> memoh.private.v1.StreamChatResponse
+	3,  // 70: memoh.private.v1.ContainerService.StreamContainerProgress:output_type -> memoh.private.v1.StreamContainerProgressResponse
+	6,  // 71: memoh.private.v1.ContainerService.OpenTerminal:output_type -> memoh.private.v1.OpenTerminalResponse
+	8,  // 72: memoh.private.v1.ContainerService.StreamTerminal:output_type -> memoh.private.v1.StreamTerminalResponse
+	10, // 73: memoh.private.v1.ContainerService.WriteTerminalInput:output_type -> memoh.private.v1.WriteTerminalInputResponse
+	12, // 74: memoh.private.v1.ContainerService.ResizeTerminal:output_type -> memoh.private.v1.ResizeTerminalResponse
+	14, // 75: memoh.private.v1.ContainerService.CloseTerminal:output_type -> memoh.private.v1.CloseTerminalResponse
+	17, // 76: memoh.private.v1.ContainerService.StreamWorkspaceOperation:output_type -> memoh.private.v1.StreamWorkspaceOperationResponse
+	19, // 77: memoh.private.v1.ContainerService.StartContainer:output_type -> memoh.private.v1.StartContainerResponse
+	21, // 78: memoh.private.v1.ContainerService.StopContainer:output_type -> memoh.private.v1.StopContainerResponse
+	23, // 79: memoh.private.v1.ContainerService.RestartContainer:output_type -> memoh.private.v1.RestartContainerResponse
+	25, // 80: memoh.private.v1.ContainerService.GetContainerLifecycle:output_type -> memoh.private.v1.GetContainerLifecycleResponse
+	27, // 81: memoh.private.v1.ContainerService.StreamContainerLifecycle:output_type -> memoh.private.v1.StreamContainerLifecycleResponse
+	29, // 82: memoh.private.v1.ContainerService.GetContainerMetrics:output_type -> memoh.private.v1.GetContainerMetricsResponse
+	31, // 83: memoh.private.v1.ContainerService.StreamContainerMetrics:output_type -> memoh.private.v1.StreamContainerMetricsResponse
+	33, // 84: memoh.private.v1.ContainerService.GetDisplayInfo:output_type -> memoh.private.v1.GetDisplayInfoResponse
+	35, // 85: memoh.private.v1.ContainerService.CreateDisplayWebRTCOffer:output_type -> memoh.private.v1.CreateDisplayWebRTCOfferResponse
+	38, // 86: memoh.private.v1.ContainerService.ListDisplaySessions:output_type -> memoh.private.v1.ListDisplaySessionsResponse
+	40, // 87: memoh.private.v1.ContainerService.CloseDisplaySession:output_type -> memoh.private.v1.CloseDisplaySessionResponse
+	42, // 88: memoh.private.v1.ContainerService.PrepareDisplay:output_type -> memoh.private.v1.PrepareDisplayResponse
+	45, // 89: memoh.private.v1.ContainerService.CreateContainerSnapshot:output_type -> memoh.private.v1.CreateContainerSnapshotResponse
+	47, // 90: memoh.private.v1.ContainerService.ListContainerSnapshots:output_type -> memoh.private.v1.ListContainerSnapshotsResponse
+	49, // 91: memoh.private.v1.ContainerService.RestoreContainerSnapshot:output_type -> memoh.private.v1.RestoreContainerSnapshotResponse
+	51, // 92: memoh.private.v1.ContainerService.DeleteContainerSnapshot:output_type -> memoh.private.v1.DeleteContainerSnapshotResponse
+	53, // 93: memoh.private.v1.ContainerService.ImportContainerData:output_type -> memoh.private.v1.ImportContainerDataResponse
+	55, // 94: memoh.private.v1.ContainerService.ExportContainerData:output_type -> memoh.private.v1.ExportContainerDataResponse
+	58, // 95: memoh.private.v1.ContainerService.ListContainerFiles:output_type -> memoh.private.v1.ListContainerFilesResponse
+	60, // 96: memoh.private.v1.ContainerService.ReadContainerFile:output_type -> memoh.private.v1.ReadContainerFileResponse
+	62, // 97: memoh.private.v1.ContainerService.WriteContainerFile:output_type -> memoh.private.v1.WriteContainerFileResponse
+	64, // 98: memoh.private.v1.ContainerService.UploadContainerFile:output_type -> memoh.private.v1.UploadContainerFileResponse
+	66, // 99: memoh.private.v1.ContainerService.DownloadContainerFile:output_type -> memoh.private.v1.DownloadContainerFileResponse
+	68, // 100: memoh.private.v1.ContainerService.MkdirContainerFile:output_type -> memoh.private.v1.MkdirContainerFileResponse
+	70, // 101: memoh.private.v1.ContainerService.RenameContainerFile:output_type -> memoh.private.v1.RenameContainerFileResponse
+	72, // 102: memoh.private.v1.ContainerService.DeleteContainerFile:output_type -> memoh.private.v1.DeleteContainerFileResponse
+	69, // [69:103] is the sub-list for method output_type
+	35, // [35:69] is the sub-list for method input_type
+	35, // [35:35] is the sub-list for extension type_name
+	35, // [35:35] is the sub-list for extension extendee
+	0,  // [0:35] is the sub-list for field type_name
 }
 
 func init() { file_memoh_private_v1_streaming_proto_init() }
@@ -3952,7 +4698,7 @@ func file_memoh_private_v1_streaming_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_memoh_private_v1_streaming_proto_rawDesc), len(file_memoh_private_v1_streaming_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   62,
+			NumMessages:   73,
 			NumExtensions: 0,
 			NumServices:   2,
 		},

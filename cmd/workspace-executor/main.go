@@ -64,6 +64,7 @@ func main() {
 	initDataDir()
 	_ = os.Setenv("PATH", os.Getenv("PATH")+":/opt/memoh/toolkit/bin")
 
+	startDisplaySupervisor(ctx)
 	go reapZombies()
 
 	network := "unix"

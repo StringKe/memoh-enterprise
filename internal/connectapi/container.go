@@ -21,6 +21,7 @@ import (
 	privatev1 "github.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1"
 	"github.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1/privatev1connect"
 	workspacev1 "github.com/memohai/memoh/internal/connectapi/gen/memoh/workspace/v1"
+	displaypkg "github.com/memohai/memoh/internal/display"
 	"github.com/memohai/memoh/internal/handlers"
 	"github.com/memohai/memoh/internal/workspace"
 	"github.com/memohai/memoh/internal/workspace/executorclient"
@@ -50,6 +51,7 @@ type ContainerService struct {
 	bots      containerBotAuthorizer
 	executors workspace.ExecutorProvider
 	runtime   containerRuntimeManager
+	display   *displaypkg.Service
 
 	terminalMu sync.RWMutex
 	terminals  map[string]*terminalSession
@@ -64,12 +66,13 @@ type terminalSession struct {
 	once   sync.Once
 }
 
-func NewContainerService(creator *handlers.ContainerdHandler, bots *bots.Service, executors *workspace.Manager) *ContainerService {
+func NewContainerService(creator *handlers.ContainerdHandler, bots *bots.Service, executors *workspace.Manager, display *displaypkg.Service) *ContainerService {
 	return &ContainerService{
 		creator:   creator,
 		bots:      bots,
 		executors: executors,
 		runtime:   executors,
+		display:   display,
 		terminals: make(map[string]*terminalSession),
 	}
 }

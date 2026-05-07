@@ -511,7 +511,7 @@ func makeUserRow(userID pgtype.UUID, role string) *skillsTestRow {
 func makeBotRow(botID, ownerUserID pgtype.UUID, metadataJSON []byte) *skillsTestRow {
 	return &skillsTestRow{
 		scanFunc: func(dest ...any) error {
-			if len(dest) < 25 {
+			if len(dest) < 26 {
 				return pgx.ErrNoRows
 			}
 			*dest[0].(*pgtype.UUID) = botID
@@ -532,13 +532,14 @@ func makeBotRow(botID, ownerUserID pgtype.UUID, metadataJSON []byte) *skillsTest
 			*dest[15].(*int32) = 30
 			*dest[16].(*string) = ""
 			*dest[17].(*bool) = false
-			*dest[18].(*int32) = 100000
-			*dest[19].(*int32) = 80
-			*dest[20].(*pgtype.UUID) = pgtype.UUID{}
-			*dest[21].(*[]byte) = []byte(`{}`)
-			*dest[22].(*[]byte) = metadataJSON
-			*dest[23].(*pgtype.Timestamptz) = pgtype.Timestamptz{}
+			*dest[18].(*bool) = false
+			*dest[19].(*int32) = 100000
+			*dest[20].(*int32) = 80
+			*dest[21].(*pgtype.UUID) = pgtype.UUID{}
+			*dest[22].(*[]byte) = []byte(`{}`)
+			*dest[23].(*[]byte) = metadataJSON
 			*dest[24].(*pgtype.Timestamptz) = pgtype.Timestamptz{}
+			*dest[25].(*pgtype.Timestamptz) = pgtype.Timestamptz{}
 			return nil
 		},
 	}

@@ -32,6 +32,7 @@ const (
 	WorkspaceCDIDevicesLabelKey = "memoh.workspace.cdi_devices"
 	ContainerPrefix             = "workspace-"
 	LegacyContainerPrefix       = "mcp-"
+	DisplayRFBSocketName        = "display.rfb.sock"
 
 	legacyGRPCPort = 9090
 )
@@ -154,6 +155,12 @@ func (m *Manager) socketDir(botID string) string {
 // socketPath returns the path to the UDS socket file for a bot's container.
 func (m *Manager) socketPath(botID string) string {
 	return filepath.Join(m.socketDir(botID), "workspace-executor.sock")
+}
+
+// DisplaySocketPath returns the host-side path to the workspace display RFB
+// Unix socket. The directory is mounted into the container at /run/memoh.
+func (m *Manager) DisplaySocketPath(botID string) string {
+	return filepath.Join(m.socketDir(botID), DisplayRFBSocketName)
 }
 
 // dialTarget returns the gRPC dial target for a bot. Legacy containers use TCP;
@@ -290,7 +297,7 @@ func (m *Manager) buildWorkspaceContainerSpec(ctx context.Context, botID string,
 
 	runtimeDir := m.cfg.RuntimePath()
 	sockDir := m.socketDir(botID)
-	if err := os.MkdirAll(sockDir, 0o700); err != nil {
+	if err := os.MkdirAll(sockDir, 0o750); err != nil {
 		return ctr.ContainerSpec{}, fmt.Errorf("create socket dir: %w", err)
 	}
 
@@ -325,6 +332,13 @@ func (m *Manager) buildWorkspaceContainerSpec(ctx context.Context, botID string,
 	env := make([]string, 0, len(tzEnv)+1+len(skillEnv))
 	env = append(env, tzEnv...)
 	env = append(env, "WORKSPACE_EXECUTOR_SOCKET_PATH=/run/memoh/workspace-executor.sock")
+	if m.botDisplayEnabled(ctx, botID) {
+		env = append(env,
+			"MEMOH_DISPLAY_ENABLED=true",
+			"MEMOH_DISPLAY_RFB_UNIX_PATH=/run/memoh/"+DisplayRFBSocketName,
+			"DISPLAY=:99",
+		)
+	}
 	env = append(env, skillEnv...)
 
 	return ctr.ContainerSpec{
@@ -333,6 +347,25 @@ func (m *Manager) buildWorkspaceContainerSpec(ctx context.Context, botID string,
 		Env:        env,
 		CDIDevices: normalizeWorkspaceGPUDevices(gpu.Devices),
 	}, nil
+}
+
+func (m *Manager) botDisplayEnabled(ctx context.Context, botID string) bool {
+	if m.queries == nil {
+		return false
+	}
+	pgBotID, err := db.ParseUUID(botID)
+	if err != nil {
+		return false
+	}
+	row, err := m.queries.GetBotByID(ctx, pgBotID)
+	if err != nil {
+		return false
+	}
+	return row.DisplayEnabled
+}
+
+func (m *Manager) BotDisplayEnabled(ctx context.Context, botID string) bool {
+	return m.botDisplayEnabled(ctx, botID)
 }
 
 func (m *Manager) ensureBotWithImage(ctx context.Context, botID, image string, gpu WorkspaceGPUConfig) error {

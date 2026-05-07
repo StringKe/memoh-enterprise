@@ -81,13 +81,14 @@ func (s *BotService) CreateBot(ctx context.Context, req *connect.Request[private
 		return nil, connect.NewError(connect.CodeUnauthenticated, err)
 	}
 	bot, err := s.bots.Create(ctx, userID, bots.CreateBotRequest{
-		DisplayName: req.Msg.GetDisplayName(),
-		GroupID:     req.Msg.GetGroupId(),
-		AvatarURL:   req.Msg.GetAvatarUrl(),
-		Timezone:    req.Msg.Timezone,
-		IsActive:    req.Msg.IsActive,
-		AclPreset:   req.Msg.GetAclPreset(),
-		Metadata:    structToMap(req.Msg.GetMetadata()),
+		DisplayName:    req.Msg.GetDisplayName(),
+		GroupID:        req.Msg.GetGroupId(),
+		AvatarURL:      req.Msg.GetAvatarUrl(),
+		Timezone:       req.Msg.Timezone,
+		IsActive:       req.Msg.IsActive,
+		DisplayEnabled: req.Msg.DisplayEnabled,
+		AclPreset:      req.Msg.GetAclPreset(),
+		Metadata:       structToMap(req.Msg.GetMetadata()),
 	})
 	if err != nil {
 		return nil, botConnectError(err)
@@ -135,12 +136,13 @@ func (s *BotService) UpdateBot(ctx context.Context, req *connect.Request[private
 		return nil, botConnectError(err)
 	}
 	bot, err := s.bots.Update(ctx, req.Msg.GetId(), bots.UpdateBotRequest{
-		DisplayName: req.Msg.DisplayName,
-		GroupID:     req.Msg.GroupId,
-		AvatarURL:   req.Msg.AvatarUrl,
-		Timezone:    req.Msg.Timezone,
-		IsActive:    req.Msg.IsActive,
-		Metadata:    structToMap(req.Msg.GetMetadata()),
+		DisplayName:    req.Msg.DisplayName,
+		GroupID:        req.Msg.GroupId,
+		AvatarURL:      req.Msg.AvatarUrl,
+		Timezone:       req.Msg.Timezone,
+		IsActive:       req.Msg.IsActive,
+		DisplayEnabled: req.Msg.DisplayEnabled,
+		Metadata:       structToMap(req.Msg.GetMetadata()),
 	})
 	if err != nil {
 		return nil, botConnectError(err)
@@ -339,6 +341,7 @@ func botToProto(bot bots.Bot) *privatev1.Bot {
 		AvatarUrl:            bot.AvatarURL,
 		Timezone:             bot.Timezone,
 		IsActive:             bot.IsActive,
+		DisplayEnabled:       bot.DisplayEnabled,
 		Status:               bot.Status,
 		CheckState:           bot.CheckState,
 		CheckIssueCount:      bot.CheckIssueCount,

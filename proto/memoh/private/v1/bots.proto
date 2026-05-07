@@ -22,6 +22,7 @@ message Bot {
   SettingsOverrideMask settings_override_mask = 11;
   google.protobuf.Struct metadata = 12;
   AuditFields audit = 13;
+  bool display_enabled = 14;
 }
 
 message CreateBotRequest {
@@ -32,6 +33,7 @@ message CreateBotRequest {
   optional bool is_active = 5;
   string acl_preset = 6;
   google.protobuf.Struct metadata = 7;
+  optional bool display_enabled = 8;
 }
 
 message CreateBotResponse {
@@ -63,6 +65,7 @@ message UpdateBotRequest {
   optional string timezone = 5;
   optional bool is_active = 6;
   google.protobuf.Struct metadata = 7;
+  optional bool display_enabled = 8;
 }
 
 message UpdateBotResponse {

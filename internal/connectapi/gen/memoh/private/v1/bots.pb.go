@@ -38,6 +38,7 @@ type Bot struct {
 	SettingsOverrideMask *SettingsOverrideMask  `protobuf:"bytes,11,opt,name=settings_override_mask,json=settingsOverrideMask,proto3" json:"settings_override_mask,omitempty"`
 	Metadata             *structpb.Struct       `protobuf:"bytes,12,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	Audit                *AuditFields           `protobuf:"bytes,13,opt,name=audit,proto3" json:"audit,omitempty"`
+	DisplayEnabled       bool                   `protobuf:"varint,14,opt,name=display_enabled,json=displayEnabled,proto3" json:"display_enabled,omitempty"`
 	unknownFields        protoimpl.UnknownFields
 	sizeCache            protoimpl.SizeCache
 }
@@ -163,17 +164,25 @@ func (x *Bot) GetAudit() *AuditFields {
 	return nil
 }
 
+func (x *Bot) GetDisplayEnabled() bool {
+	if x != nil {
+		return x.DisplayEnabled
+	}
+	return false
+}
+
 type CreateBotRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	DisplayName   string                 `protobuf:"bytes,1,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
-	GroupId       string                 `protobuf:"bytes,2,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
-	AvatarUrl     string                 `protobuf:"bytes,3,opt,name=avatar_url,json=avatarUrl,proto3" json:"avatar_url,omitempty"`
-	Timezone      *string                `protobuf:"bytes,4,opt,name=timezone,proto3,oneof" json:"timezone,omitempty"`
-	IsActive      *bool                  `protobuf:"varint,5,opt,name=is_active,json=isActive,proto3,oneof" json:"is_active,omitempty"`
-	AclPreset     string                 `protobuf:"bytes,6,opt,name=acl_preset,json=aclPreset,proto3" json:"acl_preset,omitempty"`
-	Metadata      *structpb.Struct       `protobuf:"bytes,7,opt,name=metadata,proto3" json:"metadata,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	DisplayName    string                 `protobuf:"bytes,1,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	GroupId        string                 `protobuf:"bytes,2,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
+	AvatarUrl      string                 `protobuf:"bytes,3,opt,name=avatar_url,json=avatarUrl,proto3" json:"avatar_url,omitempty"`
+	Timezone       *string                `protobuf:"bytes,4,opt,name=timezone,proto3,oneof" json:"timezone,omitempty"`
+	IsActive       *bool                  `protobuf:"varint,5,opt,name=is_active,json=isActive,proto3,oneof" json:"is_active,omitempty"`
+	AclPreset      string                 `protobuf:"bytes,6,opt,name=acl_preset,json=aclPreset,proto3" json:"acl_preset,omitempty"`
+	Metadata       *structpb.Struct       `protobuf:"bytes,7,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	DisplayEnabled *bool                  `protobuf:"varint,8,opt,name=display_enabled,json=displayEnabled,proto3,oneof" json:"display_enabled,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *CreateBotRequest) Reset() {
@@ -253,6 +262,13 @@ func (x *CreateBotRequest) GetMetadata() *structpb.Struct {
 		return x.Metadata
 	}
 	return nil
+}
+
+func (x *CreateBotRequest) GetDisplayEnabled() bool {
+	if x != nil && x.DisplayEnabled != nil {
+		return *x.DisplayEnabled
+	}
+	return false
 }
 
 type CreateBotResponse struct {
@@ -484,16 +500,17 @@ func (x *ListBotsResponse) GetPage() *PageResponse {
 }
 
 type UpdateBotRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	DisplayName   *string                `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3,oneof" json:"display_name,omitempty"`
-	GroupId       *string                `protobuf:"bytes,3,opt,name=group_id,json=groupId,proto3,oneof" json:"group_id,omitempty"`
-	AvatarUrl     *string                `protobuf:"bytes,4,opt,name=avatar_url,json=avatarUrl,proto3,oneof" json:"avatar_url,omitempty"`
-	Timezone      *string                `protobuf:"bytes,5,opt,name=timezone,proto3,oneof" json:"timezone,omitempty"`
-	IsActive      *bool                  `protobuf:"varint,6,opt,name=is_active,json=isActive,proto3,oneof" json:"is_active,omitempty"`
-	Metadata      *structpb.Struct       `protobuf:"bytes,7,opt,name=metadata,proto3" json:"metadata,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	DisplayName    *string                `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3,oneof" json:"display_name,omitempty"`
+	GroupId        *string                `protobuf:"bytes,3,opt,name=group_id,json=groupId,proto3,oneof" json:"group_id,omitempty"`
+	AvatarUrl      *string                `protobuf:"bytes,4,opt,name=avatar_url,json=avatarUrl,proto3,oneof" json:"avatar_url,omitempty"`
+	Timezone       *string                `protobuf:"bytes,5,opt,name=timezone,proto3,oneof" json:"timezone,omitempty"`
+	IsActive       *bool                  `protobuf:"varint,6,opt,name=is_active,json=isActive,proto3,oneof" json:"is_active,omitempty"`
+	Metadata       *structpb.Struct       `protobuf:"bytes,7,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	DisplayEnabled *bool                  `protobuf:"varint,8,opt,name=display_enabled,json=displayEnabled,proto3,oneof" json:"display_enabled,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *UpdateBotRequest) Reset() {
@@ -573,6 +590,13 @@ func (x *UpdateBotRequest) GetMetadata() *structpb.Struct {
 		return x.Metadata
 	}
 	return nil
+}
+
+func (x *UpdateBotRequest) GetDisplayEnabled() bool {
+	if x != nil && x.DisplayEnabled != nil {
+		return *x.DisplayEnabled
+	}
+	return false
 }
 
 type UpdateBotResponse struct {
@@ -1603,7 +1627,7 @@ var File_memoh_private_v1_bots_proto protoreflect.FileDescriptor
 
 const file_memoh_private_v1_bots_proto_rawDesc = "" +
 	"\n" +
-	"\x1bmemoh/private/v1/bots.proto\x12\x10memoh.private.v1\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1dmemoh/private/v1/common.proto\"\xfc\x03\n" +
+	"\x1bmemoh/private/v1/bots.proto\x12\x10memoh.private.v1\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1dmemoh/private/v1/common.proto\"\xa5\x04\n" +
 	"\x03Bot\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\"\n" +
 	"\rowner_user_id\x18\x02 \x01(\tR\vownerUserId\x12\x19\n" +
@@ -1620,7 +1644,8 @@ const file_memoh_private_v1_bots_proto_rawDesc = "" +
 	" \x01(\x05R\x0fcheckIssueCount\x12\\\n" +
 	"\x16settings_override_mask\x18\v \x01(\v2&.memoh.private.v1.SettingsOverrideMaskR\x14settingsOverrideMask\x123\n" +
 	"\bmetadata\x18\f \x01(\v2\x17.google.protobuf.StructR\bmetadata\x123\n" +
-	"\x05audit\x18\r \x01(\v2\x1d.memoh.private.v1.AuditFieldsR\x05audit\"\xa1\x02\n" +
+	"\x05audit\x18\r \x01(\v2\x1d.memoh.private.v1.AuditFieldsR\x05audit\x12'\n" +
+	"\x0fdisplay_enabled\x18\x0e \x01(\bR\x0edisplayEnabled\"\xe3\x02\n" +
 	"\x10CreateBotRequest\x12!\n" +
 	"\fdisplay_name\x18\x01 \x01(\tR\vdisplayName\x12\x19\n" +
 	"\bgroup_id\x18\x02 \x01(\tR\agroupId\x12\x1d\n" +
@@ -1630,10 +1655,12 @@ const file_memoh_private_v1_bots_proto_rawDesc = "" +
 	"\tis_active\x18\x05 \x01(\bH\x01R\bisActive\x88\x01\x01\x12\x1d\n" +
 	"\n" +
 	"acl_preset\x18\x06 \x01(\tR\taclPreset\x123\n" +
-	"\bmetadata\x18\a \x01(\v2\x17.google.protobuf.StructR\bmetadataB\v\n" +
+	"\bmetadata\x18\a \x01(\v2\x17.google.protobuf.StructR\bmetadata\x12,\n" +
+	"\x0fdisplay_enabled\x18\b \x01(\bH\x02R\x0edisplayEnabled\x88\x01\x01B\v\n" +
 	"\t_timezoneB\f\n" +
 	"\n" +
-	"_is_active\"<\n" +
+	"_is_activeB\x12\n" +
+	"\x10_display_enabled\"<\n" +
 	"\x11CreateBotResponse\x12'\n" +
 	"\x03bot\x18\x01 \x01(\v2\x15.memoh.private.v1.BotR\x03bot\"\x1f\n" +
 	"\rGetBotRequest\x12\x0e\n" +
@@ -1644,7 +1671,7 @@ const file_memoh_private_v1_bots_proto_rawDesc = "" +
 	"\x04page\x18\x01 \x01(\v2\x1d.memoh.private.v1.PageRequestR\x04page\"q\n" +
 	"\x10ListBotsResponse\x12)\n" +
 	"\x04bots\x18\x01 \x03(\v2\x15.memoh.private.v1.BotR\x04bots\x122\n" +
-	"\x04page\x18\x02 \x01(\v2\x1e.memoh.private.v1.PageResponseR\x04page\"\xce\x02\n" +
+	"\x04page\x18\x02 \x01(\v2\x1e.memoh.private.v1.PageResponseR\x04page\"\x90\x03\n" +
 	"\x10UpdateBotRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12&\n" +
 	"\fdisplay_name\x18\x02 \x01(\tH\x00R\vdisplayName\x88\x01\x01\x12\x1e\n" +
@@ -1653,13 +1680,15 @@ const file_memoh_private_v1_bots_proto_rawDesc = "" +
 	"avatar_url\x18\x04 \x01(\tH\x02R\tavatarUrl\x88\x01\x01\x12\x1f\n" +
 	"\btimezone\x18\x05 \x01(\tH\x03R\btimezone\x88\x01\x01\x12 \n" +
 	"\tis_active\x18\x06 \x01(\bH\x04R\bisActive\x88\x01\x01\x123\n" +
-	"\bmetadata\x18\a \x01(\v2\x17.google.protobuf.StructR\bmetadataB\x0f\n" +
+	"\bmetadata\x18\a \x01(\v2\x17.google.protobuf.StructR\bmetadata\x12,\n" +
+	"\x0fdisplay_enabled\x18\b \x01(\bH\x05R\x0edisplayEnabled\x88\x01\x01B\x0f\n" +
 	"\r_display_nameB\v\n" +
 	"\t_group_idB\r\n" +
 	"\v_avatar_urlB\v\n" +
 	"\t_timezoneB\f\n" +
 	"\n" +
-	"_is_active\"<\n" +
+	"_is_activeB\x12\n" +
+	"\x10_display_enabled\"<\n" +
 	"\x11UpdateBotResponse\x12'\n" +
 	"\x03bot\x18\x01 \x01(\v2\x15.memoh.private.v1.BotR\x03bot\"\"\n" +
 	"\x10DeleteBotRequest\x12\x0e\n" +

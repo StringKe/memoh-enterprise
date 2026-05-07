@@ -79,6 +79,21 @@ const (
 	// ContainerServiceStreamContainerMetricsProcedure is the fully-qualified name of the
 	// ContainerService's StreamContainerMetrics RPC.
 	ContainerServiceStreamContainerMetricsProcedure = "/memoh.private.v1.ContainerService/StreamContainerMetrics"
+	// ContainerServiceGetDisplayInfoProcedure is the fully-qualified name of the ContainerService's
+	// GetDisplayInfo RPC.
+	ContainerServiceGetDisplayInfoProcedure = "/memoh.private.v1.ContainerService/GetDisplayInfo"
+	// ContainerServiceCreateDisplayWebRTCOfferProcedure is the fully-qualified name of the
+	// ContainerService's CreateDisplayWebRTCOffer RPC.
+	ContainerServiceCreateDisplayWebRTCOfferProcedure = "/memoh.private.v1.ContainerService/CreateDisplayWebRTCOffer"
+	// ContainerServiceListDisplaySessionsProcedure is the fully-qualified name of the
+	// ContainerService's ListDisplaySessions RPC.
+	ContainerServiceListDisplaySessionsProcedure = "/memoh.private.v1.ContainerService/ListDisplaySessions"
+	// ContainerServiceCloseDisplaySessionProcedure is the fully-qualified name of the
+	// ContainerService's CloseDisplaySession RPC.
+	ContainerServiceCloseDisplaySessionProcedure = "/memoh.private.v1.ContainerService/CloseDisplaySession"
+	// ContainerServicePrepareDisplayProcedure is the fully-qualified name of the ContainerService's
+	// PrepareDisplay RPC.
+	ContainerServicePrepareDisplayProcedure = "/memoh.private.v1.ContainerService/PrepareDisplay"
 	// ContainerServiceCreateContainerSnapshotProcedure is the fully-qualified name of the
 	// ContainerService's CreateContainerSnapshot RPC.
 	ContainerServiceCreateContainerSnapshotProcedure = "/memoh.private.v1.ContainerService/CreateContainerSnapshot"
@@ -209,6 +224,11 @@ type ContainerServiceClient interface {
 	StreamContainerLifecycle(context.Context, *connect.Request[v1.StreamContainerLifecycleRequest]) (*connect.ServerStreamForClient[v1.StreamContainerLifecycleResponse], error)
 	GetContainerMetrics(context.Context, *connect.Request[v1.GetContainerMetricsRequest]) (*connect.Response[v1.GetContainerMetricsResponse], error)
 	StreamContainerMetrics(context.Context, *connect.Request[v1.StreamContainerMetricsRequest]) (*connect.ServerStreamForClient[v1.StreamContainerMetricsResponse], error)
+	GetDisplayInfo(context.Context, *connect.Request[v1.GetDisplayInfoRequest]) (*connect.Response[v1.GetDisplayInfoResponse], error)
+	CreateDisplayWebRTCOffer(context.Context, *connect.Request[v1.CreateDisplayWebRTCOfferRequest]) (*connect.Response[v1.CreateDisplayWebRTCOfferResponse], error)
+	ListDisplaySessions(context.Context, *connect.Request[v1.ListDisplaySessionsRequest]) (*connect.Response[v1.ListDisplaySessionsResponse], error)
+	CloseDisplaySession(context.Context, *connect.Request[v1.CloseDisplaySessionRequest]) (*connect.Response[v1.CloseDisplaySessionResponse], error)
+	PrepareDisplay(context.Context, *connect.Request[v1.PrepareDisplayRequest]) (*connect.ServerStreamForClient[v1.PrepareDisplayResponse], error)
 	CreateContainerSnapshot(context.Context, *connect.Request[v1.CreateContainerSnapshotRequest]) (*connect.Response[v1.CreateContainerSnapshotResponse], error)
 	ListContainerSnapshots(context.Context, *connect.Request[v1.ListContainerSnapshotsRequest]) (*connect.Response[v1.ListContainerSnapshotsResponse], error)
 	RestoreContainerSnapshot(context.Context, *connect.Request[v1.RestoreContainerSnapshotRequest]) (*connect.Response[v1.RestoreContainerSnapshotResponse], error)
@@ -320,6 +340,36 @@ func NewContainerServiceClient(httpClient connect.HTTPClient, baseURL string, op
 			connect.WithSchema(containerServiceMethods.ByName("StreamContainerMetrics")),
 			connect.WithClientOptions(opts...),
 		),
+		getDisplayInfo: connect.NewClient[v1.GetDisplayInfoRequest, v1.GetDisplayInfoResponse](
+			httpClient,
+			baseURL+ContainerServiceGetDisplayInfoProcedure,
+			connect.WithSchema(containerServiceMethods.ByName("GetDisplayInfo")),
+			connect.WithClientOptions(opts...),
+		),
+		createDisplayWebRTCOffer: connect.NewClient[v1.CreateDisplayWebRTCOfferRequest, v1.CreateDisplayWebRTCOfferResponse](
+			httpClient,
+			baseURL+ContainerServiceCreateDisplayWebRTCOfferProcedure,
+			connect.WithSchema(containerServiceMethods.ByName("CreateDisplayWebRTCOffer")),
+			connect.WithClientOptions(opts...),
+		),
+		listDisplaySessions: connect.NewClient[v1.ListDisplaySessionsRequest, v1.ListDisplaySessionsResponse](
+			httpClient,
+			baseURL+ContainerServiceListDisplaySessionsProcedure,
+			connect.WithSchema(containerServiceMethods.ByName("ListDisplaySessions")),
+			connect.WithClientOptions(opts...),
+		),
+		closeDisplaySession: connect.NewClient[v1.CloseDisplaySessionRequest, v1.CloseDisplaySessionResponse](
+			httpClient,
+			baseURL+ContainerServiceCloseDisplaySessionProcedure,
+			connect.WithSchema(containerServiceMethods.ByName("CloseDisplaySession")),
+			connect.WithClientOptions(opts...),
+		),
+		prepareDisplay: connect.NewClient[v1.PrepareDisplayRequest, v1.PrepareDisplayResponse](
+			httpClient,
+			baseURL+ContainerServicePrepareDisplayProcedure,
+			connect.WithSchema(containerServiceMethods.ByName("PrepareDisplay")),
+			connect.WithClientOptions(opts...),
+		),
 		createContainerSnapshot: connect.NewClient[v1.CreateContainerSnapshotRequest, v1.CreateContainerSnapshotResponse](
 			httpClient,
 			baseURL+ContainerServiceCreateContainerSnapshotProcedure,
@@ -423,6 +473,11 @@ type containerServiceClient struct {
 	streamContainerLifecycle *connect.Client[v1.StreamContainerLifecycleRequest, v1.StreamContainerLifecycleResponse]
 	getContainerMetrics      *connect.Client[v1.GetContainerMetricsRequest, v1.GetContainerMetricsResponse]
 	streamContainerMetrics   *connect.Client[v1.StreamContainerMetricsRequest, v1.StreamContainerMetricsResponse]
+	getDisplayInfo           *connect.Client[v1.GetDisplayInfoRequest, v1.GetDisplayInfoResponse]
+	createDisplayWebRTCOffer *connect.Client[v1.CreateDisplayWebRTCOfferRequest, v1.CreateDisplayWebRTCOfferResponse]
+	listDisplaySessions      *connect.Client[v1.ListDisplaySessionsRequest, v1.ListDisplaySessionsResponse]
+	closeDisplaySession      *connect.Client[v1.CloseDisplaySessionRequest, v1.CloseDisplaySessionResponse]
+	prepareDisplay           *connect.Client[v1.PrepareDisplayRequest, v1.PrepareDisplayResponse]
 	createContainerSnapshot  *connect.Client[v1.CreateContainerSnapshotRequest, v1.CreateContainerSnapshotResponse]
 	listContainerSnapshots   *connect.Client[v1.ListContainerSnapshotsRequest, v1.ListContainerSnapshotsResponse]
 	restoreContainerSnapshot *connect.Client[v1.RestoreContainerSnapshotRequest, v1.RestoreContainerSnapshotResponse]
@@ -507,6 +562,31 @@ func (c *containerServiceClient) GetContainerMetrics(ctx context.Context, req *c
 // StreamContainerMetrics calls memoh.private.v1.ContainerService.StreamContainerMetrics.
 func (c *containerServiceClient) StreamContainerMetrics(ctx context.Context, req *connect.Request[v1.StreamContainerMetricsRequest]) (*connect.ServerStreamForClient[v1.StreamContainerMetricsResponse], error) {
 	return c.streamContainerMetrics.CallServerStream(ctx, req)
+}
+
+// GetDisplayInfo calls memoh.private.v1.ContainerService.GetDisplayInfo.
+func (c *containerServiceClient) GetDisplayInfo(ctx context.Context, req *connect.Request[v1.GetDisplayInfoRequest]) (*connect.Response[v1.GetDisplayInfoResponse], error) {
+	return c.getDisplayInfo.CallUnary(ctx, req)
+}
+
+// CreateDisplayWebRTCOffer calls memoh.private.v1.ContainerService.CreateDisplayWebRTCOffer.
+func (c *containerServiceClient) CreateDisplayWebRTCOffer(ctx context.Context, req *connect.Request[v1.CreateDisplayWebRTCOfferRequest]) (*connect.Response[v1.CreateDisplayWebRTCOfferResponse], error) {
+	return c.createDisplayWebRTCOffer.CallUnary(ctx, req)
+}
+
+// ListDisplaySessions calls memoh.private.v1.ContainerService.ListDisplaySessions.
+func (c *containerServiceClient) ListDisplaySessions(ctx context.Context, req *connect.Request[v1.ListDisplaySessionsRequest]) (*connect.Response[v1.ListDisplaySessionsResponse], error) {
+	return c.listDisplaySessions.CallUnary(ctx, req)
+}
+
+// CloseDisplaySession calls memoh.private.v1.ContainerService.CloseDisplaySession.
+func (c *containerServiceClient) CloseDisplaySession(ctx context.Context, req *connect.Request[v1.CloseDisplaySessionRequest]) (*connect.Response[v1.CloseDisplaySessionResponse], error) {
+	return c.closeDisplaySession.CallUnary(ctx, req)
+}
+
+// PrepareDisplay calls memoh.private.v1.ContainerService.PrepareDisplay.
+func (c *containerServiceClient) PrepareDisplay(ctx context.Context, req *connect.Request[v1.PrepareDisplayRequest]) (*connect.ServerStreamForClient[v1.PrepareDisplayResponse], error) {
+	return c.prepareDisplay.CallServerStream(ctx, req)
 }
 
 // CreateContainerSnapshot calls memoh.private.v1.ContainerService.CreateContainerSnapshot.
@@ -595,6 +675,11 @@ type ContainerServiceHandler interface {
 	StreamContainerLifecycle(context.Context, *connect.Request[v1.StreamContainerLifecycleRequest], *connect.ServerStream[v1.StreamContainerLifecycleResponse]) error
 	GetContainerMetrics(context.Context, *connect.Request[v1.GetContainerMetricsRequest]) (*connect.Response[v1.GetContainerMetricsResponse], error)
 	StreamContainerMetrics(context.Context, *connect.Request[v1.StreamContainerMetricsRequest], *connect.ServerStream[v1.StreamContainerMetricsResponse]) error
+	GetDisplayInfo(context.Context, *connect.Request[v1.GetDisplayInfoRequest]) (*connect.Response[v1.GetDisplayInfoResponse], error)
+	CreateDisplayWebRTCOffer(context.Context, *connect.Request[v1.CreateDisplayWebRTCOfferRequest]) (*connect.Response[v1.CreateDisplayWebRTCOfferResponse], error)
+	ListDisplaySessions(context.Context, *connect.Request[v1.ListDisplaySessionsRequest]) (*connect.Response[v1.ListDisplaySessionsResponse], error)
+	CloseDisplaySession(context.Context, *connect.Request[v1.CloseDisplaySessionRequest]) (*connect.Response[v1.CloseDisplaySessionResponse], error)
+	PrepareDisplay(context.Context, *connect.Request[v1.PrepareDisplayRequest], *connect.ServerStream[v1.PrepareDisplayResponse]) error
 	CreateContainerSnapshot(context.Context, *connect.Request[v1.CreateContainerSnapshotRequest]) (*connect.Response[v1.CreateContainerSnapshotResponse], error)
 	ListContainerSnapshots(context.Context, *connect.Request[v1.ListContainerSnapshotsRequest]) (*connect.Response[v1.ListContainerSnapshotsResponse], error)
 	RestoreContainerSnapshot(context.Context, *connect.Request[v1.RestoreContainerSnapshotRequest]) (*connect.Response[v1.RestoreContainerSnapshotResponse], error)
@@ -700,6 +785,36 @@ func NewContainerServiceHandler(svc ContainerServiceHandler, opts ...connect.Han
 		ContainerServiceStreamContainerMetricsProcedure,
 		svc.StreamContainerMetrics,
 		connect.WithSchema(containerServiceMethods.ByName("StreamContainerMetrics")),
+		connect.WithHandlerOptions(opts...),
+	)
+	containerServiceGetDisplayInfoHandler := connect.NewUnaryHandler(
+		ContainerServiceGetDisplayInfoProcedure,
+		svc.GetDisplayInfo,
+		connect.WithSchema(containerServiceMethods.ByName("GetDisplayInfo")),
+		connect.WithHandlerOptions(opts...),
+	)
+	containerServiceCreateDisplayWebRTCOfferHandler := connect.NewUnaryHandler(
+		ContainerServiceCreateDisplayWebRTCOfferProcedure,
+		svc.CreateDisplayWebRTCOffer,
+		connect.WithSchema(containerServiceMethods.ByName("CreateDisplayWebRTCOffer")),
+		connect.WithHandlerOptions(opts...),
+	)
+	containerServiceListDisplaySessionsHandler := connect.NewUnaryHandler(
+		ContainerServiceListDisplaySessionsProcedure,
+		svc.ListDisplaySessions,
+		connect.WithSchema(containerServiceMethods.ByName("ListDisplaySessions")),
+		connect.WithHandlerOptions(opts...),
+	)
+	containerServiceCloseDisplaySessionHandler := connect.NewUnaryHandler(
+		ContainerServiceCloseDisplaySessionProcedure,
+		svc.CloseDisplaySession,
+		connect.WithSchema(containerServiceMethods.ByName("CloseDisplaySession")),
+		connect.WithHandlerOptions(opts...),
+	)
+	containerServicePrepareDisplayHandler := connect.NewServerStreamHandler(
+		ContainerServicePrepareDisplayProcedure,
+		svc.PrepareDisplay,
+		connect.WithSchema(containerServiceMethods.ByName("PrepareDisplay")),
 		connect.WithHandlerOptions(opts...),
 	)
 	containerServiceCreateContainerSnapshotHandler := connect.NewUnaryHandler(
@@ -816,6 +931,16 @@ func NewContainerServiceHandler(svc ContainerServiceHandler, opts ...connect.Han
 			containerServiceGetContainerMetricsHandler.ServeHTTP(w, r)
 		case ContainerServiceStreamContainerMetricsProcedure:
 			containerServiceStreamContainerMetricsHandler.ServeHTTP(w, r)
+		case ContainerServiceGetDisplayInfoProcedure:
+			containerServiceGetDisplayInfoHandler.ServeHTTP(w, r)
+		case ContainerServiceCreateDisplayWebRTCOfferProcedure:
+			containerServiceCreateDisplayWebRTCOfferHandler.ServeHTTP(w, r)
+		case ContainerServiceListDisplaySessionsProcedure:
+			containerServiceListDisplaySessionsHandler.ServeHTTP(w, r)
+		case ContainerServiceCloseDisplaySessionProcedure:
+			containerServiceCloseDisplaySessionHandler.ServeHTTP(w, r)
+		case ContainerServicePrepareDisplayProcedure:
+			containerServicePrepareDisplayHandler.ServeHTTP(w, r)
 		case ContainerServiceCreateContainerSnapshotProcedure:
 			containerServiceCreateContainerSnapshotHandler.ServeHTTP(w, r)
 		case ContainerServiceListContainerSnapshotsProcedure:
@@ -907,6 +1032,26 @@ func (UnimplementedContainerServiceHandler) GetContainerMetrics(context.Context,
 
 func (UnimplementedContainerServiceHandler) StreamContainerMetrics(context.Context, *connect.Request[v1.StreamContainerMetricsRequest], *connect.ServerStream[v1.StreamContainerMetricsResponse]) error {
 	return connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.ContainerService.StreamContainerMetrics is not implemented"))
+}
+
+func (UnimplementedContainerServiceHandler) GetDisplayInfo(context.Context, *connect.Request[v1.GetDisplayInfoRequest]) (*connect.Response[v1.GetDisplayInfoResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.ContainerService.GetDisplayInfo is not implemented"))
+}
+
+func (UnimplementedContainerServiceHandler) CreateDisplayWebRTCOffer(context.Context, *connect.Request[v1.CreateDisplayWebRTCOfferRequest]) (*connect.Response[v1.CreateDisplayWebRTCOfferResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.ContainerService.CreateDisplayWebRTCOffer is not implemented"))
+}
+
+func (UnimplementedContainerServiceHandler) ListDisplaySessions(context.Context, *connect.Request[v1.ListDisplaySessionsRequest]) (*connect.Response[v1.ListDisplaySessionsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.ContainerService.ListDisplaySessions is not implemented"))
+}
+
+func (UnimplementedContainerServiceHandler) CloseDisplaySession(context.Context, *connect.Request[v1.CloseDisplaySessionRequest]) (*connect.Response[v1.CloseDisplaySessionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.ContainerService.CloseDisplaySession is not implemented"))
+}
+
+func (UnimplementedContainerServiceHandler) PrepareDisplay(context.Context, *connect.Request[v1.PrepareDisplayRequest], *connect.ServerStream[v1.PrepareDisplayResponse]) error {
+	return connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.ContainerService.PrepareDisplay is not implemented"))
 }
 
 func (UnimplementedContainerServiceHandler) CreateContainerSnapshot(context.Context, *connect.Request[v1.CreateContainerSnapshotRequest]) (*connect.Response[v1.CreateContainerSnapshotResponse], error) {

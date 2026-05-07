@@ -14,6 +14,7 @@ type Bot struct {
 	AvatarURL            string          `json:"avatar_url,omitempty"`
 	Timezone             string          `json:"timezone,omitempty"`
 	IsActive             bool            `json:"is_active"`
+	DisplayEnabled       bool            `json:"display_enabled"`
 	Status               string          `json:"status"`
 	CheckState           string          `json:"check_state"`
 	CheckIssueCount      int32           `json:"check_issue_count"`
@@ -37,23 +38,25 @@ type BotCheck struct {
 
 // CreateBotRequest is the input for creating a bot.
 type CreateBotRequest struct {
-	DisplayName string         `json:"display_name,omitempty"`
-	GroupID     string         `json:"group_id,omitempty"`
-	AvatarURL   string         `json:"avatar_url,omitempty"`
-	Timezone    *string        `json:"timezone,omitempty"`
-	IsActive    *bool          `json:"is_active,omitempty"`
-	AclPreset   string         `json:"acl_preset,omitempty"`
-	Metadata    map[string]any `json:"metadata,omitempty"`
+	DisplayName    string         `json:"display_name,omitempty"`
+	GroupID        string         `json:"group_id,omitempty"`
+	AvatarURL      string         `json:"avatar_url,omitempty"`
+	Timezone       *string        `json:"timezone,omitempty"`
+	IsActive       *bool          `json:"is_active,omitempty"`
+	DisplayEnabled *bool          `json:"display_enabled,omitempty"`
+	AclPreset      string         `json:"acl_preset,omitempty"`
+	Metadata       map[string]any `json:"metadata,omitempty"`
 }
 
 // UpdateBotRequest is the input for updating a bot.
 type UpdateBotRequest struct {
-	DisplayName *string        `json:"display_name,omitempty"`
-	GroupID     *string        `json:"group_id,omitempty"`
-	AvatarURL   *string        `json:"avatar_url,omitempty"`
-	Timezone    *string        `json:"timezone,omitempty"`
-	IsActive    *bool          `json:"is_active,omitempty"`
-	Metadata    map[string]any `json:"metadata,omitempty"`
+	DisplayName    *string        `json:"display_name,omitempty"`
+	GroupID        *string        `json:"group_id,omitempty"`
+	AvatarURL      *string        `json:"avatar_url,omitempty"`
+	Timezone       *string        `json:"timezone,omitempty"`
+	IsActive       *bool          `json:"is_active,omitempty"`
+	DisplayEnabled *bool          `json:"display_enabled,omitempty"`
+	Metadata       map[string]any `json:"metadata,omitempty"`
 }
 
 // TransferBotRequest is the input for transferring bot ownership.

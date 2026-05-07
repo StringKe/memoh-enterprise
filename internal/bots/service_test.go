@@ -50,7 +50,7 @@ func (d *fakeDBTX) QueryRow(ctx context.Context, sql string, args ...any) pgx.Ro
 // language, reasoning_enabled, reasoning_effort,
 // chat_model_id, search_provider_id, memory_provider_id,
 // heartbeat_enabled, heartbeat_interval, heartbeat_prompt,
-// compaction_enabled, compaction_threshold, compaction_model_id,
+// display_enabled, compaction_enabled, compaction_threshold, compaction_ratio, compaction_model_id,
 // settings_override_mask, metadata, created_at, updated_at.
 func makeBotRow(botID, ownerUserID pgtype.UUID) *fakeRow {
 	return makeBotRowWithGroup(botID, ownerUserID, pgtype.UUID{})
@@ -59,7 +59,7 @@ func makeBotRow(botID, ownerUserID pgtype.UUID) *fakeRow {
 func makeBotRowWithGroup(botID, ownerUserID, groupID pgtype.UUID) *fakeRow {
 	return &fakeRow{
 		scanFunc: func(dest ...any) error {
-			if len(dest) < 25 {
+			if len(dest) < 26 {
 				return pgx.ErrNoRows
 			}
 			*dest[0].(*pgtype.UUID) = botID
@@ -79,14 +79,15 @@ func makeBotRowWithGroup(botID, ownerUserID, groupID pgtype.UUID) *fakeRow {
 			*dest[14].(*bool) = false                // HeartbeatEnabled
 			*dest[15].(*int32) = 30                  // HeartbeatInterval
 			*dest[16].(*string) = ""                 // HeartbeatPrompt
-			*dest[17].(*bool) = false                // CompactionEnabled
-			*dest[18].(*int32) = 100000              // CompactionThreshold
-			*dest[19].(*int32) = 80                  // CompactionRatio
-			*dest[20].(*pgtype.UUID) = pgtype.UUID{} // CompactionModelID
-			*dest[21].(*[]byte) = []byte(`{}`)
+			*dest[17].(*bool) = false                // DisplayEnabled
+			*dest[18].(*bool) = false                // CompactionEnabled
+			*dest[19].(*int32) = 100000              // CompactionThreshold
+			*dest[20].(*int32) = 80                  // CompactionRatio
+			*dest[21].(*pgtype.UUID) = pgtype.UUID{} // CompactionModelID
 			*dest[22].(*[]byte) = []byte(`{}`)
-			*dest[23].(*pgtype.Timestamptz) = pgtype.Timestamptz{}
+			*dest[23].(*[]byte) = []byte(`{}`)
 			*dest[24].(*pgtype.Timestamptz) = pgtype.Timestamptz{}
+			*dest[25].(*pgtype.Timestamptz) = pgtype.Timestamptz{}
 			return nil
 		},
 	}
@@ -95,7 +96,7 @@ func makeBotRowWithGroup(botID, ownerUserID, groupID pgtype.UUID) *fakeRow {
 func makeUpdateBotProfileRow(botID, ownerUserID, groupID pgtype.UUID) *fakeRow {
 	return &fakeRow{
 		scanFunc: func(dest ...any) error {
-			if len(dest) < 21 {
+			if len(dest) < 22 {
 				return pgx.ErrNoRows
 			}
 			*dest[0].(*pgtype.UUID) = botID
@@ -115,10 +116,11 @@ func makeUpdateBotProfileRow(botID, ownerUserID, groupID pgtype.UUID) *fakeRow {
 			*dest[14].(*bool) = false
 			*dest[15].(*int32) = 30
 			*dest[16].(*string) = ""
-			*dest[17].(*[]byte) = []byte(`{}`)
+			*dest[17].(*bool) = false
 			*dest[18].(*[]byte) = []byte(`{}`)
-			*dest[19].(*pgtype.Timestamptz) = pgtype.Timestamptz{}
+			*dest[19].(*[]byte) = []byte(`{}`)
 			*dest[20].(*pgtype.Timestamptz) = pgtype.Timestamptz{}
+			*dest[21].(*pgtype.Timestamptz) = pgtype.Timestamptz{}
 			return nil
 		},
 	}

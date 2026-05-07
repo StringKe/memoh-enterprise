@@ -453,7 +453,7 @@ func makeIntegrationTokenRow(id pgtype.UUID, scope string, botID, groupID pgtype
 func makeBotByIDRow(groupID pgtype.UUID) *fakeIntegrationRow {
 	return &fakeIntegrationRow{
 		scanFunc: func(dest ...any) error {
-			if len(dest) < 25 {
+			if len(dest) < 26 {
 				return pgx.ErrNoRows
 			}
 			*dest[0].(*pgtype.UUID) = pgtype.UUID{Valid: true}
@@ -474,13 +474,14 @@ func makeBotByIDRow(groupID pgtype.UUID) *fakeIntegrationRow {
 			*dest[15].(*int32) = 0
 			*dest[16].(*string) = ""
 			*dest[17].(*bool) = false
-			*dest[18].(*int32) = 0
+			*dest[18].(*bool) = false
 			*dest[19].(*int32) = 0
-			*dest[20].(*pgtype.UUID) = pgtype.UUID{}
-			*dest[21].(*[]byte) = []byte(`[]`)
-			*dest[22].(*[]byte) = []byte(`{}`)
-			*dest[23].(*pgtype.Timestamptz) = pgtype.Timestamptz{}
+			*dest[20].(*int32) = 0
+			*dest[21].(*pgtype.UUID) = pgtype.UUID{}
+			*dest[22].(*[]byte) = []byte(`[]`)
+			*dest[23].(*[]byte) = []byte(`{}`)
 			*dest[24].(*pgtype.Timestamptz) = pgtype.Timestamptz{}
+			*dest[25].(*pgtype.Timestamptz) = pgtype.Timestamptz{}
 			return nil
 		},
 	}

@@ -196,6 +196,7 @@ CREATE TABLE IF NOT EXISTS bots (
   browser_context_id UUID REFERENCES browser_contexts(id) ON DELETE SET NULL,
   persist_full_tool_results BOOLEAN NOT NULL DEFAULT false,
   show_tool_calls_in_im BOOLEAN NOT NULL DEFAULT false,
+  display_enabled BOOLEAN NOT NULL DEFAULT false,
   tool_approval_config JSONB NOT NULL DEFAULT '{"enabled":false,"write":{"require_approval":true,"bypass_globs":["/data/**","/tmp/**"],"force_review_globs":[]},"edit":{"require_approval":true,"bypass_globs":["/data/**","/tmp/**"],"force_review_globs":[]},"exec":{"require_approval":false,"bypass_commands":[],"force_review_commands":[]}}'::jsonb,
   overlay_provider TEXT NOT NULL DEFAULT '',
   overlay_enabled BOOLEAN NOT NULL DEFAULT false,

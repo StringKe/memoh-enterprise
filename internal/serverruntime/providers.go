@@ -42,6 +42,7 @@ import (
 	"github.com/memohai/memoh/internal/db/postgres/sqlc"
 	postgresstore "github.com/memohai/memoh/internal/db/postgres/store"
 	dbstore "github.com/memohai/memoh/internal/db/store"
+	displaypkg "github.com/memohai/memoh/internal/display"
 	emailpkg "github.com/memohai/memoh/internal/email"
 	emailgeneric "github.com/memohai/memoh/internal/email/adapters/generic"
 	emailgmail "github.com/memohai/memoh/internal/email/adapters/gmail"
@@ -189,6 +190,10 @@ func provideAccountStore(postgresStore *postgresstore.Store) (dbstore.AccountSto
 
 func provideWorkspaceExecutorProvider(manage *workspace.Manager) executorclient.Provider {
 	return manage
+}
+
+func provideDisplayService(log *slog.Logger, manager *workspace.Manager) *displaypkg.Service {
+	return displaypkg.NewService(log, manager)
 }
 
 func provideWorkspaceManager(lc fx.Lifecycle, log *slog.Logger, service ctr.Service, networkController netctl.Controller, cfg config.Config, conn *pgxpool.Pool, queries dbstore.Queries) *workspace.Manager {

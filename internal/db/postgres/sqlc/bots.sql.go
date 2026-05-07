@@ -12,7 +12,7 @@ import (
 )
 
 const createBot = `-- name: CreateBot :one
-INSERT INTO bots (owner_user_id, group_id, display_name, avatar_url, timezone, is_active, metadata, status, settings_override_mask)
+INSERT INTO bots (owner_user_id, group_id, display_name, avatar_url, timezone, is_active, display_enabled, metadata, status, settings_override_mask)
 VALUES (
   $1,
   $2,
@@ -21,10 +21,11 @@ VALUES (
   $5,
   $6,
   $7,
-  COALESCE(NULLIF($8::text, ''), 'ready'),
-  COALESCE($9::jsonb, '{}'::jsonb)
+  $8,
+  COALESCE(NULLIF($9::text, ''), 'ready'),
+  COALESCE($10::jsonb, '{}'::jsonb)
 )
-RETURNING id, owner_user_id, group_id, display_name, avatar_url, timezone, is_active, status, language, reasoning_enabled, reasoning_effort, chat_model_id, search_provider_id, memory_provider_id, heartbeat_enabled, heartbeat_interval, heartbeat_prompt, settings_override_mask, metadata, created_at, updated_at
+RETURNING id, owner_user_id, group_id, display_name, avatar_url, timezone, is_active, status, language, reasoning_enabled, reasoning_effort, chat_model_id, search_provider_id, memory_provider_id, heartbeat_enabled, heartbeat_interval, heartbeat_prompt, display_enabled, settings_override_mask, metadata, created_at, updated_at
 `
 
 type CreateBotParams struct {
@@ -34,6 +35,7 @@ type CreateBotParams struct {
 	AvatarUrl            pgtype.Text `json:"avatar_url"`
 	Timezone             pgtype.Text `json:"timezone"`
 	IsActive             bool        `json:"is_active"`
+	DisplayEnabled       bool        `json:"display_enabled"`
 	Metadata             []byte      `json:"metadata"`
 	Status               string      `json:"status"`
 	SettingsOverrideMask []byte      `json:"settings_override_mask"`
@@ -57,6 +59,7 @@ type CreateBotRow struct {
 	HeartbeatEnabled     bool               `json:"heartbeat_enabled"`
 	HeartbeatInterval    int32              `json:"heartbeat_interval"`
 	HeartbeatPrompt      string             `json:"heartbeat_prompt"`
+	DisplayEnabled       bool               `json:"display_enabled"`
 	SettingsOverrideMask []byte             `json:"settings_override_mask"`
 	Metadata             []byte             `json:"metadata"`
 	CreatedAt            pgtype.Timestamptz `json:"created_at"`
@@ -71,6 +74,7 @@ func (q *Queries) CreateBot(ctx context.Context, arg CreateBotParams) (CreateBot
 		arg.AvatarUrl,
 		arg.Timezone,
 		arg.IsActive,
+		arg.DisplayEnabled,
 		arg.Metadata,
 		arg.Status,
 		arg.SettingsOverrideMask,
@@ -94,6 +98,7 @@ func (q *Queries) CreateBot(ctx context.Context, arg CreateBotParams) (CreateBot
 		&i.HeartbeatEnabled,
 		&i.HeartbeatInterval,
 		&i.HeartbeatPrompt,
+		&i.DisplayEnabled,
 		&i.SettingsOverrideMask,
 		&i.Metadata,
 		&i.CreatedAt,
@@ -112,7 +117,7 @@ func (q *Queries) DeleteBotByID(ctx context.Context, id pgtype.UUID) error {
 }
 
 const getBotByID = `-- name: GetBotByID :one
-SELECT id, owner_user_id, group_id, display_name, avatar_url, timezone, is_active, status, language, reasoning_enabled, reasoning_effort, chat_model_id, search_provider_id, memory_provider_id, heartbeat_enabled, heartbeat_interval, heartbeat_prompt, compaction_enabled, compaction_threshold, compaction_ratio, compaction_model_id, settings_override_mask, metadata, created_at, updated_at
+SELECT id, owner_user_id, group_id, display_name, avatar_url, timezone, is_active, status, language, reasoning_enabled, reasoning_effort, chat_model_id, search_provider_id, memory_provider_id, heartbeat_enabled, heartbeat_interval, heartbeat_prompt, display_enabled, compaction_enabled, compaction_threshold, compaction_ratio, compaction_model_id, settings_override_mask, metadata, created_at, updated_at
 FROM bots
 WHERE id = $1
 `
@@ -135,6 +140,7 @@ type GetBotByIDRow struct {
 	HeartbeatEnabled     bool               `json:"heartbeat_enabled"`
 	HeartbeatInterval    int32              `json:"heartbeat_interval"`
 	HeartbeatPrompt      string             `json:"heartbeat_prompt"`
+	DisplayEnabled       bool               `json:"display_enabled"`
 	CompactionEnabled    bool               `json:"compaction_enabled"`
 	CompactionThreshold  int32              `json:"compaction_threshold"`
 	CompactionRatio      int32              `json:"compaction_ratio"`
@@ -166,6 +172,7 @@ func (q *Queries) GetBotByID(ctx context.Context, id pgtype.UUID) (GetBotByIDRow
 		&i.HeartbeatEnabled,
 		&i.HeartbeatInterval,
 		&i.HeartbeatPrompt,
+		&i.DisplayEnabled,
 		&i.CompactionEnabled,
 		&i.CompactionThreshold,
 		&i.CompactionRatio,
@@ -230,7 +237,7 @@ func (q *Queries) GetBotHeartbeatConfig(ctx context.Context, id pgtype.UUID) (Ge
 }
 
 const listAccessibleBots = `-- name: ListAccessibleBots :many
-SELECT bots.id, bots.owner_user_id, bots.group_id, bots.display_name, bots.avatar_url, bots.timezone, bots.is_active, bots.status, bots.language, bots.reasoning_enabled, bots.reasoning_effort, bots.chat_model_id, bots.search_provider_id, bots.memory_provider_id, bots.heartbeat_enabled, bots.heartbeat_interval, bots.heartbeat_prompt, bots.settings_override_mask, bots.metadata, bots.created_at, bots.updated_at
+SELECT bots.id, bots.owner_user_id, bots.group_id, bots.display_name, bots.avatar_url, bots.timezone, bots.is_active, bots.status, bots.language, bots.reasoning_enabled, bots.reasoning_effort, bots.chat_model_id, bots.search_provider_id, bots.memory_provider_id, bots.heartbeat_enabled, bots.heartbeat_interval, bots.heartbeat_prompt, bots.display_enabled, bots.settings_override_mask, bots.metadata, bots.created_at, bots.updated_at
 FROM bots
 LEFT JOIN bot_groups ON bot_groups.id = bots.group_id
 WHERE bots.owner_user_id = $1
@@ -314,6 +321,7 @@ type ListAccessibleBotsRow struct {
 	HeartbeatEnabled     bool               `json:"heartbeat_enabled"`
 	HeartbeatInterval    int32              `json:"heartbeat_interval"`
 	HeartbeatPrompt      string             `json:"heartbeat_prompt"`
+	DisplayEnabled       bool               `json:"display_enabled"`
 	SettingsOverrideMask []byte             `json:"settings_override_mask"`
 	Metadata             []byte             `json:"metadata"`
 	CreatedAt            pgtype.Timestamptz `json:"created_at"`
@@ -347,6 +355,7 @@ func (q *Queries) ListAccessibleBots(ctx context.Context, userID pgtype.UUID) ([
 			&i.HeartbeatEnabled,
 			&i.HeartbeatInterval,
 			&i.HeartbeatPrompt,
+			&i.DisplayEnabled,
 			&i.SettingsOverrideMask,
 			&i.Metadata,
 			&i.CreatedAt,
@@ -363,7 +372,7 @@ func (q *Queries) ListAccessibleBots(ctx context.Context, userID pgtype.UUID) ([
 }
 
 const listBotsByOwner = `-- name: ListBotsByOwner :many
-SELECT id, owner_user_id, group_id, display_name, avatar_url, timezone, is_active, status, language, reasoning_enabled, reasoning_effort, chat_model_id, search_provider_id, memory_provider_id, heartbeat_enabled, heartbeat_interval, heartbeat_prompt, settings_override_mask, metadata, created_at, updated_at
+SELECT id, owner_user_id, group_id, display_name, avatar_url, timezone, is_active, status, language, reasoning_enabled, reasoning_effort, chat_model_id, search_provider_id, memory_provider_id, heartbeat_enabled, heartbeat_interval, heartbeat_prompt, display_enabled, settings_override_mask, metadata, created_at, updated_at
 FROM bots
 WHERE owner_user_id = $1
 ORDER BY created_at DESC
@@ -387,6 +396,7 @@ type ListBotsByOwnerRow struct {
 	HeartbeatEnabled     bool               `json:"heartbeat_enabled"`
 	HeartbeatInterval    int32              `json:"heartbeat_interval"`
 	HeartbeatPrompt      string             `json:"heartbeat_prompt"`
+	DisplayEnabled       bool               `json:"display_enabled"`
 	SettingsOverrideMask []byte             `json:"settings_override_mask"`
 	Metadata             []byte             `json:"metadata"`
 	CreatedAt            pgtype.Timestamptz `json:"created_at"`
@@ -420,6 +430,7 @@ func (q *Queries) ListBotsByOwner(ctx context.Context, ownerUserID pgtype.UUID) 
 			&i.HeartbeatEnabled,
 			&i.HeartbeatInterval,
 			&i.HeartbeatPrompt,
+			&i.DisplayEnabled,
 			&i.SettingsOverrideMask,
 			&i.Metadata,
 			&i.CreatedAt,
@@ -506,7 +517,7 @@ UPDATE bots
 SET owner_user_id = $2,
     updated_at = now()
 WHERE id = $1
-RETURNING id, owner_user_id, group_id, display_name, avatar_url, timezone, is_active, status, language, reasoning_enabled, reasoning_effort, chat_model_id, search_provider_id, memory_provider_id, heartbeat_enabled, heartbeat_interval, heartbeat_prompt, settings_override_mask, metadata, created_at, updated_at
+RETURNING id, owner_user_id, group_id, display_name, avatar_url, timezone, is_active, status, language, reasoning_enabled, reasoning_effort, chat_model_id, search_provider_id, memory_provider_id, heartbeat_enabled, heartbeat_interval, heartbeat_prompt, display_enabled, settings_override_mask, metadata, created_at, updated_at
 `
 
 type UpdateBotOwnerParams struct {
@@ -532,6 +543,7 @@ type UpdateBotOwnerRow struct {
 	HeartbeatEnabled     bool               `json:"heartbeat_enabled"`
 	HeartbeatInterval    int32              `json:"heartbeat_interval"`
 	HeartbeatPrompt      string             `json:"heartbeat_prompt"`
+	DisplayEnabled       bool               `json:"display_enabled"`
 	SettingsOverrideMask []byte             `json:"settings_override_mask"`
 	Metadata             []byte             `json:"metadata"`
 	CreatedAt            pgtype.Timestamptz `json:"created_at"`
@@ -559,6 +571,7 @@ func (q *Queries) UpdateBotOwner(ctx context.Context, arg UpdateBotOwnerParams) 
 		&i.HeartbeatEnabled,
 		&i.HeartbeatInterval,
 		&i.HeartbeatPrompt,
+		&i.DisplayEnabled,
 		&i.SettingsOverrideMask,
 		&i.Metadata,
 		&i.CreatedAt,
@@ -574,20 +587,22 @@ SET display_name = $1,
     timezone = $3,
     is_active = $4,
     group_id = $5,
-    metadata = $6,
+    display_enabled = $6,
+    metadata = $7,
     updated_at = now()
-WHERE id = $7
-RETURNING id, owner_user_id, group_id, display_name, avatar_url, timezone, is_active, status, language, reasoning_enabled, reasoning_effort, chat_model_id, search_provider_id, memory_provider_id, heartbeat_enabled, heartbeat_interval, heartbeat_prompt, settings_override_mask, metadata, created_at, updated_at
+WHERE id = $8
+RETURNING id, owner_user_id, group_id, display_name, avatar_url, timezone, is_active, status, language, reasoning_enabled, reasoning_effort, chat_model_id, search_provider_id, memory_provider_id, heartbeat_enabled, heartbeat_interval, heartbeat_prompt, display_enabled, settings_override_mask, metadata, created_at, updated_at
 `
 
 type UpdateBotProfileParams struct {
-	DisplayName pgtype.Text `json:"display_name"`
-	AvatarUrl   pgtype.Text `json:"avatar_url"`
-	Timezone    pgtype.Text `json:"timezone"`
-	IsActive    bool        `json:"is_active"`
-	GroupID     pgtype.UUID `json:"group_id"`
-	Metadata    []byte      `json:"metadata"`
-	ID          pgtype.UUID `json:"id"`
+	DisplayName    pgtype.Text `json:"display_name"`
+	AvatarUrl      pgtype.Text `json:"avatar_url"`
+	Timezone       pgtype.Text `json:"timezone"`
+	IsActive       bool        `json:"is_active"`
+	GroupID        pgtype.UUID `json:"group_id"`
+	DisplayEnabled bool        `json:"display_enabled"`
+	Metadata       []byte      `json:"metadata"`
+	ID             pgtype.UUID `json:"id"`
 }
 
 type UpdateBotProfileRow struct {
@@ -608,6 +623,7 @@ type UpdateBotProfileRow struct {
 	HeartbeatEnabled     bool               `json:"heartbeat_enabled"`
 	HeartbeatInterval    int32              `json:"heartbeat_interval"`
 	HeartbeatPrompt      string             `json:"heartbeat_prompt"`
+	DisplayEnabled       bool               `json:"display_enabled"`
 	SettingsOverrideMask []byte             `json:"settings_override_mask"`
 	Metadata             []byte             `json:"metadata"`
 	CreatedAt            pgtype.Timestamptz `json:"created_at"`
@@ -621,6 +637,7 @@ func (q *Queries) UpdateBotProfile(ctx context.Context, arg UpdateBotProfilePara
 		arg.Timezone,
 		arg.IsActive,
 		arg.GroupID,
+		arg.DisplayEnabled,
 		arg.Metadata,
 		arg.ID,
 	)
@@ -643,6 +660,7 @@ func (q *Queries) UpdateBotProfile(ctx context.Context, arg UpdateBotProfilePara
 		&i.HeartbeatEnabled,
 		&i.HeartbeatInterval,
 		&i.HeartbeatPrompt,
+		&i.DisplayEnabled,
 		&i.SettingsOverrideMask,
 		&i.Metadata,
 		&i.CreatedAt,

@@ -11,7 +11,9 @@ node = "24"
 # Bun for browser gateway
 bun = "latest"
 # pnpm for the workspace lockfile used by Vite+
-pnpm = "10"
+# 走 npm backend 而非 aqua：aqua registry 假定 asset 命名为 pnpm-darwin-arm64.tar.gz，
+# 实际 pnpm release 命名为 pnpm-macos-arm64，aqua 在 macOS arm64 上必失败
+"npm:pnpm" = "10"
 # sqlc for sql management
 sqlc = "latest"
 # protobuf and ConnectRPC generation

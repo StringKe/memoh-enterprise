@@ -9,6 +9,7 @@ This fork is not a desktop product. It removes Desktop GUI, terminal TUI, SQLite
 - **Enterprise scope**: server-first architecture with Web UI, RBAC, SSO, Bot Groups, API tokens, audit-aware management APIs, and operational CLI.
 - **ConnectRPC management API**: the old OpenAPI management surface is replaced by protobuf contracts and ConnectRPC handlers.
 - **Bot Groups**: grouped bot ownership, visibility, inherited settings, and principal role assignment for enterprise administration.
+- **Structured Data Spaces**: every bot and bot group can own a PostgreSQL schema for relational data, run raw SQL including DDL, and share access across bots or bot groups through platform grants backed by PostgreSQL role permissions.
 - **Integration Gateway**: external enterprise integrations use a dedicated WebSocket protocol and separate protobuf contracts.
 - **Scoped integration tokens**: integration clients can use global, bot-scoped, or bot-group-scoped API tokens.
 - **Split runtime services**: server, agent runner, connector, integration gateway, worker, browser gateway, and workspace executor are separate runtime roles.
@@ -46,6 +47,7 @@ Included:
 - TypeScript management SDK in [`packages/sdk`](./packages/sdk).
 - PostgreSQL schema, migrations, and sqlc queries in [`db/postgres`](./db/postgres).
 - Bot Groups, RBAC, SSO, auth, settings, models, providers, memory, schedules, channels, email, and workspace management.
+- Bot and Bot Group structured data spaces backed by PostgreSQL schema and role isolation.
 - External integration WebSocket API and SDKs.
 - Non-interactive `memoh` CLI for server operations and break-glass administration.
 - Docker Engine, containerd, Podman, and Kubernetes runtime adapters.
@@ -95,6 +97,30 @@ Generate protocol artifacts:
 ```bash
 mise run proto-generate
 ```
+
+### Structured Data API
+
+Structured Data Spaces give bots and bot groups relational PostgreSQL storage without relying on memory records or markdown files.
+
+- Protobuf contract: [`proto/memoh/private/v1/structured_data.proto`](./proto/memoh/private/v1/structured_data.proto)
+- Service implementation: [`internal/structureddata`](./internal/structureddata)
+- ConnectRPC handler: [`internal/connectapi/structured_data.go`](./internal/connectapi/structured_data.go)
+- Web UI: Settings -> Structured Data, Bot detail -> Structured Data, and Bot Group detail -> Structured Data
+- Agent tools: `structured_data_spaces` and `structured_data_sql`
+
+Each structured data space creates:
+
+- one generated PostgreSQL schema, such as `bot_data_<uuid>` or `bot_group_data_<uuid>`
+- one generated PostgreSQL owner role, such as `memoh_bot_<uuid>` or `memoh_group_<uuid>`
+- audit rows for ensure, SQL execution, grant, and revoke operations
+
+Bots can execute raw SQL, including DDL, in their own bot space and their bot group's space. Cross-bot and cross-group sharing is available immediately through structured data grants:
+
+- `read`: grants schema usage plus table and sequence read privileges
+- `write`: grants read plus insert, update, delete, truncate, and sequence update privileges
+- `ddl`: grants schema create privileges
+
+The platform authorization model decides who can manage spaces and grants. PostgreSQL schema and role permissions enforce what bot execution can do at runtime.
 
 ### External Integration API
 
@@ -256,6 +282,12 @@ Run frontend tests:
 vp test
 ```
 
+Run structured data integration tests against PostgreSQL:
+
+```bash
+TEST_POSTGRES_DSN='postgres://postgres@127.0.0.1:26817/memoh?sslmode=disable' go test ./internal/structureddata -run 'TestServiceIntegration' -count=1 -v
+```
+
 Run endpoint smoke tests against a running deployment:
 
 ```bash
@@ -302,6 +334,7 @@ There are no binary release artifacts for this fork.
 | [`cmd/worker`](./cmd/worker) | Background worker service |
 | [`cmd/workspace-executor`](./cmd/workspace-executor) | Workspace execution boundary |
 | [`internal`](./internal) | Go backend packages |
+| [`internal/structureddata`](./internal/structureddata) | PostgreSQL-backed bot and bot-group structured data service |
 | [`apps/web`](./apps/web) | Web management UI |
 | [`apps/browser`](./apps/browser) | Browser Gateway |
 | [`packages/sdk`](./packages/sdk) | TypeScript ConnectRPC management SDK |

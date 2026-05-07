@@ -11,7 +11,7 @@
 `.parent-commit` 必须只包含一行完整 commit SHA：
 
 ```text
-c674b4921bae885088022ba58fc6bfc832c8c157
+ce7bd4adf9a9bf9e7e44eafb0ea3e9cce8bdac93
 ```
 
 含义：
@@ -57,6 +57,7 @@ git log --oneline "$(cat .parent-commit)"..upstream/main
 - 接收：containerd、Docker Engine、Podman 相关修复。
 - 接收：`apps/web`、`packages/ui`、`packages/sdk`、`packages/icons`、`packages/config` 中服务 Web 管理后台和 Browser Gateway 的改动。
 - 接收：`web-ui` 配置字段。
+- 接收：容器内 workspace display、Xvnc、WebRTC 等服务 Web 管理后台和 workspace 操作的能力；同步时使用 display/session 语义，不恢复 Electron Desktop 产品形态。
 - 拒绝：Desktop/Electron。
 - 拒绝：TUI。
 - 拒绝：SQLite schema、queries、driver、迁移、配置和文档。
@@ -181,6 +182,7 @@ git push origin sync/upstream-<YYYYMMDD>
 - 上游修改 CLI root 行为时，`memoh` 无参数仍只显示 help，不进入 TUI。
 - 上游新增数据库变更时，只迁移到 `db/postgres/` 和 PostgreSQL sqlc。
 - 上游新增 Browser Gateway 或 browser automation 能力时，按 agent 工具能力接收。
+- 上游新增容器内 VNC/display 能力时，按 workspace display 接收，保留 Browser Gateway，并把 OpenAPI/REST 入口转写为 ConnectRPC。
 - 上游新增 Docker Compose Web 管理后台 service 时按 GHCR 发布要求同步；新增 server、postgres、browser、qdrant、sparse、containerd 相关服务时逐项评估。
 
 ## 完成标准

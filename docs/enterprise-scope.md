@@ -18,6 +18,7 @@
 - 保留 containerd、Docker Engine、Podman、Kubernetes runtime 相关能力。
 - 保留非交互 CLI。
 - 将旧 bridge 统一改名为 workspace-executor，作为 workspace 内文件、exec、PTY、MCP server 的安全执行边界。
+- 支持可选 workspace display：容器内 Xvnc 显示会话通过 ConnectRPC 和 WebRTC 暴露到 Web 管理后台，不恢复 Electron Desktop 或 TUI。
 - 移除 Desktop GUI、终端 TUI、SQLite、Windows 发布/配置、Docker Hub 发布、npmjs 发布和中国特化优化。
 - 运行和发布目标只覆盖 Linux `amd64` / `arm64`，macOS 只保留本地开发兼容。
 
@@ -87,6 +88,7 @@
 ### Workspace Executor
 
 - 保留 workspace 内文件读写、目录操作、exec、PTY、MCP server 启动能力。
+- 保留可选 workspace display supervisor、Xvnc socket、浏览器启动和显示会话准备能力。
 - 旧 `bridge` 命名统一替换为 `workspace-executor`。
 - Workspace Executor 必须执行路径逃逸检查、symlink 逃逸检查、读写大小限制、exec 超时限制、环境变量 allowlist、service JWT 校验和 RunLease 校验。
 

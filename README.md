@@ -15,6 +15,7 @@ This fork is not a desktop product. It removes Desktop GUI, terminal TUI, SQLite
 - **Split runtime services**: server, agent runner, connector, integration gateway, worker, browser gateway, and workspace executor are separate runtime roles.
 - **PostgreSQL only**: PostgreSQL is the only relational database backend. SQLite support is removed.
 - **Workspace Executor**: the old bridge role is renamed and narrowed into the in-workspace execution boundary for files, exec, PTY, and MCP server processes.
+- **Workspace Display**: bots can opt into an in-container Xvnc display streamed to the Web UI through ConnectRPC and WebRTC, without restoring Electron Desktop or TUI support.
 - **Container runtime focus**: containerd is the default workspace runtime, with Docker Engine, Podman, and Kubernetes runtime support retained where implemented.
 - **Browser automation retained**: Browser Gateway and Playwright-based agent tools remain supported because they are agent capabilities, not GUI features.
 - **Feishu/Lark WebSocket lifecycle fix**: Feishu/Lark channel connections now close their WebSocket transport on stop and do not leave old subscriptions running after token or config updates.
@@ -28,7 +29,7 @@ This repository is built on top of upstream Memoh.
 - Upstream repository: [memohai/Memoh](https://github.com/memohai/Memoh)
 - Enterprise repository: [StringKe/memoh-enterprise](https://github.com/StringKe/memoh-enterprise)
 - Upstream alignment marker: [`.parent-commit`](./.parent-commit)
-- Current upstream alignment commit: `c674b4921bae885088022ba58fc6bfc832c8c157`
+- Current upstream alignment commit: `ce7bd4adf9a9bf9e7e44eafb0ea3e9cce8bdac93`
 
 Thanks to the Memoh maintainers and contributors for the original self-hosted AI agent platform, including the agent runtime, long-term memory model, workspace container design, channel integrations, and web management foundation.
 
@@ -48,6 +49,7 @@ Included:
 - PostgreSQL schema, migrations, and sqlc queries in [`db/postgres`](./db/postgres).
 - Bot Groups, RBAC, SSO, auth, settings, models, providers, memory, schedules, channels, email, and workspace management.
 - Bot and Bot Group structured data spaces backed by PostgreSQL schema and role isolation.
+- Optional workspace display sessions for containerized bots through Xvnc, ConnectRPC, and WebRTC in the Web UI.
 - External integration WebSocket API and SDKs.
 - Non-interactive `memoh` CLI for server operations and break-glass administration.
 - Docker Engine, containerd, Podman, and Kubernetes runtime adapters.
@@ -75,7 +77,7 @@ Removed:
 | `memoh-connector` | internal | Platform channel adapters and long-lived connector leases |
 | `memoh-integration-gateway` | `26815` | External enterprise WebSocket integration API |
 | `memoh-worker` | internal | Schedule, heartbeat, compaction, cleanup, and PostgreSQL outbox consumers |
-| `workspace-executor` | Unix socket | In-workspace file, exec, PTY, and MCP server execution boundary |
+| `workspace-executor` | Unix socket | In-workspace file, exec, PTY, MCP server execution, and optional workspace display boundary |
 | PostgreSQL | `26817` | Relational database |
 | Qdrant HTTP | `26818` | Optional vector storage |
 | Qdrant gRPC | `26819` | Optional vector storage gRPC endpoint |
@@ -144,6 +146,7 @@ Memoh Enterprise splits platform responsibilities into explicit services:
 - `memoh-worker`: background schedules, compaction, cleanup, heartbeat, and outbox work.
 - `memoh-browser`: Browser Gateway for agent browser automation.
 - `workspace-executor`: workspace-local execution service mounted inside workspace containers.
+- Optional workspace display runs inside the workspace container and is viewed through the Web UI. It is not a Desktop GUI application and does not replace Browser Gateway automation.
 
 This split keeps platform integrations, model work, browser automation, and workspace execution out of the main control plane process.
 

@@ -28,7 +28,7 @@ This repository is built on top of upstream Memoh.
 - Upstream repository: [memohai/Memoh](https://github.com/memohai/Memoh)
 - Enterprise repository: [StringKe/memoh-enterprise](https://github.com/StringKe/memoh-enterprise)
 - Upstream alignment marker: [`.parent-commit`](./.parent-commit)
-- Current upstream alignment commit: `beae0041b9f0e009509e6411673175e672b6f163`
+- Current upstream alignment commit: `c674b4921bae885088022ba58fc6bfc832c8c157`
 
 Thanks to the Memoh maintainers and contributors for the original self-hosted AI agent platform, including the agent runtime, long-term memory model, workspace container design, channel integrations, and web management foundation.
 

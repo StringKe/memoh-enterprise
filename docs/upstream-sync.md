@@ -11,7 +11,7 @@
 `.parent-commit` 必须只包含一行完整 commit SHA：
 
 ```text
-beae0041b9f0e009509e6411673175e672b6f163
+c674b4921bae885088022ba58fc6bfc832c8c157
 ```
 
 含义：

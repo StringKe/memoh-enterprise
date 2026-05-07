@@ -5,9 +5,9 @@ config_roots = ["cmd/agent"]
 
 [tools]
 # Go version from go.mod
-go = "1.26.1"
+go = "1.26"
 # Node.js for frontend packages
-node = "25"
+node = "24"
 # Bun for browser gateway
 bun = "latest"
 # pnpm for the workspace lockfile used by Vite+

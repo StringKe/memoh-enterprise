@@ -100,21 +100,6 @@
         </div>
       </section>
 
-      <BindCodeSection
-        :any-platform-value="anyPlatformValue"
-        :platform="bindForm.platform"
-        :platform-options="platformOptions"
-        :ttl-seconds="bindForm.ttlSeconds"
-        :generating="generatingBindCode"
-        :loading="loadingInitial"
-        :bind-code="bindCode"
-        :platform-label="platformLabel"
-        :format-date="formatDate"
-        @update:platform="onPlatformChange"
-        @update:ttl-seconds="bindForm.ttlSeconds = $event"
-        @generate="onGenerateBindCode"
-        @copy="copyBindCode"
-      />
     </div>
   </section>
 </template>
@@ -129,25 +114,15 @@ import { Network } from "lucide-vue-next";
 import ConfirmPopover from "@/components/confirm-popover/index.vue";
 import ProfileSection from "./components/profile-section.vue";
 import PasswordSection from "./components/password-section.vue";
-import BindCodeSection from "./components/bind-code-section.vue";
 import type {
-  TimestampMessage,
   User as ConnectUser,
   UserIdentity as ConnectUserIdentity,
 } from "@stringke/sdk/connect";
 import { connectClients } from "@/lib/connect-client";
 import { resolveConnectErrorMessage } from "@/lib/connect-errors";
 import { useUserStore } from "@/store/user";
-import { formatDateTime } from "@/utils/date-time";
-import { useClipboard } from "@/composables/useClipboard";
 import { useAvatarInitials } from "@/composables/useAvatarInitials";
 import { channelTypeDisplayName } from "@/utils/channel-type-label";
-
-interface IssueBindCodeResponse {
-  token: string;
-  platform?: string;
-  expires_at: string;
-}
 
 type UserAccount = {
   id: string;
@@ -166,24 +141,19 @@ type LinkedIdentity = {
   display_name: string;
 };
 
-const anyPlatformValue = "__all__";
-
 const { t } = useI18n();
 const router = useRouter();
 const userStore = useUserStore();
-const { copyText } = useClipboard();
 const { userInfo, exitLogin, patchUserInfo } = userStore;
 
 // ---- User data ----
 const account = ref<UserAccount | null>(null);
 const identities = ref<LinkedIdentity[]>([]);
-const bindCode = ref<IssueBindCodeResponse | null>(null);
 
 const loadingInitial = ref(false);
 const loadingIdentities = ref(false);
 const savingProfile = ref(false);
 const savingPassword = ref(false);
-const generatingBindCode = ref(false);
 
 const profileForm = reactive({
   display_name: "",
@@ -195,11 +165,6 @@ const passwordForm = reactive({
   currentPassword: "",
   newPassword: "",
   confirmPassword: "",
-});
-
-const bindForm = reactive({
-  platform: "",
-  ttlSeconds: 3600,
 });
 
 const displayUserID = computed(() => account.value?.id || userInfo.id || "");
@@ -218,17 +183,6 @@ function platformLabel(platformKey: string): string {
   if (!platformKey?.trim()) return platformKey ?? "";
   return channelTypeDisplayName(t, platformKey, null) || platformKey;
 }
-
-const platformOptions = computed(() => {
-  const options = new Set<string>(["telegram", "feishu", "discord", "qq", "matrix", "slack"]);
-  for (const identity of identities.value) {
-    const platform = identity.channel.trim();
-    if (platform) {
-      options.add(platform);
-    }
-  }
-  return Array.from(options);
-});
 
 onMounted(() => {
   void loadPageData();
@@ -327,53 +281,6 @@ async function onUpdatePassword() {
   }
 }
 
-function onPlatformChange(value: string) {
-  bindForm.platform = value === anyPlatformValue ? "" : value;
-}
-
-async function onGenerateBindCode() {
-  generatingBindCode.value = true;
-  try {
-    const ttl = Number.isFinite(bindForm.ttlSeconds)
-      ? Math.max(60, Number(bindForm.ttlSeconds))
-      : 3600;
-    const response = await connectClients.users.issueBindCode({
-      channel: bindForm.platform,
-      ttlSeconds: ttl,
-    });
-    bindCode.value = {
-      token: response.bindCode?.code ?? "",
-      platform: response.bindCode?.channel || undefined,
-      expires_at: timestampToIso(response.bindCode?.expiresAt),
-    };
-    toast.success(t("settings.bindCodeGenerated"));
-  } catch (error) {
-    toast.error(resolveConnectErrorMessage(error, t("settings.bindCodeGenerateFailed")));
-  } finally {
-    generatingBindCode.value = false;
-  }
-}
-
-async function copyBindCode() {
-  if (!bindCode.value?.token) {
-    return;
-  }
-  try {
-    const copied = await copyText(bindCode.value.token);
-    if (copied) {
-      toast.success(t("settings.bindCodeCopied"));
-      return;
-    }
-    toast.error(t("settings.bindCodeCopyFailed"));
-  } catch {
-    toast.error(t("settings.bindCodeCopyFailed"));
-  }
-}
-
-function formatDate(value: string) {
-  return formatDateTime(value, { fallback: value });
-}
-
 function onLogout() {
   exitLogin();
   void router.replace({ name: "Login" });
@@ -398,10 +305,5 @@ function toLinkedIdentity(identity: ConnectUserIdentity): LinkedIdentity {
     channel_subject_id: identity.externalId,
     display_name: identity.displayName,
   };
-}
-
-function timestampToIso(value?: TimestampMessage): string {
-  if (!value) return "";
-  return new Date(Number(value.seconds) * 1000 + Math.floor(value.nanos / 1_000_000)).toISOString();
 }
 </script>

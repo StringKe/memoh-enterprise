@@ -41,7 +41,7 @@ type Queries interface {
 	CreateAgentRunLease(ctx context.Context, arg dbsqlc.CreateAgentRunLeaseParams) (dbsqlc.AgentRunLease, error)
 	CreateBindCode(ctx context.Context, arg dbsqlc.CreateBindCodeParams) (dbsqlc.IamChannelIdentityBindCode, error)
 	CreateBot(ctx context.Context, arg dbsqlc.CreateBotParams) (dbsqlc.CreateBotRow, error)
-	CreateBotACLRule(ctx context.Context, arg dbsqlc.CreateBotACLRuleParams) (dbsqlc.CreateBotACLRuleRow, error)
+	CreateBotACLRule(ctx context.Context, arg dbsqlc.CreateBotACLRuleParams) (dbsqlc.BotAclRule, error)
 	CreateBotEmailBinding(ctx context.Context, arg dbsqlc.CreateBotEmailBindingParams) (dbsqlc.BotEmailBinding, error)
 	CreateBotGroup(ctx context.Context, arg dbsqlc.CreateBotGroupParams) (dbsqlc.BotGroup, error)
 	CreateBrowserContext(ctx context.Context, arg dbsqlc.CreateBrowserContextParams) (dbsqlc.BrowserContext, error)
@@ -320,8 +320,7 @@ type Queries interface {
 	UpdateAccountLastLogin(ctx context.Context, id pgtype.UUID) (dbsqlc.IamUser, error)
 	UpdateAccountPassword(ctx context.Context, arg dbsqlc.UpdateAccountPasswordParams) (dbsqlc.IamUser, error)
 	UpdateAccountProfile(ctx context.Context, arg dbsqlc.UpdateAccountProfileParams) (dbsqlc.IamUser, error)
-	UpdateBotACLRule(ctx context.Context, arg dbsqlc.UpdateBotACLRuleParams) (dbsqlc.UpdateBotACLRuleRow, error)
-	UpdateBotACLRulePriority(ctx context.Context, arg dbsqlc.UpdateBotACLRulePriorityParams) error
+	UpdateBotACLRule(ctx context.Context, arg dbsqlc.UpdateBotACLRuleParams) (dbsqlc.BotAclRule, error)
 	UpdateBotChannelConfigDisabled(ctx context.Context, arg dbsqlc.UpdateBotChannelConfigDisabledParams) (dbsqlc.BotChannelConfig, error)
 	UpdateBotEmailBinding(ctx context.Context, arg dbsqlc.UpdateBotEmailBindingParams) (dbsqlc.BotEmailBinding, error)
 	UpdateBotGroup(ctx context.Context, arg dbsqlc.UpdateBotGroupParams) (dbsqlc.BotGroup, error)

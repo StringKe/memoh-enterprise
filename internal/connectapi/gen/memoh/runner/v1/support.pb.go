@@ -137,7 +137,6 @@ type ResolveRunContextResponse struct {
 	Model              *structpb.Struct       `protobuf:"bytes,4,opt,name=model,proto3" json:"model,omitempty"`
 	MemoryProviders    []*structpb.Struct     `protobuf:"bytes,5,rep,name=memory_providers,json=memoryProviders,proto3" json:"memory_providers,omitempty"`
 	McpConnections     []*structpb.Struct     `protobuf:"bytes,6,rep,name=mcp_connections,json=mcpConnections,proto3" json:"mcp_connections,omitempty"`
-	BrowserContexts    []*structpb.Struct     `protobuf:"bytes,7,rep,name=browser_contexts,json=browserContexts,proto3" json:"browser_contexts,omitempty"`
 	ToolApprovalPolicy *structpb.Struct       `protobuf:"bytes,8,opt,name=tool_approval_policy,json=toolApprovalPolicy,proto3" json:"tool_approval_policy,omitempty"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
@@ -211,13 +210,6 @@ func (x *ResolveRunContextResponse) GetMemoryProviders() []*structpb.Struct {
 func (x *ResolveRunContextResponse) GetMcpConnections() []*structpb.Struct {
 	if x != nil {
 		return x.McpConnections
-	}
-	return nil
-}
-
-func (x *ResolveRunContextResponse) GetBrowserContexts() []*structpb.Struct {
-	if x != nil {
-		return x.BrowserContexts
 	}
 	return nil
 }
@@ -2523,15 +2515,14 @@ const file_memoh_runner_v1_support_proto_rawDesc = "" +
 	"\x12runner_instance_id\x18\x02 \x01(\tR\x10runnerInstanceId\x12#\n" +
 	"\rlease_version\x18\x03 \x01(\x03R\fleaseVersion\"L\n" +
 	"\x18ResolveRunContextRequest\x120\n" +
-	"\x03ref\x18\x01 \x01(\v2\x1e.memoh.runner.v1.RunSupportRefR\x03ref\"\xf1\x03\n" +
+	"\x03ref\x18\x01 \x01(\v2\x1e.memoh.runner.v1.RunSupportRefR\x03ref\"\xad\x03\n" +
 	"\x19ResolveRunContextResponse\x12/\n" +
 	"\x05lease\x18\x01 \x01(\v2\x19.memoh.runner.v1.RunLeaseR\x05lease\x12)\n" +
 	"\x03bot\x18\x02 \x01(\v2\x17.google.protobuf.StructR\x03bot\x124\n" +
 	"\tbot_group\x18\x03 \x01(\v2\x17.google.protobuf.StructR\bbotGroup\x12-\n" +
 	"\x05model\x18\x04 \x01(\v2\x17.google.protobuf.StructR\x05model\x12B\n" +
 	"\x10memory_providers\x18\x05 \x03(\v2\x17.google.protobuf.StructR\x0fmemoryProviders\x12@\n" +
-	"\x0fmcp_connections\x18\x06 \x03(\v2\x17.google.protobuf.StructR\x0emcpConnections\x12B\n" +
-	"\x10browser_contexts\x18\a \x03(\v2\x17.google.protobuf.StructR\x0fbrowserContexts\x12I\n" +
+	"\x0fmcp_connections\x18\x06 \x03(\v2\x17.google.protobuf.StructR\x0emcpConnections\x12I\n" +
 	"\x14tool_approval_policy\x18\b \x01(\v2\x17.google.protobuf.StructR\x12toolApprovalPolicy\"\xbd\x01\n" +
 	"\x17ValidateRunLeaseRequest\x120\n" +
 	"\x03ref\x18\x01 \x01(\v2\x1e.memoh.runner.v1.RunSupportRefR\x03ref\x12\x15\n" +
@@ -2793,89 +2784,88 @@ var file_memoh_runner_v1_support_proto_depIdxs = []int32{
 	43, // 4: memoh.runner.v1.ResolveRunContextResponse.model:type_name -> google.protobuf.Struct
 	43, // 5: memoh.runner.v1.ResolveRunContextResponse.memory_providers:type_name -> google.protobuf.Struct
 	43, // 6: memoh.runner.v1.ResolveRunContextResponse.mcp_connections:type_name -> google.protobuf.Struct
-	43, // 7: memoh.runner.v1.ResolveRunContextResponse.browser_contexts:type_name -> google.protobuf.Struct
-	43, // 8: memoh.runner.v1.ResolveRunContextResponse.tool_approval_policy:type_name -> google.protobuf.Struct
-	0,  // 9: memoh.runner.v1.ValidateRunLeaseRequest.ref:type_name -> memoh.runner.v1.RunSupportRef
-	42, // 10: memoh.runner.v1.ValidateRunLeaseResponse.lease:type_name -> memoh.runner.v1.RunLease
-	0,  // 11: memoh.runner.v1.IssueWorkspaceTokenRequest.ref:type_name -> memoh.runner.v1.RunSupportRef
-	44, // 12: memoh.runner.v1.IssueWorkspaceTokenResponse.expires_at:type_name -> google.protobuf.Timestamp
-	43, // 13: memoh.runner.v1.SessionMessage.payload:type_name -> google.protobuf.Struct
-	44, // 14: memoh.runner.v1.SessionMessage.created_at:type_name -> google.protobuf.Timestamp
-	0,  // 15: memoh.runner.v1.ReadSessionHistoryRequest.ref:type_name -> memoh.runner.v1.RunSupportRef
-	7,  // 16: memoh.runner.v1.ReadSessionHistoryResponse.messages:type_name -> memoh.runner.v1.SessionMessage
-	0,  // 17: memoh.runner.v1.AppendRunEventRequest.ref:type_name -> memoh.runner.v1.RunSupportRef
-	45, // 18: memoh.runner.v1.AppendRunEventRequest.event:type_name -> memoh.event.v1.AgentRunEvent
-	0,  // 19: memoh.runner.v1.AppendSessionMessageRequest.ref:type_name -> memoh.runner.v1.RunSupportRef
-	7,  // 20: memoh.runner.v1.AppendSessionMessageRequest.message:type_name -> memoh.runner.v1.SessionMessage
-	0,  // 21: memoh.runner.v1.ResolveOutboundTargetRequest.ref:type_name -> memoh.runner.v1.RunSupportRef
-	43, // 22: memoh.runner.v1.ResolveOutboundTargetResponse.target:type_name -> google.protobuf.Struct
-	0,  // 23: memoh.runner.v1.RequestOutboundDispatchRequest.ref:type_name -> memoh.runner.v1.RunSupportRef
-	43, // 24: memoh.runner.v1.RequestOutboundDispatchRequest.payload:type_name -> google.protobuf.Struct
-	43, // 25: memoh.runner.v1.MemoryRecord.metadata:type_name -> google.protobuf.Struct
-	0,  // 26: memoh.runner.v1.ReadMemoryRequest.ref:type_name -> memoh.runner.v1.RunSupportRef
-	18, // 27: memoh.runner.v1.ReadMemoryResponse.memories:type_name -> memoh.runner.v1.MemoryRecord
-	0,  // 28: memoh.runner.v1.WriteMemoryRequest.ref:type_name -> memoh.runner.v1.RunSupportRef
-	18, // 29: memoh.runner.v1.WriteMemoryRequest.memory:type_name -> memoh.runner.v1.MemoryRecord
-	0,  // 30: memoh.runner.v1.ResolveScopedSecretRequest.ref:type_name -> memoh.runner.v1.RunSupportRef
-	44, // 31: memoh.runner.v1.ResolveScopedSecretResponse.expires_at:type_name -> google.protobuf.Timestamp
-	0,  // 32: memoh.runner.v1.ResolveProviderCredentialsRequest.ref:type_name -> memoh.runner.v1.RunSupportRef
-	43, // 33: memoh.runner.v1.ResolveProviderCredentialsResponse.credentials:type_name -> google.protobuf.Struct
-	44, // 34: memoh.runner.v1.ResolveProviderCredentialsResponse.expires_at:type_name -> google.protobuf.Timestamp
-	0,  // 35: memoh.runner.v1.EvaluateToolApprovalPolicyRequest.ref:type_name -> memoh.runner.v1.RunSupportRef
-	43, // 36: memoh.runner.v1.EvaluateToolApprovalPolicyRequest.payload:type_name -> google.protobuf.Struct
-	0,  // 37: memoh.runner.v1.RequestToolApprovalRequest.ref:type_name -> memoh.runner.v1.RunSupportRef
-	43, // 38: memoh.runner.v1.RequestToolApprovalRequest.payload:type_name -> google.protobuf.Struct
-	0,  // 39: memoh.runner.v1.ListStructuredDataSpacesRequest.ref:type_name -> memoh.runner.v1.RunSupportRef
-	46, // 40: memoh.runner.v1.ListStructuredDataSpacesResponse.spaces:type_name -> memoh.private.v1.StructuredDataSpace
-	0,  // 41: memoh.runner.v1.ExecuteStructuredDataSqlRequest.ref:type_name -> memoh.runner.v1.RunSupportRef
-	47, // 42: memoh.runner.v1.ExecuteStructuredDataSqlResponse.result:type_name -> memoh.private.v1.StructuredDataSqlResult
-	0,  // 43: memoh.runner.v1.IsBotDisplayEnabledRequest.ref:type_name -> memoh.runner.v1.RunSupportRef
-	0,  // 44: memoh.runner.v1.CaptureBotDisplayScreenshotRequest.ref:type_name -> memoh.runner.v1.RunSupportRef
-	0,  // 45: memoh.runner.v1.SendBotDisplayInputsRequest.ref:type_name -> memoh.runner.v1.RunSupportRef
-	39, // 46: memoh.runner.v1.SendBotDisplayInputsRequest.events:type_name -> memoh.runner.v1.DisplayInputEvent
-	1,  // 47: memoh.runner.v1.RunnerSupportService.ResolveRunContext:input_type -> memoh.runner.v1.ResolveRunContextRequest
-	3,  // 48: memoh.runner.v1.RunnerSupportService.ValidateRunLease:input_type -> memoh.runner.v1.ValidateRunLeaseRequest
-	5,  // 49: memoh.runner.v1.RunnerSupportService.IssueWorkspaceToken:input_type -> memoh.runner.v1.IssueWorkspaceTokenRequest
-	8,  // 50: memoh.runner.v1.RunnerSupportService.ReadSessionHistory:input_type -> memoh.runner.v1.ReadSessionHistoryRequest
-	10, // 51: memoh.runner.v1.RunnerSupportService.AppendRunEvent:input_type -> memoh.runner.v1.AppendRunEventRequest
-	12, // 52: memoh.runner.v1.RunnerSupportService.AppendSessionMessage:input_type -> memoh.runner.v1.AppendSessionMessageRequest
-	14, // 53: memoh.runner.v1.RunnerSupportService.ResolveOutboundTarget:input_type -> memoh.runner.v1.ResolveOutboundTargetRequest
-	16, // 54: memoh.runner.v1.RunnerSupportService.RequestOutboundDispatch:input_type -> memoh.runner.v1.RequestOutboundDispatchRequest
-	19, // 55: memoh.runner.v1.RunnerSupportService.ReadMemory:input_type -> memoh.runner.v1.ReadMemoryRequest
-	21, // 56: memoh.runner.v1.RunnerSupportService.WriteMemory:input_type -> memoh.runner.v1.WriteMemoryRequest
-	23, // 57: memoh.runner.v1.RunnerSupportService.ResolveScopedSecret:input_type -> memoh.runner.v1.ResolveScopedSecretRequest
-	25, // 58: memoh.runner.v1.RunnerSupportService.ResolveProviderCredentials:input_type -> memoh.runner.v1.ResolveProviderCredentialsRequest
-	27, // 59: memoh.runner.v1.RunnerSupportService.EvaluateToolApprovalPolicy:input_type -> memoh.runner.v1.EvaluateToolApprovalPolicyRequest
-	29, // 60: memoh.runner.v1.RunnerSupportService.RequestToolApproval:input_type -> memoh.runner.v1.RequestToolApprovalRequest
-	31, // 61: memoh.runner.v1.RunnerSupportService.ListStructuredDataSpaces:input_type -> memoh.runner.v1.ListStructuredDataSpacesRequest
-	33, // 62: memoh.runner.v1.RunnerSupportService.ExecuteStructuredDataSql:input_type -> memoh.runner.v1.ExecuteStructuredDataSqlRequest
-	35, // 63: memoh.runner.v1.RunnerSupportService.IsBotDisplayEnabled:input_type -> memoh.runner.v1.IsBotDisplayEnabledRequest
-	37, // 64: memoh.runner.v1.RunnerSupportService.CaptureBotDisplayScreenshot:input_type -> memoh.runner.v1.CaptureBotDisplayScreenshotRequest
-	40, // 65: memoh.runner.v1.RunnerSupportService.SendBotDisplayInputs:input_type -> memoh.runner.v1.SendBotDisplayInputsRequest
-	2,  // 66: memoh.runner.v1.RunnerSupportService.ResolveRunContext:output_type -> memoh.runner.v1.ResolveRunContextResponse
-	4,  // 67: memoh.runner.v1.RunnerSupportService.ValidateRunLease:output_type -> memoh.runner.v1.ValidateRunLeaseResponse
-	6,  // 68: memoh.runner.v1.RunnerSupportService.IssueWorkspaceToken:output_type -> memoh.runner.v1.IssueWorkspaceTokenResponse
-	9,  // 69: memoh.runner.v1.RunnerSupportService.ReadSessionHistory:output_type -> memoh.runner.v1.ReadSessionHistoryResponse
-	11, // 70: memoh.runner.v1.RunnerSupportService.AppendRunEvent:output_type -> memoh.runner.v1.AppendRunEventResponse
-	13, // 71: memoh.runner.v1.RunnerSupportService.AppendSessionMessage:output_type -> memoh.runner.v1.AppendSessionMessageResponse
-	15, // 72: memoh.runner.v1.RunnerSupportService.ResolveOutboundTarget:output_type -> memoh.runner.v1.ResolveOutboundTargetResponse
-	17, // 73: memoh.runner.v1.RunnerSupportService.RequestOutboundDispatch:output_type -> memoh.runner.v1.RequestOutboundDispatchResponse
-	20, // 74: memoh.runner.v1.RunnerSupportService.ReadMemory:output_type -> memoh.runner.v1.ReadMemoryResponse
-	22, // 75: memoh.runner.v1.RunnerSupportService.WriteMemory:output_type -> memoh.runner.v1.WriteMemoryResponse
-	24, // 76: memoh.runner.v1.RunnerSupportService.ResolveScopedSecret:output_type -> memoh.runner.v1.ResolveScopedSecretResponse
-	26, // 77: memoh.runner.v1.RunnerSupportService.ResolveProviderCredentials:output_type -> memoh.runner.v1.ResolveProviderCredentialsResponse
-	28, // 78: memoh.runner.v1.RunnerSupportService.EvaluateToolApprovalPolicy:output_type -> memoh.runner.v1.EvaluateToolApprovalPolicyResponse
-	30, // 79: memoh.runner.v1.RunnerSupportService.RequestToolApproval:output_type -> memoh.runner.v1.RequestToolApprovalResponse
-	32, // 80: memoh.runner.v1.RunnerSupportService.ListStructuredDataSpaces:output_type -> memoh.runner.v1.ListStructuredDataSpacesResponse
-	34, // 81: memoh.runner.v1.RunnerSupportService.ExecuteStructuredDataSql:output_type -> memoh.runner.v1.ExecuteStructuredDataSqlResponse
-	36, // 82: memoh.runner.v1.RunnerSupportService.IsBotDisplayEnabled:output_type -> memoh.runner.v1.IsBotDisplayEnabledResponse
-	38, // 83: memoh.runner.v1.RunnerSupportService.CaptureBotDisplayScreenshot:output_type -> memoh.runner.v1.CaptureBotDisplayScreenshotResponse
-	41, // 84: memoh.runner.v1.RunnerSupportService.SendBotDisplayInputs:output_type -> memoh.runner.v1.SendBotDisplayInputsResponse
-	66, // [66:85] is the sub-list for method output_type
-	47, // [47:66] is the sub-list for method input_type
-	47, // [47:47] is the sub-list for extension type_name
-	47, // [47:47] is the sub-list for extension extendee
-	0,  // [0:47] is the sub-list for field type_name
+	43, // 7: memoh.runner.v1.ResolveRunContextResponse.tool_approval_policy:type_name -> google.protobuf.Struct
+	0,  // 8: memoh.runner.v1.ValidateRunLeaseRequest.ref:type_name -> memoh.runner.v1.RunSupportRef
+	42, // 9: memoh.runner.v1.ValidateRunLeaseResponse.lease:type_name -> memoh.runner.v1.RunLease
+	0,  // 10: memoh.runner.v1.IssueWorkspaceTokenRequest.ref:type_name -> memoh.runner.v1.RunSupportRef
+	44, // 11: memoh.runner.v1.IssueWorkspaceTokenResponse.expires_at:type_name -> google.protobuf.Timestamp
+	43, // 12: memoh.runner.v1.SessionMessage.payload:type_name -> google.protobuf.Struct
+	44, // 13: memoh.runner.v1.SessionMessage.created_at:type_name -> google.protobuf.Timestamp
+	0,  // 14: memoh.runner.v1.ReadSessionHistoryRequest.ref:type_name -> memoh.runner.v1.RunSupportRef
+	7,  // 15: memoh.runner.v1.ReadSessionHistoryResponse.messages:type_name -> memoh.runner.v1.SessionMessage
+	0,  // 16: memoh.runner.v1.AppendRunEventRequest.ref:type_name -> memoh.runner.v1.RunSupportRef
+	45, // 17: memoh.runner.v1.AppendRunEventRequest.event:type_name -> memoh.event.v1.AgentRunEvent
+	0,  // 18: memoh.runner.v1.AppendSessionMessageRequest.ref:type_name -> memoh.runner.v1.RunSupportRef
+	7,  // 19: memoh.runner.v1.AppendSessionMessageRequest.message:type_name -> memoh.runner.v1.SessionMessage
+	0,  // 20: memoh.runner.v1.ResolveOutboundTargetRequest.ref:type_name -> memoh.runner.v1.RunSupportRef
+	43, // 21: memoh.runner.v1.ResolveOutboundTargetResponse.target:type_name -> google.protobuf.Struct
+	0,  // 22: memoh.runner.v1.RequestOutboundDispatchRequest.ref:type_name -> memoh.runner.v1.RunSupportRef
+	43, // 23: memoh.runner.v1.RequestOutboundDispatchRequest.payload:type_name -> google.protobuf.Struct
+	43, // 24: memoh.runner.v1.MemoryRecord.metadata:type_name -> google.protobuf.Struct
+	0,  // 25: memoh.runner.v1.ReadMemoryRequest.ref:type_name -> memoh.runner.v1.RunSupportRef
+	18, // 26: memoh.runner.v1.ReadMemoryResponse.memories:type_name -> memoh.runner.v1.MemoryRecord
+	0,  // 27: memoh.runner.v1.WriteMemoryRequest.ref:type_name -> memoh.runner.v1.RunSupportRef
+	18, // 28: memoh.runner.v1.WriteMemoryRequest.memory:type_name -> memoh.runner.v1.MemoryRecord
+	0,  // 29: memoh.runner.v1.ResolveScopedSecretRequest.ref:type_name -> memoh.runner.v1.RunSupportRef
+	44, // 30: memoh.runner.v1.ResolveScopedSecretResponse.expires_at:type_name -> google.protobuf.Timestamp
+	0,  // 31: memoh.runner.v1.ResolveProviderCredentialsRequest.ref:type_name -> memoh.runner.v1.RunSupportRef
+	43, // 32: memoh.runner.v1.ResolveProviderCredentialsResponse.credentials:type_name -> google.protobuf.Struct
+	44, // 33: memoh.runner.v1.ResolveProviderCredentialsResponse.expires_at:type_name -> google.protobuf.Timestamp
+	0,  // 34: memoh.runner.v1.EvaluateToolApprovalPolicyRequest.ref:type_name -> memoh.runner.v1.RunSupportRef
+	43, // 35: memoh.runner.v1.EvaluateToolApprovalPolicyRequest.payload:type_name -> google.protobuf.Struct
+	0,  // 36: memoh.runner.v1.RequestToolApprovalRequest.ref:type_name -> memoh.runner.v1.RunSupportRef
+	43, // 37: memoh.runner.v1.RequestToolApprovalRequest.payload:type_name -> google.protobuf.Struct
+	0,  // 38: memoh.runner.v1.ListStructuredDataSpacesRequest.ref:type_name -> memoh.runner.v1.RunSupportRef
+	46, // 39: memoh.runner.v1.ListStructuredDataSpacesResponse.spaces:type_name -> memoh.private.v1.StructuredDataSpace
+	0,  // 40: memoh.runner.v1.ExecuteStructuredDataSqlRequest.ref:type_name -> memoh.runner.v1.RunSupportRef
+	47, // 41: memoh.runner.v1.ExecuteStructuredDataSqlResponse.result:type_name -> memoh.private.v1.StructuredDataSqlResult
+	0,  // 42: memoh.runner.v1.IsBotDisplayEnabledRequest.ref:type_name -> memoh.runner.v1.RunSupportRef
+	0,  // 43: memoh.runner.v1.CaptureBotDisplayScreenshotRequest.ref:type_name -> memoh.runner.v1.RunSupportRef
+	0,  // 44: memoh.runner.v1.SendBotDisplayInputsRequest.ref:type_name -> memoh.runner.v1.RunSupportRef
+	39, // 45: memoh.runner.v1.SendBotDisplayInputsRequest.events:type_name -> memoh.runner.v1.DisplayInputEvent
+	1,  // 46: memoh.runner.v1.RunnerSupportService.ResolveRunContext:input_type -> memoh.runner.v1.ResolveRunContextRequest
+	3,  // 47: memoh.runner.v1.RunnerSupportService.ValidateRunLease:input_type -> memoh.runner.v1.ValidateRunLeaseRequest
+	5,  // 48: memoh.runner.v1.RunnerSupportService.IssueWorkspaceToken:input_type -> memoh.runner.v1.IssueWorkspaceTokenRequest
+	8,  // 49: memoh.runner.v1.RunnerSupportService.ReadSessionHistory:input_type -> memoh.runner.v1.ReadSessionHistoryRequest
+	10, // 50: memoh.runner.v1.RunnerSupportService.AppendRunEvent:input_type -> memoh.runner.v1.AppendRunEventRequest
+	12, // 51: memoh.runner.v1.RunnerSupportService.AppendSessionMessage:input_type -> memoh.runner.v1.AppendSessionMessageRequest
+	14, // 52: memoh.runner.v1.RunnerSupportService.ResolveOutboundTarget:input_type -> memoh.runner.v1.ResolveOutboundTargetRequest
+	16, // 53: memoh.runner.v1.RunnerSupportService.RequestOutboundDispatch:input_type -> memoh.runner.v1.RequestOutboundDispatchRequest
+	19, // 54: memoh.runner.v1.RunnerSupportService.ReadMemory:input_type -> memoh.runner.v1.ReadMemoryRequest
+	21, // 55: memoh.runner.v1.RunnerSupportService.WriteMemory:input_type -> memoh.runner.v1.WriteMemoryRequest
+	23, // 56: memoh.runner.v1.RunnerSupportService.ResolveScopedSecret:input_type -> memoh.runner.v1.ResolveScopedSecretRequest
+	25, // 57: memoh.runner.v1.RunnerSupportService.ResolveProviderCredentials:input_type -> memoh.runner.v1.ResolveProviderCredentialsRequest
+	27, // 58: memoh.runner.v1.RunnerSupportService.EvaluateToolApprovalPolicy:input_type -> memoh.runner.v1.EvaluateToolApprovalPolicyRequest
+	29, // 59: memoh.runner.v1.RunnerSupportService.RequestToolApproval:input_type -> memoh.runner.v1.RequestToolApprovalRequest
+	31, // 60: memoh.runner.v1.RunnerSupportService.ListStructuredDataSpaces:input_type -> memoh.runner.v1.ListStructuredDataSpacesRequest
+	33, // 61: memoh.runner.v1.RunnerSupportService.ExecuteStructuredDataSql:input_type -> memoh.runner.v1.ExecuteStructuredDataSqlRequest
+	35, // 62: memoh.runner.v1.RunnerSupportService.IsBotDisplayEnabled:input_type -> memoh.runner.v1.IsBotDisplayEnabledRequest
+	37, // 63: memoh.runner.v1.RunnerSupportService.CaptureBotDisplayScreenshot:input_type -> memoh.runner.v1.CaptureBotDisplayScreenshotRequest
+	40, // 64: memoh.runner.v1.RunnerSupportService.SendBotDisplayInputs:input_type -> memoh.runner.v1.SendBotDisplayInputsRequest
+	2,  // 65: memoh.runner.v1.RunnerSupportService.ResolveRunContext:output_type -> memoh.runner.v1.ResolveRunContextResponse
+	4,  // 66: memoh.runner.v1.RunnerSupportService.ValidateRunLease:output_type -> memoh.runner.v1.ValidateRunLeaseResponse
+	6,  // 67: memoh.runner.v1.RunnerSupportService.IssueWorkspaceToken:output_type -> memoh.runner.v1.IssueWorkspaceTokenResponse
+	9,  // 68: memoh.runner.v1.RunnerSupportService.ReadSessionHistory:output_type -> memoh.runner.v1.ReadSessionHistoryResponse
+	11, // 69: memoh.runner.v1.RunnerSupportService.AppendRunEvent:output_type -> memoh.runner.v1.AppendRunEventResponse
+	13, // 70: memoh.runner.v1.RunnerSupportService.AppendSessionMessage:output_type -> memoh.runner.v1.AppendSessionMessageResponse
+	15, // 71: memoh.runner.v1.RunnerSupportService.ResolveOutboundTarget:output_type -> memoh.runner.v1.ResolveOutboundTargetResponse
+	17, // 72: memoh.runner.v1.RunnerSupportService.RequestOutboundDispatch:output_type -> memoh.runner.v1.RequestOutboundDispatchResponse
+	20, // 73: memoh.runner.v1.RunnerSupportService.ReadMemory:output_type -> memoh.runner.v1.ReadMemoryResponse
+	22, // 74: memoh.runner.v1.RunnerSupportService.WriteMemory:output_type -> memoh.runner.v1.WriteMemoryResponse
+	24, // 75: memoh.runner.v1.RunnerSupportService.ResolveScopedSecret:output_type -> memoh.runner.v1.ResolveScopedSecretResponse
+	26, // 76: memoh.runner.v1.RunnerSupportService.ResolveProviderCredentials:output_type -> memoh.runner.v1.ResolveProviderCredentialsResponse
+	28, // 77: memoh.runner.v1.RunnerSupportService.EvaluateToolApprovalPolicy:output_type -> memoh.runner.v1.EvaluateToolApprovalPolicyResponse
+	30, // 78: memoh.runner.v1.RunnerSupportService.RequestToolApproval:output_type -> memoh.runner.v1.RequestToolApprovalResponse
+	32, // 79: memoh.runner.v1.RunnerSupportService.ListStructuredDataSpaces:output_type -> memoh.runner.v1.ListStructuredDataSpacesResponse
+	34, // 80: memoh.runner.v1.RunnerSupportService.ExecuteStructuredDataSql:output_type -> memoh.runner.v1.ExecuteStructuredDataSqlResponse
+	36, // 81: memoh.runner.v1.RunnerSupportService.IsBotDisplayEnabled:output_type -> memoh.runner.v1.IsBotDisplayEnabledResponse
+	38, // 82: memoh.runner.v1.RunnerSupportService.CaptureBotDisplayScreenshot:output_type -> memoh.runner.v1.CaptureBotDisplayScreenshotResponse
+	41, // 83: memoh.runner.v1.RunnerSupportService.SendBotDisplayInputs:output_type -> memoh.runner.v1.SendBotDisplayInputsResponse
+	65, // [65:84] is the sub-list for method output_type
+	46, // [46:65] is the sub-list for method input_type
+	46, // [46:46] is the sub-list for extension type_name
+	46, // [46:46] is the sub-list for extension extendee
+	0,  // [0:46] is the sub-list for field type_name
 }
 
 func init() { file_memoh_runner_v1_support_proto_init() }

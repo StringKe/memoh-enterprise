@@ -10,7 +10,7 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	structpb "google.golang.org/protobuf/types/known/structpb"
-	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
+	_ "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -231,66 +231,6 @@ func (x *UserIdentity) GetAudit() *AuditFields {
 	return nil
 }
 
-type BindCode struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Code          string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
-	Channel       string                 `protobuf:"bytes,2,opt,name=channel,proto3" json:"channel,omitempty"`
-	ExpiresAt     *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *BindCode) Reset() {
-	*x = BindCode{}
-	mi := &file_memoh_private_v1_users_proto_msgTypes[2]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *BindCode) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*BindCode) ProtoMessage() {}
-
-func (x *BindCode) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_users_proto_msgTypes[2]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use BindCode.ProtoReflect.Descriptor instead.
-func (*BindCode) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_users_proto_rawDescGZIP(), []int{2}
-}
-
-func (x *BindCode) GetCode() string {
-	if x != nil {
-		return x.Code
-	}
-	return ""
-}
-
-func (x *BindCode) GetChannel() string {
-	if x != nil {
-		return x.Channel
-	}
-	return ""
-}
-
-func (x *BindCode) GetExpiresAt() *timestamppb.Timestamp {
-	if x != nil {
-		return x.ExpiresAt
-	}
-	return nil
-}
-
 type GetCurrentUserRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -299,7 +239,7 @@ type GetCurrentUserRequest struct {
 
 func (x *GetCurrentUserRequest) Reset() {
 	*x = GetCurrentUserRequest{}
-	mi := &file_memoh_private_v1_users_proto_msgTypes[3]
+	mi := &file_memoh_private_v1_users_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -311,7 +251,7 @@ func (x *GetCurrentUserRequest) String() string {
 func (*GetCurrentUserRequest) ProtoMessage() {}
 
 func (x *GetCurrentUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_users_proto_msgTypes[3]
+	mi := &file_memoh_private_v1_users_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -324,7 +264,7 @@ func (x *GetCurrentUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCurrentUserRequest.ProtoReflect.Descriptor instead.
 func (*GetCurrentUserRequest) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_users_proto_rawDescGZIP(), []int{3}
+	return file_memoh_private_v1_users_proto_rawDescGZIP(), []int{2}
 }
 
 type GetCurrentUserResponse struct {
@@ -336,7 +276,7 @@ type GetCurrentUserResponse struct {
 
 func (x *GetCurrentUserResponse) Reset() {
 	*x = GetCurrentUserResponse{}
-	mi := &file_memoh_private_v1_users_proto_msgTypes[4]
+	mi := &file_memoh_private_v1_users_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -348,7 +288,7 @@ func (x *GetCurrentUserResponse) String() string {
 func (*GetCurrentUserResponse) ProtoMessage() {}
 
 func (x *GetCurrentUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_users_proto_msgTypes[4]
+	mi := &file_memoh_private_v1_users_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -361,7 +301,7 @@ func (x *GetCurrentUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCurrentUserResponse.ProtoReflect.Descriptor instead.
 func (*GetCurrentUserResponse) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_users_proto_rawDescGZIP(), []int{4}
+	return file_memoh_private_v1_users_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *GetCurrentUserResponse) GetUser() *User {
@@ -384,7 +324,7 @@ type UpdateCurrentUserRequest struct {
 
 func (x *UpdateCurrentUserRequest) Reset() {
 	*x = UpdateCurrentUserRequest{}
-	mi := &file_memoh_private_v1_users_proto_msgTypes[5]
+	mi := &file_memoh_private_v1_users_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -396,7 +336,7 @@ func (x *UpdateCurrentUserRequest) String() string {
 func (*UpdateCurrentUserRequest) ProtoMessage() {}
 
 func (x *UpdateCurrentUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_users_proto_msgTypes[5]
+	mi := &file_memoh_private_v1_users_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -409,7 +349,7 @@ func (x *UpdateCurrentUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateCurrentUserRequest.ProtoReflect.Descriptor instead.
 func (*UpdateCurrentUserRequest) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_users_proto_rawDescGZIP(), []int{5}
+	return file_memoh_private_v1_users_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *UpdateCurrentUserRequest) GetEmail() string {
@@ -456,7 +396,7 @@ type UpdateCurrentUserResponse struct {
 
 func (x *UpdateCurrentUserResponse) Reset() {
 	*x = UpdateCurrentUserResponse{}
-	mi := &file_memoh_private_v1_users_proto_msgTypes[6]
+	mi := &file_memoh_private_v1_users_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -468,7 +408,7 @@ func (x *UpdateCurrentUserResponse) String() string {
 func (*UpdateCurrentUserResponse) ProtoMessage() {}
 
 func (x *UpdateCurrentUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_users_proto_msgTypes[6]
+	mi := &file_memoh_private_v1_users_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -481,7 +421,7 @@ func (x *UpdateCurrentUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateCurrentUserResponse.ProtoReflect.Descriptor instead.
 func (*UpdateCurrentUserResponse) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_users_proto_rawDescGZIP(), []int{6}
+	return file_memoh_private_v1_users_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *UpdateCurrentUserResponse) GetUser() *User {
@@ -501,7 +441,7 @@ type UpdateCurrentUserPasswordRequest struct {
 
 func (x *UpdateCurrentUserPasswordRequest) Reset() {
 	*x = UpdateCurrentUserPasswordRequest{}
-	mi := &file_memoh_private_v1_users_proto_msgTypes[7]
+	mi := &file_memoh_private_v1_users_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -513,7 +453,7 @@ func (x *UpdateCurrentUserPasswordRequest) String() string {
 func (*UpdateCurrentUserPasswordRequest) ProtoMessage() {}
 
 func (x *UpdateCurrentUserPasswordRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_users_proto_msgTypes[7]
+	mi := &file_memoh_private_v1_users_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -526,7 +466,7 @@ func (x *UpdateCurrentUserPasswordRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateCurrentUserPasswordRequest.ProtoReflect.Descriptor instead.
 func (*UpdateCurrentUserPasswordRequest) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_users_proto_rawDescGZIP(), []int{7}
+	return file_memoh_private_v1_users_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *UpdateCurrentUserPasswordRequest) GetCurrentPassword() string {
@@ -551,7 +491,7 @@ type UpdateCurrentUserPasswordResponse struct {
 
 func (x *UpdateCurrentUserPasswordResponse) Reset() {
 	*x = UpdateCurrentUserPasswordResponse{}
-	mi := &file_memoh_private_v1_users_proto_msgTypes[8]
+	mi := &file_memoh_private_v1_users_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -563,7 +503,7 @@ func (x *UpdateCurrentUserPasswordResponse) String() string {
 func (*UpdateCurrentUserPasswordResponse) ProtoMessage() {}
 
 func (x *UpdateCurrentUserPasswordResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_users_proto_msgTypes[8]
+	mi := &file_memoh_private_v1_users_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -576,7 +516,7 @@ func (x *UpdateCurrentUserPasswordResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use UpdateCurrentUserPasswordResponse.ProtoReflect.Descriptor instead.
 func (*UpdateCurrentUserPasswordResponse) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_users_proto_rawDescGZIP(), []int{8}
+	return file_memoh_private_v1_users_proto_rawDescGZIP(), []int{7}
 }
 
 type ListMyIdentitiesRequest struct {
@@ -587,7 +527,7 @@ type ListMyIdentitiesRequest struct {
 
 func (x *ListMyIdentitiesRequest) Reset() {
 	*x = ListMyIdentitiesRequest{}
-	mi := &file_memoh_private_v1_users_proto_msgTypes[9]
+	mi := &file_memoh_private_v1_users_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -599,7 +539,7 @@ func (x *ListMyIdentitiesRequest) String() string {
 func (*ListMyIdentitiesRequest) ProtoMessage() {}
 
 func (x *ListMyIdentitiesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_users_proto_msgTypes[9]
+	mi := &file_memoh_private_v1_users_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -612,7 +552,7 @@ func (x *ListMyIdentitiesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMyIdentitiesRequest.ProtoReflect.Descriptor instead.
 func (*ListMyIdentitiesRequest) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_users_proto_rawDescGZIP(), []int{9}
+	return file_memoh_private_v1_users_proto_rawDescGZIP(), []int{8}
 }
 
 type ListMyIdentitiesResponse struct {
@@ -624,7 +564,7 @@ type ListMyIdentitiesResponse struct {
 
 func (x *ListMyIdentitiesResponse) Reset() {
 	*x = ListMyIdentitiesResponse{}
-	mi := &file_memoh_private_v1_users_proto_msgTypes[10]
+	mi := &file_memoh_private_v1_users_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -636,7 +576,7 @@ func (x *ListMyIdentitiesResponse) String() string {
 func (*ListMyIdentitiesResponse) ProtoMessage() {}
 
 func (x *ListMyIdentitiesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_users_proto_msgTypes[10]
+	mi := &file_memoh_private_v1_users_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -649,108 +589,12 @@ func (x *ListMyIdentitiesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMyIdentitiesResponse.ProtoReflect.Descriptor instead.
 func (*ListMyIdentitiesResponse) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_users_proto_rawDescGZIP(), []int{10}
+	return file_memoh_private_v1_users_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *ListMyIdentitiesResponse) GetIdentities() []*UserIdentity {
 	if x != nil {
 		return x.Identities
-	}
-	return nil
-}
-
-type IssueBindCodeRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Channel       string                 `protobuf:"bytes,1,opt,name=channel,proto3" json:"channel,omitempty"`
-	TtlSeconds    int32                  `protobuf:"varint,2,opt,name=ttl_seconds,json=ttlSeconds,proto3" json:"ttl_seconds,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *IssueBindCodeRequest) Reset() {
-	*x = IssueBindCodeRequest{}
-	mi := &file_memoh_private_v1_users_proto_msgTypes[11]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *IssueBindCodeRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*IssueBindCodeRequest) ProtoMessage() {}
-
-func (x *IssueBindCodeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_users_proto_msgTypes[11]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use IssueBindCodeRequest.ProtoReflect.Descriptor instead.
-func (*IssueBindCodeRequest) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_users_proto_rawDescGZIP(), []int{11}
-}
-
-func (x *IssueBindCodeRequest) GetChannel() string {
-	if x != nil {
-		return x.Channel
-	}
-	return ""
-}
-
-func (x *IssueBindCodeRequest) GetTtlSeconds() int32 {
-	if x != nil {
-		return x.TtlSeconds
-	}
-	return 0
-}
-
-type IssueBindCodeResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	BindCode      *BindCode              `protobuf:"bytes,1,opt,name=bind_code,json=bindCode,proto3" json:"bind_code,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *IssueBindCodeResponse) Reset() {
-	*x = IssueBindCodeResponse{}
-	mi := &file_memoh_private_v1_users_proto_msgTypes[12]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *IssueBindCodeResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*IssueBindCodeResponse) ProtoMessage() {}
-
-func (x *IssueBindCodeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_users_proto_msgTypes[12]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use IssueBindCodeResponse.ProtoReflect.Descriptor instead.
-func (*IssueBindCodeResponse) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_users_proto_rawDescGZIP(), []int{12}
-}
-
-func (x *IssueBindCodeResponse) GetBindCode() *BindCode {
-	if x != nil {
-		return x.BindCode
 	}
 	return nil
 }
@@ -765,7 +609,7 @@ type ListUsersRequest struct {
 
 func (x *ListUsersRequest) Reset() {
 	*x = ListUsersRequest{}
-	mi := &file_memoh_private_v1_users_proto_msgTypes[13]
+	mi := &file_memoh_private_v1_users_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -777,7 +621,7 @@ func (x *ListUsersRequest) String() string {
 func (*ListUsersRequest) ProtoMessage() {}
 
 func (x *ListUsersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_users_proto_msgTypes[13]
+	mi := &file_memoh_private_v1_users_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -790,7 +634,7 @@ func (x *ListUsersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUsersRequest.ProtoReflect.Descriptor instead.
 func (*ListUsersRequest) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_users_proto_rawDescGZIP(), []int{13}
+	return file_memoh_private_v1_users_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *ListUsersRequest) GetPage() *PageRequest {
@@ -817,7 +661,7 @@ type ListUsersResponse struct {
 
 func (x *ListUsersResponse) Reset() {
 	*x = ListUsersResponse{}
-	mi := &file_memoh_private_v1_users_proto_msgTypes[14]
+	mi := &file_memoh_private_v1_users_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -829,7 +673,7 @@ func (x *ListUsersResponse) String() string {
 func (*ListUsersResponse) ProtoMessage() {}
 
 func (x *ListUsersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_users_proto_msgTypes[14]
+	mi := &file_memoh_private_v1_users_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -842,7 +686,7 @@ func (x *ListUsersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUsersResponse.ProtoReflect.Descriptor instead.
 func (*ListUsersResponse) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_users_proto_rawDescGZIP(), []int{14}
+	return file_memoh_private_v1_users_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *ListUsersResponse) GetUsers() []*User {
@@ -868,7 +712,7 @@ type GetUserRequest struct {
 
 func (x *GetUserRequest) Reset() {
 	*x = GetUserRequest{}
-	mi := &file_memoh_private_v1_users_proto_msgTypes[15]
+	mi := &file_memoh_private_v1_users_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -880,7 +724,7 @@ func (x *GetUserRequest) String() string {
 func (*GetUserRequest) ProtoMessage() {}
 
 func (x *GetUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_users_proto_msgTypes[15]
+	mi := &file_memoh_private_v1_users_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -893,7 +737,7 @@ func (x *GetUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUserRequest.ProtoReflect.Descriptor instead.
 func (*GetUserRequest) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_users_proto_rawDescGZIP(), []int{15}
+	return file_memoh_private_v1_users_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *GetUserRequest) GetId() string {
@@ -912,7 +756,7 @@ type GetUserResponse struct {
 
 func (x *GetUserResponse) Reset() {
 	*x = GetUserResponse{}
-	mi := &file_memoh_private_v1_users_proto_msgTypes[16]
+	mi := &file_memoh_private_v1_users_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -924,7 +768,7 @@ func (x *GetUserResponse) String() string {
 func (*GetUserResponse) ProtoMessage() {}
 
 func (x *GetUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_users_proto_msgTypes[16]
+	mi := &file_memoh_private_v1_users_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -937,7 +781,7 @@ func (x *GetUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUserResponse.ProtoReflect.Descriptor instead.
 func (*GetUserResponse) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_users_proto_rawDescGZIP(), []int{16}
+	return file_memoh_private_v1_users_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *GetUserResponse) GetUser() *User {
@@ -962,7 +806,7 @@ type CreateUserRequest struct {
 
 func (x *CreateUserRequest) Reset() {
 	*x = CreateUserRequest{}
-	mi := &file_memoh_private_v1_users_proto_msgTypes[17]
+	mi := &file_memoh_private_v1_users_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -974,7 +818,7 @@ func (x *CreateUserRequest) String() string {
 func (*CreateUserRequest) ProtoMessage() {}
 
 func (x *CreateUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_users_proto_msgTypes[17]
+	mi := &file_memoh_private_v1_users_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -987,7 +831,7 @@ func (x *CreateUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateUserRequest.ProtoReflect.Descriptor instead.
 func (*CreateUserRequest) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_users_proto_rawDescGZIP(), []int{17}
+	return file_memoh_private_v1_users_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *CreateUserRequest) GetUsername() string {
@@ -1048,7 +892,7 @@ type CreateUserResponse struct {
 
 func (x *CreateUserResponse) Reset() {
 	*x = CreateUserResponse{}
-	mi := &file_memoh_private_v1_users_proto_msgTypes[18]
+	mi := &file_memoh_private_v1_users_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1060,7 +904,7 @@ func (x *CreateUserResponse) String() string {
 func (*CreateUserResponse) ProtoMessage() {}
 
 func (x *CreateUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_users_proto_msgTypes[18]
+	mi := &file_memoh_private_v1_users_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1073,7 +917,7 @@ func (x *CreateUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateUserResponse.ProtoReflect.Descriptor instead.
 func (*CreateUserResponse) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_users_proto_rawDescGZIP(), []int{18}
+	return file_memoh_private_v1_users_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *CreateUserResponse) GetUser() *User {
@@ -1099,7 +943,7 @@ type UpdateUserRequest struct {
 
 func (x *UpdateUserRequest) Reset() {
 	*x = UpdateUserRequest{}
-	mi := &file_memoh_private_v1_users_proto_msgTypes[19]
+	mi := &file_memoh_private_v1_users_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1111,7 +955,7 @@ func (x *UpdateUserRequest) String() string {
 func (*UpdateUserRequest) ProtoMessage() {}
 
 func (x *UpdateUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_users_proto_msgTypes[19]
+	mi := &file_memoh_private_v1_users_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1124,7 +968,7 @@ func (x *UpdateUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserRequest.ProtoReflect.Descriptor instead.
 func (*UpdateUserRequest) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_users_proto_rawDescGZIP(), []int{19}
+	return file_memoh_private_v1_users_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *UpdateUserRequest) GetId() string {
@@ -1192,7 +1036,7 @@ type UpdateUserResponse struct {
 
 func (x *UpdateUserResponse) Reset() {
 	*x = UpdateUserResponse{}
-	mi := &file_memoh_private_v1_users_proto_msgTypes[20]
+	mi := &file_memoh_private_v1_users_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1204,7 +1048,7 @@ func (x *UpdateUserResponse) String() string {
 func (*UpdateUserResponse) ProtoMessage() {}
 
 func (x *UpdateUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_users_proto_msgTypes[20]
+	mi := &file_memoh_private_v1_users_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1217,7 +1061,7 @@ func (x *UpdateUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserResponse.ProtoReflect.Descriptor instead.
 func (*UpdateUserResponse) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_users_proto_rawDescGZIP(), []int{20}
+	return file_memoh_private_v1_users_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *UpdateUserResponse) GetUser() *User {
@@ -1237,7 +1081,7 @@ type ResetUserPasswordRequest struct {
 
 func (x *ResetUserPasswordRequest) Reset() {
 	*x = ResetUserPasswordRequest{}
-	mi := &file_memoh_private_v1_users_proto_msgTypes[21]
+	mi := &file_memoh_private_v1_users_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1249,7 +1093,7 @@ func (x *ResetUserPasswordRequest) String() string {
 func (*ResetUserPasswordRequest) ProtoMessage() {}
 
 func (x *ResetUserPasswordRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_users_proto_msgTypes[21]
+	mi := &file_memoh_private_v1_users_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1262,7 +1106,7 @@ func (x *ResetUserPasswordRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResetUserPasswordRequest.ProtoReflect.Descriptor instead.
 func (*ResetUserPasswordRequest) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_users_proto_rawDescGZIP(), []int{21}
+	return file_memoh_private_v1_users_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *ResetUserPasswordRequest) GetId() string {
@@ -1287,7 +1131,7 @@ type ResetUserPasswordResponse struct {
 
 func (x *ResetUserPasswordResponse) Reset() {
 	*x = ResetUserPasswordResponse{}
-	mi := &file_memoh_private_v1_users_proto_msgTypes[22]
+	mi := &file_memoh_private_v1_users_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1299,7 +1143,7 @@ func (x *ResetUserPasswordResponse) String() string {
 func (*ResetUserPasswordResponse) ProtoMessage() {}
 
 func (x *ResetUserPasswordResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_memoh_private_v1_users_proto_msgTypes[22]
+	mi := &file_memoh_private_v1_users_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1312,7 +1156,7 @@ func (x *ResetUserPasswordResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResetUserPasswordResponse.ProtoReflect.Descriptor instead.
 func (*ResetUserPasswordResponse) Descriptor() ([]byte, []int) {
-	return file_memoh_private_v1_users_proto_rawDescGZIP(), []int{22}
+	return file_memoh_private_v1_users_proto_rawDescGZIP(), []int{19}
 }
 
 var File_memoh_private_v1_users_proto protoreflect.FileDescriptor
@@ -1341,12 +1185,7 @@ const file_memoh_private_v1_users_proto_rawDesc = "" +
 	"externalId\x12!\n" +
 	"\fdisplay_name\x18\x05 \x01(\tR\vdisplayName\x123\n" +
 	"\bmetadata\x18\x06 \x01(\v2\x17.google.protobuf.StructR\bmetadata\x123\n" +
-	"\x05audit\x18\a \x01(\v2\x1d.memoh.private.v1.AuditFieldsR\x05audit\"s\n" +
-	"\bBindCode\x12\x12\n" +
-	"\x04code\x18\x01 \x01(\tR\x04code\x12\x18\n" +
-	"\achannel\x18\x02 \x01(\tR\achannel\x129\n" +
-	"\n" +
-	"expires_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt\"\x17\n" +
+	"\x05audit\x18\a \x01(\v2\x1d.memoh.private.v1.AuditFieldsR\x05audit\"\x17\n" +
 	"\x15GetCurrentUserRequest\"D\n" +
 	"\x16GetCurrentUserResponse\x12*\n" +
 	"\x04user\x18\x01 \x01(\v2\x16.memoh.private.v1.UserR\x04user\"\x8e\x02\n" +
@@ -1371,13 +1210,7 @@ const file_memoh_private_v1_users_proto_rawDesc = "" +
 	"\x18ListMyIdentitiesResponse\x12>\n" +
 	"\n" +
 	"identities\x18\x01 \x03(\v2\x1e.memoh.private.v1.UserIdentityR\n" +
-	"identities\"Q\n" +
-	"\x14IssueBindCodeRequest\x12\x18\n" +
-	"\achannel\x18\x01 \x01(\tR\achannel\x12\x1f\n" +
-	"\vttl_seconds\x18\x02 \x01(\x05R\n" +
-	"ttlSeconds\"P\n" +
-	"\x15IssueBindCodeResponse\x127\n" +
-	"\tbind_code\x18\x01 \x01(\v2\x1a.memoh.private.v1.BindCodeR\bbindCode\"[\n" +
+	"identities\"[\n" +
 	"\x10ListUsersRequest\x121\n" +
 	"\x04page\x18\x01 \x01(\v2\x1d.memoh.private.v1.PageRequestR\x04page\x12\x14\n" +
 	"\x05query\x18\x02 \x01(\tR\x05query\"u\n" +
@@ -1420,13 +1253,12 @@ const file_memoh_private_v1_users_proto_rawDesc = "" +
 	"\x18ResetUserPasswordRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12!\n" +
 	"\fnew_password\x18\x02 \x01(\tR\vnewPassword\"\x1b\n" +
-	"\x19ResetUserPasswordResponse2\xfa\a\n" +
+	"\x19ResetUserPasswordResponse2\x98\a\n" +
 	"\vUserService\x12c\n" +
 	"\x0eGetCurrentUser\x12'.memoh.private.v1.GetCurrentUserRequest\x1a(.memoh.private.v1.GetCurrentUserResponse\x12l\n" +
 	"\x11UpdateCurrentUser\x12*.memoh.private.v1.UpdateCurrentUserRequest\x1a+.memoh.private.v1.UpdateCurrentUserResponse\x12\x84\x01\n" +
 	"\x19UpdateCurrentUserPassword\x122.memoh.private.v1.UpdateCurrentUserPasswordRequest\x1a3.memoh.private.v1.UpdateCurrentUserPasswordResponse\x12i\n" +
-	"\x10ListMyIdentities\x12).memoh.private.v1.ListMyIdentitiesRequest\x1a*.memoh.private.v1.ListMyIdentitiesResponse\x12`\n" +
-	"\rIssueBindCode\x12&.memoh.private.v1.IssueBindCodeRequest\x1a'.memoh.private.v1.IssueBindCodeResponse\x12T\n" +
+	"\x10ListMyIdentities\x12).memoh.private.v1.ListMyIdentitiesRequest\x1a*.memoh.private.v1.ListMyIdentitiesResponse\x12T\n" +
 	"\tListUsers\x12\".memoh.private.v1.ListUsersRequest\x1a#.memoh.private.v1.ListUsersResponse\x12N\n" +
 	"\aGetUser\x12 .memoh.private.v1.GetUserRequest\x1a!.memoh.private.v1.GetUserResponse\x12W\n" +
 	"\n" +
@@ -1447,80 +1279,72 @@ func file_memoh_private_v1_users_proto_rawDescGZIP() []byte {
 	return file_memoh_private_v1_users_proto_rawDescData
 }
 
-var file_memoh_private_v1_users_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
+var file_memoh_private_v1_users_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
 var file_memoh_private_v1_users_proto_goTypes = []any{
 	(*User)(nil),                              // 0: memoh.private.v1.User
 	(*UserIdentity)(nil),                      // 1: memoh.private.v1.UserIdentity
-	(*BindCode)(nil),                          // 2: memoh.private.v1.BindCode
-	(*GetCurrentUserRequest)(nil),             // 3: memoh.private.v1.GetCurrentUserRequest
-	(*GetCurrentUserResponse)(nil),            // 4: memoh.private.v1.GetCurrentUserResponse
-	(*UpdateCurrentUserRequest)(nil),          // 5: memoh.private.v1.UpdateCurrentUserRequest
-	(*UpdateCurrentUserResponse)(nil),         // 6: memoh.private.v1.UpdateCurrentUserResponse
-	(*UpdateCurrentUserPasswordRequest)(nil),  // 7: memoh.private.v1.UpdateCurrentUserPasswordRequest
-	(*UpdateCurrentUserPasswordResponse)(nil), // 8: memoh.private.v1.UpdateCurrentUserPasswordResponse
-	(*ListMyIdentitiesRequest)(nil),           // 9: memoh.private.v1.ListMyIdentitiesRequest
-	(*ListMyIdentitiesResponse)(nil),          // 10: memoh.private.v1.ListMyIdentitiesResponse
-	(*IssueBindCodeRequest)(nil),              // 11: memoh.private.v1.IssueBindCodeRequest
-	(*IssueBindCodeResponse)(nil),             // 12: memoh.private.v1.IssueBindCodeResponse
-	(*ListUsersRequest)(nil),                  // 13: memoh.private.v1.ListUsersRequest
-	(*ListUsersResponse)(nil),                 // 14: memoh.private.v1.ListUsersResponse
-	(*GetUserRequest)(nil),                    // 15: memoh.private.v1.GetUserRequest
-	(*GetUserResponse)(nil),                   // 16: memoh.private.v1.GetUserResponse
-	(*CreateUserRequest)(nil),                 // 17: memoh.private.v1.CreateUserRequest
-	(*CreateUserResponse)(nil),                // 18: memoh.private.v1.CreateUserResponse
-	(*UpdateUserRequest)(nil),                 // 19: memoh.private.v1.UpdateUserRequest
-	(*UpdateUserResponse)(nil),                // 20: memoh.private.v1.UpdateUserResponse
-	(*ResetUserPasswordRequest)(nil),          // 21: memoh.private.v1.ResetUserPasswordRequest
-	(*ResetUserPasswordResponse)(nil),         // 22: memoh.private.v1.ResetUserPasswordResponse
-	(*structpb.Struct)(nil),                   // 23: google.protobuf.Struct
-	(*AuditFields)(nil),                       // 24: memoh.private.v1.AuditFields
-	(*timestamppb.Timestamp)(nil),             // 25: google.protobuf.Timestamp
-	(*PageRequest)(nil),                       // 26: memoh.private.v1.PageRequest
-	(*PageResponse)(nil),                      // 27: memoh.private.v1.PageResponse
+	(*GetCurrentUserRequest)(nil),             // 2: memoh.private.v1.GetCurrentUserRequest
+	(*GetCurrentUserResponse)(nil),            // 3: memoh.private.v1.GetCurrentUserResponse
+	(*UpdateCurrentUserRequest)(nil),          // 4: memoh.private.v1.UpdateCurrentUserRequest
+	(*UpdateCurrentUserResponse)(nil),         // 5: memoh.private.v1.UpdateCurrentUserResponse
+	(*UpdateCurrentUserPasswordRequest)(nil),  // 6: memoh.private.v1.UpdateCurrentUserPasswordRequest
+	(*UpdateCurrentUserPasswordResponse)(nil), // 7: memoh.private.v1.UpdateCurrentUserPasswordResponse
+	(*ListMyIdentitiesRequest)(nil),           // 8: memoh.private.v1.ListMyIdentitiesRequest
+	(*ListMyIdentitiesResponse)(nil),          // 9: memoh.private.v1.ListMyIdentitiesResponse
+	(*ListUsersRequest)(nil),                  // 10: memoh.private.v1.ListUsersRequest
+	(*ListUsersResponse)(nil),                 // 11: memoh.private.v1.ListUsersResponse
+	(*GetUserRequest)(nil),                    // 12: memoh.private.v1.GetUserRequest
+	(*GetUserResponse)(nil),                   // 13: memoh.private.v1.GetUserResponse
+	(*CreateUserRequest)(nil),                 // 14: memoh.private.v1.CreateUserRequest
+	(*CreateUserResponse)(nil),                // 15: memoh.private.v1.CreateUserResponse
+	(*UpdateUserRequest)(nil),                 // 16: memoh.private.v1.UpdateUserRequest
+	(*UpdateUserResponse)(nil),                // 17: memoh.private.v1.UpdateUserResponse
+	(*ResetUserPasswordRequest)(nil),          // 18: memoh.private.v1.ResetUserPasswordRequest
+	(*ResetUserPasswordResponse)(nil),         // 19: memoh.private.v1.ResetUserPasswordResponse
+	(*structpb.Struct)(nil),                   // 20: google.protobuf.Struct
+	(*AuditFields)(nil),                       // 21: memoh.private.v1.AuditFields
+	(*PageRequest)(nil),                       // 22: memoh.private.v1.PageRequest
+	(*PageResponse)(nil),                      // 23: memoh.private.v1.PageResponse
 }
 var file_memoh_private_v1_users_proto_depIdxs = []int32{
-	23, // 0: memoh.private.v1.User.metadata:type_name -> google.protobuf.Struct
-	24, // 1: memoh.private.v1.User.audit:type_name -> memoh.private.v1.AuditFields
-	23, // 2: memoh.private.v1.UserIdentity.metadata:type_name -> google.protobuf.Struct
-	24, // 3: memoh.private.v1.UserIdentity.audit:type_name -> memoh.private.v1.AuditFields
-	25, // 4: memoh.private.v1.BindCode.expires_at:type_name -> google.protobuf.Timestamp
-	0,  // 5: memoh.private.v1.GetCurrentUserResponse.user:type_name -> memoh.private.v1.User
-	23, // 6: memoh.private.v1.UpdateCurrentUserRequest.metadata:type_name -> google.protobuf.Struct
-	0,  // 7: memoh.private.v1.UpdateCurrentUserResponse.user:type_name -> memoh.private.v1.User
-	1,  // 8: memoh.private.v1.ListMyIdentitiesResponse.identities:type_name -> memoh.private.v1.UserIdentity
-	2,  // 9: memoh.private.v1.IssueBindCodeResponse.bind_code:type_name -> memoh.private.v1.BindCode
-	26, // 10: memoh.private.v1.ListUsersRequest.page:type_name -> memoh.private.v1.PageRequest
-	0,  // 11: memoh.private.v1.ListUsersResponse.users:type_name -> memoh.private.v1.User
-	27, // 12: memoh.private.v1.ListUsersResponse.page:type_name -> memoh.private.v1.PageResponse
-	0,  // 13: memoh.private.v1.GetUserResponse.user:type_name -> memoh.private.v1.User
-	0,  // 14: memoh.private.v1.CreateUserResponse.user:type_name -> memoh.private.v1.User
-	23, // 15: memoh.private.v1.UpdateUserRequest.metadata:type_name -> google.protobuf.Struct
-	0,  // 16: memoh.private.v1.UpdateUserResponse.user:type_name -> memoh.private.v1.User
-	3,  // 17: memoh.private.v1.UserService.GetCurrentUser:input_type -> memoh.private.v1.GetCurrentUserRequest
-	5,  // 18: memoh.private.v1.UserService.UpdateCurrentUser:input_type -> memoh.private.v1.UpdateCurrentUserRequest
-	7,  // 19: memoh.private.v1.UserService.UpdateCurrentUserPassword:input_type -> memoh.private.v1.UpdateCurrentUserPasswordRequest
-	9,  // 20: memoh.private.v1.UserService.ListMyIdentities:input_type -> memoh.private.v1.ListMyIdentitiesRequest
-	11, // 21: memoh.private.v1.UserService.IssueBindCode:input_type -> memoh.private.v1.IssueBindCodeRequest
-	13, // 22: memoh.private.v1.UserService.ListUsers:input_type -> memoh.private.v1.ListUsersRequest
-	15, // 23: memoh.private.v1.UserService.GetUser:input_type -> memoh.private.v1.GetUserRequest
-	17, // 24: memoh.private.v1.UserService.CreateUser:input_type -> memoh.private.v1.CreateUserRequest
-	19, // 25: memoh.private.v1.UserService.UpdateUser:input_type -> memoh.private.v1.UpdateUserRequest
-	21, // 26: memoh.private.v1.UserService.ResetUserPassword:input_type -> memoh.private.v1.ResetUserPasswordRequest
-	4,  // 27: memoh.private.v1.UserService.GetCurrentUser:output_type -> memoh.private.v1.GetCurrentUserResponse
-	6,  // 28: memoh.private.v1.UserService.UpdateCurrentUser:output_type -> memoh.private.v1.UpdateCurrentUserResponse
-	8,  // 29: memoh.private.v1.UserService.UpdateCurrentUserPassword:output_type -> memoh.private.v1.UpdateCurrentUserPasswordResponse
-	10, // 30: memoh.private.v1.UserService.ListMyIdentities:output_type -> memoh.private.v1.ListMyIdentitiesResponse
-	12, // 31: memoh.private.v1.UserService.IssueBindCode:output_type -> memoh.private.v1.IssueBindCodeResponse
-	14, // 32: memoh.private.v1.UserService.ListUsers:output_type -> memoh.private.v1.ListUsersResponse
-	16, // 33: memoh.private.v1.UserService.GetUser:output_type -> memoh.private.v1.GetUserResponse
-	18, // 34: memoh.private.v1.UserService.CreateUser:output_type -> memoh.private.v1.CreateUserResponse
-	20, // 35: memoh.private.v1.UserService.UpdateUser:output_type -> memoh.private.v1.UpdateUserResponse
-	22, // 36: memoh.private.v1.UserService.ResetUserPassword:output_type -> memoh.private.v1.ResetUserPasswordResponse
-	27, // [27:37] is the sub-list for method output_type
-	17, // [17:27] is the sub-list for method input_type
-	17, // [17:17] is the sub-list for extension type_name
-	17, // [17:17] is the sub-list for extension extendee
-	0,  // [0:17] is the sub-list for field type_name
+	20, // 0: memoh.private.v1.User.metadata:type_name -> google.protobuf.Struct
+	21, // 1: memoh.private.v1.User.audit:type_name -> memoh.private.v1.AuditFields
+	20, // 2: memoh.private.v1.UserIdentity.metadata:type_name -> google.protobuf.Struct
+	21, // 3: memoh.private.v1.UserIdentity.audit:type_name -> memoh.private.v1.AuditFields
+	0,  // 4: memoh.private.v1.GetCurrentUserResponse.user:type_name -> memoh.private.v1.User
+	20, // 5: memoh.private.v1.UpdateCurrentUserRequest.metadata:type_name -> google.protobuf.Struct
+	0,  // 6: memoh.private.v1.UpdateCurrentUserResponse.user:type_name -> memoh.private.v1.User
+	1,  // 7: memoh.private.v1.ListMyIdentitiesResponse.identities:type_name -> memoh.private.v1.UserIdentity
+	22, // 8: memoh.private.v1.ListUsersRequest.page:type_name -> memoh.private.v1.PageRequest
+	0,  // 9: memoh.private.v1.ListUsersResponse.users:type_name -> memoh.private.v1.User
+	23, // 10: memoh.private.v1.ListUsersResponse.page:type_name -> memoh.private.v1.PageResponse
+	0,  // 11: memoh.private.v1.GetUserResponse.user:type_name -> memoh.private.v1.User
+	0,  // 12: memoh.private.v1.CreateUserResponse.user:type_name -> memoh.private.v1.User
+	20, // 13: memoh.private.v1.UpdateUserRequest.metadata:type_name -> google.protobuf.Struct
+	0,  // 14: memoh.private.v1.UpdateUserResponse.user:type_name -> memoh.private.v1.User
+	2,  // 15: memoh.private.v1.UserService.GetCurrentUser:input_type -> memoh.private.v1.GetCurrentUserRequest
+	4,  // 16: memoh.private.v1.UserService.UpdateCurrentUser:input_type -> memoh.private.v1.UpdateCurrentUserRequest
+	6,  // 17: memoh.private.v1.UserService.UpdateCurrentUserPassword:input_type -> memoh.private.v1.UpdateCurrentUserPasswordRequest
+	8,  // 18: memoh.private.v1.UserService.ListMyIdentities:input_type -> memoh.private.v1.ListMyIdentitiesRequest
+	10, // 19: memoh.private.v1.UserService.ListUsers:input_type -> memoh.private.v1.ListUsersRequest
+	12, // 20: memoh.private.v1.UserService.GetUser:input_type -> memoh.private.v1.GetUserRequest
+	14, // 21: memoh.private.v1.UserService.CreateUser:input_type -> memoh.private.v1.CreateUserRequest
+	16, // 22: memoh.private.v1.UserService.UpdateUser:input_type -> memoh.private.v1.UpdateUserRequest
+	18, // 23: memoh.private.v1.UserService.ResetUserPassword:input_type -> memoh.private.v1.ResetUserPasswordRequest
+	3,  // 24: memoh.private.v1.UserService.GetCurrentUser:output_type -> memoh.private.v1.GetCurrentUserResponse
+	5,  // 25: memoh.private.v1.UserService.UpdateCurrentUser:output_type -> memoh.private.v1.UpdateCurrentUserResponse
+	7,  // 26: memoh.private.v1.UserService.UpdateCurrentUserPassword:output_type -> memoh.private.v1.UpdateCurrentUserPasswordResponse
+	9,  // 27: memoh.private.v1.UserService.ListMyIdentities:output_type -> memoh.private.v1.ListMyIdentitiesResponse
+	11, // 28: memoh.private.v1.UserService.ListUsers:output_type -> memoh.private.v1.ListUsersResponse
+	13, // 29: memoh.private.v1.UserService.GetUser:output_type -> memoh.private.v1.GetUserResponse
+	15, // 30: memoh.private.v1.UserService.CreateUser:output_type -> memoh.private.v1.CreateUserResponse
+	17, // 31: memoh.private.v1.UserService.UpdateUser:output_type -> memoh.private.v1.UpdateUserResponse
+	19, // 32: memoh.private.v1.UserService.ResetUserPassword:output_type -> memoh.private.v1.ResetUserPasswordResponse
+	24, // [24:33] is the sub-list for method output_type
+	15, // [15:24] is the sub-list for method input_type
+	15, // [15:15] is the sub-list for extension type_name
+	15, // [15:15] is the sub-list for extension extendee
+	0,  // [0:15] is the sub-list for field type_name
 }
 
 func init() { file_memoh_private_v1_users_proto_init() }
@@ -1529,15 +1353,15 @@ func file_memoh_private_v1_users_proto_init() {
 		return
 	}
 	file_memoh_private_v1_common_proto_init()
-	file_memoh_private_v1_users_proto_msgTypes[5].OneofWrappers = []any{}
-	file_memoh_private_v1_users_proto_msgTypes[19].OneofWrappers = []any{}
+	file_memoh_private_v1_users_proto_msgTypes[4].OneofWrappers = []any{}
+	file_memoh_private_v1_users_proto_msgTypes[16].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_memoh_private_v1_users_proto_rawDesc), len(file_memoh_private_v1_users_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   23,
+			NumMessages:   20,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

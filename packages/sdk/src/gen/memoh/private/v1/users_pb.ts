@@ -4,7 +4,6 @@
 
 import type { GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegenv2";
 import { fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
-import type { Timestamp } from "@bufbuild/protobuf/wkt";
 import {
   file_google_protobuf_struct,
   file_google_protobuf_timestamp,
@@ -17,7 +16,7 @@ import type { JsonObject, Message } from "@bufbuild/protobuf";
  * Describes the file memoh/private/v1/users.proto.
  */
 export const file_memoh_private_v1_users: GenFile /*@__PURE__*/ = fileDesc(
-  "ChxtZW1vaC9wcml2YXRlL3YxL3VzZXJzLnByb3RvEhBtZW1vaC5wcml2YXRlLnYxIukBCgRVc2VyEgoKAmlkGAEgASgJEhAKCHVzZXJuYW1lGAIgASgJEg0KBWVtYWlsGAMgASgJEgwKBHJvbGUYBCABKAkSFAoMZGlzcGxheV9uYW1lGAUgASgJEhIKCmF2YXRhcl91cmwYBiABKAkSEAoIdGltZXpvbmUYByABKAkSEQoJaXNfYWN0aXZlGAggASgIEikKCG1ldGFkYXRhGAkgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdBIsCgVhdWRpdBgKIAEoCzIdLm1lbW9oLnByaXZhdGUudjEuQXVkaXRGaWVsZHMiwAEKDFVzZXJJZGVudGl0eRIKCgJpZBgBIAEoCRIPCgd1c2VyX2lkGAIgASgJEg8KB2NoYW5uZWwYAyABKAkSEwoLZXh0ZXJuYWxfaWQYBCABKAkSFAoMZGlzcGxheV9uYW1lGAUgASgJEikKCG1ldGFkYXRhGAYgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdBIsCgVhdWRpdBgHIAEoCzIdLm1lbW9oLnByaXZhdGUudjEuQXVkaXRGaWVsZHMiWQoIQmluZENvZGUSDAoEY29kZRgBIAEoCRIPCgdjaGFubmVsGAIgASgJEi4KCmV4cGlyZXNfYXQYAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wIhcKFUdldEN1cnJlbnRVc2VyUmVxdWVzdCI+ChZHZXRDdXJyZW50VXNlclJlc3BvbnNlEiQKBHVzZXIYASABKAsyFi5tZW1vaC5wcml2YXRlLnYxLlVzZXIi2wEKGFVwZGF0ZUN1cnJlbnRVc2VyUmVxdWVzdBISCgVlbWFpbBgBIAEoCUgAiAEBEhkKDGRpc3BsYXlfbmFtZRgCIAEoCUgBiAEBEhcKCmF2YXRhcl91cmwYAyABKAlIAogBARIVCgh0aW1lem9uZRgEIAEoCUgDiAEBEikKCG1ldGFkYXRhGAUgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdEIICgZfZW1haWxCDwoNX2Rpc3BsYXlfbmFtZUINCgtfYXZhdGFyX3VybEILCglfdGltZXpvbmUiQQoZVXBkYXRlQ3VycmVudFVzZXJSZXNwb25zZRIkCgR1c2VyGAEgASgLMhYubWVtb2gucHJpdmF0ZS52MS5Vc2VyIlIKIFVwZGF0ZUN1cnJlbnRVc2VyUGFzc3dvcmRSZXF1ZXN0EhgKEGN1cnJlbnRfcGFzc3dvcmQYASABKAkSFAoMbmV3X3Bhc3N3b3JkGAIgASgJIiMKIVVwZGF0ZUN1cnJlbnRVc2VyUGFzc3dvcmRSZXNwb25zZSIZChdMaXN0TXlJZGVudGl0aWVzUmVxdWVzdCJOChhMaXN0TXlJZGVudGl0aWVzUmVzcG9uc2USMgoKaWRlbnRpdGllcxgBIAMoCzIeLm1lbW9oLnByaXZhdGUudjEuVXNlcklkZW50aXR5IjwKFElzc3VlQmluZENvZGVSZXF1ZXN0Eg8KB2NoYW5uZWwYASABKAkSEwoLdHRsX3NlY29uZHMYAiABKAUiRgoVSXNzdWVCaW5kQ29kZVJlc3BvbnNlEi0KCWJpbmRfY29kZRgBIAEoCzIaLm1lbW9oLnByaXZhdGUudjEuQmluZENvZGUiTgoQTGlzdFVzZXJzUmVxdWVzdBIrCgRwYWdlGAEgASgLMh0ubWVtb2gucHJpdmF0ZS52MS5QYWdlUmVxdWVzdBINCgVxdWVyeRgCIAEoCSJoChFMaXN0VXNlcnNSZXNwb25zZRIlCgV1c2VycxgBIAMoCzIWLm1lbW9oLnByaXZhdGUudjEuVXNlchIsCgRwYWdlGAIgASgLMh4ubWVtb2gucHJpdmF0ZS52MS5QYWdlUmVzcG9uc2UiHAoOR2V0VXNlclJlcXVlc3QSCgoCaWQYASABKAkiNwoPR2V0VXNlclJlc3BvbnNlEiQKBHVzZXIYASABKAsyFi5tZW1vaC5wcml2YXRlLnYxLlVzZXIijwEKEUNyZWF0ZVVzZXJSZXF1ZXN0EhAKCHVzZXJuYW1lGAEgASgJEg0KBWVtYWlsGAIgASgJEhAKCHBhc3N3b3JkGAMgASgJEgwKBHJvbGUYBCABKAkSFAoMZGlzcGxheV9uYW1lGAUgASgJEhAKCHRpbWV6b25lGAYgASgJEhEKCWlzX2FjdGl2ZRgHIAEoCCI6ChJDcmVhdGVVc2VyUmVzcG9uc2USJAoEdXNlchgBIAEoCzIWLm1lbW9oLnByaXZhdGUudjEuVXNlciKiAgoRVXBkYXRlVXNlclJlcXVlc3QSCgoCaWQYASABKAkSEgoFZW1haWwYAiABKAlIAIgBARIRCgRyb2xlGAMgASgJSAGIAQESGQoMZGlzcGxheV9uYW1lGAQgASgJSAKIAQESFwoKYXZhdGFyX3VybBgFIAEoCUgDiAEBEhUKCHRpbWV6b25lGAYgASgJSASIAQESFgoJaXNfYWN0aXZlGAcgASgISAWIAQESKQoIbWV0YWRhdGEYCCABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0QggKBl9lbWFpbEIHCgVfcm9sZUIPCg1fZGlzcGxheV9uYW1lQg0KC19hdmF0YXJfdXJsQgsKCV90aW1lem9uZUIMCgpfaXNfYWN0aXZlIjoKElVwZGF0ZVVzZXJSZXNwb25zZRIkCgR1c2VyGAEgASgLMhYubWVtb2gucHJpdmF0ZS52MS5Vc2VyIjwKGFJlc2V0VXNlclBhc3N3b3JkUmVxdWVzdBIKCgJpZBgBIAEoCRIUCgxuZXdfcGFzc3dvcmQYAiABKAkiGwoZUmVzZXRVc2VyUGFzc3dvcmRSZXNwb25zZTL6BwoLVXNlclNlcnZpY2USYwoOR2V0Q3VycmVudFVzZXISJy5tZW1vaC5wcml2YXRlLnYxLkdldEN1cnJlbnRVc2VyUmVxdWVzdBooLm1lbW9oLnByaXZhdGUudjEuR2V0Q3VycmVudFVzZXJSZXNwb25zZRJsChFVcGRhdGVDdXJyZW50VXNlchIqLm1lbW9oLnByaXZhdGUudjEuVXBkYXRlQ3VycmVudFVzZXJSZXF1ZXN0GisubWVtb2gucHJpdmF0ZS52MS5VcGRhdGVDdXJyZW50VXNlclJlc3BvbnNlEoQBChlVcGRhdGVDdXJyZW50VXNlclBhc3N3b3JkEjIubWVtb2gucHJpdmF0ZS52MS5VcGRhdGVDdXJyZW50VXNlclBhc3N3b3JkUmVxdWVzdBozLm1lbW9oLnByaXZhdGUudjEuVXBkYXRlQ3VycmVudFVzZXJQYXNzd29yZFJlc3BvbnNlEmkKEExpc3RNeUlkZW50aXRpZXMSKS5tZW1vaC5wcml2YXRlLnYxLkxpc3RNeUlkZW50aXRpZXNSZXF1ZXN0GioubWVtb2gucHJpdmF0ZS52MS5MaXN0TXlJZGVudGl0aWVzUmVzcG9uc2USYAoNSXNzdWVCaW5kQ29kZRImLm1lbW9oLnByaXZhdGUudjEuSXNzdWVCaW5kQ29kZVJlcXVlc3QaJy5tZW1vaC5wcml2YXRlLnYxLklzc3VlQmluZENvZGVSZXNwb25zZRJUCglMaXN0VXNlcnMSIi5tZW1vaC5wcml2YXRlLnYxLkxpc3RVc2Vyc1JlcXVlc3QaIy5tZW1vaC5wcml2YXRlLnYxLkxpc3RVc2Vyc1Jlc3BvbnNlEk4KB0dldFVzZXISIC5tZW1vaC5wcml2YXRlLnYxLkdldFVzZXJSZXF1ZXN0GiEubWVtb2gucHJpdmF0ZS52MS5HZXRVc2VyUmVzcG9uc2USVwoKQ3JlYXRlVXNlchIjLm1lbW9oLnByaXZhdGUudjEuQ3JlYXRlVXNlclJlcXVlc3QaJC5tZW1vaC5wcml2YXRlLnYxLkNyZWF0ZVVzZXJSZXNwb25zZRJXCgpVcGRhdGVVc2VyEiMubWVtb2gucHJpdmF0ZS52MS5VcGRhdGVVc2VyUmVxdWVzdBokLm1lbW9oLnByaXZhdGUudjEuVXBkYXRlVXNlclJlc3BvbnNlEmwKEVJlc2V0VXNlclBhc3N3b3JkEioubWVtb2gucHJpdmF0ZS52MS5SZXNldFVzZXJQYXNzd29yZFJlcXVlc3QaKy5tZW1vaC5wcml2YXRlLnYxLlJlc2V0VXNlclBhc3N3b3JkUmVzcG9uc2VCTVpLZ2l0aHViLmNvbS9tZW1vaGFpL21lbW9oL2ludGVybmFsL2Nvbm5lY3RhcGkvZ2VuL21lbW9oL3ByaXZhdGUvdjE7cHJpdmF0ZXYxYgZwcm90bzM",
+  "ChxtZW1vaC9wcml2YXRlL3YxL3VzZXJzLnByb3RvEhBtZW1vaC5wcml2YXRlLnYxIukBCgRVc2VyEgoKAmlkGAEgASgJEhAKCHVzZXJuYW1lGAIgASgJEg0KBWVtYWlsGAMgASgJEgwKBHJvbGUYBCABKAkSFAoMZGlzcGxheV9uYW1lGAUgASgJEhIKCmF2YXRhcl91cmwYBiABKAkSEAoIdGltZXpvbmUYByABKAkSEQoJaXNfYWN0aXZlGAggASgIEikKCG1ldGFkYXRhGAkgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdBIsCgVhdWRpdBgKIAEoCzIdLm1lbW9oLnByaXZhdGUudjEuQXVkaXRGaWVsZHMiwAEKDFVzZXJJZGVudGl0eRIKCgJpZBgBIAEoCRIPCgd1c2VyX2lkGAIgASgJEg8KB2NoYW5uZWwYAyABKAkSEwoLZXh0ZXJuYWxfaWQYBCABKAkSFAoMZGlzcGxheV9uYW1lGAUgASgJEikKCG1ldGFkYXRhGAYgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdBIsCgVhdWRpdBgHIAEoCzIdLm1lbW9oLnByaXZhdGUudjEuQXVkaXRGaWVsZHMiFwoVR2V0Q3VycmVudFVzZXJSZXF1ZXN0Ij4KFkdldEN1cnJlbnRVc2VyUmVzcG9uc2USJAoEdXNlchgBIAEoCzIWLm1lbW9oLnByaXZhdGUudjEuVXNlciLbAQoYVXBkYXRlQ3VycmVudFVzZXJSZXF1ZXN0EhIKBWVtYWlsGAEgASgJSACIAQESGQoMZGlzcGxheV9uYW1lGAIgASgJSAGIAQESFwoKYXZhdGFyX3VybBgDIAEoCUgCiAEBEhUKCHRpbWV6b25lGAQgASgJSAOIAQESKQoIbWV0YWRhdGEYBSABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0QggKBl9lbWFpbEIPCg1fZGlzcGxheV9uYW1lQg0KC19hdmF0YXJfdXJsQgsKCV90aW1lem9uZSJBChlVcGRhdGVDdXJyZW50VXNlclJlc3BvbnNlEiQKBHVzZXIYASABKAsyFi5tZW1vaC5wcml2YXRlLnYxLlVzZXIiUgogVXBkYXRlQ3VycmVudFVzZXJQYXNzd29yZFJlcXVlc3QSGAoQY3VycmVudF9wYXNzd29yZBgBIAEoCRIUCgxuZXdfcGFzc3dvcmQYAiABKAkiIwohVXBkYXRlQ3VycmVudFVzZXJQYXNzd29yZFJlc3BvbnNlIhkKF0xpc3RNeUlkZW50aXRpZXNSZXF1ZXN0Ik4KGExpc3RNeUlkZW50aXRpZXNSZXNwb25zZRIyCgppZGVudGl0aWVzGAEgAygLMh4ubWVtb2gucHJpdmF0ZS52MS5Vc2VySWRlbnRpdHkiTgoQTGlzdFVzZXJzUmVxdWVzdBIrCgRwYWdlGAEgASgLMh0ubWVtb2gucHJpdmF0ZS52MS5QYWdlUmVxdWVzdBINCgVxdWVyeRgCIAEoCSJoChFMaXN0VXNlcnNSZXNwb25zZRIlCgV1c2VycxgBIAMoCzIWLm1lbW9oLnByaXZhdGUudjEuVXNlchIsCgRwYWdlGAIgASgLMh4ubWVtb2gucHJpdmF0ZS52MS5QYWdlUmVzcG9uc2UiHAoOR2V0VXNlclJlcXVlc3QSCgoCaWQYASABKAkiNwoPR2V0VXNlclJlc3BvbnNlEiQKBHVzZXIYASABKAsyFi5tZW1vaC5wcml2YXRlLnYxLlVzZXIijwEKEUNyZWF0ZVVzZXJSZXF1ZXN0EhAKCHVzZXJuYW1lGAEgASgJEg0KBWVtYWlsGAIgASgJEhAKCHBhc3N3b3JkGAMgASgJEgwKBHJvbGUYBCABKAkSFAoMZGlzcGxheV9uYW1lGAUgASgJEhAKCHRpbWV6b25lGAYgASgJEhEKCWlzX2FjdGl2ZRgHIAEoCCI6ChJDcmVhdGVVc2VyUmVzcG9uc2USJAoEdXNlchgBIAEoCzIWLm1lbW9oLnByaXZhdGUudjEuVXNlciKiAgoRVXBkYXRlVXNlclJlcXVlc3QSCgoCaWQYASABKAkSEgoFZW1haWwYAiABKAlIAIgBARIRCgRyb2xlGAMgASgJSAGIAQESGQoMZGlzcGxheV9uYW1lGAQgASgJSAKIAQESFwoKYXZhdGFyX3VybBgFIAEoCUgDiAEBEhUKCHRpbWV6b25lGAYgASgJSASIAQESFgoJaXNfYWN0aXZlGAcgASgISAWIAQESKQoIbWV0YWRhdGEYCCABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0QggKBl9lbWFpbEIHCgVfcm9sZUIPCg1fZGlzcGxheV9uYW1lQg0KC19hdmF0YXJfdXJsQgsKCV90aW1lem9uZUIMCgpfaXNfYWN0aXZlIjoKElVwZGF0ZVVzZXJSZXNwb25zZRIkCgR1c2VyGAEgASgLMhYubWVtb2gucHJpdmF0ZS52MS5Vc2VyIjwKGFJlc2V0VXNlclBhc3N3b3JkUmVxdWVzdBIKCgJpZBgBIAEoCRIUCgxuZXdfcGFzc3dvcmQYAiABKAkiGwoZUmVzZXRVc2VyUGFzc3dvcmRSZXNwb25zZTKYBwoLVXNlclNlcnZpY2USYwoOR2V0Q3VycmVudFVzZXISJy5tZW1vaC5wcml2YXRlLnYxLkdldEN1cnJlbnRVc2VyUmVxdWVzdBooLm1lbW9oLnByaXZhdGUudjEuR2V0Q3VycmVudFVzZXJSZXNwb25zZRJsChFVcGRhdGVDdXJyZW50VXNlchIqLm1lbW9oLnByaXZhdGUudjEuVXBkYXRlQ3VycmVudFVzZXJSZXF1ZXN0GisubWVtb2gucHJpdmF0ZS52MS5VcGRhdGVDdXJyZW50VXNlclJlc3BvbnNlEoQBChlVcGRhdGVDdXJyZW50VXNlclBhc3N3b3JkEjIubWVtb2gucHJpdmF0ZS52MS5VcGRhdGVDdXJyZW50VXNlclBhc3N3b3JkUmVxdWVzdBozLm1lbW9oLnByaXZhdGUudjEuVXBkYXRlQ3VycmVudFVzZXJQYXNzd29yZFJlc3BvbnNlEmkKEExpc3RNeUlkZW50aXRpZXMSKS5tZW1vaC5wcml2YXRlLnYxLkxpc3RNeUlkZW50aXRpZXNSZXF1ZXN0GioubWVtb2gucHJpdmF0ZS52MS5MaXN0TXlJZGVudGl0aWVzUmVzcG9uc2USVAoJTGlzdFVzZXJzEiIubWVtb2gucHJpdmF0ZS52MS5MaXN0VXNlcnNSZXF1ZXN0GiMubWVtb2gucHJpdmF0ZS52MS5MaXN0VXNlcnNSZXNwb25zZRJOCgdHZXRVc2VyEiAubWVtb2gucHJpdmF0ZS52MS5HZXRVc2VyUmVxdWVzdBohLm1lbW9oLnByaXZhdGUudjEuR2V0VXNlclJlc3BvbnNlElcKCkNyZWF0ZVVzZXISIy5tZW1vaC5wcml2YXRlLnYxLkNyZWF0ZVVzZXJSZXF1ZXN0GiQubWVtb2gucHJpdmF0ZS52MS5DcmVhdGVVc2VyUmVzcG9uc2USVwoKVXBkYXRlVXNlchIjLm1lbW9oLnByaXZhdGUudjEuVXBkYXRlVXNlclJlcXVlc3QaJC5tZW1vaC5wcml2YXRlLnYxLlVwZGF0ZVVzZXJSZXNwb25zZRJsChFSZXNldFVzZXJQYXNzd29yZBIqLm1lbW9oLnByaXZhdGUudjEuUmVzZXRVc2VyUGFzc3dvcmRSZXF1ZXN0GisubWVtb2gucHJpdmF0ZS52MS5SZXNldFVzZXJQYXNzd29yZFJlc3BvbnNlQk1aS2dpdGh1Yi5jb20vbWVtb2hhaS9tZW1vaC9pbnRlcm5hbC9jb25uZWN0YXBpL2dlbi9tZW1vaC9wcml2YXRlL3YxO3ByaXZhdGV2MWIGcHJvdG8z",
   [file_google_protobuf_struct, file_google_protobuf_timestamp, file_memoh_private_v1_common],
 );
 
@@ -135,35 +134,6 @@ export const UserIdentitySchema: GenMessage<UserIdentity> /*@__PURE__*/ = messag
 );
 
 /**
- * @generated from message memoh.private.v1.BindCode
- */
-export type BindCode = Message<"memoh.private.v1.BindCode"> & {
-  /**
-   * @generated from field: string code = 1;
-   */
-  code: string;
-
-  /**
-   * @generated from field: string channel = 2;
-   */
-  channel: string;
-
-  /**
-   * @generated from field: google.protobuf.Timestamp expires_at = 3;
-   */
-  expiresAt?: Timestamp | undefined;
-};
-
-/**
- * Describes the message memoh.private.v1.BindCode.
- * Use `create(BindCodeSchema)` to create a new message.
- */
-export const BindCodeSchema: GenMessage<BindCode> /*@__PURE__*/ = messageDesc(
-  file_memoh_private_v1_users,
-  2,
-);
-
-/**
  * @generated from message memoh.private.v1.GetCurrentUserRequest
  */
 export type GetCurrentUserRequest = Message<"memoh.private.v1.GetCurrentUserRequest"> & {};
@@ -173,7 +143,7 @@ export type GetCurrentUserRequest = Message<"memoh.private.v1.GetCurrentUserRequ
  * Use `create(GetCurrentUserRequestSchema)` to create a new message.
  */
 export const GetCurrentUserRequestSchema: GenMessage<GetCurrentUserRequest> /*@__PURE__*/ =
-  messageDesc(file_memoh_private_v1_users, 3);
+  messageDesc(file_memoh_private_v1_users, 2);
 
 /**
  * @generated from message memoh.private.v1.GetCurrentUserResponse
@@ -190,7 +160,7 @@ export type GetCurrentUserResponse = Message<"memoh.private.v1.GetCurrentUserRes
  * Use `create(GetCurrentUserResponseSchema)` to create a new message.
  */
 export const GetCurrentUserResponseSchema: GenMessage<GetCurrentUserResponse> /*@__PURE__*/ =
-  messageDesc(file_memoh_private_v1_users, 4);
+  messageDesc(file_memoh_private_v1_users, 3);
 
 /**
  * @generated from message memoh.private.v1.UpdateCurrentUserRequest
@@ -227,7 +197,7 @@ export type UpdateCurrentUserRequest = Message<"memoh.private.v1.UpdateCurrentUs
  * Use `create(UpdateCurrentUserRequestSchema)` to create a new message.
  */
 export const UpdateCurrentUserRequestSchema: GenMessage<UpdateCurrentUserRequest> /*@__PURE__*/ =
-  messageDesc(file_memoh_private_v1_users, 5);
+  messageDesc(file_memoh_private_v1_users, 4);
 
 /**
  * @generated from message memoh.private.v1.UpdateCurrentUserResponse
@@ -244,7 +214,7 @@ export type UpdateCurrentUserResponse = Message<"memoh.private.v1.UpdateCurrentU
  * Use `create(UpdateCurrentUserResponseSchema)` to create a new message.
  */
 export const UpdateCurrentUserResponseSchema: GenMessage<UpdateCurrentUserResponse> /*@__PURE__*/ =
-  messageDesc(file_memoh_private_v1_users, 6);
+  messageDesc(file_memoh_private_v1_users, 5);
 
 /**
  * @generated from message memoh.private.v1.UpdateCurrentUserPasswordRequest
@@ -267,7 +237,7 @@ export type UpdateCurrentUserPasswordRequest =
  * Use `create(UpdateCurrentUserPasswordRequestSchema)` to create a new message.
  */
 export const UpdateCurrentUserPasswordRequestSchema: GenMessage<UpdateCurrentUserPasswordRequest> /*@__PURE__*/ =
-  messageDesc(file_memoh_private_v1_users, 7);
+  messageDesc(file_memoh_private_v1_users, 6);
 
 /**
  * @generated from message memoh.private.v1.UpdateCurrentUserPasswordResponse
@@ -280,7 +250,7 @@ export type UpdateCurrentUserPasswordResponse =
  * Use `create(UpdateCurrentUserPasswordResponseSchema)` to create a new message.
  */
 export const UpdateCurrentUserPasswordResponseSchema: GenMessage<UpdateCurrentUserPasswordResponse> /*@__PURE__*/ =
-  messageDesc(file_memoh_private_v1_users, 8);
+  messageDesc(file_memoh_private_v1_users, 7);
 
 /**
  * @generated from message memoh.private.v1.ListMyIdentitiesRequest
@@ -292,7 +262,7 @@ export type ListMyIdentitiesRequest = Message<"memoh.private.v1.ListMyIdentities
  * Use `create(ListMyIdentitiesRequestSchema)` to create a new message.
  */
 export const ListMyIdentitiesRequestSchema: GenMessage<ListMyIdentitiesRequest> /*@__PURE__*/ =
-  messageDesc(file_memoh_private_v1_users, 9);
+  messageDesc(file_memoh_private_v1_users, 8);
 
 /**
  * @generated from message memoh.private.v1.ListMyIdentitiesResponse
@@ -309,46 +279,7 @@ export type ListMyIdentitiesResponse = Message<"memoh.private.v1.ListMyIdentitie
  * Use `create(ListMyIdentitiesResponseSchema)` to create a new message.
  */
 export const ListMyIdentitiesResponseSchema: GenMessage<ListMyIdentitiesResponse> /*@__PURE__*/ =
-  messageDesc(file_memoh_private_v1_users, 10);
-
-/**
- * @generated from message memoh.private.v1.IssueBindCodeRequest
- */
-export type IssueBindCodeRequest = Message<"memoh.private.v1.IssueBindCodeRequest"> & {
-  /**
-   * @generated from field: string channel = 1;
-   */
-  channel: string;
-
-  /**
-   * @generated from field: int32 ttl_seconds = 2;
-   */
-  ttlSeconds: number;
-};
-
-/**
- * Describes the message memoh.private.v1.IssueBindCodeRequest.
- * Use `create(IssueBindCodeRequestSchema)` to create a new message.
- */
-export const IssueBindCodeRequestSchema: GenMessage<IssueBindCodeRequest> /*@__PURE__*/ =
-  messageDesc(file_memoh_private_v1_users, 11);
-
-/**
- * @generated from message memoh.private.v1.IssueBindCodeResponse
- */
-export type IssueBindCodeResponse = Message<"memoh.private.v1.IssueBindCodeResponse"> & {
-  /**
-   * @generated from field: memoh.private.v1.BindCode bind_code = 1;
-   */
-  bindCode?: BindCode | undefined;
-};
-
-/**
- * Describes the message memoh.private.v1.IssueBindCodeResponse.
- * Use `create(IssueBindCodeResponseSchema)` to create a new message.
- */
-export const IssueBindCodeResponseSchema: GenMessage<IssueBindCodeResponse> /*@__PURE__*/ =
-  messageDesc(file_memoh_private_v1_users, 12);
+  messageDesc(file_memoh_private_v1_users, 9);
 
 /**
  * @generated from message memoh.private.v1.ListUsersRequest
@@ -371,7 +302,7 @@ export type ListUsersRequest = Message<"memoh.private.v1.ListUsersRequest"> & {
  */
 export const ListUsersRequestSchema: GenMessage<ListUsersRequest> /*@__PURE__*/ = messageDesc(
   file_memoh_private_v1_users,
-  13,
+  10,
 );
 
 /**
@@ -395,7 +326,7 @@ export type ListUsersResponse = Message<"memoh.private.v1.ListUsersResponse"> & 
  */
 export const ListUsersResponseSchema: GenMessage<ListUsersResponse> /*@__PURE__*/ = messageDesc(
   file_memoh_private_v1_users,
-  14,
+  11,
 );
 
 /**
@@ -414,7 +345,7 @@ export type GetUserRequest = Message<"memoh.private.v1.GetUserRequest"> & {
  */
 export const GetUserRequestSchema: GenMessage<GetUserRequest> /*@__PURE__*/ = messageDesc(
   file_memoh_private_v1_users,
-  15,
+  12,
 );
 
 /**
@@ -433,7 +364,7 @@ export type GetUserResponse = Message<"memoh.private.v1.GetUserResponse"> & {
  */
 export const GetUserResponseSchema: GenMessage<GetUserResponse> /*@__PURE__*/ = messageDesc(
   file_memoh_private_v1_users,
-  16,
+  13,
 );
 
 /**
@@ -482,7 +413,7 @@ export type CreateUserRequest = Message<"memoh.private.v1.CreateUserRequest"> & 
  */
 export const CreateUserRequestSchema: GenMessage<CreateUserRequest> /*@__PURE__*/ = messageDesc(
   file_memoh_private_v1_users,
-  17,
+  14,
 );
 
 /**
@@ -501,7 +432,7 @@ export type CreateUserResponse = Message<"memoh.private.v1.CreateUserResponse"> 
  */
 export const CreateUserResponseSchema: GenMessage<CreateUserResponse> /*@__PURE__*/ = messageDesc(
   file_memoh_private_v1_users,
-  18,
+  15,
 );
 
 /**
@@ -555,7 +486,7 @@ export type UpdateUserRequest = Message<"memoh.private.v1.UpdateUserRequest"> & 
  */
 export const UpdateUserRequestSchema: GenMessage<UpdateUserRequest> /*@__PURE__*/ = messageDesc(
   file_memoh_private_v1_users,
-  19,
+  16,
 );
 
 /**
@@ -574,7 +505,7 @@ export type UpdateUserResponse = Message<"memoh.private.v1.UpdateUserResponse"> 
  */
 export const UpdateUserResponseSchema: GenMessage<UpdateUserResponse> /*@__PURE__*/ = messageDesc(
   file_memoh_private_v1_users,
-  20,
+  17,
 );
 
 /**
@@ -597,7 +528,7 @@ export type ResetUserPasswordRequest = Message<"memoh.private.v1.ResetUserPasswo
  * Use `create(ResetUserPasswordRequestSchema)` to create a new message.
  */
 export const ResetUserPasswordRequestSchema: GenMessage<ResetUserPasswordRequest> /*@__PURE__*/ =
-  messageDesc(file_memoh_private_v1_users, 21);
+  messageDesc(file_memoh_private_v1_users, 18);
 
 /**
  * @generated from message memoh.private.v1.ResetUserPasswordResponse
@@ -609,7 +540,7 @@ export type ResetUserPasswordResponse = Message<"memoh.private.v1.ResetUserPassw
  * Use `create(ResetUserPasswordResponseSchema)` to create a new message.
  */
 export const ResetUserPasswordResponseSchema: GenMessage<ResetUserPasswordResponse> /*@__PURE__*/ =
-  messageDesc(file_memoh_private_v1_users, 22);
+  messageDesc(file_memoh_private_v1_users, 19);
 
 /**
  * @generated from service memoh.private.v1.UserService
@@ -646,14 +577,6 @@ export const UserService: GenService<{
     methodKind: "unary";
     input: typeof ListMyIdentitiesRequestSchema;
     output: typeof ListMyIdentitiesResponseSchema;
-  };
-  /**
-   * @generated from rpc memoh.private.v1.UserService.IssueBindCode
-   */
-  issueBindCode: {
-    methodKind: "unary";
-    input: typeof IssueBindCodeRequestSchema;
-    output: typeof IssueBindCodeResponseSchema;
   };
   /**
    * @generated from rpc memoh.private.v1.UserService.ListUsers

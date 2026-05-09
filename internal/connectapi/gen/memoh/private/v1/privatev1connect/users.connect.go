@@ -45,9 +45,6 @@ const (
 	// UserServiceListMyIdentitiesProcedure is the fully-qualified name of the UserService's
 	// ListMyIdentities RPC.
 	UserServiceListMyIdentitiesProcedure = "/memoh.private.v1.UserService/ListMyIdentities"
-	// UserServiceIssueBindCodeProcedure is the fully-qualified name of the UserService's IssueBindCode
-	// RPC.
-	UserServiceIssueBindCodeProcedure = "/memoh.private.v1.UserService/IssueBindCode"
 	// UserServiceListUsersProcedure is the fully-qualified name of the UserService's ListUsers RPC.
 	UserServiceListUsersProcedure = "/memoh.private.v1.UserService/ListUsers"
 	// UserServiceGetUserProcedure is the fully-qualified name of the UserService's GetUser RPC.
@@ -67,7 +64,6 @@ type UserServiceClient interface {
 	UpdateCurrentUser(context.Context, *connect.Request[v1.UpdateCurrentUserRequest]) (*connect.Response[v1.UpdateCurrentUserResponse], error)
 	UpdateCurrentUserPassword(context.Context, *connect.Request[v1.UpdateCurrentUserPasswordRequest]) (*connect.Response[v1.UpdateCurrentUserPasswordResponse], error)
 	ListMyIdentities(context.Context, *connect.Request[v1.ListMyIdentitiesRequest]) (*connect.Response[v1.ListMyIdentitiesResponse], error)
-	IssueBindCode(context.Context, *connect.Request[v1.IssueBindCodeRequest]) (*connect.Response[v1.IssueBindCodeResponse], error)
 	ListUsers(context.Context, *connect.Request[v1.ListUsersRequest]) (*connect.Response[v1.ListUsersResponse], error)
 	GetUser(context.Context, *connect.Request[v1.GetUserRequest]) (*connect.Response[v1.GetUserResponse], error)
 	CreateUser(context.Context, *connect.Request[v1.CreateUserRequest]) (*connect.Response[v1.CreateUserResponse], error)
@@ -110,12 +106,6 @@ func NewUserServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			connect.WithSchema(userServiceMethods.ByName("ListMyIdentities")),
 			connect.WithClientOptions(opts...),
 		),
-		issueBindCode: connect.NewClient[v1.IssueBindCodeRequest, v1.IssueBindCodeResponse](
-			httpClient,
-			baseURL+UserServiceIssueBindCodeProcedure,
-			connect.WithSchema(userServiceMethods.ByName("IssueBindCode")),
-			connect.WithClientOptions(opts...),
-		),
 		listUsers: connect.NewClient[v1.ListUsersRequest, v1.ListUsersResponse](
 			httpClient,
 			baseURL+UserServiceListUsersProcedure,
@@ -155,7 +145,6 @@ type userServiceClient struct {
 	updateCurrentUser         *connect.Client[v1.UpdateCurrentUserRequest, v1.UpdateCurrentUserResponse]
 	updateCurrentUserPassword *connect.Client[v1.UpdateCurrentUserPasswordRequest, v1.UpdateCurrentUserPasswordResponse]
 	listMyIdentities          *connect.Client[v1.ListMyIdentitiesRequest, v1.ListMyIdentitiesResponse]
-	issueBindCode             *connect.Client[v1.IssueBindCodeRequest, v1.IssueBindCodeResponse]
 	listUsers                 *connect.Client[v1.ListUsersRequest, v1.ListUsersResponse]
 	getUser                   *connect.Client[v1.GetUserRequest, v1.GetUserResponse]
 	createUser                *connect.Client[v1.CreateUserRequest, v1.CreateUserResponse]
@@ -181,11 +170,6 @@ func (c *userServiceClient) UpdateCurrentUserPassword(ctx context.Context, req *
 // ListMyIdentities calls memoh.private.v1.UserService.ListMyIdentities.
 func (c *userServiceClient) ListMyIdentities(ctx context.Context, req *connect.Request[v1.ListMyIdentitiesRequest]) (*connect.Response[v1.ListMyIdentitiesResponse], error) {
 	return c.listMyIdentities.CallUnary(ctx, req)
-}
-
-// IssueBindCode calls memoh.private.v1.UserService.IssueBindCode.
-func (c *userServiceClient) IssueBindCode(ctx context.Context, req *connect.Request[v1.IssueBindCodeRequest]) (*connect.Response[v1.IssueBindCodeResponse], error) {
-	return c.issueBindCode.CallUnary(ctx, req)
 }
 
 // ListUsers calls memoh.private.v1.UserService.ListUsers.
@@ -219,7 +203,6 @@ type UserServiceHandler interface {
 	UpdateCurrentUser(context.Context, *connect.Request[v1.UpdateCurrentUserRequest]) (*connect.Response[v1.UpdateCurrentUserResponse], error)
 	UpdateCurrentUserPassword(context.Context, *connect.Request[v1.UpdateCurrentUserPasswordRequest]) (*connect.Response[v1.UpdateCurrentUserPasswordResponse], error)
 	ListMyIdentities(context.Context, *connect.Request[v1.ListMyIdentitiesRequest]) (*connect.Response[v1.ListMyIdentitiesResponse], error)
-	IssueBindCode(context.Context, *connect.Request[v1.IssueBindCodeRequest]) (*connect.Response[v1.IssueBindCodeResponse], error)
 	ListUsers(context.Context, *connect.Request[v1.ListUsersRequest]) (*connect.Response[v1.ListUsersResponse], error)
 	GetUser(context.Context, *connect.Request[v1.GetUserRequest]) (*connect.Response[v1.GetUserResponse], error)
 	CreateUser(context.Context, *connect.Request[v1.CreateUserRequest]) (*connect.Response[v1.CreateUserResponse], error)
@@ -256,12 +239,6 @@ func NewUserServiceHandler(svc UserServiceHandler, opts ...connect.HandlerOption
 		UserServiceListMyIdentitiesProcedure,
 		svc.ListMyIdentities,
 		connect.WithSchema(userServiceMethods.ByName("ListMyIdentities")),
-		connect.WithHandlerOptions(opts...),
-	)
-	userServiceIssueBindCodeHandler := connect.NewUnaryHandler(
-		UserServiceIssueBindCodeProcedure,
-		svc.IssueBindCode,
-		connect.WithSchema(userServiceMethods.ByName("IssueBindCode")),
 		connect.WithHandlerOptions(opts...),
 	)
 	userServiceListUsersHandler := connect.NewUnaryHandler(
@@ -304,8 +281,6 @@ func NewUserServiceHandler(svc UserServiceHandler, opts ...connect.HandlerOption
 			userServiceUpdateCurrentUserPasswordHandler.ServeHTTP(w, r)
 		case UserServiceListMyIdentitiesProcedure:
 			userServiceListMyIdentitiesHandler.ServeHTTP(w, r)
-		case UserServiceIssueBindCodeProcedure:
-			userServiceIssueBindCodeHandler.ServeHTTP(w, r)
 		case UserServiceListUsersProcedure:
 			userServiceListUsersHandler.ServeHTTP(w, r)
 		case UserServiceGetUserProcedure:
@@ -339,10 +314,6 @@ func (UnimplementedUserServiceHandler) UpdateCurrentUserPassword(context.Context
 
 func (UnimplementedUserServiceHandler) ListMyIdentities(context.Context, *connect.Request[v1.ListMyIdentitiesRequest]) (*connect.Response[v1.ListMyIdentitiesResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.UserService.ListMyIdentities is not implemented"))
-}
-
-func (UnimplementedUserServiceHandler) IssueBindCode(context.Context, *connect.Request[v1.IssueBindCodeRequest]) (*connect.Response[v1.IssueBindCodeResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.private.v1.UserService.IssueBindCode is not implemented"))
 }
 
 func (UnimplementedUserServiceHandler) ListUsers(context.Context, *connect.Request[v1.ListUsersRequest]) (*connect.Response[v1.ListUsersResponse], error) {

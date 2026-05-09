@@ -108,10 +108,6 @@ func (s *UserService) ListMyIdentities(ctx context.Context, _ *connect.Request[p
 	return connect.NewResponse(response), nil
 }
 
-func (*UserService) IssueBindCode(_ context.Context, _ *connect.Request[privatev1.IssueBindCodeRequest]) (*connect.Response[privatev1.IssueBindCodeResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("channel identity binding has been removed"))
-}
-
 func (s *UserService) ListUsers(ctx context.Context, _ *connect.Request[privatev1.ListUsersRequest]) (*connect.Response[privatev1.ListUsersResponse], error) {
 	if err := s.requireSystemAdmin(ctx); err != nil {
 		return nil, err

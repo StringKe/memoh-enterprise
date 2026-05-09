@@ -31,12 +31,6 @@ message UserIdentity {
   AuditFields audit = 7;
 }
 
-message BindCode {
-  string code = 1;
-  string channel = 2;
-  google.protobuf.Timestamp expires_at = 3;
-}
-
 message GetCurrentUserRequest {}
 
 message GetCurrentUserResponse {
@@ -66,15 +60,6 @@ message ListMyIdentitiesRequest {}
 
 message ListMyIdentitiesResponse {
   repeated UserIdentity identities = 1;
-}
-
-message IssueBindCodeRequest {
-  string channel = 1;
-  int32 ttl_seconds = 2;
-}
-
-message IssueBindCodeResponse {
-  BindCode bind_code = 1;
 }
 
 message ListUsersRequest {
@@ -136,7 +121,6 @@ service UserService {
   rpc UpdateCurrentUser(UpdateCurrentUserRequest) returns (UpdateCurrentUserResponse);
   rpc UpdateCurrentUserPassword(UpdateCurrentUserPasswordRequest) returns (UpdateCurrentUserPasswordResponse);
   rpc ListMyIdentities(ListMyIdentitiesRequest) returns (ListMyIdentitiesResponse);
-  rpc IssueBindCode(IssueBindCodeRequest) returns (IssueBindCodeResponse);
   rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
   rpc GetUser(GetUserRequest) returns (GetUserResponse);
   rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);

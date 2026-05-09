@@ -52,7 +52,6 @@ message ResolveRunContextResponse {
   google.protobuf.Struct model = 4;
   repeated google.protobuf.Struct memory_providers = 5;
   repeated google.protobuf.Struct mcp_connections = 6;
-  repeated google.protobuf.Struct browser_contexts = 7;
   google.protobuf.Struct tool_approval_policy = 8;
 }
 

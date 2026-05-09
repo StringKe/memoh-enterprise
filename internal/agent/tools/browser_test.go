@@ -1,6 +1,11 @@
 package tools
 
-import "testing"
+import (
+	"context"
+	"testing"
+
+	displaypkg "github.com/memohai/memoh/internal/display"
+)
 
 func TestBrowserKeyChordHelpers(t *testing.T) {
 	parts := splitKeyChord("Control+Shift+a")
@@ -85,5 +90,133 @@ func TestBrowserSchemasAreStrict(t *testing.T) {
 	}
 	if required, ok := schema["required"].([]string); !ok || len(required) != 1 || required[0] != "action" {
 		t.Fatalf("unexpected required fields: %#v", schema["required"])
+	}
+}
+
+type fakeBrowserDisplay struct {
+	enabled       bool
+	enabledCalls  int
+	enabledBotID  string
+	screenshotErr error
+}
+
+func (f *fakeBrowserDisplay) IsEnabled(_ context.Context, botID string) bool {
+	f.enabledCalls++
+	f.enabledBotID = botID
+	return f.enabled
+}
+
+func (f *fakeBrowserDisplay) Screenshot(context.Context, string) ([]byte, string, error) {
+	if f.screenshotErr != nil {
+		return nil, "", f.screenshotErr
+	}
+	return nil, "", nil
+}
+
+func (*fakeBrowserDisplay) ControlInputs(context.Context, string, []displaypkg.ControlInput) error {
+	return nil
+}
+
+func TestBrowserProviderToolsRequiresDisplay(t *testing.T) {
+	p := NewBrowserProvider(nil, nil, nil, "")
+	tools, err := p.Tools(context.Background(), SessionContext{BotID: "bot-1"})
+	if err != nil {
+		t.Fatalf("Tools err = %v", err)
+	}
+	if tools != nil {
+		t.Fatalf("expected nil tools without display, got %d", len(tools))
+	}
+}
+
+func TestBrowserProviderToolsSkipsSubagent(t *testing.T) {
+	display := &fakeBrowserDisplay{enabled: true}
+	p := NewBrowserProvider(nil, nil, display, "")
+	tools, err := p.Tools(context.Background(), SessionContext{BotID: "bot-1", IsSubagent: true})
+	if err != nil {
+		t.Fatalf("Tools err = %v", err)
+	}
+	if tools != nil {
+		t.Fatalf("expected subagent skip, got %d tools", len(tools))
+	}
+	if display.enabledCalls != 0 {
+		t.Fatalf("display.IsEnabled should not be called for subagent, got %d", display.enabledCalls)
+	}
+}
+
+func TestBrowserProviderToolsRequiresBotID(t *testing.T) {
+	display := &fakeBrowserDisplay{enabled: true}
+	p := NewBrowserProvider(nil, nil, display, "")
+	tools, err := p.Tools(context.Background(), SessionContext{})
+	if err != nil || tools != nil {
+		t.Fatalf("expected nil tools/err, got tools=%d err=%v", len(tools), err)
+	}
+	if display.enabledCalls != 0 {
+		t.Fatalf("display.IsEnabled should not be called without bot id")
+	}
+}
+
+func TestBrowserProviderToolsGatedByIsEnabled(t *testing.T) {
+	display := &fakeBrowserDisplay{enabled: false}
+	p := NewBrowserProvider(nil, nil, display, "")
+	tools, err := p.Tools(context.Background(), SessionContext{BotID: "bot-1"})
+	if err != nil {
+		t.Fatalf("Tools err = %v", err)
+	}
+	if tools != nil {
+		t.Fatalf("expected gate to drop tools when disabled")
+	}
+	if display.enabledCalls != 1 {
+		t.Fatalf("display.IsEnabled calls = %d", display.enabledCalls)
+	}
+	if display.enabledBotID != "bot-1" {
+		t.Fatalf("display.IsEnabled bot id = %q", display.enabledBotID)
+	}
+}
+
+func TestBrowserProviderToolsExposesAllToolsWhenEnabled(t *testing.T) {
+	display := &fakeBrowserDisplay{enabled: true}
+	p := NewBrowserProvider(nil, nil, display, "")
+	tools, err := p.Tools(context.Background(), SessionContext{BotID: "bot-1"})
+	if err != nil {
+		t.Fatalf("Tools err = %v", err)
+	}
+	wantNames := map[string]bool{
+		"browser_action":         false,
+		"browser_observe":        false,
+		"browser_remote_session": false,
+		"computer_use":           false,
+	}
+	for _, tool := range tools {
+		if _, ok := wantNames[tool.Name]; ok {
+			wantNames[tool.Name] = true
+		}
+	}
+	for name, found := range wantNames {
+		if !found {
+			t.Errorf("expected tool %q to be exposed when display enabled", name)
+		}
+	}
+}
+
+func TestBrowserProviderEnsureDisplayEnabledRejectsNilDisplay(t *testing.T) {
+	p := NewBrowserProvider(nil, nil, nil, "")
+	if err := p.ensureDisplayEnabled(context.Background(), "bot-1"); err == nil {
+		t.Fatal("expected error when display is nil")
+	}
+}
+
+func TestBrowserProviderEnsureDisplayEnabledRejectsDisabled(t *testing.T) {
+	display := &fakeBrowserDisplay{enabled: false}
+	p := NewBrowserProvider(nil, nil, display, "")
+	if err := p.ensureDisplayEnabled(context.Background(), "bot-1"); err == nil {
+		t.Fatal("expected error when display disabled")
+	}
+}
+
+func TestBrowserProviderEnsureDisplayEnabledOK(t *testing.T) {
+	display := &fakeBrowserDisplay{enabled: true}
+	p := NewBrowserProvider(nil, nil, display, "")
+	if err := p.ensureDisplayEnabled(context.Background(), "bot-1"); err != nil {
+		t.Fatalf("expected nil err, got %v", err)
 	}
 }

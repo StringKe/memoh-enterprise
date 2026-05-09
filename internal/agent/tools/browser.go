@@ -21,7 +21,6 @@ import (
 	sdk "github.com/memohai/twilight-ai/sdk"
 
 	displaypkg "github.com/memohai/memoh/internal/display"
-	"github.com/memohai/memoh/internal/settings"
 	"github.com/memohai/memoh/internal/workspace/executorclient"
 )
 
@@ -43,48 +42,48 @@ const (
 	rfbWheelRight            byte = 64
 )
 
-type BrowserProvider struct {
-	logger        *slog.Logger
-	settings      *settings.Service
-	containers    executorclient.Provider
-	display       *displaypkg.Service
-	displayWspace displaypkg.Workspace
-	dataRoot      string
+// BrowserDisplay is the interface that BrowserProvider needs from the
+// workspace display subsystem. The server-side implementation is
+// internal/display.Service (in-process). agent-runner provides a thin RPC
+// adapter that calls back to the server-side display through
+// RunnerSupportService.
+type BrowserDisplay interface {
+	IsEnabled(ctx context.Context, botID string) bool
+	Screenshot(ctx context.Context, botID string) ([]byte, string, error)
+	ControlInputs(ctx context.Context, botID string, events []displaypkg.ControlInput) error
 }
 
-func NewBrowserProvider(log *slog.Logger, settingsSvc *settings.Service, containers executorclient.Provider, displayWorkspace displaypkg.Workspace, dataRoot string) *BrowserProvider {
+type BrowserProvider struct {
+	logger     *slog.Logger
+	containers executorclient.Provider
+	display    BrowserDisplay
+	dataRoot   string
+}
+
+func NewBrowserProvider(log *slog.Logger, containers executorclient.Provider, display BrowserDisplay, dataRoot string) *BrowserProvider {
 	if log == nil {
 		log = slog.Default()
 	}
 	if strings.TrimSpace(dataRoot) == "" {
 		dataRoot = "/data"
 	}
-	var displaySvc *displaypkg.Service
-	if displayWorkspace != nil {
-		displaySvc = displaypkg.NewService(log, displayWorkspace)
-	}
 	return &BrowserProvider{
-		logger:        log.With(slog.String("tool", "browser")),
-		settings:      settingsSvc,
-		containers:    containers,
-		display:       displaySvc,
-		displayWspace: displayWorkspace,
-		dataRoot:      dataRoot,
+		logger:     log.With(slog.String("tool", "browser")),
+		containers: containers,
+		display:    display,
+		dataRoot:   dataRoot,
 	}
 }
 
 func (p *BrowserProvider) Tools(ctx context.Context, session SessionContext) ([]sdk.Tool, error) {
-	if session.IsSubagent || p == nil || p.settings == nil {
+	if session.IsSubagent || p == nil || p.display == nil {
 		return nil, nil
 	}
 	botID := strings.TrimSpace(session.BotID)
 	if botID == "" {
 		return nil, nil
 	}
-	if _, err := p.settings.GetBot(ctx, botID); err != nil {
-		return nil, nil
-	}
-	if p.displayWspace == nil || !p.displayWspace.BotDisplayEnabled(ctx, botID) {
+	if !p.display.IsEnabled(ctx, botID) {
 		return nil, nil
 	}
 	sess := session
@@ -408,13 +407,10 @@ func (p *BrowserProvider) requireComputerDisplay(session SessionContext) (string
 }
 
 func (p *BrowserProvider) ensureDisplayEnabled(ctx context.Context, botID string) error {
-	if p.settings == nil {
-		return errors.New("settings service is not configured")
+	if p.display == nil {
+		return errors.New("workspace display is not configured")
 	}
-	if _, err := p.settings.GetBot(ctx, botID); err != nil {
-		return err
-	}
-	if p.displayWspace == nil || !p.displayWspace.BotDisplayEnabled(ctx, botID) {
+	if !p.display.IsEnabled(ctx, botID) {
 		return errors.New("workspace desktop is not enabled for this bot")
 	}
 	return nil

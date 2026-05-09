@@ -428,4 +428,64 @@ func runnerSupportConnectError(err error) error {
 	}
 }
 
+func (h *runnerSupportHandler) IsBotDisplayEnabled(ctx context.Context, req *connect.Request[runnerv1.IsBotDisplayEnabledRequest]) (*connect.Response[runnerv1.IsBotDisplayEnabledResponse], error) {
+	if h == nil || h.service == nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrRunnerSupportDependencyMissing)
+	}
+	enabled, err := h.service.IsBotDisplayEnabled(ctx, IsBotDisplayEnabledRequest{
+		Lease: runSupportRefFromProto(req.Msg.GetRef()),
+		BotID: req.Msg.GetBotId(),
+	})
+	if err != nil {
+		return nil, runnerSupportConnectError(err)
+	}
+	return connect.NewResponse(&runnerv1.IsBotDisplayEnabledResponse{Enabled: enabled}), nil
+}
+
+func (h *runnerSupportHandler) CaptureBotDisplayScreenshot(ctx context.Context, req *connect.Request[runnerv1.CaptureBotDisplayScreenshotRequest]) (*connect.Response[runnerv1.CaptureBotDisplayScreenshotResponse], error) {
+	if h == nil || h.service == nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrRunnerSupportDependencyMissing)
+	}
+	resp, err := h.service.CaptureBotDisplayScreenshot(ctx, CaptureBotDisplayScreenshotRequest{
+		Lease: runSupportRefFromProto(req.Msg.GetRef()),
+		BotID: req.Msg.GetBotId(),
+	})
+	if err != nil {
+		return nil, runnerSupportConnectError(err)
+	}
+	return connect.NewResponse(&runnerv1.CaptureBotDisplayScreenshotResponse{
+		Image:    resp.Image,
+		MimeType: resp.MimeType,
+	}), nil
+}
+
+func (h *runnerSupportHandler) SendBotDisplayInputs(ctx context.Context, req *connect.Request[runnerv1.SendBotDisplayInputsRequest]) (*connect.Response[runnerv1.SendBotDisplayInputsResponse], error) {
+	if h == nil || h.service == nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrRunnerSupportDependencyMissing)
+	}
+	events := make([]DisplayInputEvent, 0, len(req.Msg.GetEvents()))
+	for _, e := range req.Msg.GetEvents() {
+		mask := e.GetButtonMask()
+		if mask > 0xFF {
+			mask = 0xFF
+		}
+		events = append(events, DisplayInputEvent{
+			Type:       e.GetType(),
+			X:          int(e.GetX()),
+			Y:          int(e.GetY()),
+			ButtonMask: uint8(mask),
+			Keysym:     e.GetKeysym(),
+			Down:       e.GetDown(),
+		})
+	}
+	if err := h.service.SendBotDisplayInputs(ctx, SendBotDisplayInputsRequest{
+		Lease:  runSupportRefFromProto(req.Msg.GetRef()),
+		BotID:  req.Msg.GetBotId(),
+		Events: events,
+	}); err != nil {
+		return nil, runnerSupportConnectError(err)
+	}
+	return connect.NewResponse(&runnerv1.SendBotDisplayInputsResponse{}), nil
+}
+
 var _ runnerv1connect.RunnerSupportServiceHandler = (*runnerSupportHandler)(nil)

@@ -67,6 +67,7 @@ func NewService(deps ServiceDeps) *Service {
 	if executor == nil {
 		executor = NewAgentExecutor(AgentExecutorDeps{
 			Logger:         logger,
+			SupportClient:  deps.SupportClient,
 			Workspace:      deps.Workspace,
 			Provider:       deps.Provider,
 			Memory:         deps.Memory,

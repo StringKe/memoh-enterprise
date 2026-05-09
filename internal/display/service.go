@@ -143,6 +143,15 @@ func NewService(logger *slog.Logger, workspace Workspace) *Service {
 	}
 }
 
+// IsEnabled returns true when the workspace display is enabled for the bot.
+// It satisfies the BrowserDisplay contract used by internal/agent/tools.
+func (s *Service) IsEnabled(ctx context.Context, botID string) bool {
+	if s == nil || s.workspace == nil {
+		return false
+	}
+	return s.workspace.BotDisplayEnabled(ctx, botID)
+}
+
 func (s *Service) Status(ctx context.Context, botID string) Status {
 	status := Status{
 		Transport: TransportWebRTC,

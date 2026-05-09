@@ -292,7 +292,7 @@ func provideInternalAuthService(signer *serviceauth.Signer, cfg config.Config, q
 	return connectapi.NewInternalAuthService(signer, registration, kubernetes, connectapi.SQLRunLeaseResolver{Queries: queries})
 }
 
-func provideRunnerSupportService(queries dbstore.Queries, internalAuth *connectapi.InternalAuthService, msgService *message.DBService, memoryRegistry *memprovider.Registry, providersService *providers.Service, toolApprovals *toolapproval.Service, structuredData *structureddata.Service, channelManager *channel.Manager) *connectapi.RunnerSupportService {
+func provideRunnerSupportService(queries dbstore.Queries, internalAuth *connectapi.InternalAuthService, msgService *message.DBService, memoryRegistry *memprovider.Registry, providersService *providers.Service, toolApprovals *toolapproval.Service, structuredData *structureddata.Service, channelManager *channel.Manager, displayService *displaypkg.Service) *connectapi.RunnerSupportService {
 	service := connectapi.NewRunnerSupportService(connectapi.SQLRunLeaseResolver{Queries: queries}, internalAuth)
 	backend := connectapi.NewRunnerSupportBackend(connectapi.RunnerSupportBackendDeps{
 		Queries:        queries,
@@ -313,7 +313,46 @@ func provideRunnerSupportService(queries dbstore.Queries, internalAuth *connecta
 	service.SetProviderCredentialSupport(backend)
 	service.SetToolApprovalSupport(backend)
 	service.SetStructuredDataSupport(backend)
+	service.SetDisplaySupport(&runnerSupportDisplay{display: displayService})
 	return service
+}
+
+// runnerSupportDisplay adapts internal/display.Service to the connectapi
+// DisplaySupport interface used by RunnerSupportService.
+type runnerSupportDisplay struct {
+	display *displaypkg.Service
+}
+
+func (a *runnerSupportDisplay) IsEnabled(ctx context.Context, botID string) bool {
+	if a == nil || a.display == nil {
+		return false
+	}
+	return a.display.IsEnabled(ctx, botID)
+}
+
+func (a *runnerSupportDisplay) Screenshot(ctx context.Context, botID string) ([]byte, string, error) {
+	if a == nil || a.display == nil {
+		return nil, "", connectapi.ErrRunnerSupportDependencyMissing
+	}
+	return a.display.Screenshot(ctx, botID)
+}
+
+func (a *runnerSupportDisplay) ControlInputs(ctx context.Context, botID string, events []connectapi.DisplayInputEvent) error {
+	if a == nil || a.display == nil {
+		return connectapi.ErrRunnerSupportDependencyMissing
+	}
+	mapped := make([]displaypkg.ControlInput, 0, len(events))
+	for _, e := range events {
+		mapped = append(mapped, displaypkg.ControlInput{
+			Type:       e.Type,
+			X:          e.X,
+			Y:          e.Y,
+			ButtonMask: e.ButtonMask,
+			Keysym:     e.Keysym,
+			Down:       e.Down,
+		})
+	}
+	return a.display.ControlInputs(ctx, botID, mapped)
 }
 
 func provideConnectBotService(botService *bots.Service, msgService *message.DBService, producer *eventbus.Producer, cfg config.Config) *connectapi.BotService {

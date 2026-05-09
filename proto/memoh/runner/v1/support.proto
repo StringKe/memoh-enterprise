@@ -27,6 +27,12 @@ service RunnerSupportService {
   rpc RequestToolApproval(RequestToolApprovalRequest) returns (RequestToolApprovalResponse);
   rpc ListStructuredDataSpaces(ListStructuredDataSpacesRequest) returns (ListStructuredDataSpacesResponse);
   rpc ExecuteStructuredDataSql(ExecuteStructuredDataSqlRequest) returns (ExecuteStructuredDataSqlResponse);
+  // Workspace display proxies for in-workspace browser tools running inside
+  // the agent runner. The agent runner cannot reach the host-side Xvnc Unix
+  // socket directly, so all display I/O goes through the server.
+  rpc IsBotDisplayEnabled(IsBotDisplayEnabledRequest) returns (IsBotDisplayEnabledResponse);
+  rpc CaptureBotDisplayScreenshot(CaptureBotDisplayScreenshotRequest) returns (CaptureBotDisplayScreenshotResponse);
+  rpc SendBotDisplayInputs(SendBotDisplayInputsRequest) returns (SendBotDisplayInputsResponse);
 }
 
 message RunSupportRef {
@@ -239,3 +245,39 @@ message ExecuteStructuredDataSqlRequest {
 message ExecuteStructuredDataSqlResponse {
   memoh.private.v1.StructuredDataSqlResult result = 1;
 }
+
+message IsBotDisplayEnabledRequest {
+  RunSupportRef ref = 1;
+  string bot_id = 2;
+}
+
+message IsBotDisplayEnabledResponse {
+  bool enabled = 1;
+}
+
+message CaptureBotDisplayScreenshotRequest {
+  RunSupportRef ref = 1;
+  string bot_id = 2;
+}
+
+message CaptureBotDisplayScreenshotResponse {
+  bytes image = 1;
+  string mime_type = 2;
+}
+
+message DisplayInputEvent {
+  string type = 1;
+  int32 x = 2;
+  int32 y = 3;
+  uint32 button_mask = 4;
+  uint32 keysym = 5;
+  bool down = 6;
+}
+
+message SendBotDisplayInputsRequest {
+  RunSupportRef ref = 1;
+  string bot_id = 2;
+  repeated DisplayInputEvent events = 3;
+}
+
+message SendBotDisplayInputsResponse {}

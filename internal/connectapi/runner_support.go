@@ -54,6 +54,29 @@ func (r SQLRunLeaseResolver) ResolveRunLease(ctx context.Context, runID string) 
 	return runLeaseFromSQL(row), nil
 }
 
+// DisplaySupport mirrors internal/agent/tools.BrowserDisplay so the runner
+// support handler can proxy display calls to internal/display.Service running
+// inside the server process. The agent runner cannot reach the host-side
+// Xvnc Unix socket directly, so all display I/O flows through the server.
+type DisplaySupport interface {
+	IsEnabled(ctx context.Context, botID string) bool
+	Screenshot(ctx context.Context, botID string) ([]byte, string, error)
+	ControlInputs(ctx context.Context, botID string, events []DisplayInputEvent) error
+}
+
+// DisplayInputEvent is the wire-stable shape used by RunnerSupportService for
+// pointer/key events. internal/display has its own ControlInput type with the
+// same fields; the support layer translates between them so internal/display
+// stays out of the connectapi import graph.
+type DisplayInputEvent struct {
+	Type       string
+	X          int
+	Y          int
+	ButtonMask uint8
+	Keysym     uint32
+	Down       bool
+}
+
 type RunnerSupportService struct {
 	leases          RunLeaseResolver
 	internalAuth    *InternalAuthService
@@ -67,6 +90,7 @@ type RunnerSupportService struct {
 	providers       ProviderCredentialSupport
 	toolApprovals   ToolApprovalSupport
 	structuredData  StructuredDataSupport
+	display         DisplaySupport
 }
 
 func NewRunnerSupportService(leases RunLeaseResolver, internalAuth *InternalAuthService) *RunnerSupportService {
@@ -111,6 +135,65 @@ func (s *RunnerSupportService) SetToolApprovalSupport(approvals ToolApprovalSupp
 
 func (s *RunnerSupportService) SetStructuredDataSupport(data StructuredDataSupport) {
 	s.structuredData = data
+}
+
+func (s *RunnerSupportService) SetDisplaySupport(display DisplaySupport) {
+	s.display = display
+}
+
+type IsBotDisplayEnabledRequest struct {
+	Lease RunLeaseRef
+	BotID string
+}
+
+func (s *RunnerSupportService) IsBotDisplayEnabled(ctx context.Context, req IsBotDisplayEnabledRequest) (bool, error) {
+	if _, err := s.requireLease(ctx, req.Lease); err != nil {
+		return false, err
+	}
+	if s.display == nil {
+		return false, nil
+	}
+	return s.display.IsEnabled(ctx, req.BotID), nil
+}
+
+type CaptureBotDisplayScreenshotRequest struct {
+	Lease RunLeaseRef
+	BotID string
+}
+
+type CaptureBotDisplayScreenshotResponse struct {
+	Image    []byte
+	MimeType string
+}
+
+func (s *RunnerSupportService) CaptureBotDisplayScreenshot(ctx context.Context, req CaptureBotDisplayScreenshotRequest) (CaptureBotDisplayScreenshotResponse, error) {
+	if _, err := s.requireLease(ctx, req.Lease); err != nil {
+		return CaptureBotDisplayScreenshotResponse{}, err
+	}
+	if s.display == nil {
+		return CaptureBotDisplayScreenshotResponse{}, ErrRunnerSupportDependencyMissing
+	}
+	image, mime, err := s.display.Screenshot(ctx, req.BotID)
+	if err != nil {
+		return CaptureBotDisplayScreenshotResponse{}, err
+	}
+	return CaptureBotDisplayScreenshotResponse{Image: image, MimeType: mime}, nil
+}
+
+type SendBotDisplayInputsRequest struct {
+	Lease  RunLeaseRef
+	BotID  string
+	Events []DisplayInputEvent
+}
+
+func (s *RunnerSupportService) SendBotDisplayInputs(ctx context.Context, req SendBotDisplayInputsRequest) error {
+	if _, err := s.requireLease(ctx, req.Lease); err != nil {
+		return err
+	}
+	if s.display == nil {
+		return ErrRunnerSupportDependencyMissing
+	}
+	return s.display.ControlInputs(ctx, req.BotID, req.Events)
 }
 
 func (s *RunnerSupportService) ValidateRunLease(ctx context.Context, req ValidateRunLeaseRequest) (serviceauth.RunLease, error) {

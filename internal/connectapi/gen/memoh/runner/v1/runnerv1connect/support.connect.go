@@ -81,6 +81,15 @@ const (
 	// RunnerSupportServiceExecuteStructuredDataSqlProcedure is the fully-qualified name of the
 	// RunnerSupportService's ExecuteStructuredDataSql RPC.
 	RunnerSupportServiceExecuteStructuredDataSqlProcedure = "/memoh.runner.v1.RunnerSupportService/ExecuteStructuredDataSql"
+	// RunnerSupportServiceIsBotDisplayEnabledProcedure is the fully-qualified name of the
+	// RunnerSupportService's IsBotDisplayEnabled RPC.
+	RunnerSupportServiceIsBotDisplayEnabledProcedure = "/memoh.runner.v1.RunnerSupportService/IsBotDisplayEnabled"
+	// RunnerSupportServiceCaptureBotDisplayScreenshotProcedure is the fully-qualified name of the
+	// RunnerSupportService's CaptureBotDisplayScreenshot RPC.
+	RunnerSupportServiceCaptureBotDisplayScreenshotProcedure = "/memoh.runner.v1.RunnerSupportService/CaptureBotDisplayScreenshot"
+	// RunnerSupportServiceSendBotDisplayInputsProcedure is the fully-qualified name of the
+	// RunnerSupportService's SendBotDisplayInputs RPC.
+	RunnerSupportServiceSendBotDisplayInputsProcedure = "/memoh.runner.v1.RunnerSupportService/SendBotDisplayInputs"
 )
 
 // RunnerSupportServiceClient is a client for the memoh.runner.v1.RunnerSupportService service.
@@ -101,6 +110,12 @@ type RunnerSupportServiceClient interface {
 	RequestToolApproval(context.Context, *connect.Request[v1.RequestToolApprovalRequest]) (*connect.Response[v1.RequestToolApprovalResponse], error)
 	ListStructuredDataSpaces(context.Context, *connect.Request[v1.ListStructuredDataSpacesRequest]) (*connect.Response[v1.ListStructuredDataSpacesResponse], error)
 	ExecuteStructuredDataSql(context.Context, *connect.Request[v1.ExecuteStructuredDataSqlRequest]) (*connect.Response[v1.ExecuteStructuredDataSqlResponse], error)
+	// Workspace display proxies for in-workspace browser tools running inside
+	// the agent runner. The agent runner cannot reach the host-side Xvnc Unix
+	// socket directly, so all display I/O goes through the server.
+	IsBotDisplayEnabled(context.Context, *connect.Request[v1.IsBotDisplayEnabledRequest]) (*connect.Response[v1.IsBotDisplayEnabledResponse], error)
+	CaptureBotDisplayScreenshot(context.Context, *connect.Request[v1.CaptureBotDisplayScreenshotRequest]) (*connect.Response[v1.CaptureBotDisplayScreenshotResponse], error)
+	SendBotDisplayInputs(context.Context, *connect.Request[v1.SendBotDisplayInputsRequest]) (*connect.Response[v1.SendBotDisplayInputsResponse], error)
 }
 
 // NewRunnerSupportServiceClient constructs a client for the memoh.runner.v1.RunnerSupportService
@@ -210,27 +225,48 @@ func NewRunnerSupportServiceClient(httpClient connect.HTTPClient, baseURL string
 			connect.WithSchema(runnerSupportServiceMethods.ByName("ExecuteStructuredDataSql")),
 			connect.WithClientOptions(opts...),
 		),
+		isBotDisplayEnabled: connect.NewClient[v1.IsBotDisplayEnabledRequest, v1.IsBotDisplayEnabledResponse](
+			httpClient,
+			baseURL+RunnerSupportServiceIsBotDisplayEnabledProcedure,
+			connect.WithSchema(runnerSupportServiceMethods.ByName("IsBotDisplayEnabled")),
+			connect.WithClientOptions(opts...),
+		),
+		captureBotDisplayScreenshot: connect.NewClient[v1.CaptureBotDisplayScreenshotRequest, v1.CaptureBotDisplayScreenshotResponse](
+			httpClient,
+			baseURL+RunnerSupportServiceCaptureBotDisplayScreenshotProcedure,
+			connect.WithSchema(runnerSupportServiceMethods.ByName("CaptureBotDisplayScreenshot")),
+			connect.WithClientOptions(opts...),
+		),
+		sendBotDisplayInputs: connect.NewClient[v1.SendBotDisplayInputsRequest, v1.SendBotDisplayInputsResponse](
+			httpClient,
+			baseURL+RunnerSupportServiceSendBotDisplayInputsProcedure,
+			connect.WithSchema(runnerSupportServiceMethods.ByName("SendBotDisplayInputs")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // runnerSupportServiceClient implements RunnerSupportServiceClient.
 type runnerSupportServiceClient struct {
-	resolveRunContext          *connect.Client[v1.ResolveRunContextRequest, v1.ResolveRunContextResponse]
-	validateRunLease           *connect.Client[v1.ValidateRunLeaseRequest, v1.ValidateRunLeaseResponse]
-	issueWorkspaceToken        *connect.Client[v1.IssueWorkspaceTokenRequest, v1.IssueWorkspaceTokenResponse]
-	readSessionHistory         *connect.Client[v1.ReadSessionHistoryRequest, v1.ReadSessionHistoryResponse]
-	appendRunEvent             *connect.Client[v1.AppendRunEventRequest, v1.AppendRunEventResponse]
-	appendSessionMessage       *connect.Client[v1.AppendSessionMessageRequest, v1.AppendSessionMessageResponse]
-	resolveOutboundTarget      *connect.Client[v1.ResolveOutboundTargetRequest, v1.ResolveOutboundTargetResponse]
-	requestOutboundDispatch    *connect.Client[v1.RequestOutboundDispatchRequest, v1.RequestOutboundDispatchResponse]
-	readMemory                 *connect.Client[v1.ReadMemoryRequest, v1.ReadMemoryResponse]
-	writeMemory                *connect.Client[v1.WriteMemoryRequest, v1.WriteMemoryResponse]
-	resolveScopedSecret        *connect.Client[v1.ResolveScopedSecretRequest, v1.ResolveScopedSecretResponse]
-	resolveProviderCredentials *connect.Client[v1.ResolveProviderCredentialsRequest, v1.ResolveProviderCredentialsResponse]
-	evaluateToolApprovalPolicy *connect.Client[v1.EvaluateToolApprovalPolicyRequest, v1.EvaluateToolApprovalPolicyResponse]
-	requestToolApproval        *connect.Client[v1.RequestToolApprovalRequest, v1.RequestToolApprovalResponse]
-	listStructuredDataSpaces   *connect.Client[v1.ListStructuredDataSpacesRequest, v1.ListStructuredDataSpacesResponse]
-	executeStructuredDataSql   *connect.Client[v1.ExecuteStructuredDataSqlRequest, v1.ExecuteStructuredDataSqlResponse]
+	resolveRunContext           *connect.Client[v1.ResolveRunContextRequest, v1.ResolveRunContextResponse]
+	validateRunLease            *connect.Client[v1.ValidateRunLeaseRequest, v1.ValidateRunLeaseResponse]
+	issueWorkspaceToken         *connect.Client[v1.IssueWorkspaceTokenRequest, v1.IssueWorkspaceTokenResponse]
+	readSessionHistory          *connect.Client[v1.ReadSessionHistoryRequest, v1.ReadSessionHistoryResponse]
+	appendRunEvent              *connect.Client[v1.AppendRunEventRequest, v1.AppendRunEventResponse]
+	appendSessionMessage        *connect.Client[v1.AppendSessionMessageRequest, v1.AppendSessionMessageResponse]
+	resolveOutboundTarget       *connect.Client[v1.ResolveOutboundTargetRequest, v1.ResolveOutboundTargetResponse]
+	requestOutboundDispatch     *connect.Client[v1.RequestOutboundDispatchRequest, v1.RequestOutboundDispatchResponse]
+	readMemory                  *connect.Client[v1.ReadMemoryRequest, v1.ReadMemoryResponse]
+	writeMemory                 *connect.Client[v1.WriteMemoryRequest, v1.WriteMemoryResponse]
+	resolveScopedSecret         *connect.Client[v1.ResolveScopedSecretRequest, v1.ResolveScopedSecretResponse]
+	resolveProviderCredentials  *connect.Client[v1.ResolveProviderCredentialsRequest, v1.ResolveProviderCredentialsResponse]
+	evaluateToolApprovalPolicy  *connect.Client[v1.EvaluateToolApprovalPolicyRequest, v1.EvaluateToolApprovalPolicyResponse]
+	requestToolApproval         *connect.Client[v1.RequestToolApprovalRequest, v1.RequestToolApprovalResponse]
+	listStructuredDataSpaces    *connect.Client[v1.ListStructuredDataSpacesRequest, v1.ListStructuredDataSpacesResponse]
+	executeStructuredDataSql    *connect.Client[v1.ExecuteStructuredDataSqlRequest, v1.ExecuteStructuredDataSqlResponse]
+	isBotDisplayEnabled         *connect.Client[v1.IsBotDisplayEnabledRequest, v1.IsBotDisplayEnabledResponse]
+	captureBotDisplayScreenshot *connect.Client[v1.CaptureBotDisplayScreenshotRequest, v1.CaptureBotDisplayScreenshotResponse]
+	sendBotDisplayInputs        *connect.Client[v1.SendBotDisplayInputsRequest, v1.SendBotDisplayInputsResponse]
 }
 
 // ResolveRunContext calls memoh.runner.v1.RunnerSupportService.ResolveRunContext.
@@ -313,6 +349,22 @@ func (c *runnerSupportServiceClient) ExecuteStructuredDataSql(ctx context.Contex
 	return c.executeStructuredDataSql.CallUnary(ctx, req)
 }
 
+// IsBotDisplayEnabled calls memoh.runner.v1.RunnerSupportService.IsBotDisplayEnabled.
+func (c *runnerSupportServiceClient) IsBotDisplayEnabled(ctx context.Context, req *connect.Request[v1.IsBotDisplayEnabledRequest]) (*connect.Response[v1.IsBotDisplayEnabledResponse], error) {
+	return c.isBotDisplayEnabled.CallUnary(ctx, req)
+}
+
+// CaptureBotDisplayScreenshot calls
+// memoh.runner.v1.RunnerSupportService.CaptureBotDisplayScreenshot.
+func (c *runnerSupportServiceClient) CaptureBotDisplayScreenshot(ctx context.Context, req *connect.Request[v1.CaptureBotDisplayScreenshotRequest]) (*connect.Response[v1.CaptureBotDisplayScreenshotResponse], error) {
+	return c.captureBotDisplayScreenshot.CallUnary(ctx, req)
+}
+
+// SendBotDisplayInputs calls memoh.runner.v1.RunnerSupportService.SendBotDisplayInputs.
+func (c *runnerSupportServiceClient) SendBotDisplayInputs(ctx context.Context, req *connect.Request[v1.SendBotDisplayInputsRequest]) (*connect.Response[v1.SendBotDisplayInputsResponse], error) {
+	return c.sendBotDisplayInputs.CallUnary(ctx, req)
+}
+
 // RunnerSupportServiceHandler is an implementation of the memoh.runner.v1.RunnerSupportService
 // service.
 type RunnerSupportServiceHandler interface {
@@ -332,6 +384,12 @@ type RunnerSupportServiceHandler interface {
 	RequestToolApproval(context.Context, *connect.Request[v1.RequestToolApprovalRequest]) (*connect.Response[v1.RequestToolApprovalResponse], error)
 	ListStructuredDataSpaces(context.Context, *connect.Request[v1.ListStructuredDataSpacesRequest]) (*connect.Response[v1.ListStructuredDataSpacesResponse], error)
 	ExecuteStructuredDataSql(context.Context, *connect.Request[v1.ExecuteStructuredDataSqlRequest]) (*connect.Response[v1.ExecuteStructuredDataSqlResponse], error)
+	// Workspace display proxies for in-workspace browser tools running inside
+	// the agent runner. The agent runner cannot reach the host-side Xvnc Unix
+	// socket directly, so all display I/O goes through the server.
+	IsBotDisplayEnabled(context.Context, *connect.Request[v1.IsBotDisplayEnabledRequest]) (*connect.Response[v1.IsBotDisplayEnabledResponse], error)
+	CaptureBotDisplayScreenshot(context.Context, *connect.Request[v1.CaptureBotDisplayScreenshotRequest]) (*connect.Response[v1.CaptureBotDisplayScreenshotResponse], error)
+	SendBotDisplayInputs(context.Context, *connect.Request[v1.SendBotDisplayInputsRequest]) (*connect.Response[v1.SendBotDisplayInputsResponse], error)
 }
 
 // NewRunnerSupportServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -437,6 +495,24 @@ func NewRunnerSupportServiceHandler(svc RunnerSupportServiceHandler, opts ...con
 		connect.WithSchema(runnerSupportServiceMethods.ByName("ExecuteStructuredDataSql")),
 		connect.WithHandlerOptions(opts...),
 	)
+	runnerSupportServiceIsBotDisplayEnabledHandler := connect.NewUnaryHandler(
+		RunnerSupportServiceIsBotDisplayEnabledProcedure,
+		svc.IsBotDisplayEnabled,
+		connect.WithSchema(runnerSupportServiceMethods.ByName("IsBotDisplayEnabled")),
+		connect.WithHandlerOptions(opts...),
+	)
+	runnerSupportServiceCaptureBotDisplayScreenshotHandler := connect.NewUnaryHandler(
+		RunnerSupportServiceCaptureBotDisplayScreenshotProcedure,
+		svc.CaptureBotDisplayScreenshot,
+		connect.WithSchema(runnerSupportServiceMethods.ByName("CaptureBotDisplayScreenshot")),
+		connect.WithHandlerOptions(opts...),
+	)
+	runnerSupportServiceSendBotDisplayInputsHandler := connect.NewUnaryHandler(
+		RunnerSupportServiceSendBotDisplayInputsProcedure,
+		svc.SendBotDisplayInputs,
+		connect.WithSchema(runnerSupportServiceMethods.ByName("SendBotDisplayInputs")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/memoh.runner.v1.RunnerSupportService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case RunnerSupportServiceResolveRunContextProcedure:
@@ -471,6 +547,12 @@ func NewRunnerSupportServiceHandler(svc RunnerSupportServiceHandler, opts ...con
 			runnerSupportServiceListStructuredDataSpacesHandler.ServeHTTP(w, r)
 		case RunnerSupportServiceExecuteStructuredDataSqlProcedure:
 			runnerSupportServiceExecuteStructuredDataSqlHandler.ServeHTTP(w, r)
+		case RunnerSupportServiceIsBotDisplayEnabledProcedure:
+			runnerSupportServiceIsBotDisplayEnabledHandler.ServeHTTP(w, r)
+		case RunnerSupportServiceCaptureBotDisplayScreenshotProcedure:
+			runnerSupportServiceCaptureBotDisplayScreenshotHandler.ServeHTTP(w, r)
+		case RunnerSupportServiceSendBotDisplayInputsProcedure:
+			runnerSupportServiceSendBotDisplayInputsHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -542,4 +624,16 @@ func (UnimplementedRunnerSupportServiceHandler) ListStructuredDataSpaces(context
 
 func (UnimplementedRunnerSupportServiceHandler) ExecuteStructuredDataSql(context.Context, *connect.Request[v1.ExecuteStructuredDataSqlRequest]) (*connect.Response[v1.ExecuteStructuredDataSqlResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.runner.v1.RunnerSupportService.ExecuteStructuredDataSql is not implemented"))
+}
+
+func (UnimplementedRunnerSupportServiceHandler) IsBotDisplayEnabled(context.Context, *connect.Request[v1.IsBotDisplayEnabledRequest]) (*connect.Response[v1.IsBotDisplayEnabledResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.runner.v1.RunnerSupportService.IsBotDisplayEnabled is not implemented"))
+}
+
+func (UnimplementedRunnerSupportServiceHandler) CaptureBotDisplayScreenshot(context.Context, *connect.Request[v1.CaptureBotDisplayScreenshotRequest]) (*connect.Response[v1.CaptureBotDisplayScreenshotResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.runner.v1.RunnerSupportService.CaptureBotDisplayScreenshot is not implemented"))
+}
+
+func (UnimplementedRunnerSupportServiceHandler) SendBotDisplayInputs(context.Context, *connect.Request[v1.SendBotDisplayInputsRequest]) (*connect.Response[v1.SendBotDisplayInputsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.runner.v1.RunnerSupportService.SendBotDisplayInputs is not implemented"))
 }

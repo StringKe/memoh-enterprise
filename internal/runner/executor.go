@@ -16,6 +16,7 @@ import (
 	agenttools "github.com/memohai/memoh/internal/agent/tools"
 	eventv1 "github.com/memohai/memoh/internal/connectapi/gen/memoh/event/v1"
 	runnerv1 "github.com/memohai/memoh/internal/connectapi/gen/memoh/runner/v1"
+	"github.com/memohai/memoh/internal/connectapi/gen/memoh/runner/v1/runnerv1connect"
 	"github.com/memohai/memoh/internal/models"
 	"github.com/memohai/memoh/internal/workspace/executorclient"
 )
@@ -43,6 +44,7 @@ type ExecutionResult struct {
 
 type AgentExecutorDeps struct {
 	Logger         *slog.Logger
+	SupportClient  runnerv1connect.RunnerSupportServiceClient
 	Workspace      *WorkspaceClient
 	Provider       *ProviderClient
 	Memory         *MemoryClient
@@ -53,6 +55,7 @@ type AgentExecutorDeps struct {
 
 type AgentExecutor struct {
 	logger         *slog.Logger
+	supportClient  runnerv1connect.RunnerSupportServiceClient
 	workspace      *WorkspaceClient
 	provider       *ProviderClient
 	memory         *MemoryClient
@@ -72,6 +75,7 @@ func NewAgentExecutor(deps AgentExecutorDeps) *AgentExecutor {
 	}
 	return &AgentExecutor{
 		logger:         logger,
+		supportClient:  deps.SupportClient,
 		workspace:      deps.Workspace,
 		provider:       deps.Provider,
 		memory:         deps.Memory,
@@ -197,6 +201,10 @@ func (e *AgentExecutor) toolProviders(workspaceProvider executorclient.Provider,
 	}
 	if e.structuredData != nil {
 		providers = append(providers, agenttools.NewStructuredDataProvider(e.structuredData.Runtime(lease)))
+	}
+	if e.supportClient != nil {
+		display := NewDisplayClient(e.supportClient, lease)
+		providers = append(providers, agenttools.NewBrowserProvider(e.logger, workspaceProvider, display, ""))
 	}
 	return providers
 }

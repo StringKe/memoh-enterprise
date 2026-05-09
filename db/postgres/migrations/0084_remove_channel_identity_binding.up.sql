@@ -1,4 +1,4 @@
--- 0080_remove_channel_identity_binding
+-- 0084_remove_channel_identity_binding
 -- Remove one-time bind codes for channel identities; enterprise fork keeps
 -- the channel_identities.user_id column for SSO/IAM linkage.
 

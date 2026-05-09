@@ -64,7 +64,6 @@ jobs:
             'packages/sdk/package.json',
             'packages/integration-sdk-ts/package.json',
             'packages/ui/package.json',
-            'apps/browser/package.json',
           ];
           for (const target of targets) {
             if (!fs.existsSync(target)) continue;

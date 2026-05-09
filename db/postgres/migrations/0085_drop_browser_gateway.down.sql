@@ -1,4 +1,4 @@
--- 0078_drop_browser_gateway
+-- 0085_drop_browser_gateway
 -- Restore external browser gateway context bindings.
 
 CREATE TABLE IF NOT EXISTS browser_contexts (

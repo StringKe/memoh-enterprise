@@ -6,7 +6,6 @@ on:
     paths:
       - "cmd/**"
       - "internal/**"
-      - "apps/browser/**"
       - "apps/web/**"
       - "packages/icons/**"
       - "packages/integration-sdk-ts/**"
@@ -26,7 +25,6 @@ on:
     paths:
       - "cmd/**"
       - "internal/**"
-      - "apps/browser/**"
       - "apps/web/**"
       - "packages/icons/**"
       - "packages/integration-sdk-ts/**"
@@ -102,11 +100,11 @@ jobs:
 
       - name: Build images
         run: |
-          docker compose -f deploy/compose/images/docker-compose.yml build server agent-runner connector integration-gateway worker web sparse browser
+          docker compose -f deploy/compose/images/docker-compose.yml build server agent-runner connector integration-gateway worker web sparse
 
       - name: Start stack
         run: |
-          docker compose --profile qdrant --profile sparse --profile browser up -d
+          docker compose --profile qdrant --profile sparse up -d
 
       - name: Smoke test
         run: scripts/e2e/unified-runtime-smoke.sh
@@ -127,9 +125,9 @@ jobs:
       - name: Logs
         if: always()
         run: |
-          docker compose --profile qdrant --profile sparse --profile browser logs --no-color --tail=200
+          docker compose --profile qdrant --profile sparse logs --no-color --tail=200
 
       - name: Stop stack
         if: always()
         run: |
-          docker compose --profile qdrant --profile sparse --profile browser down -v --remove-orphans
+          docker compose --profile qdrant --profile sparse down -v --remove-orphans

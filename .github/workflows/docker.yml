@@ -47,7 +47,6 @@ jobs:
       integration_gateway: ${{ steps.filter.outputs.integration_gateway }}
       worker: ${{ steps.filter.outputs.worker }}
       web: ${{ steps.filter.outputs.web }}
-      browser: ${{ steps.filter.outputs.browser }}
       sparse: ${{ steps.filter.outputs.sparse }}
     steps:
       - uses: actions/checkout@v4
@@ -125,9 +124,6 @@ jobs:
               - 'pnpm-workspace.yaml'
               - 'deploy/docker/production/Dockerfile.web'
               - 'deploy/docker/production/nginx.web.conf'
-            browser:
-              - 'apps/browser/**'
-              - 'deploy/docker/production/Dockerfile.browser'
             sparse:
               - 'internal/memory/sparse/service/**'
               - 'deploy/docker/production/Dockerfile.sparse'
@@ -138,7 +134,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image: [server, agent-runner, connector, integration-gateway, worker, web, browser, sparse]
+        image: [server, agent-runner, connector, integration-gateway, worker, web, sparse]
         platform: [linux/amd64, linux/arm64]
         variant: [""]
         include:
@@ -154,34 +150,11 @@ jobs:
             dockerfile: deploy/docker/production/Dockerfile.worker
           - image: web
             dockerfile: deploy/docker/production/Dockerfile.web
-          - image: browser
-            dockerfile: deploy/docker/production/Dockerfile.browser
           - image: sparse
             dockerfile: deploy/docker/production/Dockerfile.sparse
           - platform: linux/amd64
             runner: ubuntu-latest
           - platform: linux/arm64
-            runner: ubuntu-24.04-arm
-          # Browser single-engine variants
-          - image: browser
-            variant: chromium
-            dockerfile: deploy/docker/production/Dockerfile.browser
-            platform: linux/amd64
-            runner: ubuntu-latest
-          - image: browser
-            variant: chromium
-            dockerfile: deploy/docker/production/Dockerfile.browser
-            platform: linux/arm64
-            runner: ubuntu-24.04-arm
-          - image: browser
-            variant: firefox
-            dockerfile: deploy/docker/production/Dockerfile.browser
-            platform: linux/amd64
-            runner: ubuntu-latest
-          - image: browser
-            variant: firefox
-            dockerfile: deploy/docker/production/Dockerfile.browser
-            platform: linux/arm64
             runner: ubuntu-24.04-arm
     runs-on: ${{ matrix.runner }}
     steps:
@@ -203,7 +176,6 @@ jobs:
             integration-gateway) CHANGED="${{ needs.detect-changes.outputs.integration_gateway }}" ;;
             worker) CHANGED="${{ needs.detect-changes.outputs.worker }}" ;;
             web)     CHANGED="${{ needs.detect-changes.outputs.web }}" ;;
-            browser) CHANGED="${{ needs.detect-changes.outputs.browser }}" ;;
             sparse)  CHANGED="${{ needs.detect-changes.outputs.sparse }}" ;;
           esac
           if [[ "$FORCE" == "true" || "$CHANGED" == "true" ]]; then
@@ -317,15 +289,6 @@ jobs:
           - image: web
             artifact_key: web
             variant: ""
-          - image: browser
-            artifact_key: browser
-            variant: ""
-          - image: browser
-            artifact_key: browser-chromium
-            variant: chromium
-          - image: browser
-            artifact_key: browser-firefox
-            variant: firefox
           - image: sparse
             artifact_key: sparse
             variant: ""
@@ -348,7 +311,6 @@ jobs:
             integration-gateway) CHANGED="${{ needs.detect-changes.outputs.integration_gateway }}" ;;
             worker) CHANGED="${{ needs.detect-changes.outputs.worker }}" ;;
             web)     CHANGED="${{ needs.detect-changes.outputs.web }}" ;;
-            browser) CHANGED="${{ needs.detect-changes.outputs.browser }}" ;;
             sparse)  CHANGED="${{ needs.detect-changes.outputs.sparse }}" ;;
           esac
           if [[ "$FORCE" == "true" || "$CHANGED" == "true" ]]; then

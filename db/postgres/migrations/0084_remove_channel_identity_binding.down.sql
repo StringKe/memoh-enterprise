@@ -1,4 +1,4 @@
--- 0080_remove_channel_identity_binding (rollback)
+-- 0084_remove_channel_identity_binding (rollback)
 -- Recreate the one-time bind code table; enterprise fork never dropped the
 -- channel_identities.user_id column, so no column work is needed here.
 

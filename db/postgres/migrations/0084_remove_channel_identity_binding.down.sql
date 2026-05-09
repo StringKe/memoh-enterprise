@@ -1,17 +1,4 @@
 -- 0084_remove_channel_identity_binding (rollback)
--- Recreate the one-time bind code table; enterprise fork never dropped the
--- channel_identities.user_id column, so no column work is needed here.
+-- enterprise fork 上 0084 是 no-op，rollback 也无需任何动作。
 
-CREATE TABLE IF NOT EXISTS channel_identity_bind_codes (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  token TEXT NOT NULL,
-  issued_by_user_id UUID NOT NULL REFERENCES users(id),
-  channel_type TEXT,
-  expires_at TIMESTAMPTZ,
-  used_at TIMESTAMPTZ,
-  used_by_channel_identity_id UUID REFERENCES channel_identities(id),
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  CONSTRAINT channel_identity_bind_codes_token_unique UNIQUE (token)
-);
-
-CREATE INDEX IF NOT EXISTS idx_channel_identity_bind_codes_channel_type ON channel_identity_bind_codes(channel_type);
+SELECT 1;

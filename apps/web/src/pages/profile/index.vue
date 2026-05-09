@@ -99,7 +99,6 @@
           </template>
         </div>
       </section>
-
     </div>
   </section>
 </template>

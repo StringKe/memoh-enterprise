@@ -249,22 +249,6 @@
       />
     </div>
 
-    <!-- Browser Context -->
-    <div class="space-y-2">
-      <Label>{{ $t("bots.settings.browserContext") }}</Label>
-      <BrowserContextSelect
-        v-model="form.browser_context_id"
-        :contexts="browserContexts"
-        :placeholder="$t('bots.settings.browserContextPlaceholder')"
-      />
-      <InheritanceField
-        :fields="[FIELD_BROWSER_CONTEXT_ID]"
-        :sources="effectiveSettings?.sources"
-        :loading="isRestoringInheritance"
-        @restore="handleRestoreInheritance([FIELD_BROWSER_CONTEXT_ID])"
-      />
-    </div>
-
     <!-- Timezone -->
     <div class="space-y-2">
       <Label>{{ $t("bots.timezone") }}</Label>
@@ -431,10 +415,8 @@ import { EFFORT_LABELS, EFFORT_OPACITY } from "./reasoning-effort";
 import SearchProviderSelect from "./search-provider-select.vue";
 import MemoryProviderSelect from "./memory-provider-select.vue";
 import TtsModelSelect from "./tts-model-select.vue";
-import BrowserContextSelect from "./browser-context-select.vue";
 import InheritanceField from "./inheritance-field.vue";
 import {
-  FIELD_BROWSER_CONTEXT_ID,
   FIELD_CHAT_MODEL_ID,
   FIELD_IMAGE_MODEL_ID,
   FIELD_LANGUAGE,
@@ -532,11 +514,6 @@ const { data: transcriptionProviderData } = useQuery({
   query: async () => (await connectClients.speech.listTranscriptionProviders({})).providers,
 });
 
-const { data: browserContextData } = useQuery({
-  key: ["browser-contexts"],
-  query: async () => (await connectClients.browserContexts.listBrowserContexts({})).contexts,
-});
-
 const { mutateAsync: updateSettings, isLoading } = useMutation({
   mutation: async (body: Partial<BotSettings>) => {
     const response = await connectClients.settings.updateBotSettings({
@@ -611,7 +588,6 @@ const transcriptionModels = computed(() =>
     .filter((model) => enabledTranscriptionProviderIds.value.has(model.providerId))
     .map(speechModelToSelectOption),
 );
-const browserContexts = computed(() => browserContextData.value ?? []);
 // ---- Form ----
 const form = reactive({
   chat_model_id: "",
@@ -621,7 +597,6 @@ const form = reactive({
   memory_provider_id: "",
   tts_model_id: "",
   transcription_model_id: "",
-  browser_context_id: "",
   timezone: "",
   language: "",
   reasoning_enabled: false,
@@ -782,7 +757,6 @@ watch(
       form.memory_provider_id = val.memoryProviderId ?? "";
       form.tts_model_id = val.ttsModelId ?? "";
       form.transcription_model_id = val.transcriptionModelId ?? "";
-      form.browser_context_id = val.browserContextId ?? "";
       form.language = val.language ?? "";
       form.timezone = val.timezone ?? "";
       form.reasoning_enabled = val.reasoningEnabled ?? false;
@@ -812,7 +786,6 @@ const hasSettingsChanges = computed(() => {
     form.memory_provider_id !== (s.memoryProviderId ?? "") ||
     form.tts_model_id !== (s.ttsModelId ?? "") ||
     form.transcription_model_id !== (s.transcriptionModelId ?? "") ||
-    form.browser_context_id !== (s.browserContextId ?? "") ||
     form.language !== (s.language ?? "") ||
     form.timezone !== (s.timezone ?? "") ||
     form.reasoning_enabled !== (s.reasoningEnabled ?? false) ||

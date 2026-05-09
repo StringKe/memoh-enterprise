@@ -62,15 +62,6 @@
       </div>
 
       <div class="space-y-2">
-        <Label>{{ $t("bots.settings.browserContext") }}</Label>
-        <BrowserContextSelect
-          v-model="form.browser_context_id"
-          :contexts="browserContexts"
-          :placeholder="$t('common.none')"
-        />
-      </div>
-
-      <div class="space-y-2">
         <Label>{{ $t("bots.settings.language") }}</Label>
         <Input v-model="form.language" />
       </div>
@@ -147,7 +138,6 @@ import ModelSelect from "@/pages/bots/components/model-select.vue";
 import MemoryProviderSelect from "@/pages/bots/components/memory-provider-select.vue";
 import SearchProviderSelect from "@/pages/bots/components/search-provider-select.vue";
 import TtsModelSelect from "@/pages/bots/components/tts-model-select.vue";
-import BrowserContextSelect from "@/pages/bots/components/browser-context-select.vue";
 
 const props = defineProps<{
   groupId: string;
@@ -203,11 +193,6 @@ const { data: transcriptionModelData } = useQuery({
   query: async () => (await connectClients.speech.listTranscriptionModels({})).models,
 });
 
-const { data: browserContextData } = useQuery({
-  key: ["browser-contexts"],
-  query: async () => (await connectClients.browserContexts.listBrowserContexts({})).contexts,
-});
-
 const form = reactive({
   chat_model_id: "",
   title_model_id: "",
@@ -215,7 +200,6 @@ const form = reactive({
   memory_provider_id: "",
   tts_model_id: "",
   transcription_model_id: "",
-  browser_context_id: "",
   language: "",
   reasoning_enabled: false,
   reasoning_effort: "medium",
@@ -248,7 +232,6 @@ const transcriptionModels = computed(() =>
     .filter((model) => transcriptionProviderIds.value.has(model.providerId))
     .map(speechModelToSelectOption),
 );
-const browserContexts = computed(() => browserContextData.value ?? []);
 
 const { mutateAsync: saveSettings, isLoading: saving } = useMutation({
   mutation: async (settings: Partial<BotSettings>) => {
@@ -275,7 +258,6 @@ watch(
     form.memory_provider_id = settings?.memoryProviderId ?? "";
     form.tts_model_id = settings?.ttsModelId ?? "";
     form.transcription_model_id = settings?.transcriptionModelId ?? "";
-    form.browser_context_id = settings?.browserContextId ?? "";
     form.language = settings?.language ?? "";
     form.reasoning_enabled = settings?.reasoningEnabled ?? false;
     form.reasoning_effort = settings?.reasoningEffort || "medium";
@@ -293,7 +275,6 @@ async function handleSave() {
       memoryProviderId: form.memory_provider_id,
       ttsModelId: form.tts_model_id,
       transcriptionModelId: form.transcription_model_id,
-      browserContextId: form.browser_context_id,
       language: form.language,
       reasoningEnabled: form.reasoning_enabled,
       reasoningEffort: form.reasoning_effort,

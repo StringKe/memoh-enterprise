@@ -7,7 +7,6 @@ export const FIELD_SEARCH_PROVIDER_ID = "search_provider_id";
 export const FIELD_MEMORY_PROVIDER_ID = "memory_provider_id";
 export const FIELD_TTS_MODEL_ID = "tts_model_id";
 export const FIELD_TRANSCRIPTION_MODEL_ID = "transcription_model_id";
-export const FIELD_BROWSER_CONTEXT_ID = "browser_context_id";
 export const FIELD_LANGUAGE = "language";
 export const FIELD_REASONING_ENABLED = "reasoning_enabled";
 export const FIELD_REASONING_EFFORT = "reasoning_effort";
@@ -21,7 +20,6 @@ export interface BotSettingsFormPayload {
   memory_provider_id: string;
   tts_model_id: string;
   transcription_model_id: string;
-  browser_context_id: string;
   language: string;
   reasoning_enabled: boolean;
   reasoning_effort: string;
@@ -52,7 +50,6 @@ export function settingsFormToProto(payload: BotSettingsFormPayload): Partial<Bo
     memoryProviderId: payload.memory_provider_id,
     ttsModelId: payload.tts_model_id,
     transcriptionModelId: payload.transcription_model_id,
-    browserContextId: payload.browser_context_id,
     language: payload.language,
     reasoningEnabled: payload.reasoning_enabled,
     reasoningEffort: payload.reasoning_effort,

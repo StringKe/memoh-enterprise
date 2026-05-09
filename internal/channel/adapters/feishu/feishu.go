@@ -8,7 +8,6 @@ import (
 	"io"
 	"log/slog"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -16,8 +15,10 @@ import (
 	larkcore "github.com/larksuite/oapi-sdk-go/v3/core"
 	"github.com/larksuite/oapi-sdk-go/v3/event/dispatcher"
 	larkim "github.com/larksuite/oapi-sdk-go/v3/service/im/v1"
+	larkws "github.com/larksuite/oapi-sdk-go/v3/ws"
 
 	"github.com/memohai/memoh/internal/channel"
+	"github.com/memohai/memoh/internal/channel/adapters/feishu/wsclient"
 	"github.com/memohai/memoh/internal/channel/common"
 	"github.com/memohai/memoh/internal/media"
 )
@@ -32,10 +33,7 @@ type FeishuAdapter struct {
 	assets assetOpener
 }
 
-const (
-	processingBusyReactionType = "Typing"
-	feishuWSStopTimeout        = 5 * time.Second
-)
+const processingBusyReactionType = "Typing"
 
 type messageReactionAPI interface {
 	Create(ctx context.Context, req *larkim.CreateMessageReactionReq, options ...larkcore.RequestOptionFunc) (*larkim.CreateMessageReactionResp, error)
@@ -380,6 +378,95 @@ func (a *FeishuAdapter) Connect(ctx context.Context, cfg channel.ChannelConfig, 
 		a.logger.Info("bot identity", slog.String("config_id", cfg.ID), slog.String("bot_open_id", botOpenID))
 	}
 	connCtx, cancel := context.WithCancel(ctx)
+	feishuCfg.registerIMErrorSecrets()
+	eventDispatcher := a.buildEventDispatcher(connCtx, cfg, feishuCfg, botOpenID, handler)
+
+	// done closes when the reconnect goroutine exits, which only
+	// happens after wsclient.Run tears down its websocket. Stop
+	// waits on it so a follow-up Connect can't race a stale conn.
+	done := make(chan struct{})
+
+	stop := func(stopCtx context.Context) error {
+		cancel()
+		select {
+		case <-done:
+			return nil
+		case <-stopCtx.Done():
+			// Return the error so Manager.ensureConnection won't
+			// start a replacement while the old goroutine may
+			// still hold a websocket.
+			if a.logger != nil {
+				a.logger.Warn("stop timed out waiting for goroutine to exit",
+					slog.String("config_id", cfg.ID),
+					slog.Any("error", stopCtx.Err()),
+				)
+			}
+			return stopCtx.Err()
+		}
+	}
+	conn := channel.NewConnection(cfg, stop)
+	go func() {
+		defer close(done)
+		const reconnectDelay = 3 * time.Second
+		for {
+			if connCtx.Err() != nil {
+				return
+			}
+			client := wsclient.New(wsclient.Config{
+				AppID:     feishuCfg.AppID,
+				AppSecret: feishuCfg.AppSecret,
+				Domain:    feishuCfg.openBaseURL(),
+				Logger:    a.logger,
+			})
+			err := client.Run(connCtx, eventDispatcher)
+			if connCtx.Err() != nil {
+				return
+			}
+			if err != nil {
+				// Client-side errors (auth failed, forbidden) are
+				// terminal. Retrying just hammers the API; flip
+				// running to false so Manager.refresh sees the
+				// channel as down instead of silently healthy.
+				var ce *larkws.ClientError
+				if errors.As(err, &ce) {
+					if a.logger != nil {
+						a.logger.Error("websocket client error; not reconnecting",
+							slog.String("config_id", cfg.ID),
+							slog.Int("code", ce.Code),
+							slog.Any("error", err),
+						)
+					}
+					conn.MarkStopped()
+					return
+				}
+				if a.logger != nil {
+					a.logger.Error("websocket client exited", slog.String("config_id", cfg.ID), slog.Any("error", err))
+				}
+			} else if a.logger != nil {
+				a.logger.Warn("websocket client exited without error; reconnecting", slog.String("config_id", cfg.ID))
+			}
+			timer := time.NewTimer(reconnectDelay)
+			select {
+			case <-connCtx.Done():
+				timer.Stop()
+				return
+			case <-timer.C:
+			}
+		}
+	}()
+	return conn, nil
+}
+
+// buildEventDispatcher returns the lark SDK dispatcher that decodes
+// inbound websocket frames. We build one per Connect so handlers can
+// capture connCtx and bail when the connection is torn down.
+func (a *FeishuAdapter) buildEventDispatcher(
+	connCtx context.Context,
+	cfg channel.ChannelConfig,
+	feishuCfg Config,
+	botOpenID string,
+	handler channel.InboundHandler,
+) *dispatcher.EventDispatcher {
 	eventDispatcher := dispatcher.NewEventDispatcher(
 		feishuCfg.VerificationToken,
 		feishuCfg.EncryptKey,
@@ -465,31 +552,7 @@ func (a *FeishuAdapter) Connect(ctx context.Context, cfg channel.ChannelConfig, 
 	eventDispatcher.OnP2MessageReactionDeletedV1(func(_ context.Context, _ *larkim.P2MessageReactionDeletedV1) error {
 		return nil
 	})
-	feishuCfg.registerIMErrorSecrets()
-	client := newFeishuWSClient(feishuCfg, eventDispatcher, a.logger)
-	done := make(chan error, 1)
-	go func() {
-		err := client.Run(connCtx)
-		if err != nil && connCtx.Err() == nil && a.logger != nil {
-			a.logger.Error("feishu websocket exited", slog.String("config_id", cfg.ID), slog.Any("error", err))
-		}
-		done <- err
-	}()
-
-	var stopOnce sync.Once
-	var stopErr error
-	stop := func(stopCtx context.Context) error {
-		stopOnce.Do(func() {
-			cancel()
-			if err := client.Close(); err != nil {
-				stopErr = err
-				return
-			}
-			stopErr = waitFeishuWSDone(context.WithoutCancel(stopCtx), done, feishuWSStopTimeout)
-		})
-		return stopErr
-	}
-	return channel.NewConnection(cfg, stop), nil
+	return eventDispatcher
 }
 
 // Send delivers an outbound message to Feishu, handling attachments, rich text, and replies.

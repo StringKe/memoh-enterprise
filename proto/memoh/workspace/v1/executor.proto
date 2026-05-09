@@ -24,6 +24,13 @@ service WorkspaceExecutorService {
   rpc ListProcesses(ListProcessesRequest) returns (ListProcessesResponse);
   rpc StartMCPServer(StartMCPServerRequest) returns (StartMCPServerResponse);
   rpc StopMCPServer(StopMCPServerRequest) returns (StopMCPServerResponse);
+  // Tunnel proxies a raw bytes stream to a TCP address inside the workspace.
+  // The first frame from the client must carry TunnelOpen with the target
+  // address (e.g. "127.0.0.1:9222" for in-workspace Chromium CDP). The server
+  // responds with a TunnelOpen ack on success or TunnelClose with an error.
+  // After the open handshake, both sides exchange TunnelData frames carrying
+  // arbitrary bytes; either side terminates by sending TunnelClose.
+  rpc Tunnel(stream TunnelFrame) returns (stream TunnelFrame);
 }
 
 message GetWorkspaceInfoRequest {}
@@ -254,3 +261,23 @@ message StopMCPServerRequest {
 }
 
 message StopMCPServerResponse {}
+
+message TunnelOpen {
+  string address = 1;
+}
+
+message TunnelData {
+  bytes data = 1;
+}
+
+message TunnelClose {
+  string error = 1;
+}
+
+message TunnelFrame {
+  oneof frame {
+    TunnelOpen open = 1;
+    TunnelData data = 2;
+    TunnelClose close = 3;
+  }
+}

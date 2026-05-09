@@ -90,6 +90,9 @@ const (
 	// WorkspaceExecutorServiceStopMCPServerProcedure is the fully-qualified name of the
 	// WorkspaceExecutorService's StopMCPServer RPC.
 	WorkspaceExecutorServiceStopMCPServerProcedure = "/memoh.workspace.v1.WorkspaceExecutorService/StopMCPServer"
+	// WorkspaceExecutorServiceTunnelProcedure is the fully-qualified name of the
+	// WorkspaceExecutorService's Tunnel RPC.
+	WorkspaceExecutorServiceTunnelProcedure = "/memoh.workspace.v1.WorkspaceExecutorService/Tunnel"
 )
 
 // WorkspaceExecutorServiceClient is a client for the memoh.workspace.v1.WorkspaceExecutorService
@@ -114,6 +117,13 @@ type WorkspaceExecutorServiceClient interface {
 	ListProcesses(context.Context, *connect.Request[v1.ListProcessesRequest]) (*connect.Response[v1.ListProcessesResponse], error)
 	StartMCPServer(context.Context, *connect.Request[v1.StartMCPServerRequest]) (*connect.Response[v1.StartMCPServerResponse], error)
 	StopMCPServer(context.Context, *connect.Request[v1.StopMCPServerRequest]) (*connect.Response[v1.StopMCPServerResponse], error)
+	// Tunnel proxies a raw bytes stream to a TCP address inside the workspace.
+	// The first frame from the client must carry TunnelOpen with the target
+	// address (e.g. "127.0.0.1:9222" for in-workspace Chromium CDP). The server
+	// responds with a TunnelOpen ack on success or TunnelClose with an error.
+	// After the open handshake, both sides exchange TunnelData frames carrying
+	// arbitrary bytes; either side terminates by sending TunnelClose.
+	Tunnel(context.Context) *connect.BidiStreamForClient[v1.TunnelFrame, v1.TunnelFrame]
 }
 
 // NewWorkspaceExecutorServiceClient constructs a client for the
@@ -242,6 +252,12 @@ func NewWorkspaceExecutorServiceClient(httpClient connect.HTTPClient, baseURL st
 			connect.WithSchema(workspaceExecutorServiceMethods.ByName("StopMCPServer")),
 			connect.WithClientOptions(opts...),
 		),
+		tunnel: connect.NewClient[v1.TunnelFrame, v1.TunnelFrame](
+			httpClient,
+			baseURL+WorkspaceExecutorServiceTunnelProcedure,
+			connect.WithSchema(workspaceExecutorServiceMethods.ByName("Tunnel")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -266,6 +282,7 @@ type workspaceExecutorServiceClient struct {
 	listProcesses    *connect.Client[v1.ListProcessesRequest, v1.ListProcessesResponse]
 	startMCPServer   *connect.Client[v1.StartMCPServerRequest, v1.StartMCPServerResponse]
 	stopMCPServer    *connect.Client[v1.StopMCPServerRequest, v1.StopMCPServerResponse]
+	tunnel           *connect.Client[v1.TunnelFrame, v1.TunnelFrame]
 }
 
 // GetWorkspaceInfo calls memoh.workspace.v1.WorkspaceExecutorService.GetWorkspaceInfo.
@@ -363,6 +380,11 @@ func (c *workspaceExecutorServiceClient) StopMCPServer(ctx context.Context, req 
 	return c.stopMCPServer.CallUnary(ctx, req)
 }
 
+// Tunnel calls memoh.workspace.v1.WorkspaceExecutorService.Tunnel.
+func (c *workspaceExecutorServiceClient) Tunnel(ctx context.Context) *connect.BidiStreamForClient[v1.TunnelFrame, v1.TunnelFrame] {
+	return c.tunnel.CallBidiStream(ctx)
+}
+
 // WorkspaceExecutorServiceHandler is an implementation of the
 // memoh.workspace.v1.WorkspaceExecutorService service.
 type WorkspaceExecutorServiceHandler interface {
@@ -385,6 +407,13 @@ type WorkspaceExecutorServiceHandler interface {
 	ListProcesses(context.Context, *connect.Request[v1.ListProcessesRequest]) (*connect.Response[v1.ListProcessesResponse], error)
 	StartMCPServer(context.Context, *connect.Request[v1.StartMCPServerRequest]) (*connect.Response[v1.StartMCPServerResponse], error)
 	StopMCPServer(context.Context, *connect.Request[v1.StopMCPServerRequest]) (*connect.Response[v1.StopMCPServerResponse], error)
+	// Tunnel proxies a raw bytes stream to a TCP address inside the workspace.
+	// The first frame from the client must carry TunnelOpen with the target
+	// address (e.g. "127.0.0.1:9222" for in-workspace Chromium CDP). The server
+	// responds with a TunnelOpen ack on success or TunnelClose with an error.
+	// After the open handshake, both sides exchange TunnelData frames carrying
+	// arbitrary bytes; either side terminates by sending TunnelClose.
+	Tunnel(context.Context, *connect.BidiStream[v1.TunnelFrame, v1.TunnelFrame]) error
 }
 
 // NewWorkspaceExecutorServiceHandler builds an HTTP handler from the service implementation. It
@@ -508,6 +537,12 @@ func NewWorkspaceExecutorServiceHandler(svc WorkspaceExecutorServiceHandler, opt
 		connect.WithSchema(workspaceExecutorServiceMethods.ByName("StopMCPServer")),
 		connect.WithHandlerOptions(opts...),
 	)
+	workspaceExecutorServiceTunnelHandler := connect.NewBidiStreamHandler(
+		WorkspaceExecutorServiceTunnelProcedure,
+		svc.Tunnel,
+		connect.WithSchema(workspaceExecutorServiceMethods.ByName("Tunnel")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/memoh.workspace.v1.WorkspaceExecutorService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case WorkspaceExecutorServiceGetWorkspaceInfoProcedure:
@@ -548,6 +583,8 @@ func NewWorkspaceExecutorServiceHandler(svc WorkspaceExecutorServiceHandler, opt
 			workspaceExecutorServiceStartMCPServerHandler.ServeHTTP(w, r)
 		case WorkspaceExecutorServiceStopMCPServerProcedure:
 			workspaceExecutorServiceStopMCPServerHandler.ServeHTTP(w, r)
+		case WorkspaceExecutorServiceTunnelProcedure:
+			workspaceExecutorServiceTunnelHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -631,4 +668,8 @@ func (UnimplementedWorkspaceExecutorServiceHandler) StartMCPServer(context.Conte
 
 func (UnimplementedWorkspaceExecutorServiceHandler) StopMCPServer(context.Context, *connect.Request[v1.StopMCPServerRequest]) (*connect.Response[v1.StopMCPServerResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memoh.workspace.v1.WorkspaceExecutorService.StopMCPServer is not implemented"))
+}
+
+func (UnimplementedWorkspaceExecutorServiceHandler) Tunnel(context.Context, *connect.BidiStream[v1.TunnelFrame, v1.TunnelFrame]) error {
+	return connect.NewError(connect.CodeUnimplemented, errors.New("memoh.workspace.v1.WorkspaceExecutorService.Tunnel is not implemented"))
 }

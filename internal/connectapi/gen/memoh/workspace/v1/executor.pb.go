@@ -2486,6 +2486,236 @@ func (*StopMCPServerResponse) Descriptor() ([]byte, []int) {
 	return file_memoh_workspace_v1_executor_proto_rawDescGZIP(), []int{44}
 }
 
+type TunnelOpen struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Address       string                 `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TunnelOpen) Reset() {
+	*x = TunnelOpen{}
+	mi := &file_memoh_workspace_v1_executor_proto_msgTypes[45]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TunnelOpen) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TunnelOpen) ProtoMessage() {}
+
+func (x *TunnelOpen) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_workspace_v1_executor_proto_msgTypes[45]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TunnelOpen.ProtoReflect.Descriptor instead.
+func (*TunnelOpen) Descriptor() ([]byte, []int) {
+	return file_memoh_workspace_v1_executor_proto_rawDescGZIP(), []int{45}
+}
+
+func (x *TunnelOpen) GetAddress() string {
+	if x != nil {
+		return x.Address
+	}
+	return ""
+}
+
+type TunnelData struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Data          []byte                 `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TunnelData) Reset() {
+	*x = TunnelData{}
+	mi := &file_memoh_workspace_v1_executor_proto_msgTypes[46]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TunnelData) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TunnelData) ProtoMessage() {}
+
+func (x *TunnelData) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_workspace_v1_executor_proto_msgTypes[46]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TunnelData.ProtoReflect.Descriptor instead.
+func (*TunnelData) Descriptor() ([]byte, []int) {
+	return file_memoh_workspace_v1_executor_proto_rawDescGZIP(), []int{46}
+}
+
+func (x *TunnelData) GetData() []byte {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+type TunnelClose struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Error         string                 `protobuf:"bytes,1,opt,name=error,proto3" json:"error,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TunnelClose) Reset() {
+	*x = TunnelClose{}
+	mi := &file_memoh_workspace_v1_executor_proto_msgTypes[47]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TunnelClose) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TunnelClose) ProtoMessage() {}
+
+func (x *TunnelClose) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_workspace_v1_executor_proto_msgTypes[47]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TunnelClose.ProtoReflect.Descriptor instead.
+func (*TunnelClose) Descriptor() ([]byte, []int) {
+	return file_memoh_workspace_v1_executor_proto_rawDescGZIP(), []int{47}
+}
+
+func (x *TunnelClose) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
+type TunnelFrame struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Types that are valid to be assigned to Frame:
+	//
+	//	*TunnelFrame_Open
+	//	*TunnelFrame_Data
+	//	*TunnelFrame_Close
+	Frame         isTunnelFrame_Frame `protobuf_oneof:"frame"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TunnelFrame) Reset() {
+	*x = TunnelFrame{}
+	mi := &file_memoh_workspace_v1_executor_proto_msgTypes[48]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TunnelFrame) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TunnelFrame) ProtoMessage() {}
+
+func (x *TunnelFrame) ProtoReflect() protoreflect.Message {
+	mi := &file_memoh_workspace_v1_executor_proto_msgTypes[48]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TunnelFrame.ProtoReflect.Descriptor instead.
+func (*TunnelFrame) Descriptor() ([]byte, []int) {
+	return file_memoh_workspace_v1_executor_proto_rawDescGZIP(), []int{48}
+}
+
+func (x *TunnelFrame) GetFrame() isTunnelFrame_Frame {
+	if x != nil {
+		return x.Frame
+	}
+	return nil
+}
+
+func (x *TunnelFrame) GetOpen() *TunnelOpen {
+	if x != nil {
+		if x, ok := x.Frame.(*TunnelFrame_Open); ok {
+			return x.Open
+		}
+	}
+	return nil
+}
+
+func (x *TunnelFrame) GetData() *TunnelData {
+	if x != nil {
+		if x, ok := x.Frame.(*TunnelFrame_Data); ok {
+			return x.Data
+		}
+	}
+	return nil
+}
+
+func (x *TunnelFrame) GetClose() *TunnelClose {
+	if x != nil {
+		if x, ok := x.Frame.(*TunnelFrame_Close); ok {
+			return x.Close
+		}
+	}
+	return nil
+}
+
+type isTunnelFrame_Frame interface {
+	isTunnelFrame_Frame()
+}
+
+type TunnelFrame_Open struct {
+	Open *TunnelOpen `protobuf:"bytes,1,opt,name=open,proto3,oneof"`
+}
+
+type TunnelFrame_Data struct {
+	Data *TunnelData `protobuf:"bytes,2,opt,name=data,proto3,oneof"`
+}
+
+type TunnelFrame_Close struct {
+	Close *TunnelClose `protobuf:"bytes,3,opt,name=close,proto3,oneof"`
+}
+
+func (*TunnelFrame_Open) isTunnelFrame_Frame() {}
+
+func (*TunnelFrame_Data) isTunnelFrame_Frame() {}
+
+func (*TunnelFrame_Close) isTunnelFrame_Frame() {}
+
 var File_memoh_workspace_v1_executor_proto protoreflect.FileDescriptor
 
 const file_memoh_workspace_v1_executor_proto_rawDesc = "" +
@@ -2655,7 +2885,20 @@ const file_memoh_workspace_v1_executor_proto_rawDesc = "" +
 	"\x14StopMCPServerRequest\x12\x1d\n" +
 	"\n" +
 	"process_id\x18\x01 \x01(\tR\tprocessId\"\x17\n" +
-	"\x15StopMCPServerResponse2\xc9\r\n" +
+	"\x15StopMCPServerResponse\"&\n" +
+	"\n" +
+	"TunnelOpen\x12\x18\n" +
+	"\aaddress\x18\x01 \x01(\tR\aaddress\" \n" +
+	"\n" +
+	"TunnelData\x12\x12\n" +
+	"\x04data\x18\x01 \x01(\fR\x04data\"#\n" +
+	"\vTunnelClose\x12\x14\n" +
+	"\x05error\x18\x01 \x01(\tR\x05error\"\xbb\x01\n" +
+	"\vTunnelFrame\x124\n" +
+	"\x04open\x18\x01 \x01(\v2\x1e.memoh.workspace.v1.TunnelOpenH\x00R\x04open\x124\n" +
+	"\x04data\x18\x02 \x01(\v2\x1e.memoh.workspace.v1.TunnelDataH\x00R\x04data\x127\n" +
+	"\x05close\x18\x03 \x01(\v2\x1f.memoh.workspace.v1.TunnelCloseH\x00R\x05closeB\a\n" +
+	"\x05frame2\x99\x0e\n" +
 	"\x18WorkspaceExecutorService\x12m\n" +
 	"\x10GetWorkspaceInfo\x12+.memoh.workspace.v1.GetWorkspaceInfoRequest\x1a,.memoh.workspace.v1.GetWorkspaceInfoResponse\x12U\n" +
 	"\bReadFile\x12#.memoh.workspace.v1.ReadFileRequest\x1a$.memoh.workspace.v1.ReadFileResponse\x12X\n" +
@@ -2676,7 +2919,8 @@ const file_memoh_workspace_v1_executor_proto_rawDesc = "" +
 	"\vKillProcess\x12&.memoh.workspace.v1.KillProcessRequest\x1a'.memoh.workspace.v1.KillProcessResponse\x12d\n" +
 	"\rListProcesses\x12(.memoh.workspace.v1.ListProcessesRequest\x1a).memoh.workspace.v1.ListProcessesResponse\x12g\n" +
 	"\x0eStartMCPServer\x12).memoh.workspace.v1.StartMCPServerRequest\x1a*.memoh.workspace.v1.StartMCPServerResponse\x12d\n" +
-	"\rStopMCPServer\x12(.memoh.workspace.v1.StopMCPServerRequest\x1a).memoh.workspace.v1.StopMCPServerResponseBQZOgithub.com/memohai/memoh/internal/connectapi/gen/memoh/workspace/v1;workspacev1b\x06proto3"
+	"\rStopMCPServer\x12(.memoh.workspace.v1.StopMCPServerRequest\x1a).memoh.workspace.v1.StopMCPServerResponse\x12N\n" +
+	"\x06Tunnel\x12\x1f.memoh.workspace.v1.TunnelFrame\x1a\x1f.memoh.workspace.v1.TunnelFrame(\x010\x01BQZOgithub.com/memohai/memoh/internal/connectapi/gen/memoh/workspace/v1;workspacev1b\x06proto3"
 
 var (
 	file_memoh_workspace_v1_executor_proto_rawDescOnce sync.Once
@@ -2691,7 +2935,7 @@ func file_memoh_workspace_v1_executor_proto_rawDescGZIP() []byte {
 }
 
 var file_memoh_workspace_v1_executor_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_memoh_workspace_v1_executor_proto_msgTypes = make([]protoimpl.MessageInfo, 46)
+var file_memoh_workspace_v1_executor_proto_msgTypes = make([]protoimpl.MessageInfo, 50)
 var file_memoh_workspace_v1_executor_proto_goTypes = []any{
 	(ExecResponse_Kind)(0),           // 0: memoh.workspace.v1.ExecResponse.Kind
 	(*GetWorkspaceInfoRequest)(nil),  // 1: memoh.workspace.v1.GetWorkspaceInfoRequest
@@ -2739,10 +2983,14 @@ var file_memoh_workspace_v1_executor_proto_goTypes = []any{
 	(*StartMCPServerResponse)(nil),   // 43: memoh.workspace.v1.StartMCPServerResponse
 	(*StopMCPServerRequest)(nil),     // 44: memoh.workspace.v1.StopMCPServerRequest
 	(*StopMCPServerResponse)(nil),    // 45: memoh.workspace.v1.StopMCPServerResponse
-	nil,                              // 46: memoh.workspace.v1.GetWorkspaceInfoResponse.RuntimeEntry
+	(*TunnelOpen)(nil),               // 46: memoh.workspace.v1.TunnelOpen
+	(*TunnelData)(nil),               // 47: memoh.workspace.v1.TunnelData
+	(*TunnelClose)(nil),              // 48: memoh.workspace.v1.TunnelClose
+	(*TunnelFrame)(nil),              // 49: memoh.workspace.v1.TunnelFrame
+	nil,                              // 50: memoh.workspace.v1.GetWorkspaceInfoResponse.RuntimeEntry
 }
 var file_memoh_workspace_v1_executor_proto_depIdxs = []int32{
-	46, // 0: memoh.workspace.v1.GetWorkspaceInfoResponse.runtime:type_name -> memoh.workspace.v1.GetWorkspaceInfoResponse.RuntimeEntry
+	50, // 0: memoh.workspace.v1.GetWorkspaceInfoResponse.runtime:type_name -> memoh.workspace.v1.GetWorkspaceInfoResponse.RuntimeEntry
 	8,  // 1: memoh.workspace.v1.ListDirResponse.entries:type_name -> memoh.workspace.v1.FileEntry
 	8,  // 2: memoh.workspace.v1.StatResponse.entry:type_name -> memoh.workspace.v1.FileEntry
 	20, // 3: memoh.workspace.v1.ReadRawResponse.chunk:type_name -> memoh.workspace.v1.DataChunk
@@ -2754,49 +3002,54 @@ var file_memoh_workspace_v1_executor_proto_depIdxs = []int32{
 	32, // 9: memoh.workspace.v1.StreamPTYResponse.output:type_name -> memoh.workspace.v1.PTYOutput
 	24, // 10: memoh.workspace.v1.ResizePTYRequest.size:type_name -> memoh.workspace.v1.TerminalResize
 	39, // 11: memoh.workspace.v1.ListProcessesResponse.processes:type_name -> memoh.workspace.v1.ProcessInfo
-	1,  // 12: memoh.workspace.v1.WorkspaceExecutorService.GetWorkspaceInfo:input_type -> memoh.workspace.v1.GetWorkspaceInfoRequest
-	3,  // 13: memoh.workspace.v1.WorkspaceExecutorService.ReadFile:input_type -> memoh.workspace.v1.ReadFileRequest
-	5,  // 14: memoh.workspace.v1.WorkspaceExecutorService.WriteFile:input_type -> memoh.workspace.v1.WriteFileRequest
-	7,  // 15: memoh.workspace.v1.WorkspaceExecutorService.ListDir:input_type -> memoh.workspace.v1.ListDirRequest
-	10, // 16: memoh.workspace.v1.WorkspaceExecutorService.Stat:input_type -> memoh.workspace.v1.StatRequest
-	12, // 17: memoh.workspace.v1.WorkspaceExecutorService.Mkdir:input_type -> memoh.workspace.v1.MkdirRequest
-	14, // 18: memoh.workspace.v1.WorkspaceExecutorService.Rename:input_type -> memoh.workspace.v1.RenameRequest
-	16, // 19: memoh.workspace.v1.WorkspaceExecutorService.DeleteFile:input_type -> memoh.workspace.v1.DeleteFileRequest
-	18, // 20: memoh.workspace.v1.WorkspaceExecutorService.ReadRaw:input_type -> memoh.workspace.v1.ReadRawRequest
-	21, // 21: memoh.workspace.v1.WorkspaceExecutorService.WriteRaw:input_type -> memoh.workspace.v1.WriteRawRequest
-	25, // 22: memoh.workspace.v1.WorkspaceExecutorService.Exec:input_type -> memoh.workspace.v1.ExecRequest
-	28, // 23: memoh.workspace.v1.WorkspaceExecutorService.OpenPTY:input_type -> memoh.workspace.v1.OpenPTYRequest
-	30, // 24: memoh.workspace.v1.WorkspaceExecutorService.StreamPTY:input_type -> memoh.workspace.v1.StreamPTYRequest
-	33, // 25: memoh.workspace.v1.WorkspaceExecutorService.WritePTY:input_type -> memoh.workspace.v1.WritePTYRequest
-	35, // 26: memoh.workspace.v1.WorkspaceExecutorService.ResizePTY:input_type -> memoh.workspace.v1.ResizePTYRequest
-	37, // 27: memoh.workspace.v1.WorkspaceExecutorService.KillProcess:input_type -> memoh.workspace.v1.KillProcessRequest
-	40, // 28: memoh.workspace.v1.WorkspaceExecutorService.ListProcesses:input_type -> memoh.workspace.v1.ListProcessesRequest
-	42, // 29: memoh.workspace.v1.WorkspaceExecutorService.StartMCPServer:input_type -> memoh.workspace.v1.StartMCPServerRequest
-	44, // 30: memoh.workspace.v1.WorkspaceExecutorService.StopMCPServer:input_type -> memoh.workspace.v1.StopMCPServerRequest
-	2,  // 31: memoh.workspace.v1.WorkspaceExecutorService.GetWorkspaceInfo:output_type -> memoh.workspace.v1.GetWorkspaceInfoResponse
-	4,  // 32: memoh.workspace.v1.WorkspaceExecutorService.ReadFile:output_type -> memoh.workspace.v1.ReadFileResponse
-	6,  // 33: memoh.workspace.v1.WorkspaceExecutorService.WriteFile:output_type -> memoh.workspace.v1.WriteFileResponse
-	9,  // 34: memoh.workspace.v1.WorkspaceExecutorService.ListDir:output_type -> memoh.workspace.v1.ListDirResponse
-	11, // 35: memoh.workspace.v1.WorkspaceExecutorService.Stat:output_type -> memoh.workspace.v1.StatResponse
-	13, // 36: memoh.workspace.v1.WorkspaceExecutorService.Mkdir:output_type -> memoh.workspace.v1.MkdirResponse
-	15, // 37: memoh.workspace.v1.WorkspaceExecutorService.Rename:output_type -> memoh.workspace.v1.RenameResponse
-	17, // 38: memoh.workspace.v1.WorkspaceExecutorService.DeleteFile:output_type -> memoh.workspace.v1.DeleteFileResponse
-	19, // 39: memoh.workspace.v1.WorkspaceExecutorService.ReadRaw:output_type -> memoh.workspace.v1.ReadRawResponse
-	23, // 40: memoh.workspace.v1.WorkspaceExecutorService.WriteRaw:output_type -> memoh.workspace.v1.WriteRawResponse
-	27, // 41: memoh.workspace.v1.WorkspaceExecutorService.Exec:output_type -> memoh.workspace.v1.ExecResponse
-	29, // 42: memoh.workspace.v1.WorkspaceExecutorService.OpenPTY:output_type -> memoh.workspace.v1.OpenPTYResponse
-	31, // 43: memoh.workspace.v1.WorkspaceExecutorService.StreamPTY:output_type -> memoh.workspace.v1.StreamPTYResponse
-	34, // 44: memoh.workspace.v1.WorkspaceExecutorService.WritePTY:output_type -> memoh.workspace.v1.WritePTYResponse
-	36, // 45: memoh.workspace.v1.WorkspaceExecutorService.ResizePTY:output_type -> memoh.workspace.v1.ResizePTYResponse
-	38, // 46: memoh.workspace.v1.WorkspaceExecutorService.KillProcess:output_type -> memoh.workspace.v1.KillProcessResponse
-	41, // 47: memoh.workspace.v1.WorkspaceExecutorService.ListProcesses:output_type -> memoh.workspace.v1.ListProcessesResponse
-	43, // 48: memoh.workspace.v1.WorkspaceExecutorService.StartMCPServer:output_type -> memoh.workspace.v1.StartMCPServerResponse
-	45, // 49: memoh.workspace.v1.WorkspaceExecutorService.StopMCPServer:output_type -> memoh.workspace.v1.StopMCPServerResponse
-	31, // [31:50] is the sub-list for method output_type
-	12, // [12:31] is the sub-list for method input_type
-	12, // [12:12] is the sub-list for extension type_name
-	12, // [12:12] is the sub-list for extension extendee
-	0,  // [0:12] is the sub-list for field type_name
+	46, // 12: memoh.workspace.v1.TunnelFrame.open:type_name -> memoh.workspace.v1.TunnelOpen
+	47, // 13: memoh.workspace.v1.TunnelFrame.data:type_name -> memoh.workspace.v1.TunnelData
+	48, // 14: memoh.workspace.v1.TunnelFrame.close:type_name -> memoh.workspace.v1.TunnelClose
+	1,  // 15: memoh.workspace.v1.WorkspaceExecutorService.GetWorkspaceInfo:input_type -> memoh.workspace.v1.GetWorkspaceInfoRequest
+	3,  // 16: memoh.workspace.v1.WorkspaceExecutorService.ReadFile:input_type -> memoh.workspace.v1.ReadFileRequest
+	5,  // 17: memoh.workspace.v1.WorkspaceExecutorService.WriteFile:input_type -> memoh.workspace.v1.WriteFileRequest
+	7,  // 18: memoh.workspace.v1.WorkspaceExecutorService.ListDir:input_type -> memoh.workspace.v1.ListDirRequest
+	10, // 19: memoh.workspace.v1.WorkspaceExecutorService.Stat:input_type -> memoh.workspace.v1.StatRequest
+	12, // 20: memoh.workspace.v1.WorkspaceExecutorService.Mkdir:input_type -> memoh.workspace.v1.MkdirRequest
+	14, // 21: memoh.workspace.v1.WorkspaceExecutorService.Rename:input_type -> memoh.workspace.v1.RenameRequest
+	16, // 22: memoh.workspace.v1.WorkspaceExecutorService.DeleteFile:input_type -> memoh.workspace.v1.DeleteFileRequest
+	18, // 23: memoh.workspace.v1.WorkspaceExecutorService.ReadRaw:input_type -> memoh.workspace.v1.ReadRawRequest
+	21, // 24: memoh.workspace.v1.WorkspaceExecutorService.WriteRaw:input_type -> memoh.workspace.v1.WriteRawRequest
+	25, // 25: memoh.workspace.v1.WorkspaceExecutorService.Exec:input_type -> memoh.workspace.v1.ExecRequest
+	28, // 26: memoh.workspace.v1.WorkspaceExecutorService.OpenPTY:input_type -> memoh.workspace.v1.OpenPTYRequest
+	30, // 27: memoh.workspace.v1.WorkspaceExecutorService.StreamPTY:input_type -> memoh.workspace.v1.StreamPTYRequest
+	33, // 28: memoh.workspace.v1.WorkspaceExecutorService.WritePTY:input_type -> memoh.workspace.v1.WritePTYRequest
+	35, // 29: memoh.workspace.v1.WorkspaceExecutorService.ResizePTY:input_type -> memoh.workspace.v1.ResizePTYRequest
+	37, // 30: memoh.workspace.v1.WorkspaceExecutorService.KillProcess:input_type -> memoh.workspace.v1.KillProcessRequest
+	40, // 31: memoh.workspace.v1.WorkspaceExecutorService.ListProcesses:input_type -> memoh.workspace.v1.ListProcessesRequest
+	42, // 32: memoh.workspace.v1.WorkspaceExecutorService.StartMCPServer:input_type -> memoh.workspace.v1.StartMCPServerRequest
+	44, // 33: memoh.workspace.v1.WorkspaceExecutorService.StopMCPServer:input_type -> memoh.workspace.v1.StopMCPServerRequest
+	49, // 34: memoh.workspace.v1.WorkspaceExecutorService.Tunnel:input_type -> memoh.workspace.v1.TunnelFrame
+	2,  // 35: memoh.workspace.v1.WorkspaceExecutorService.GetWorkspaceInfo:output_type -> memoh.workspace.v1.GetWorkspaceInfoResponse
+	4,  // 36: memoh.workspace.v1.WorkspaceExecutorService.ReadFile:output_type -> memoh.workspace.v1.ReadFileResponse
+	6,  // 37: memoh.workspace.v1.WorkspaceExecutorService.WriteFile:output_type -> memoh.workspace.v1.WriteFileResponse
+	9,  // 38: memoh.workspace.v1.WorkspaceExecutorService.ListDir:output_type -> memoh.workspace.v1.ListDirResponse
+	11, // 39: memoh.workspace.v1.WorkspaceExecutorService.Stat:output_type -> memoh.workspace.v1.StatResponse
+	13, // 40: memoh.workspace.v1.WorkspaceExecutorService.Mkdir:output_type -> memoh.workspace.v1.MkdirResponse
+	15, // 41: memoh.workspace.v1.WorkspaceExecutorService.Rename:output_type -> memoh.workspace.v1.RenameResponse
+	17, // 42: memoh.workspace.v1.WorkspaceExecutorService.DeleteFile:output_type -> memoh.workspace.v1.DeleteFileResponse
+	19, // 43: memoh.workspace.v1.WorkspaceExecutorService.ReadRaw:output_type -> memoh.workspace.v1.ReadRawResponse
+	23, // 44: memoh.workspace.v1.WorkspaceExecutorService.WriteRaw:output_type -> memoh.workspace.v1.WriteRawResponse
+	27, // 45: memoh.workspace.v1.WorkspaceExecutorService.Exec:output_type -> memoh.workspace.v1.ExecResponse
+	29, // 46: memoh.workspace.v1.WorkspaceExecutorService.OpenPTY:output_type -> memoh.workspace.v1.OpenPTYResponse
+	31, // 47: memoh.workspace.v1.WorkspaceExecutorService.StreamPTY:output_type -> memoh.workspace.v1.StreamPTYResponse
+	34, // 48: memoh.workspace.v1.WorkspaceExecutorService.WritePTY:output_type -> memoh.workspace.v1.WritePTYResponse
+	36, // 49: memoh.workspace.v1.WorkspaceExecutorService.ResizePTY:output_type -> memoh.workspace.v1.ResizePTYResponse
+	38, // 50: memoh.workspace.v1.WorkspaceExecutorService.KillProcess:output_type -> memoh.workspace.v1.KillProcessResponse
+	41, // 51: memoh.workspace.v1.WorkspaceExecutorService.ListProcesses:output_type -> memoh.workspace.v1.ListProcessesResponse
+	43, // 52: memoh.workspace.v1.WorkspaceExecutorService.StartMCPServer:output_type -> memoh.workspace.v1.StartMCPServerResponse
+	45, // 53: memoh.workspace.v1.WorkspaceExecutorService.StopMCPServer:output_type -> memoh.workspace.v1.StopMCPServerResponse
+	49, // 54: memoh.workspace.v1.WorkspaceExecutorService.Tunnel:output_type -> memoh.workspace.v1.TunnelFrame
+	35, // [35:55] is the sub-list for method output_type
+	15, // [15:35] is the sub-list for method input_type
+	15, // [15:15] is the sub-list for extension type_name
+	15, // [15:15] is the sub-list for extension extendee
+	0,  // [0:15] is the sub-list for field type_name
 }
 
 func init() { file_memoh_workspace_v1_executor_proto_init() }
@@ -2809,13 +3062,18 @@ func file_memoh_workspace_v1_executor_proto_init() {
 		(*ExecRequest_StdinData)(nil),
 		(*ExecRequest_Resize)(nil),
 	}
+	file_memoh_workspace_v1_executor_proto_msgTypes[48].OneofWrappers = []any{
+		(*TunnelFrame_Open)(nil),
+		(*TunnelFrame_Data)(nil),
+		(*TunnelFrame_Close)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_memoh_workspace_v1_executor_proto_rawDesc), len(file_memoh_workspace_v1_executor_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   46,
+			NumMessages:   50,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -12,7 +12,6 @@ const (
 	AudienceServer             = "memoh-server"
 	AudienceAgentRunner        = "memoh-agent-runner"
 	AudienceConnector          = "memoh-connector"
-	AudienceBrowserGateway     = "memoh-browser-gateway"
 	AudienceIntegrationGateway = "memoh-integration-gateway"
 	AudienceWorkspaceExecutor  = "workspace-executor"
 
@@ -21,7 +20,6 @@ const (
 	ScopeRunnerEvents       = "runner.events"
 	ScopeWorkspaceExec      = "workspace.exec"
 	ScopeWorkspaceFiles     = "workspace.files"
-	ScopeBrowserAutomation  = "browser.automation"
 	ScopeConnectorInbound   = "connector.inbound"
 	ScopeConnectorOutbound  = "connector.outbound"
 	ScopeIntegrationGateway = "integration.gateway"

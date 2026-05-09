@@ -21,7 +21,6 @@ const (
 	FieldDiscussProbeModelID    = "discuss_probe_model_id"
 	FieldTTSModelID             = "tts_model_id"
 	FieldTranscriptionModelID   = "transcription_model_id"
-	FieldBrowserContextID       = "browser_context_id"
 	FieldPersistFullToolResults = "persist_full_tool_results"
 	FieldShowToolCallsInIM      = "show_tool_calls_in_im"
 	FieldToolApprovalConfig     = "tool_approval_config"
@@ -51,7 +50,6 @@ var InheritableFields = []string{
 	FieldDiscussProbeModelID,
 	FieldTTSModelID,
 	FieldTranscriptionModelID,
-	FieldBrowserContextID,
 	FieldPersistFullToolResults,
 	FieldShowToolCallsInIM,
 	FieldToolApprovalConfig,

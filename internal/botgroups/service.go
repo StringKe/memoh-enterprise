@@ -360,10 +360,6 @@ func groupSettingsParams(groupID pgtype.UUID, settings GroupSettings) (sqlc.Upse
 	if err != nil {
 		return sqlc.UpsertBotGroupSettingsParams{}, fmtFieldUUID(FieldTranscriptionModelID, err)
 	}
-	browserContextID, err := uuidPtr(settings.BrowserContextID)
-	if err != nil {
-		return sqlc.UpsertBotGroupSettingsParams{}, fmtFieldUUID(FieldBrowserContextID, err)
-	}
 	params := sqlc.UpsertBotGroupSettingsParams{
 		GroupID:                groupID,
 		Timezone:               textPtr(settings.Timezone),
@@ -386,7 +382,6 @@ func groupSettingsParams(groupID pgtype.UUID, settings GroupSettings) (sqlc.Upse
 		DiscussProbeModelID:    discussProbeModelID,
 		TtsModelID:             ttsModelID,
 		TranscriptionModelID:   transcriptionModelID,
-		BrowserContextID:       browserContextID,
 		PersistFullToolResults: boolPtr(settings.PersistFullToolResults),
 		ShowToolCallsInIm:      boolPtr(settings.ShowToolCallsInIM),
 		ToolApprovalConfig:     toolApprovalConfig,
@@ -433,7 +428,6 @@ func toGroupSettings(row sqlc.BotGroupSetting) (GroupSettings, error) {
 		DiscussProbeModelID:    uuidValue(row.DiscussProbeModelID),
 		TTSModelID:             uuidValue(row.TtsModelID),
 		TranscriptionModelID:   uuidValue(row.TranscriptionModelID),
-		BrowserContextID:       uuidValue(row.BrowserContextID),
 		PersistFullToolResults: boolValue(row.PersistFullToolResults),
 		ShowToolCallsInIM:      boolValue(row.ShowToolCallsInIm),
 		ToolApprovalConfig:     toolApprovalConfig,

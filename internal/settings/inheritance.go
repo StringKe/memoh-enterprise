@@ -125,7 +125,6 @@ func applyGroupDefaults(local Settings, group sqlc.BotGroupSetting, mask Overrid
 	applyUUID(FieldDiscussProbeModelID, group.DiscussProbeModelID, &local.DiscussProbeModelID)
 	applyUUID(FieldTTSModelID, group.TtsModelID, &local.TtsModelID)
 	applyUUID(FieldTranscriptionModelID, group.TranscriptionModelID, &local.TranscriptionModelID)
-	applyUUID(FieldBrowserContextID, group.BrowserContextID, &local.BrowserContextID)
 	applyBool(FieldPersistFullToolResults, group.PersistFullToolResults, &local.PersistFullToolResults)
 	applyBool(FieldShowToolCallsInIM, group.ShowToolCallsInIm, &local.ShowToolCallsInIM)
 	applyJSON(FieldToolApprovalConfig, group.ToolApprovalConfig, func(raw []byte) {

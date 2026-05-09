@@ -47,7 +47,6 @@ message BotSettings {
   optional string discuss_probe_model_id = 18;
   optional string tts_model_id = 19;
   optional string transcription_model_id = 20;
-  optional string browser_context_id = 21;
   optional bool persist_full_tool_results = 22;
   optional bool show_tool_calls_in_im = 23;
   optional google.protobuf.Struct tool_approval_config = 24;

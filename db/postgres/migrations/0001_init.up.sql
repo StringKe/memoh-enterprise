@@ -141,14 +141,6 @@ CREATE TABLE IF NOT EXISTS memory_providers (
   CONSTRAINT memory_providers_name_unique UNIQUE (name)
 );
 
-CREATE TABLE IF NOT EXISTS browser_contexts (
-  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name        TEXT NOT NULL DEFAULT '',
-  config      JSONB NOT NULL DEFAULT '{}'::jsonb,
-  created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
 CREATE TABLE IF NOT EXISTS bot_groups (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   owner_user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -193,7 +185,6 @@ CREATE TABLE IF NOT EXISTS bots (
   discuss_probe_model_id UUID REFERENCES models(id) ON DELETE SET NULL,
   tts_model_id UUID REFERENCES models(id) ON DELETE SET NULL,
   transcription_model_id UUID REFERENCES models(id) ON DELETE SET NULL,
-  browser_context_id UUID REFERENCES browser_contexts(id) ON DELETE SET NULL,
   persist_full_tool_results BOOLEAN NOT NULL DEFAULT false,
   show_tool_calls_in_im BOOLEAN NOT NULL DEFAULT false,
   display_enabled BOOLEAN NOT NULL DEFAULT false,
@@ -235,7 +226,6 @@ CREATE TABLE IF NOT EXISTS bot_group_settings (
   discuss_probe_model_id UUID REFERENCES models(id) ON DELETE SET NULL,
   tts_model_id UUID REFERENCES models(id) ON DELETE SET NULL,
   transcription_model_id UUID REFERENCES models(id) ON DELETE SET NULL,
-  browser_context_id UUID REFERENCES browser_contexts(id) ON DELETE SET NULL,
   persist_full_tool_results BOOLEAN,
   show_tool_calls_in_im BOOLEAN,
   tool_approval_config JSONB,

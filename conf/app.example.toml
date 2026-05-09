@@ -134,11 +134,6 @@ base_url = "http://127.0.0.1:26820"
 [registry]
 providers_dir = "conf/providers"
 
-[browser_gateway]
-host = "127.0.0.1"
-port = 26812
-server_addr = ":26810"
-
 [supermarket]
 base_url = "https://supermarket.memoh.ai"
 

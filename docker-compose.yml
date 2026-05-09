@@ -66,7 +66,6 @@ services:
     environment:
       MEMOH_AGENT_RUNNER_ADDR: ":26813"
       MEMOH_SERVER_ADDR: "http://server:8080/connect"
-      MEMOH_BROWSER_GATEWAY_ADDR: "http://browser:8083"
     volumes:
       - ${MEMOH_CONFIG:-./config.toml}:/app/config.toml:ro
       - memoh_data:/opt/memoh/data
@@ -166,22 +165,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    restart: unless-stopped
-    networks:
-      - memoh-network
-
-  browser:
-    image: ghcr.io/stringke/browser:${BROWSER_TAG:-local}
-    container_name: memoh-browser
-    profiles: [browser]
-    environment:
-      - BROWSER_CORES=${BROWSER_CORES:-chromium,firefox}
-    volumes:
-      - ${MEMOH_CONFIG:-./config.toml}:/config.toml:ro
-    ports:
-      - "${BROWSER_PORT:-26812}:8083"
-    depends_on:
-      - server
     restart: unless-stopped
     networks:
       - memoh-network

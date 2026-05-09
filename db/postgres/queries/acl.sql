@@ -51,7 +51,7 @@ SELECT
   )::text AS source_conversation_name,
   COALESCE(NULLIF(TRIM(COALESCE(source_route.metadata->>'conversation_avatar_url', '')), ''), '')::text AS source_conversation_avatar_url
 FROM bot_acl_rules r
-LEFT JOIN channel_identities ci ON ci.id = r.channel_identity_id
+LEFT JOIN iam_channel_identities ci ON ci.id = r.channel_identity_id
 LEFT JOIN bot_channel_routes source_route ON source_route.bot_id = r.bot_id
   AND r.source_conversation_id IS NOT NULL
   AND source_route.external_conversation_id = r.source_conversation_id

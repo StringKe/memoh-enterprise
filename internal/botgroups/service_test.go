@@ -295,13 +295,12 @@ func scanGroupSettings(dest []any, groupID pgtype.UUID) {
 	*dest[18].(*pgtype.UUID) = pgtype.UUID{}
 	*dest[19].(*pgtype.UUID) = pgtype.UUID{}
 	*dest[20].(*pgtype.UUID) = pgtype.UUID{}
-	*dest[21].(*pgtype.UUID) = pgtype.UUID{}
+	*dest[21].(*pgtype.Bool) = pgtype.Bool{}
 	*dest[22].(*pgtype.Bool) = pgtype.Bool{}
-	*dest[23].(*pgtype.Bool) = pgtype.Bool{}
-	*dest[24].(*[]byte) = nil
-	*dest[25].(*pgtype.Text) = pgtype.Text{}
-	*dest[26].(*pgtype.Bool) = pgtype.Bool{}
-	*dest[27].(*[]byte) = nil
-	*dest[28].(*[]byte) = []byte(`{}`)
-	*dest[29].(*pgtype.Timestamptz) = pgtype.Timestamptz{}
+	*dest[23].(*[]byte) = nil
+	*dest[24].(*pgtype.Text) = pgtype.Text{}
+	*dest[25].(*pgtype.Bool) = pgtype.Bool{}
+	*dest[26].(*[]byte) = nil
+	*dest[27].(*[]byte) = []byte(`{}`)
+	*dest[28].(*pgtype.Timestamptz) = pgtype.Timestamptz{}
 }

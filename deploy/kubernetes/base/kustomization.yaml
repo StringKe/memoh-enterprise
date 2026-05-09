@@ -13,5 +13,4 @@ resources:
   - connector.yaml
   - integration-gateway.yaml
   - worker.yaml
-  - browser.yaml
   - ingress.yaml

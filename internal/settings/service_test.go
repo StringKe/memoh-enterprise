@@ -364,7 +364,7 @@ func makeSettingsBotRow(botID, ownerUserID pgtype.UUID, mask []byte, groupID ...
 func makeSettingsReadRow() *fakeSettingsRow {
 	return &fakeSettingsRow{
 		scanFunc: func(dest ...any) error {
-			if len(dest) < 27 {
+			if len(dest) < 26 {
 				return pgx.ErrNoRows
 			}
 			*dest[0].(*pgtype.UUID) = pgtype.UUID{}
@@ -378,15 +378,15 @@ func makeSettingsReadRow() *fakeSettingsRow {
 			*dest[8].(*int32) = 100000
 			*dest[9].(*int32) = 80
 			*dest[10].(*pgtype.Text) = pgtype.Text{}
-			for i := 11; i <= 20; i++ {
+			for i := 11; i <= 19; i++ {
 				*dest[i].(*pgtype.UUID) = pgtype.UUID{}
 			}
+			*dest[20].(*bool) = false
 			*dest[21].(*bool) = false
-			*dest[22].(*bool) = false
-			*dest[23].(*[]byte) = []byte(`{}`)
-			*dest[24].(*string) = ""
-			*dest[25].(*bool) = false
-			*dest[26].(*[]byte) = []byte(`{}`)
+			*dest[22].(*[]byte) = []byte(`{}`)
+			*dest[23].(*string) = ""
+			*dest[24].(*bool) = false
+			*dest[25].(*[]byte) = []byte(`{}`)
 			return nil
 		},
 	}

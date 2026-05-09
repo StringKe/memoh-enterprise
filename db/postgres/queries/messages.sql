@@ -331,7 +331,7 @@ SELECT
   ci.avatar_url AS sender_avatar_url,
   s.channel_type AS platform
 FROM bot_history_messages m
-LEFT JOIN channel_identities ci ON ci.id = m.sender_channel_identity_id
+LEFT JOIN iam_channel_identities ci ON ci.id = m.sender_channel_identity_id
 LEFT JOIN bot_sessions s ON s.id = m.session_id
 WHERE m.session_id = sqlc.arg(session_id)
   AND m.source_message_id = sqlc.arg(external_message_id)
@@ -358,7 +358,7 @@ SELECT
   ci.avatar_url AS sender_avatar_url,
   s.channel_type AS platform
 FROM bot_history_messages m
-LEFT JOIN channel_identities ci ON ci.id = m.sender_channel_identity_id
+LEFT JOIN iam_channel_identities ci ON ci.id = m.sender_channel_identity_id
 LEFT JOIN bot_sessions s ON s.id = m.session_id
 WHERE m.session_id = sqlc.arg(session_id)
   AND m.created_at > sqlc.arg(created_at)

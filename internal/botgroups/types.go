@@ -56,7 +56,6 @@ type GroupSettings struct {
 	DiscussProbeModelID    *string        `json:"discuss_probe_model_id,omitempty"`
 	TTSModelID             *string        `json:"tts_model_id,omitempty"`
 	TranscriptionModelID   *string        `json:"transcription_model_id,omitempty"`
-	BrowserContextID       *string        `json:"browser_context_id,omitempty"`
 	PersistFullToolResults *bool          `json:"persist_full_tool_results,omitempty"`
 	ShowToolCallsInIM      *bool          `json:"show_tool_calls_in_im,omitempty"`
 	ToolApprovalConfig     map[string]any `json:"tool_approval_config,omitempty"`

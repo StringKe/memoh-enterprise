@@ -72,11 +72,6 @@ timeout_seconds = 10
 [sparse]
 base_url = "http://127.0.0.1:26820"
 
-[browser_gateway]
-host = "127.0.0.1"
-port = 26812
-server_addr = "127.0.0.1:26810"
-
 [web-ui]
 host = "127.0.0.1"
 port = 26811

@@ -10,9 +10,9 @@
 
 将项目收敛为企业版平台：
 
-- 保留 Go server、ConnectRPC 管理 API、Web 管理后台、Browser Gateway、agent-runner、connector、integration-gateway、worker、agent tools、MCP、memory、schedule、providers、models、channels、email、workspace 和 containers。
+- 保留 Go server、ConnectRPC 管理 API、Web 管理后台、agent-runner、connector、integration-gateway、worker、agent tools、MCP、memory、schedule、providers、models、channels、email、workspace 和 containers。
 - 保留 `apps/web`，它是企业版管理后台，不属于 Desktop GUI。
-- 保留 `packages/ui`、`packages/sdk`、`packages/icons`、`packages/config`，它们服务 Web 管理后台和 Browser Gateway。
+- 保留 `packages/ui`、`packages/sdk`、`packages/icons`、`packages/config`，它们服务 Web 管理后台。
 - 保留 ConnectRPC protobuf 和 TypeScript SDK 生成链路。
 - 保留 PostgreSQL，且 PostgreSQL 是唯一关系数据库后端。
 - 保留 containerd、Docker Engine、Podman、Kubernetes runtime 相关能力。
@@ -77,18 +77,17 @@
 - 保留 PostgreSQL sqlc 生成链路。
 - 迁移逻辑固定走 PostgreSQL。
 
-### Browser Gateway
+### Browser
 
-- 保留 `apps/browser/`。
-- 保留 browser automation。
-- 保留 `internal/agent/tools/browser.go`。
-- 保留 browser context、browser gateway 配置、Playwright 自动化链路。
-- Browser Gateway 是 agent 工具能力，不属于 GUI。
+- 不再有独立 Browser Gateway 服务（`apps/browser/`、`internal/browsercontexts/`、`memoh-browser` 镜像）。
+- Agent browser automation 移到 workspace 容器内运行：在容器里启动 Chromium，agent 通过 workspace executor 的 `Tunnel` RPC 转发 CDP（HTTP + WebSocket）。
+- `internal/agent/tools/browser.go` 当前是 stub（无对外工具），CDP browser tool 待 executor.Tunnel + browser 重写完成后接入。
 
 ### Workspace Executor
 
 - 保留 workspace 内文件读写、目录操作、exec、PTY、MCP server 启动能力。
 - 保留可选 workspace display supervisor、Xvnc socket、浏览器启动和显示会话准备能力。
+- 待加入 `Tunnel(stream TunnelFrame) returns (stream TunnelFrame)` bidi RPC，作为 agent 进程到容器内 Chromium CDP 通道的传输层。
 - 旧 `bridge` 命名统一替换为 `workspace-executor`。
 - Workspace Executor 必须执行路径逃逸检查、symlink 逃逸检查、读写大小限制、exec 超时限制、环境变量 allowlist、service JWT 校验和 RunLease 校验。
 
@@ -149,7 +148,7 @@
 - 仓库中不存在 SQLite schema、queries、sqlc 生成包、driver 依赖和配置分支。
 - `apps/web`、`packages/ui`、`packages/sdk`、`packages/icons`、`packages/config` 存在并通过 Vite+ 检查。
 - PostgreSQL 迁移、sqlc、服务启动和 CLI migration 正常工作。
-- Browser Gateway 和 agent browser automation 保持可用。
+- 不存在 `apps/browser/`、`internal/browsercontexts/`、独立 `memoh-browser` 镜像或 `[browser_gateway]` 配置段。Agent browser tool 待 executor.Tunnel + CDP browser 重写完成后接入。
 - Docker Engine runtime adapter 和 Docker Compose 运维命令保持可用。
 - Podman runtime adapter 保持可用，复用 Podman Docker-compatible API。
 - containerd runtime adapter 和 `memoh bots ctr ...` 保持可用。

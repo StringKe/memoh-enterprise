@@ -2,7 +2,7 @@
 
 ## 目的
 
-当前仓库是 `memoh` 的 enterprise fork。`main` 分支面向企业版长期维护，仍需要定期从上游同步后端、agent、container runtime、Browser Gateway、Web 管理后台、provider、memory、MCP、channel 等通用能力。
+当前仓库是 `memoh` 的 enterprise fork。`main` 分支面向企业版长期维护，仍需要定期从上游同步后端、agent、container runtime、Web 管理后台、provider、memory、MCP、channel 等通用能力。Browser Gateway 服务已删除，企业版的 agent browser 走 workspace executor tunnel + 容器内 CDP 路线，不再接收上游对独立 browser gateway 的改动。
 
 `.parent-commit` 用来记录当前 enterprise 分支已经对齐过的上游 commit。它不是 Git 子模块，也不是构建输入，只是同步基线文件。
 
@@ -53,19 +53,21 @@ git log --oneline "$(cat .parent-commit)"..upstream/main
 
 同步时按 enterprise scope 过滤上游变化：
 
-- 接收：Go server、agent、MCP、memory、schedule、providers、models、channels、email、workspace、container runtime、Browser Gateway、Web 管理后台、PostgreSQL、ConnectRPC proto、TypeScript SDK、非交互 CLI。
+- 接收：Go server、agent、MCP、memory、schedule、providers、models、channels、email、workspace、container runtime、Web 管理后台、PostgreSQL、ConnectRPC proto、TypeScript SDK、非交互 CLI。
 - 接收：containerd、Docker Engine、Podman 相关修复。
-- 接收：`apps/web`、`packages/ui`、`packages/sdk`、`packages/icons`、`packages/config` 中服务 Web 管理后台和 Browser Gateway 的改动。
+- 接收：`apps/web`、`packages/ui`、`packages/sdk`、`packages/icons`、`packages/config` 中服务 Web 管理后台的改动。
 - 接收：`web-ui` 配置字段。
 - 接收：容器内 workspace display、Xvnc、WebRTC 等服务 Web 管理后台和 workspace 操作的能力；同步时使用 display/session 语义，不恢复 Electron Desktop 产品形态。
+- 接收：上游容器内 CDP browser tool、computer-use 工具、workspace.Tunnel 流式 RPC，作为企业版 agent browser 实现的参考。
 - 拒绝：Desktop/Electron。
 - 拒绝：TUI。
 - 拒绝：SQLite schema、queries、driver、迁移、配置和文档。
+- 拒绝：恢复独立 Browser Gateway 服务（`apps/browser/`、`internal/browsercontexts/`、`[browser_gateway]` 配置段、`memoh-browser` 镜像、`browser_context_id` 字段）。
 
 不要按关键词批量拒绝 `docker`、`browser`、`web`：
 
 - `docker` 可能是 Docker Engine runtime，必须保留。
-- `browser` 可能是 Browser Gateway 或 agent browser automation，必须保留。
+- `browser` 必须区分：上游对**容器内 CDP browser**、Chromium 启动脚本、computer-use、workspace.Tunnel 的改动接收；上游对**独立 Browser Gateway 服务**（`apps/browser/` 复活、`browser_contexts` 表、`browser-gateway` 配置）的改动一律拒绝。
 - `web-ui` 是 Web 管理后台配置，必须保留。
 - `web` 如果指 `apps/web` 管理后台、SDK、UI package、icon package 或 Web image，则必须保留。
 - `desktop` 才是 Desktop GUI 删除范围。
@@ -116,7 +118,7 @@ git show --name-status <commit-sha>
 git cherry-pick --no-commit <commit-sha>
 ```
 
-然后删除不该进入 enterprise 的变更，只保留后端、PostgreSQL、Browser Gateway、containerd、Docker Engine、Podman、非交互 CLI 等允许范围。
+然后删除不该进入 enterprise 的变更，只保留后端、PostgreSQL、containerd、Docker Engine、Podman、容器内 CDP browser、非交互 CLI 等允许范围。
 
 5. 冲突处理后执行残留审计：
 
@@ -151,13 +153,6 @@ vp run --filter @stringke/web build
 vp run --filter @stringke/docs build
 ```
 
-Browser Gateway 改动后增加：
-
-```bash
-cd apps/browser
-bun build src/index.ts --outfile dist/index.js --target bun --minify --external playwright --external playwright-core
-```
-
 7. 更新 `.parent-commit`：
 
 ```bash
@@ -176,18 +171,18 @@ git push origin sync/upstream-<YYYYMMDD>
 
 ## 冲突处理规则
 
-- 上游恢复 Desktop、TUI、SQLite 文件时，enterprise 侧继续删除。
+- 上游恢复 Desktop、TUI、SQLite、独立 Browser Gateway 服务文件时，enterprise 侧继续删除。
 - 上游修改 `apps/web` 管理后台时，按企业版 Web 管理后台能力同步。
-- 上游修改 shared config 时，保留 PostgreSQL、containerd、Docker Engine、Podman、Browser Gateway、Web 管理后台、`web-ui`，删除 SQLite、Desktop 分支。
+- 上游修改 shared config 时，保留 PostgreSQL、containerd、Docker Engine、Podman、Web 管理后台、`web-ui`，删除 SQLite、Desktop、`[browser_gateway]` 分支。
 - 上游修改 CLI root 行为时，`memoh` 无参数仍只显示 help，不进入 TUI。
 - 上游新增数据库变更时，只迁移到 `db/postgres/` 和 PostgreSQL sqlc。
-- 上游新增 Browser Gateway 或 browser automation 能力时，按 agent 工具能力接收。
-- 上游新增容器内 VNC/display 能力时，按 workspace display 接收，保留 Browser Gateway，并把 OpenAPI/REST 入口转写为 ConnectRPC。
-- 上游新增 Docker Compose Web 管理后台 service 时按 GHCR 发布要求同步；新增 server、postgres、browser、qdrant、sparse、containerd 相关服务时逐项评估。
+- 上游新增容器内 CDP browser、computer-use、Chromium 启动脚本或 workspace.Tunnel 流式 RPC 时，按 agent 工具能力接收。
+- 上游新增容器内 VNC/display 能力时，按 workspace display 接收，并把 OpenAPI/REST 入口转写为 ConnectRPC。
+- 上游新增 Docker Compose Web 管理后台 service 时按 GHCR 发布要求同步；新增 server、postgres、qdrant、sparse、containerd 相关服务时逐项评估；新增独立 browser gateway service 一律拒绝。
 
 ## 完成标准
 
 - `.parent-commit` 指向本轮已同步且已验证的上游 commit。
 - `origin/main` 包含同步结果。
-- 残留审计没有恢复 Desktop GUI、TUI、SQLite 支持入口。
-- PostgreSQL、server、CLI、Web 管理后台、Browser Gateway、containerd、Docker Engine、Podman 验证通过。
+- 残留审计没有恢复 Desktop GUI、TUI、SQLite、独立 Browser Gateway 支持入口。
+- PostgreSQL、server、CLI、Web 管理后台、containerd、Docker Engine、Podman 验证通过。

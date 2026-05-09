@@ -245,7 +245,6 @@ type BotSettings struct {
 	DiscussProbeModelId    *string                `protobuf:"bytes,18,opt,name=discuss_probe_model_id,json=discussProbeModelId,proto3,oneof" json:"discuss_probe_model_id,omitempty"`
 	TtsModelId             *string                `protobuf:"bytes,19,opt,name=tts_model_id,json=ttsModelId,proto3,oneof" json:"tts_model_id,omitempty"`
 	TranscriptionModelId   *string                `protobuf:"bytes,20,opt,name=transcription_model_id,json=transcriptionModelId,proto3,oneof" json:"transcription_model_id,omitempty"`
-	BrowserContextId       *string                `protobuf:"bytes,21,opt,name=browser_context_id,json=browserContextId,proto3,oneof" json:"browser_context_id,omitempty"`
 	PersistFullToolResults *bool                  `protobuf:"varint,22,opt,name=persist_full_tool_results,json=persistFullToolResults,proto3,oneof" json:"persist_full_tool_results,omitempty"`
 	ShowToolCallsInIm      *bool                  `protobuf:"varint,23,opt,name=show_tool_calls_in_im,json=showToolCallsInIm,proto3,oneof" json:"show_tool_calls_in_im,omitempty"`
 	ToolApprovalConfig     *structpb.Struct       `protobuf:"bytes,24,opt,name=tool_approval_config,json=toolApprovalConfig,proto3,oneof" json:"tool_approval_config,omitempty"`
@@ -424,13 +423,6 @@ func (x *BotSettings) GetTtsModelId() string {
 func (x *BotSettings) GetTranscriptionModelId() string {
 	if x != nil && x.TranscriptionModelId != nil {
 		return *x.TranscriptionModelId
-	}
-	return ""
-}
-
-func (x *BotSettings) GetBrowserContextId() string {
-	if x != nil && x.BrowserContextId != nil {
-		return *x.BrowserContextId
 	}
 	return ""
 }
@@ -630,7 +622,7 @@ const file_memoh_private_v1_common_proto_rawDesc = "" +
 	"\x06fields\x18\x01 \x03(\v22.memoh.private.v1.SettingsOverrideMask.FieldsEntryR\x06fields\x1a9\n" +
 	"\vFieldsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\bR\x05value:\x028\x01\"\xb4\x10\n" +
+	"\x05value\x18\x02 \x01(\bR\x05value:\x028\x01\"\xea\x0f\n" +
 	"\vBotSettings\x12\x1f\n" +
 	"\btimezone\x18\x01 \x01(\tH\x00R\btimezone\x88\x01\x01\x12\x1f\n" +
 	"\blanguage\x18\x02 \x01(\tH\x01R\blanguage\x88\x01\x01\x120\n" +
@@ -654,16 +646,15 @@ const file_memoh_private_v1_common_proto_rawDesc = "" +
 	"\x16discuss_probe_model_id\x18\x12 \x01(\tH\x11R\x13discussProbeModelId\x88\x01\x01\x12%\n" +
 	"\ftts_model_id\x18\x13 \x01(\tH\x12R\n" +
 	"ttsModelId\x88\x01\x01\x129\n" +
-	"\x16transcription_model_id\x18\x14 \x01(\tH\x13R\x14transcriptionModelId\x88\x01\x01\x121\n" +
-	"\x12browser_context_id\x18\x15 \x01(\tH\x14R\x10browserContextId\x88\x01\x01\x12>\n" +
-	"\x19persist_full_tool_results\x18\x16 \x01(\bH\x15R\x16persistFullToolResults\x88\x01\x01\x125\n" +
-	"\x15show_tool_calls_in_im\x18\x17 \x01(\bH\x16R\x11showToolCallsInIm\x88\x01\x01\x12N\n" +
-	"\x14tool_approval_config\x18\x18 \x01(\v2\x17.google.protobuf.StructH\x17R\x12toolApprovalConfig\x88\x01\x01\x12.\n" +
-	"\x10overlay_provider\x18\x19 \x01(\tH\x18R\x0foverlayProvider\x88\x01\x01\x12,\n" +
-	"\x0foverlay_enabled\x18\x1a \x01(\bH\x19R\x0eoverlayEnabled\x88\x01\x01\x12C\n" +
-	"\x0eoverlay_config\x18\x1b \x01(\v2\x17.google.protobuf.StructH\x1aR\roverlayConfig\x88\x01\x01\x123\n" +
+	"\x16transcription_model_id\x18\x14 \x01(\tH\x13R\x14transcriptionModelId\x88\x01\x01\x12>\n" +
+	"\x19persist_full_tool_results\x18\x16 \x01(\bH\x14R\x16persistFullToolResults\x88\x01\x01\x125\n" +
+	"\x15show_tool_calls_in_im\x18\x17 \x01(\bH\x15R\x11showToolCallsInIm\x88\x01\x01\x12N\n" +
+	"\x14tool_approval_config\x18\x18 \x01(\v2\x17.google.protobuf.StructH\x16R\x12toolApprovalConfig\x88\x01\x01\x12.\n" +
+	"\x10overlay_provider\x18\x19 \x01(\tH\x17R\x0foverlayProvider\x88\x01\x01\x12,\n" +
+	"\x0foverlay_enabled\x18\x1a \x01(\bH\x18R\x0eoverlayEnabled\x88\x01\x01\x12C\n" +
+	"\x0eoverlay_config\x18\x1b \x01(\v2\x17.google.protobuf.StructH\x19R\roverlayConfig\x88\x01\x01\x123\n" +
 	"\bmetadata\x18\x1c \x01(\v2\x17.google.protobuf.StructR\bmetadata\x121\n" +
-	"\x12acl_default_effect\x18\x1d \x01(\tH\x1bR\x10aclDefaultEffect\x88\x01\x01B\v\n" +
+	"\x12acl_default_effect\x18\x1d \x01(\tH\x1aR\x10aclDefaultEffect\x88\x01\x01B\v\n" +
 	"\t_timezoneB\v\n" +
 	"\t_languageB\x14\n" +
 	"\x12_reasoning_enabledB\x13\n" +
@@ -683,8 +674,7 @@ const file_memoh_private_v1_common_proto_rawDesc = "" +
 	"\x0f_image_model_idB\x19\n" +
 	"\x17_discuss_probe_model_idB\x0f\n" +
 	"\r_tts_model_idB\x19\n" +
-	"\x17_transcription_model_idB\x15\n" +
-	"\x13_browser_context_idB\x1c\n" +
+	"\x17_transcription_model_idB\x1c\n" +
 	"\x1a_persist_full_tool_resultsB\x18\n" +
 	"\x16_show_tool_calls_in_imB\x17\n" +
 	"\x15_tool_approval_configB\x13\n" +

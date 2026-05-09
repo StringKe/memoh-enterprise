@@ -8,8 +8,6 @@ config_roots = ["cmd/agent"]
 go = "1.26"
 # Node.js for frontend packages
 node = "24"
-# Bun for browser gateway
-bun = "latest"
 # pnpm for the workspace lockfile used by Vite+
 # 走 npm backend 而非 aqua：aqua registry 假定 asset 命名为 pnpm-darwin-arm64.tar.gz，
 # 实际 pnpm release 命名为 pnpm-macos-arm64，aqua 在 macOS arm64 上必失败
@@ -180,14 +178,6 @@ CONFIG_PATH="$GENERATED_CONFIG" go run ./cmd/agent migrate up
 CONFIG_PATH="$GENERATED_CONFIG" go run ./cmd/agent serve
 """
 
-[tasks."local:browser"]
-description = "Start Browser Gateway on the host against local development config"
-run = """
-#!/bin/bash
-set -euo pipefail
-CONFIG_PATH="$(pwd)/conf/app.local.toml" vp run --filter @stringke/browser-gateway dev
-"""
-
 [tasks."workspace-executor:build"]
 description = "Manually rebuild workspace-executor binary in dev container (normally auto-triggered by air)"
 run = """
@@ -216,7 +206,7 @@ run = "scripts/db/drop.sh"
 
 [tasks."e2e:smoke"]
 description = "Run endpoint smoke tests against a running deployment"
-run = "scripts/e2e/smoke.sh --browser"
+run = "scripts/e2e/smoke.sh"
 
 [tasks.release]
 description = "Release new version"

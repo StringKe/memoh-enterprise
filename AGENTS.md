@@ -14,7 +14,7 @@ Keep:
 - Docker Engine and containerd workspace backends.
 - Linux `amd64` and Linux `arm64` deployment/runtime targets.
 - macOS local development compatibility.
-- Browser Gateway and agent browser automation.
+- Agent browser automation runs inside the workspace container (CDP) and is reached over the workspace executor tunnel; the standalone Browser Gateway service is gone.
 - Web management UI in `apps/web`.
 - Shared frontend packages: `packages/ui`, `packages/sdk`, `packages/icons`, and `packages/config`.
 - Agent, MCP, memory, schedule, providers, models, channels, email, workspace, containers, and API documentation.
@@ -33,7 +33,6 @@ Remove or do not reintroduce:
 |---------|-----------|------|-------------|
 | **Server** | Go + Echo + ConnectRPC | 8080 | ConnectRPC management API, auth, database, container management, in-process AI agent |
 | **Web** | Vue 3 + Vite+ | 8082 | Web management UI for bots, models, providers, channels, memory, browser contexts, and usage |
-| **Browser Gateway** | Bun + Elysia + Playwright | 8083 | Browser automation service for agent tools |
 
 Infrastructure dependencies:
 
@@ -46,7 +45,6 @@ Infrastructure dependencies:
 | Command | Description |
 |---------|-------------|
 | `mise run local:dev` | Start local infra and run the server on the host |
-| `mise run local:browser` | Start Browser Gateway on the host |
 | `mise run dev` | Start the full containerized development environment |
 | `mise run dev:infra` | Start only local infrastructure containers |
 | `mise run dev:minify` | Start development environment with minified services |
@@ -79,9 +77,8 @@ cmd/agent/          Go server entrypoint
 cmd/memoh/          Non-interactive CLI
 cmd/workspace-executor/ In-container workspace execution service
 internal/           Go backend packages
-apps/browser/       Browser Gateway
 apps/web/           Web management UI
-packages/config/    Shared TypeScript config reader used by Browser Gateway and Web
+packages/config/    Shared TypeScript config reader used by Web
 packages/ui/        Shared Web UI components
 packages/sdk/       TypeScript ConnectRPC SDK
 packages/icons/     Web provider/channel icon package
@@ -98,7 +95,7 @@ docs/               Documentation
 
 - Read files before editing.
 - Keep changes scoped to the requested enterprise reduction.
-- Do not remove Docker Engine, containerd, Browser Gateway, or browser automation.
+- Do not remove Docker Engine or containerd. Agent browser automation lives in the workspace container (CDP) reached over the workspace executor tunnel; do not reintroduce a standalone Browser Gateway service.
 - Do not remove `web-ui` configuration.
 - Do not remove or treat `apps/web` as Desktop GUI.
 - Do not reintroduce Desktop GUI, TUI, or SQLite paths.

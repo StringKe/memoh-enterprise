@@ -12,12 +12,12 @@ This fork is not a desktop product. It removes Desktop GUI, terminal TUI, SQLite
 - **Structured Data Spaces**: every bot and bot group can own a PostgreSQL schema for relational data, run raw SQL including DDL, and share access across bots or bot groups through platform grants backed by PostgreSQL role permissions.
 - **Integration Gateway**: external enterprise integrations use a dedicated WebSocket protocol and separate protobuf contracts.
 - **Scoped integration tokens**: integration clients can use global, bot-scoped, or bot-group-scoped API tokens.
-- **Split runtime services**: server, agent runner, connector, integration gateway, worker, browser gateway, and workspace executor are separate runtime roles.
+- **Split runtime services**: server, agent runner, connector, integration gateway, worker, and workspace executor are separate runtime roles.
 - **PostgreSQL only**: PostgreSQL is the only relational database backend. SQLite support is removed.
 - **Workspace Executor**: the old bridge role is renamed and narrowed into the in-workspace execution boundary for files, exec, PTY, and MCP server processes.
 - **Workspace Display**: bots can opt into an in-container Xvnc display streamed to the Web UI through ConnectRPC and WebRTC, without restoring Electron Desktop or TUI support.
 - **Container runtime focus**: containerd is the default workspace runtime, with Docker Engine, Podman, and Kubernetes runtime support retained where implemented.
-- **Browser automation retained**: Browser Gateway and Playwright-based agent tools remain supported because they are agent capabilities, not GUI features.
+- **In-workspace browser**: the standalone Browser Gateway service is removed. Agent browser automation moves into the workspace container itself, driven over CDP through a dedicated workspace executor tunnel. The CDP browser tool is being rebuilt and is not exposed yet.
 - **Feishu/Lark WebSocket lifecycle fix**: Feishu/Lark channel connections now close their WebSocket transport on stop and do not leave old subscriptions running after token or config updates.
 - **Vite+ frontend tooling**: frontend checks, formatting, tests, and package-manager wrappers are handled through Vite+.
 - **GitHub-native publishing**: Docker images publish to GHCR and npm packages publish to GitHub Packages.
@@ -33,7 +33,7 @@ This repository is built on top of upstream Memoh.
 
 Thanks to the Memoh maintainers and contributors for the original self-hosted AI agent platform, including the agent runtime, long-term memory model, workspace container design, channel integrations, and web management foundation.
 
-This fork continues to sync useful upstream changes for server, agent, memory, MCP, providers, models, channels, email, workspace, container runtime, Browser Gateway, and Web UI. Changes that reintroduce Desktop GUI, TUI, SQLite, Windows packaging, Docker Hub, npmjs, or China-specific optimizations are intentionally excluded.
+This fork continues to sync useful upstream changes for server, agent, memory, MCP, providers, models, channels, email, workspace, container runtime, and Web UI. Changes that reintroduce Desktop GUI, TUI, SQLite, Windows packaging, Docker Hub, npmjs, or China-specific optimizations are intentionally excluded. The standalone Browser Gateway service is also gone; the in-workspace CDP browser tool replaces it.
 
 See [docs/upstream-sync.md](./docs/upstream-sync.md) for the synchronization process.
 
@@ -43,7 +43,6 @@ Included:
 
 - Go server and `memoh-server`.
 - Web management UI in [`apps/web`](./apps/web).
-- Browser Gateway in [`apps/browser`](./apps/browser).
 - ConnectRPC management API under `/connect`.
 - TypeScript management SDK in [`packages/sdk`](./packages/sdk).
 - PostgreSQL schema, migrations, and sqlc queries in [`db/postgres`](./db/postgres).
@@ -72,7 +71,6 @@ Removed:
 | --- | ---: | --- |
 | `memoh-server` | `26810` | Control plane, ConnectRPC management API, auth, RBAC, settings, token admin, health, and container control |
 | `memoh-web` | `26811` | Vue 3 web management UI |
-| `memoh-browser` | `26812` | Browser Gateway for Playwright automation used by agent tools |
 | `memoh-agent-runner` | `26813` | Agent run lifecycle, tool orchestration, and model execution flow |
 | `memoh-connector` | internal | Platform channel adapters and long-lived connector leases |
 | `memoh-integration-gateway` | `26815` | External enterprise WebSocket integration API |
@@ -144,9 +142,8 @@ Memoh Enterprise splits platform responsibilities into explicit services:
 - `memoh-connector`: platform channel long connections and inbound/outbound message flow.
 - `memoh-integration-gateway`: external enterprise WebSocket integration clients.
 - `memoh-worker`: background schedules, compaction, cleanup, heartbeat, and outbox work.
-- `memoh-browser`: Browser Gateway for agent browser automation.
-- `workspace-executor`: workspace-local execution service mounted inside workspace containers.
-- Optional workspace display runs inside the workspace container and is viewed through the Web UI. It is not a Desktop GUI application and does not replace Browser Gateway automation.
+- `workspace-executor`: workspace-local execution service mounted inside workspace containers, including the planned `Tunnel` RPC that proxies CDP traffic to a Chromium running inside the workspace.
+- Optional workspace display runs inside the workspace container and is viewed through the Web UI. It is not a Desktop GUI application.
 
 This split keeps platform integrations, model work, browser automation, and workspace execution out of the main control plane process.
 
@@ -232,12 +229,6 @@ Run infrastructure and server on the host:
 mise run local:dev
 ```
 
-Run Browser Gateway on the host:
-
-```bash
-mise run local:browser
-```
-
 Run Web UI development server:
 
 ```bash
@@ -316,7 +307,6 @@ npm packages are published to GitHub Packages at `https://npm.pkg.github.com`.
 
 Published package candidates:
 
-- `apps/browser`
 - `packages/config`
 - `packages/icons`
 - `packages/sdk`
@@ -339,7 +329,6 @@ There are no binary release artifacts for this fork.
 | [`internal`](./internal) | Go backend packages |
 | [`internal/structureddata`](./internal/structureddata) | PostgreSQL-backed bot and bot-group structured data service |
 | [`apps/web`](./apps/web) | Web management UI |
-| [`apps/browser`](./apps/browser) | Browser Gateway |
 | [`packages/sdk`](./packages/sdk) | TypeScript ConnectRPC management SDK |
 | [`packages/integration-sdk-ts`](./packages/integration-sdk-ts) | TypeScript integration SDK |
 | [`sdk/go/integration`](./sdk/go/integration) | Go integration SDK |

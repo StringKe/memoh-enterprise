@@ -97,12 +97,6 @@ timeout_seconds = 10
 base_url = "http://sparse:8085"
 
 ## Browser Gateway
-[browser_gateway]
-host = "browser"
-port = 8083
-server_addr = "server:8080"
-
-## External web-ui compatibility config
 [web-ui]
 host = "127.0.0.1"
 port = 8082

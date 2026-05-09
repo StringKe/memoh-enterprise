@@ -74,9 +74,3 @@ services:
     build:
       context: ../../..
       dockerfile: deploy/docker/production/Dockerfile.sparse
-
-  browser:
-    image: ghcr.io/stringke/browser:${BROWSER_TAG:-local}
-    build:
-      context: ../../..
-      dockerfile: deploy/docker/production/Dockerfile.browser

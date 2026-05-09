@@ -35,8 +35,6 @@ spec:
               value: ":26813"
             - name: MEMOH_SERVER_ADDR
               value: "http://memoh-server:8080/connect"
-            - name: MEMOH_BROWSER_GATEWAY_ADDR
-              value: "http://memoh-browser:8083"
           ports:
             - name: connect
               containerPort: 26813

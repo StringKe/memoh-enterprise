@@ -142,20 +142,20 @@ type LocalConfig struct {
 
 func (c LocalConfig) WorkspaceParent() string {
 	if strings.TrimSpace(c.DefaultWorkspaceParent) != "" {
-		return expandHome(strings.TrimSpace(c.DefaultWorkspaceParent))
+		return absPath(expandHome(strings.TrimSpace(c.DefaultWorkspaceParent)))
 	}
-	return filepath.Join(homeDirOrDot(), ".memoh", "workspaces")
+	return absPath(filepath.Join(homeDirOrDot(), ".memoh", "workspaces"))
 }
 
 func (c LocalConfig) MetadataPath(dataRoot string) string {
 	if strings.TrimSpace(c.MetadataRoot) != "" {
-		return expandHome(strings.TrimSpace(c.MetadataRoot))
+		return absPath(expandHome(strings.TrimSpace(c.MetadataRoot)))
 	}
 	root := strings.TrimSpace(dataRoot)
 	if root == "" {
 		root = DefaultDataRoot
 	}
-	return filepath.Join(root, "local", "containers")
+	return filepath.Join(absPath(root), "local", "containers")
 }
 
 type KubernetesConfig struct {
@@ -218,9 +218,16 @@ func (c WorkspaceConfig) ImageRef() string {
 // RuntimePath returns the path to the workspace runtime directory.
 func (c WorkspaceConfig) RuntimePath() string {
 	if c.RuntimeDir != "" {
-		return c.RuntimeDir
+		return absPath(c.RuntimeDir)
 	}
 	return DefaultRuntimeDir
+}
+
+func (c WorkspaceConfig) DataRootPath() string {
+	if strings.TrimSpace(c.DataRoot) != "" {
+		return absPath(c.DataRoot)
+	}
+	return absPath(DefaultDataRoot)
 }
 
 func (c WorkspaceConfig) EffectiveImagePullPolicy() string {
@@ -244,6 +251,18 @@ func expandHome(path string) string {
 		return filepath.Join(homeDirOrDot(), path[2:])
 	}
 	return path
+}
+
+func absPath(path string) string {
+	path = strings.TrimSpace(expandHome(path))
+	if path == "" {
+		return ""
+	}
+	abs, err := filepath.Abs(path)
+	if err != nil {
+		return filepath.Clean(path)
+	}
+	return abs
 }
 
 func homeDirOrDot() string {
@@ -294,9 +313,9 @@ type RegistryConfig struct {
 // ProvidersPath returns the configured providers directory or the default.
 func (c RegistryConfig) ProvidersPath() string {
 	if c.ProvidersDir != "" {
-		return c.ProvidersDir
+		return absPath(c.ProvidersDir)
 	}
-	return DefaultProvidersDir
+	return absPath(DefaultProvidersDir)
 }
 
 type BrowserGatewayConfig struct {
@@ -402,6 +421,7 @@ func Load(path string) (Config, error) {
 
 	if _, err := os.Stat(path); err != nil {
 		if os.IsNotExist(err) {
+			cfg.resolvePaths()
 			return cfg, nil
 		}
 		return cfg, err
@@ -439,8 +459,21 @@ func Load(path string) (Config, error) {
 	} else {
 		cfg.Workspace = cfg.Container.WorkspaceConfig
 	}
+	cfg.resolvePaths()
 
 	return cfg, nil
+}
+
+func (cfg *Config) resolvePaths() {
+	cfg.Container.DataRoot = cfg.Container.DataRootPath()
+	cfg.Container.RuntimeDir = cfg.Container.RuntimePath()
+	cfg.Workspace = cfg.Container.WorkspaceConfig
+	if strings.TrimSpace(cfg.Local.MetadataRoot) != "" {
+		cfg.Local.MetadataRoot = cfg.Local.MetadataPath(cfg.Workspace.DataRoot)
+	}
+	if strings.TrimSpace(cfg.Registry.ProvidersDir) != "" {
+		cfg.Registry.ProvidersDir = cfg.Registry.ProvidersPath()
+	}
 }
 
 func containerHasWorkspaceFields(values map[string]any) bool {

@@ -165,6 +165,10 @@ func (f fakeSessionMessageService) ListBeforeBySession(context.Context, string, 
 	return f.items, nil
 }
 
+func (fakeSessionMessageService) LocateByExternalIDBySession(context.Context, string, string, int32, int32) (messagepkg.LocateResult, error) {
+	return messagepkg.LocateResult{}, nil
+}
+
 func (fakeSessionMessageService) DeleteByBot(context.Context, string) error {
 	return nil
 }

@@ -90,7 +90,7 @@ VALUES (
   sqlc.narg(source_thread_id)::text,
   $4
 )
-RETURNING id, bot_id, enabled, description, action, effect, channel_identity_id, subject_channel_type, source_channel, source_conversation_type, source_conversation_id, source_thread_id, created_by_user_id, created_at, updated_at;
+RETURNING *;
 
 -- name: UpdateBotACLRule :one
 UPDATE bot_acl_rules
@@ -106,7 +106,7 @@ SET
   source_thread_id = sqlc.narg(source_thread_id)::text,
   updated_at = now()
 WHERE id = $1
-RETURNING id, bot_id, enabled, description, action, effect, channel_identity_id, subject_channel_type, source_channel, source_conversation_type, source_conversation_id, source_thread_id, created_by_user_id, created_at, updated_at;
+RETURNING *;
 
 -- name: DeleteBotACLRuleByID :exec
 DELETE FROM bot_acl_rules WHERE id = $1;

@@ -3,29 +3,22 @@ set -euo pipefail
 
 SERVER_URL="${MEMOH_E2E_SERVER_URL:-http://127.0.0.1:26810}"
 WEB_URL="${MEMOH_E2E_WEB_URL:-http://127.0.0.1:26811}"
-BROWSER_URL="${MEMOH_E2E_BROWSER_URL:-http://127.0.0.1:26812}"
 WAIT_SECONDS="${MEMOH_E2E_WAIT_SECONDS:-180}"
-CHECK_BROWSER=false
 CHECK_CONNECT_CHAT=false
 
 usage() {
   cat <<'EOF'
-Usage: scripts/e2e/smoke.sh [--browser] [--connect-chat]
+Usage: scripts/e2e/smoke.sh [--connect-chat]
 
 Environment:
   MEMOH_E2E_SERVER_URL   Server URL. Default: http://127.0.0.1:26810
   MEMOH_E2E_WEB_URL      Web management UI URL. Default: http://127.0.0.1:26811
-  MEMOH_E2E_BROWSER_URL  Browser Gateway URL. Default: http://127.0.0.1:26812
   MEMOH_E2E_WAIT_SECONDS Wait timeout. Default: 180
 EOF
 }
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
-    --browser)
-      CHECK_BROWSER=true
-      shift
-      ;;
     --connect-chat)
       CHECK_CONNECT_CHAT=true
       shift
@@ -79,15 +72,6 @@ if ! grep -q '^ok' /tmp/memoh-e2e-response.json; then
   echo "[e2e] web health response is not ok" >&2
   cat /tmp/memoh-e2e-response.json >&2
   exit 1
-fi
-
-if [ "$CHECK_BROWSER" = true ]; then
-  wait_for "browser gateway" "$BROWSER_URL/health"
-  if ! grep -q '"status"[[:space:]]*:[[:space:]]*"ok"' /tmp/memoh-e2e-response.json; then
-    echo "[e2e] browser health response is not ok" >&2
-    cat /tmp/memoh-e2e-response.json >&2
-    exit 1
-  fi
 fi
 
 if [ "$CHECK_CONNECT_CHAT" = true ]; then

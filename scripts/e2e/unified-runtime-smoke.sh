@@ -3,7 +3,6 @@ set -euo pipefail
 
 SERVER_URL="${MEMOH_E2E_SERVER_URL:-http://127.0.0.1:26810}"
 WEB_URL="${MEMOH_E2E_WEB_URL:-http://127.0.0.1:26811}"
-BROWSER_URL="${MEMOH_E2E_BROWSER_URL:-http://127.0.0.1:26812}"
 RUNNER_URL="${MEMOH_E2E_RUNNER_URL:-http://127.0.0.1:26813}"
 INTEGRATION_URL="${MEMOH_E2E_INTEGRATION_URL:-http://127.0.0.1:26815}"
 WAIT_SECONDS="${MEMOH_E2E_WAIT_SECONDS:-180}"
@@ -35,7 +34,6 @@ require curl
 
 wait_for "server" "$SERVER_URL/ping"
 wait_for "web" "$WEB_URL/health"
-wait_for "browser gateway" "$BROWSER_URL/health"
 wait_for "agent runner" "$RUNNER_URL/health"
 wait_for "integration gateway" "$INTEGRATION_URL/health"
 

@@ -1,5 +1,16 @@
 <template>
-  <div ref="rootRef" class="absolute inset-0 flex flex-col bg-black" @click="closeStatsMenu">
+  <div
+    ref="rootRef"
+    class="inset-0 flex flex-col bg-black z-10"
+    :class="isFullScroll ? 'fixed' : 'absolute'"
+    @click="closeStatsMenu"
+  >
+    <Maximize
+      ref="fullScreenIcon"
+      color="#ccc"
+      class="absolute top-4 right-4 transition-all opacity-0 duration-500"
+      @click="() => toggle()"
+    />
     <video
       ref="videoRef"
       class="size-full min-h-0 flex-1 bg-black object-contain"
@@ -199,13 +210,58 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, reactive, ref, watch, type Component } from "vue";
+import {
+  computed,
+  onBeforeUnmount,
+  onMounted,
+  reactive,
+  ref,
+  useTemplateRef,
+  watch,
+  type Component,
+} from "vue";
 import { useI18n } from "vue-i18n";
 import { Button, Spinner } from "@stringke/ui";
-import { Activity, Globe, Monitor, Package, Wrench, X } from "lucide-vue-next";
+import { useMagicKeys, useMouseInElement, useToggle } from "@vueuse/core";
+import { Activity, Globe, Maximize, Monitor, Package, Wrench, X } from "lucide-vue-next";
 import { resolveApiErrorMessage } from "@/utils/api-error";
 import { captureDisplaySnapshot } from "@/utils/display-snapshot";
 import { connectClients } from "@/lib/connect-client";
+
+const screenEl = useTemplateRef("rootRef");
+const fullScreenIcon = useTemplateRef("fullScreenIcon");
+const { isOutside, x, y } = useMouseInElement(screenEl);
+
+let timeId: ReturnType<typeof setTimeout> | undefined;
+watch(
+  [isOutside, x, y],
+  () => {
+    if (!fullScreenIcon.value) {
+      return;
+    }
+    if (!isOutside.value) {
+      fullScreenIcon.value.classList.remove("opacity-0");
+      if (timeId) {
+        clearTimeout(timeId);
+      }
+      timeId = setTimeout(() => {
+        fullScreenIcon.value?.classList.add("opacity-0");
+      }, 5000);
+    } else {
+      fullScreenIcon.value?.classList.add("opacity-0");
+    }
+  },
+  { deep: true },
+);
+
+const [isFullScroll, toggle] = useToggle();
+
+const { current } = useMagicKeys();
+watch(current, () => {
+  if (isFullScroll.value && current.has("escape")) {
+    toggle(false);
+  }
+});
 
 const props = defineProps<{
   botId: string;

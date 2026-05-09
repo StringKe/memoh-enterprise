@@ -19,7 +19,6 @@ import (
 	"github.com/memohai/memoh/internal/accounts"
 	"github.com/memohai/memoh/internal/acl"
 	audiopkg "github.com/memohai/memoh/internal/audio"
-	"github.com/memohai/memoh/internal/bind"
 	"github.com/memohai/memoh/internal/boot"
 	"github.com/memohai/memoh/internal/botgroups"
 	"github.com/memohai/memoh/internal/bots"
@@ -407,7 +406,6 @@ func provideChannelRouter(
 	botService *bots.Service,
 	aclService *acl.Service,
 	policyService *policy.Service,
-	bindService *bind.Service,
 	mediaService *media.Service,
 	audioService *audiopkg.Service,
 	settingsService *settings.Service,
@@ -430,7 +428,7 @@ func provideChannelRouter(
 	discussDriver *pipelinepkg.DiscussDriver,
 	rc *boot.RuntimeConfig,
 ) *inbound.ChannelInboundProcessor {
-	processor := inbound.NewChannelInboundProcessor(log, registry, routeService, msgService, dispatcher, identityService, policyService, bindService, rc.JwtSecret, 5*time.Minute)
+	processor := inbound.NewChannelInboundProcessor(log, registry, routeService, msgService, dispatcher, identityService, policyService, rc.JwtSecret, 5*time.Minute)
 	processor.SetSessionEnsurer(&sessionEnsurerAdapter{svc: sessionService})
 	processor.SetPipeline(pipeline, eventStore, discussDriver)
 	discussDriver.SetBroadcaster(hub)

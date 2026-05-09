@@ -17,7 +17,4 @@ type ChannelIdentity struct {
 
 type SearchResult struct {
 	ChannelIdentity
-	LinkedUsername    string `json:"linked_username,omitempty"`
-	LinkedDisplayName string `json:"linked_display_name,omitempty"`
-	LinkedAvatarURL   string `json:"linked_avatar_url,omitempty"`
 }

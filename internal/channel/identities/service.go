@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 
@@ -46,7 +47,6 @@ func (s *Service) Create(ctx context.Context, channel, channelSubjectID, display
 		return ChannelIdentity{}, errors.New("channel and channel_subject_id are required")
 	}
 	row, err := s.queries.CreateChannelIdentity(ctx, sqlc.CreateChannelIdentityParams{
-		UserID:           pgtype.UUID{},
 		ChannelType:      channel,
 		ChannelSubjectID: channelSubjectID,
 		DisplayName:      toPgText(displayName),
@@ -117,7 +117,6 @@ func (s *Service) ResolveByChannelIdentity(ctx context.Context, channel, channel
 	}
 
 	row, err := s.queries.UpsertChannelIdentityByChannelSubject(ctx, sqlc.UpsertChannelIdentityByChannelSubjectParams{
-		UserID:           pgtype.UUID{},
 		ChannelType:      channel,
 		ChannelSubjectID: channelSubjectID,
 		DisplayName:      toPgText(displayName),
@@ -149,7 +148,6 @@ func (s *Service) UpsertChannelIdentity(ctx context.Context, channel, channelSub
 		avatarURL = strings.TrimSpace(fmt.Sprint(raw))
 	}
 	row, err := s.queries.UpsertChannelIdentityByChannelSubject(ctx, sqlc.UpsertChannelIdentityByChannelSubjectParams{
-		UserID:           pgtype.UUID{},
 		ChannelType:      channel,
 		ChannelSubjectID: channelSubjectID,
 		DisplayName:      toPgText(displayName),
@@ -162,7 +160,7 @@ func (s *Service) UpsertChannelIdentity(ctx context.Context, channel, channelSub
 	return toChannelIdentity(row), nil
 }
 
-// ListCanonicalChannelIdentities lists channel identities under the same linked user.
+// ListCanonicalChannelIdentities returns the requested channel identity.
 func (s *Service) ListCanonicalChannelIdentities(ctx context.Context, channelIdentityID string) ([]ChannelIdentity, error) {
 	if s.queries == nil {
 		return nil, errors.New("channel identity queries not configured")
@@ -178,18 +176,7 @@ func (s *Service) ListCanonicalChannelIdentities(ctx context.Context, channelIde
 		}
 		return nil, err
 	}
-	if !row.UserID.Valid {
-		return []ChannelIdentity{toChannelIdentity(row)}, nil
-	}
-	rows, err := s.queries.ListChannelIdentitiesByUserID(ctx, row.UserID)
-	if err != nil {
-		return nil, err
-	}
-	result := make([]ChannelIdentity, 0, len(rows))
-	for _, item := range rows {
-		result = append(result, toChannelIdentity(item))
-	}
-	return result, nil
+	return []ChannelIdentity{toChannelIdentity(row)}, nil
 }
 
 // Search returns locally observed channel identities for UI search.
@@ -212,7 +199,6 @@ func (s *Service) Search(ctx context.Context, query string, limit int) ([]Search
 		item := SearchResult{
 			ChannelIdentity: toChannelIdentity(sqlc.IamChannelIdentity{
 				ID:               row.ID,
-				UserID:           row.UserID,
 				ChannelType:      row.ChannelType,
 				ChannelSubjectID: row.ChannelSubjectID,
 				DisplayName:      row.DisplayName,
@@ -221,9 +207,6 @@ func (s *Service) Search(ctx context.Context, query string, limit int) ([]Search
 				CreatedAt:        row.CreatedAt,
 				UpdatedAt:        row.UpdatedAt,
 			}),
-			LinkedUsername:    strings.TrimSpace(row.LinkedUsername.String),
-			LinkedDisplayName: strings.TrimSpace(row.LinkedDisplayName.String),
-			LinkedAvatarURL:   strings.TrimSpace(row.LinkedAvatarUrl.String),
 		}
 		items = append(items, item)
 	}
@@ -314,13 +297,8 @@ func toChannelIdentity(row sqlc.IamChannelIdentity) ChannelIdentity {
 	if row.AvatarUrl.Valid {
 		avatarURL = strings.TrimSpace(row.AvatarUrl.String)
 	}
-	userID := ""
-	if row.UserID.Valid {
-		userID = row.UserID.String()
-	}
-	return ChannelIdentity{
+	identity := ChannelIdentity{
 		ID:               row.ID.String(),
-		UserID:           userID,
 		Channel:          row.ChannelType,
 		ChannelSubjectID: row.ChannelSubjectID,
 		DisplayName:      displayName,
@@ -329,6 +307,10 @@ func toChannelIdentity(row sqlc.IamChannelIdentity) ChannelIdentity {
 		CreatedAt:        db.TimeFromPg(row.CreatedAt),
 		UpdatedAt:        db.TimeFromPg(row.UpdatedAt),
 	}
+	if row.UserID.Valid {
+		identity.UserID = uuid.UUID(row.UserID.Bytes).String()
+	}
+	return identity
 }
 
 func normalizeChannel(channel string) string {

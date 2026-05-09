@@ -1,11 +1,5 @@
 <template>
-  <img
-    v-if="isMemohWeb"
-    src="/logo.svg"
-    alt="Memoh"
-    :style="imageStyle"
-    v-bind="$attrs"
-  >
+  <img v-if="isMemohWeb" src="/logo.svg" alt="Memoh" :style="imageStyle" v-bind="$attrs" />
   <component :is="iconComponent" v-else-if="iconComponent" :size="size" v-bind="$attrs" />
   <span
     v-else

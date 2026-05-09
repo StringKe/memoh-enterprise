@@ -184,7 +184,7 @@ Usage:
 /access
 ```
 
-This command is useful when debugging ACL rules, linked accounts, or why a write command was denied.
+This command is useful when debugging ACL rules or why a write command was denied.
 
 ### `/usage`
 

@@ -73,12 +73,9 @@ type Bot struct {
 type BotAclRule struct {
 	ID                     pgtype.UUID        `json:"id"`
 	BotID                  pgtype.UUID        `json:"bot_id"`
-	Enabled                bool               `json:"enabled"`
-	Description            pgtype.Text        `json:"description"`
 	Action                 string             `json:"action"`
 	Effect                 string             `json:"effect"`
 	ChannelIdentityID      pgtype.UUID        `json:"channel_identity_id"`
-	SubjectChannelType     pgtype.Text        `json:"subject_channel_type"`
 	SourceChannel          pgtype.Text        `json:"source_channel"`
 	SourceConversationType pgtype.Text        `json:"source_conversation_type"`
 	SourceConversationID   pgtype.Text        `json:"source_conversation_id"`
@@ -86,6 +83,9 @@ type BotAclRule struct {
 	CreatedByUserID        pgtype.UUID        `json:"created_by_user_id"`
 	CreatedAt              pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt              pgtype.Timestamptz `json:"updated_at"`
+	Enabled                bool               `json:"enabled"`
+	Description            pgtype.Text        `json:"description"`
+	SubjectChannelType     pgtype.Text        `json:"subject_channel_type"`
 }
 
 type BotChannelConfig struct {

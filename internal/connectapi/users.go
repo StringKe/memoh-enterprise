@@ -5,13 +5,11 @@ import (
 	"errors"
 	"log/slog"
 	"strings"
-	"time"
 
 	"connectrpc.com/connect"
 	"github.com/jackc/pgx/v5"
 
 	"github.com/memohai/memoh/internal/accounts"
-	"github.com/memohai/memoh/internal/bind"
 	"github.com/memohai/memoh/internal/channel/identities"
 	privatev1 "github.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1"
 	"github.com/memohai/memoh/internal/connectapi/gen/memoh/private/v1/privatev1connect"
@@ -21,7 +19,6 @@ import (
 type UserService struct {
 	accounts   *accounts.Service
 	identities *identities.Service
-	bind       *bind.Service
 	rbac       *rbac.Service
 	logger     *slog.Logger
 }
@@ -30,7 +27,6 @@ func NewUserService(
 	log *slog.Logger,
 	accountService *accounts.Service,
 	identityService *identities.Service,
-	bindService *bind.Service,
 	rbacService *rbac.Service,
 ) *UserService {
 	if log == nil {
@@ -39,7 +35,6 @@ func NewUserService(
 	return &UserService{
 		accounts:   accountService,
 		identities: identityService,
-		bind:       bindService,
 		rbac:       rbacService,
 		logger:     log.With(slog.String("service", "connect_users")),
 	}
@@ -113,33 +108,8 @@ func (s *UserService) ListMyIdentities(ctx context.Context, _ *connect.Request[p
 	return connect.NewResponse(response), nil
 }
 
-func (s *UserService) IssueBindCode(ctx context.Context, req *connect.Request[privatev1.IssueBindCodeRequest]) (*connect.Response[privatev1.IssueBindCodeResponse], error) {
-	userID, err := UserIDFromContext(ctx)
-	if err != nil {
-		return nil, connect.NewError(connect.CodeUnauthenticated, err)
-	}
-	if s.bind == nil {
-		return nil, connect.NewError(connect.CodeInternal, errors.New("bind service not configured"))
-	}
-	ttl := 24 * time.Hour
-	if req.Msg.GetTtlSeconds() > 0 {
-		ttlSeconds := req.Msg.GetTtlSeconds()
-		if ttlSeconds < 60 {
-			ttlSeconds = 60
-		}
-		ttl = time.Duration(ttlSeconds) * time.Second
-	}
-	code, err := s.bind.Issue(ctx, userID, req.Msg.GetChannel(), ttl)
-	if err != nil {
-		return nil, userConnectError(err)
-	}
-	return connect.NewResponse(&privatev1.IssueBindCodeResponse{
-		BindCode: &privatev1.BindCode{
-			Code:      code.Token,
-			Channel:   code.Platform,
-			ExpiresAt: timeToProto(code.ExpiresAt),
-		},
-	}), nil
+func (*UserService) IssueBindCode(_ context.Context, _ *connect.Request[privatev1.IssueBindCodeRequest]) (*connect.Response[privatev1.IssueBindCodeResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("channel identity binding has been removed"))
 }
 
 func (s *UserService) ListUsers(ctx context.Context, _ *connect.Request[privatev1.ListUsersRequest]) (*connect.Response[privatev1.ListUsersResponse], error) {

@@ -39,11 +39,6 @@ type SystemPermissionService interface {
 	HasPermission(ctx context.Context, check rbac.Check) (bool, error)
 }
 
-type listMyIdentitiesResponse struct {
-	UserID string                       `json:"user_id"`
-	Items  []identities.ChannelIdentity `json:"items"`
-}
-
 // NewUsersHandler creates a UsersHandler with channel identity support.
 func NewUsersHandler(log *slog.Logger, service *accounts.Service, channelIdentityService *identities.Service, botService *bots.Service, routeService route.Service, channelStore *channel.Store, channelLifecycle *channel.Lifecycle, channelManager *channel.Manager, registry *channel.Registry, rbacService SystemPermissionService) *UsersHandler {
 	if log == nil {
@@ -66,7 +61,6 @@ func NewUsersHandler(log *slog.Logger, service *accounts.Service, channelIdentit
 func (h *UsersHandler) Register(e *echo.Echo) {
 	userGroup := e.Group("/users")
 	userGroup.GET("/me", h.GetMe)
-	userGroup.GET("/me/identities", h.ListMyIdentities)
 	userGroup.PUT("/me", h.UpdateMe)
 	userGroup.PUT("/me/password", h.UpdateMyPassword)
 	userGroup.GET("", h.ListUsers)
@@ -109,33 +103,6 @@ func (h *UsersHandler) GetMe(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(http.StatusOK, resp)
-}
-
-// ListMyIdentities godoc
-// @Summary List current user's channel identities
-// @Description List all channel identities linked to current user
-// @Tags users
-// @Success 200 {object} listMyIdentitiesResponse
-// @Failure 400 {object} ErrorResponse
-// @Failure 404 {object} ErrorResponse
-// @Failure 500 {object} ErrorResponse
-// @Router /users/me/identities [get].
-func (h *UsersHandler) ListMyIdentities(c echo.Context) error {
-	userID, err := h.requireChannelIdentityID(c)
-	if err != nil {
-		return err
-	}
-	if h.channelIdentityService == nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "channel identity service not configured")
-	}
-	items, err := h.channelIdentityService.ListUserChannelIdentities(c.Request().Context(), userID)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
-	}
-	return c.JSON(http.StatusOK, listMyIdentitiesResponse{
-		UserID: userID,
-		Items:  items,
-	})
 }
 
 // UpdateMe godoc

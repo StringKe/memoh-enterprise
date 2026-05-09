@@ -24,7 +24,6 @@ type ServiceDeps struct {
 	Provider       *ProviderClient
 	Memory         *MemoryClient
 	ToolApproval   *ToolApprovalClient
-	Browser        *BrowserClient
 	StructuredData *StructuredDataClient
 	Executor       Executor
 	Logger         *slog.Logger
@@ -38,7 +37,6 @@ type Service struct {
 	provider       *ProviderClient
 	memory         *MemoryClient
 	toolApproval   *ToolApprovalClient
-	browser        *BrowserClient
 	structuredData *StructuredDataClient
 	executor       Executor
 	logger         *slog.Logger
@@ -73,7 +71,6 @@ func NewService(deps ServiceDeps) *Service {
 			Provider:       deps.Provider,
 			Memory:         deps.Memory,
 			ToolApproval:   deps.ToolApproval,
-			Browser:        deps.Browser,
 			StructuredData: deps.StructuredData,
 		})
 	}
@@ -84,7 +81,6 @@ func NewService(deps ServiceDeps) *Service {
 		provider:       deps.Provider,
 		memory:         deps.Memory,
 		toolApproval:   deps.ToolApproval,
-		browser:        deps.Browser,
 		structuredData: deps.StructuredData,
 		executor:       executor,
 		logger:         logger,

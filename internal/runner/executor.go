@@ -2,7 +2,6 @@ package runner
 
 import (
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"log/slog"
@@ -48,7 +47,6 @@ type AgentExecutorDeps struct {
 	Provider       *ProviderClient
 	Memory         *MemoryClient
 	ToolApproval   *ToolApprovalClient
-	Browser        *BrowserClient
 	StructuredData *StructuredDataClient
 	HTTPClient     *http.Client
 }
@@ -59,7 +57,6 @@ type AgentExecutor struct {
 	provider       *ProviderClient
 	memory         *MemoryClient
 	toolApproval   *ToolApprovalClient
-	browser        *BrowserClient
 	structuredData *StructuredDataClient
 	httpClient     *http.Client
 }
@@ -79,7 +76,6 @@ func NewAgentExecutor(deps AgentExecutorDeps) *AgentExecutor {
 		provider:       deps.Provider,
 		memory:         deps.Memory,
 		toolApproval:   deps.ToolApproval,
-		browser:        deps.Browser,
 		structuredData: deps.StructuredData,
 		httpClient:     httpClient,
 	}
@@ -199,9 +195,6 @@ func (e *AgentExecutor) toolProviders(workspaceProvider executorclient.Provider,
 	providers := []agenttools.ToolProvider{
 		agenttools.NewContainerProvider(e.logger, workspaceProvider, nil, ""),
 	}
-	if e.browser != nil {
-		providers = append(providers, browserToolProvider{client: e.browser})
-	}
 	if e.structuredData != nil {
 		providers = append(providers, agenttools.NewStructuredDataProvider(e.structuredData.Runtime(lease)))
 	}
@@ -244,93 +237,6 @@ func (e *AgentExecutor) handleToolApproval(ctx context.Context, lease RunLease, 
 type supportWorkspaceProvider struct {
 	workspace *WorkspaceClient
 	lease     RunLease
-}
-
-type browserToolProvider struct {
-	client *BrowserClient
-}
-
-func (p browserToolProvider) Tools(context.Context, agenttools.SessionContext) ([]sdk.Tool, error) {
-	if p.client == nil {
-		return nil, nil
-	}
-	return []sdk.Tool{
-		{
-			Name:        "browser_action",
-			Description: "Run a browser automation action through Browser Gateway.",
-			Parameters: map[string]any{
-				"type": "object",
-				"properties": map[string]any{
-					"kind":       map[string]any{"type": "string", "enum": []string{BrowserActionNavigate, BrowserActionClick, BrowserActionTypeText, BrowserActionEvaluate}},
-					"session_id": map[string]any{"type": "string"},
-					"context_id": map[string]any{"type": "string"},
-					"url":        map[string]any{"type": "string"},
-					"selector":   map[string]any{"type": "string"},
-					"text":       map[string]any{"type": "string"},
-					"expression": map[string]any{"type": "string"},
-					"timeout_ms": map[string]any{"type": "integer"},
-				},
-				"required": []string{"kind"},
-			},
-			Execute: func(ctx *sdk.ToolExecContext, input any) (any, error) {
-				args := inputMap(input)
-				sessionID := firstArgString(args, "session_id")
-				if sessionID == "" && firstArgString(args, "url") != "" {
-					browserContext, err := p.client.CreateContext(ctx.Context, firstArgString(args, "core_id"), firstArgString(args, "device_id"), nil)
-					if err != nil {
-						return nil, err
-					}
-					session, err := p.client.CreateSession(ctx.Context, browserContext.GetContextId(), firstArgString(args, "url"))
-					if err != nil {
-						return nil, err
-					}
-					sessionID = session.GetSessionId()
-				}
-				result, err := p.client.RunAction(ctx.Context, BrowserAction{
-					Kind:       firstArgString(args, "kind"),
-					SessionID:  sessionID,
-					URL:        firstArgString(args, "url"),
-					Selector:   firstArgString(args, "selector"),
-					Text:       firstArgString(args, "text"),
-					Expression: firstArgString(args, "expression"),
-					TimeoutMS:  int32Arg(args, "timeout_ms"),
-				})
-				if err != nil {
-					return nil, err
-				}
-				return map[string]any{
-					"status":     result.Status,
-					"session_id": sessionID,
-					"result":     valueToAny(result.Result),
-				}, nil
-			},
-		},
-		{
-			Name:        "browser_screenshot",
-			Description: "Capture a Browser Gateway screenshot.",
-			Parameters: map[string]any{
-				"type": "object",
-				"properties": map[string]any{
-					"session_id": map[string]any{"type": "string"},
-					"selector":   map[string]any{"type": "string"},
-					"full_page":  map[string]any{"type": "boolean"},
-					"max_bytes":  map[string]any{"type": "integer"},
-				},
-				"required": []string{"session_id"},
-			},
-			Execute: func(ctx *sdk.ToolExecContext, input any) (any, error) {
-				args := inputMap(input)
-				screenshot, err := p.client.Screenshot(ctx.Context, firstArgString(args, "session_id"), firstArgString(args, "selector"), boolArg(args, "full_page"), int32Arg(args, "max_bytes"))
-				if err != nil {
-					return nil, err
-				}
-				return map[string]any{
-					"mime":  screenshot.GetMimeType(),
-					"image": base64.StdEncoding.EncodeToString(screenshot.GetImage()),
-				}, nil
-			},
-		},
-	}, nil
 }
 
 func (p *supportWorkspaceProvider) ExecutorClient(ctx context.Context, _ string) (*executorclient.Client, error) {
@@ -477,55 +383,4 @@ func reasoningConfig(values map[string]any) *models.ReasoningConfig {
 		effort = models.ReasoningEffortMedium
 	}
 	return &models.ReasoningConfig{Enabled: true, Effort: effort}
-}
-
-func inputMap(input any) map[string]any {
-	if values, ok := input.(map[string]any); ok {
-		return values
-	}
-	return map[string]any{}
-}
-
-func firstArgString(values map[string]any, key string) string {
-	if text, ok := values[key].(string); ok {
-		return strings.TrimSpace(text)
-	}
-	return ""
-}
-
-func int32Arg(values map[string]any, key string) int32 {
-	switch v := values[key].(type) {
-	case int32:
-		return v
-	case int:
-		return boundedInt32(int64(v))
-	case int64:
-		return boundedInt32(v)
-	case float64:
-		if v > 2147483647 || v < -2147483648 {
-			return 0
-		}
-		return int32(v)
-	default:
-		return 0
-	}
-}
-
-func boundedInt32(value int64) int32 {
-	if value > 2147483647 || value < -2147483648 {
-		return 0
-	}
-	return int32(value)
-}
-
-func boolArg(values map[string]any, key string) bool {
-	value, _ := values[key].(bool)
-	return value
-}
-
-func valueToAny(value *structpb.Value) any {
-	if value == nil {
-		return nil
-	}
-	return value.AsInterface()
 }

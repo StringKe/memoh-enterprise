@@ -18,7 +18,6 @@ func TestWebRuntimeConnectHandlersAreRegistered(t *testing.T) {
 		"provideServerHandler(connectapi.NewSkillHandler)",
 		"provideServerHandler(connectapi.NewChannelHandler)",
 		"provideServerHandler(connectapi.NewProviderHandler)",
-		"provideServerHandler(connectapi.NewBrowserContextHandler)",
 		"provideServerHandler(connectapi.NewToolApprovalHandler)",
 	}
 	for _, item := range required {

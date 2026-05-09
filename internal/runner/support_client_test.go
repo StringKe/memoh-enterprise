@@ -12,7 +12,6 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	browserv1 "github.com/memohai/memoh/internal/connectapi/gen/memoh/browser/v1"
 	eventv1 "github.com/memohai/memoh/internal/connectapi/gen/memoh/event/v1"
 	runnerv1 "github.com/memohai/memoh/internal/connectapi/gen/memoh/runner/v1"
 	"github.com/memohai/memoh/internal/connectapi/gen/memoh/runner/v1/runnerv1connect"
@@ -130,40 +129,6 @@ func TestSupportClientsDelegateRunnerSupportRPCs(t *testing.T) {
 	}
 	if approval.GetApprovalRequestId() != "approval-1" {
 		t.Fatalf("approval id = %q", approval.GetApprovalRequestId())
-	}
-}
-
-func TestBrowserClientDelegatesContextActionAndScreenshot(t *testing.T) {
-	browser := NewBrowserClient(fakeBrowserServiceClient{})
-	ctx := context.Background()
-
-	browserContext, err := browser.CreateContext(ctx, "core", "device", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if browserContext.GetContextId() != "context-1" {
-		t.Fatalf("context id = %q", browserContext.GetContextId())
-	}
-	session, err := browser.CreateSession(ctx, browserContext.GetContextId(), "https://example.test")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if session.GetSessionId() != "session-1" {
-		t.Fatalf("session id = %q", session.GetSessionId())
-	}
-	action, err := browser.RunAction(ctx, BrowserAction{Kind: BrowserActionNavigate, SessionID: session.GetSessionId(), URL: "https://example.test"})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if action.Status != "ok" {
-		t.Fatalf("action status = %q", action.Status)
-	}
-	screenshot, err := browser.Screenshot(ctx, session.GetSessionId(), "", true, 1024)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if string(screenshot.GetImage()) != "png" {
-		t.Fatalf("screenshot = %q", string(screenshot.GetImage()))
 	}
 }
 
@@ -356,53 +321,6 @@ func mustStruct(values map[string]any) *structpb.Struct {
 		panic(err)
 	}
 	return msg
-}
-
-type fakeBrowserServiceClient struct{}
-
-func (fakeBrowserServiceClient) ListCores(context.Context, *connect.Request[browserv1.ListCoresRequest]) (*connect.Response[browserv1.ListCoresResponse], error) {
-	return connect.NewResponse(&browserv1.ListCoresResponse{}), nil
-}
-
-func (fakeBrowserServiceClient) ListDevices(context.Context, *connect.Request[browserv1.ListDevicesRequest]) (*connect.Response[browserv1.ListDevicesResponse], error) {
-	return connect.NewResponse(&browserv1.ListDevicesResponse{}), nil
-}
-
-func (fakeBrowserServiceClient) CreateContext(context.Context, *connect.Request[browserv1.CreateContextRequest]) (*connect.Response[browserv1.CreateContextResponse], error) {
-	return connect.NewResponse(&browserv1.CreateContextResponse{Context: &browserv1.BrowserContext{ContextId: "context-1"}}), nil
-}
-
-func (fakeBrowserServiceClient) CloseContext(context.Context, *connect.Request[browserv1.CloseContextRequest]) (*connect.Response[browserv1.CloseContextResponse], error) {
-	return connect.NewResponse(&browserv1.CloseContextResponse{}), nil
-}
-
-func (fakeBrowserServiceClient) CreateSession(context.Context, *connect.Request[browserv1.CreateSessionRequest]) (*connect.Response[browserv1.CreateSessionResponse], error) {
-	return connect.NewResponse(&browserv1.CreateSessionResponse{Session: &browserv1.BrowserSession{SessionId: "session-1", ContextId: "context-1"}}), nil
-}
-
-func (fakeBrowserServiceClient) CloseSession(context.Context, *connect.Request[browserv1.CloseSessionRequest]) (*connect.Response[browserv1.CloseSessionResponse], error) {
-	return connect.NewResponse(&browserv1.CloseSessionResponse{}), nil
-}
-
-func (fakeBrowserServiceClient) Navigate(context.Context, *connect.Request[browserv1.NavigateRequest]) (*connect.Response[browserv1.NavigateResponse], error) {
-	return connect.NewResponse(&browserv1.NavigateResponse{Status: "ok", Session: &browserv1.BrowserSession{SessionId: "session-1", ContextId: "context-1"}}), nil
-}
-
-func (fakeBrowserServiceClient) Click(context.Context, *connect.Request[browserv1.ClickRequest]) (*connect.Response[browserv1.ClickResponse], error) {
-	return connect.NewResponse(&browserv1.ClickResponse{Status: "ok"}), nil
-}
-
-func (fakeBrowserServiceClient) TypeText(context.Context, *connect.Request[browserv1.TypeTextRequest]) (*connect.Response[browserv1.TypeTextResponse], error) {
-	return connect.NewResponse(&browserv1.TypeTextResponse{Status: "ok"}), nil
-}
-
-func (fakeBrowserServiceClient) Screenshot(context.Context, *connect.Request[browserv1.ScreenshotRequest]) (*connect.Response[browserv1.ScreenshotResponse], error) {
-	return connect.NewResponse(&browserv1.ScreenshotResponse{Image: []byte("png"), MimeType: "image/png"}), nil
-}
-
-func (fakeBrowserServiceClient) Evaluate(context.Context, *connect.Request[browserv1.EvaluateRequest]) (*connect.Response[browserv1.EvaluateResponse], error) {
-	value, _ := structpb.NewValue("ok")
-	return connect.NewResponse(&browserv1.EvaluateResponse{Result: value}), nil
 }
 
 var _ = eventv1.AgentRunEvent{}

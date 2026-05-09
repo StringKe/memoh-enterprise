@@ -12,16 +12,14 @@ import (
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 
-	"github.com/memohai/memoh/internal/connectapi/gen/memoh/browser/v1/browserv1connect"
 	"github.com/memohai/memoh/internal/connectapi/gen/memoh/runner/v1/runnerv1connect"
 	"github.com/memohai/memoh/internal/logger"
 	"github.com/memohai/memoh/internal/runner"
 )
 
 const (
-	defaultAgentRunnerAddr    = ":26813"
-	defaultServerAddr         = "http://127.0.0.1:26810/connect"
-	defaultBrowserGatewayAddr = "http://127.0.0.1:26812"
+	defaultAgentRunnerAddr = ":26813"
+	defaultServerAddr      = "http://127.0.0.1:26810/connect"
 )
 
 func run(parent context.Context) error {
@@ -37,11 +35,6 @@ func run(parent context.Context) error {
 		serverAddr = defaultServerAddr
 	}
 	support := runnerv1connect.NewRunnerSupportServiceClient(http.DefaultClient, serverAddr)
-	browserAddr := os.Getenv("MEMOH_BROWSER_GATEWAY_ADDR")
-	if browserAddr == "" {
-		browserAddr = defaultBrowserGatewayAddr
-	}
-	browser := runner.NewBrowserClient(browserv1connect.NewBrowserServiceClient(http.DefaultClient, browserAddr))
 
 	mux := http.NewServeMux()
 	path, handler := runnerv1connect.NewRunnerServiceHandler(runner.NewService(runner.ServiceDeps{
@@ -51,7 +44,6 @@ func run(parent context.Context) error {
 		Provider:       runner.NewProviderClient(support),
 		Memory:         runner.NewMemoryClient(support),
 		ToolApproval:   runner.NewToolApprovalClient(support),
-		Browser:        browser,
 		StructuredData: runner.NewStructuredDataClient(support),
 	}))
 	mux.Handle(path, handler)

@@ -12,7 +12,6 @@ import (
 	"github.com/memohai/memoh/internal/boot"
 	"github.com/memohai/memoh/internal/botgroups"
 	"github.com/memohai/memoh/internal/bots"
-	"github.com/memohai/memoh/internal/browsercontexts"
 	"github.com/memohai/memoh/internal/channel"
 	"github.com/memohai/memoh/internal/channel/adapters/local"
 	"github.com/memohai/memoh/internal/channel/identities"
@@ -74,7 +73,6 @@ func options() fx.Option {
 			toolapproval.NewService,
 			provideProvidersService,
 			searchproviders.NewService,
-			browsercontexts.NewService,
 			policy.NewService,
 			mcp.NewConnectionService,
 			conversation.NewService,
@@ -128,7 +126,6 @@ func options() fx.Option {
 			connectapi.NewProviderService,
 			connectapi.NewModelService,
 			connectapi.NewSearchProviderService,
-			connectapi.NewBrowserContextService,
 			connectapi.NewMemoryProviderService,
 			connectapi.NewMemoryService,
 			connectapi.NewChannelService,
@@ -157,7 +154,6 @@ func options() fx.Option {
 			provideServerHandler(connectapi.NewProviderHandler),
 			provideServerHandler(connectapi.NewModelHandler),
 			provideServerHandler(connectapi.NewSearchProviderHandler),
-			provideServerHandler(connectapi.NewBrowserContextHandler),
 			provideServerHandler(connectapi.NewMemoryProviderHandler),
 			provideServerHandler(connectapi.NewMemoryHandler),
 			provideServerHandler(connectapi.NewChannelHandler),
@@ -213,7 +209,6 @@ func options() fx.Option {
 			provideOAuthService,
 			provideServerHandler(handlers.NewTokenUsageHandler),
 			provideServerHandler(handlers.NewSessionInfoHandler),
-			provideServerHandler(handlers.NewBrowserContextsHandler),
 			provideServerHandler(handlers.NewSupermarketHandler),
 			provideServer,
 		),

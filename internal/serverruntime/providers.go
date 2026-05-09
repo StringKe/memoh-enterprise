@@ -22,7 +22,6 @@ import (
 	"github.com/memohai/memoh/internal/boot"
 	"github.com/memohai/memoh/internal/botgroups"
 	"github.com/memohai/memoh/internal/bots"
-	"github.com/memohai/memoh/internal/browsercontexts"
 	"github.com/memohai/memoh/internal/channel"
 	"github.com/memohai/memoh/internal/channel/adapters/local"
 	"github.com/memohai/memoh/internal/channel/catalog"
@@ -415,7 +414,6 @@ func provideChannelRouter(
 	providersService *providers.Service,
 	memProvService *memprovider.Service,
 	searchProvService *searchproviders.Service,
-	browserCtxService *browsercontexts.Service,
 	emailService *emailpkg.Service,
 	emailOutboxService *emailpkg.OutboxService,
 	heartbeatService *heartbeat.Service,
@@ -449,7 +447,6 @@ func provideChannelRouter(
 		providersService,
 		memProvService,
 		searchProvService,
-		browserCtxService,
 		emailService,
 		emailOutboxService,
 		heartbeatService,
